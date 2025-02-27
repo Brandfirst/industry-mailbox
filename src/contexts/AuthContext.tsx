@@ -156,7 +156,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      // First tell Supabase to sign out
+      console.log("Sign out initiated");
+      
+      // Clear local state first
+      setSession(null);
+      setUser(null);
+      setProfileRole(null);
+      
+      // Then tell Supabase to sign out
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -164,18 +171,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      // Clear local state
-      setUser(null);
-      setSession(null);
-      setProfileRole(null);
+      // Redirect after a short delay to ensure state is cleared
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
       
-      // Force a hard reload to clear any cached states
-      window.location.href = '/';
-      
-      return;
     } catch (error) {
       console.error("Sign out error:", error);
-      throw error;
+      
+      // Force sign out even if there was an error with Supabase
+      setSession(null);
+      setUser(null);
+      setProfileRole(null);
+      window.location.href = '/';
     }
   };
 

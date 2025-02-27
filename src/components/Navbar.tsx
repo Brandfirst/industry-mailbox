@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,15 +34,17 @@ const Navbar = () => {
   const activeLink = "text-mint-dark font-medium";
   const inactiveLink = "text-foreground/80 hover:text-foreground transition-colors";
   
-  const handleSignOut = async () => {
+  const handleSignOut = async (e) => {
+    e.preventDefault();
     try {
-      console.log("Sign out initiated");
-      await signOut();
       toast({
-        title: "Logget ut",
-        description: "Du er nå logget ut",
+        title: "Logger ut...",
+        description: "Du blir logget ut av systemet",
       });
-      console.log("Sign out completed");
+      
+      await signOut();
+      
+      // The redirect is handled by the signOut function
     } catch (error) {
       console.error("Error during sign out:", error);
       toast({
@@ -127,7 +128,10 @@ const Navbar = () => {
                     Lagrede nyhetsbrev
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <DropdownMenuItem 
+                    onClick={handleSignOut} 
+                    className="text-red-600"
+                  >
                     <LogOut className="w-4 h-4 mr-2" />
                     Logg ut
                   </DropdownMenuItem>
