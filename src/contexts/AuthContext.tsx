@@ -24,8 +24,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileRole, setProfileRole] = useState<string | null>(null);
 
+  // Derive admin status from both user metadata and profile role
   const isPremium = user?.user_metadata?.premium === true;
   const isAdmin = user?.user_metadata?.role === 'admin' || profileRole === 'admin';
+
+  const fetchProfileRole = async (userId: string) => {
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching profile role:", error);
+        return null;
+      }
+      
+      return profileData?.role || null;
+    } catch (e) {
+      console.error("Exception fetching profile role:", e);
+      return null;
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -33,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Initial session check
     const checkSession = async () => {
       try {
+        setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!mounted) return;
@@ -42,14 +64,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(session.user);
           
           if (session.user) {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
-              
+            const role = await fetchProfileRole(session.user.id);
             if (mounted) {
-              setProfileRole(profileData?.role || null);
+              setProfileRole(role);
             }
           }
         }
@@ -70,18 +87,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (!mounted) return;
 
+      // Set loading state for auth changes
+      setIsLoading(true);
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-          
+        const role = await fetchProfileRole(session.user.id);
         if (mounted) {
-          setProfileRole(profileData?.role || null);
+          setProfileRole(role);
         }
       } else {
         setProfileRole(null);

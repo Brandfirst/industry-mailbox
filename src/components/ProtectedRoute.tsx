@@ -22,9 +22,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <p className="ml-3 text-primary font-medium">Checking authentication...</p>
       </div>
     );
   }
+
+  // Log auth status for debugging
+  console.log('Protected Route Check:', { 
+    requireAuth, 
+    requireAdmin, 
+    userExists: !!user, 
+    isAdmin,
+    pathname: location.pathname
+  });
 
   // If authentication is required and user is not logged in, redirect to login
   if (requireAuth && !user) {
