@@ -157,16 +157,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Sign out initiated");
       
-      // First clear the local state
+      // First call Supabase signOut with scope: 'global' to completely sign out
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        console.error("Error signing out from Supabase:", error);
+      }
+      
+      // Then clear local state
       setUser(null);
       setSession(null);
       setProfileRole(null);
       
-      // Then tell Supabase to sign out
-      await supabase.auth.signOut();
+      // Clear any possible stored tokens manually
+      localStorage.removeItem('supabase.auth.token');
       
-      // Finally redirect to home page
-      window.location.href = '/';
+      // Use a small delay to ensure all state updates have been processed
+      // before redirecting to avoid UI flashes
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
+      
     } catch (error) {
       console.error("Sign out error:", error);
       
@@ -174,6 +185,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setSession(null);
       setProfileRole(null);
+      localStorage.removeItem('supabase.auth.token');
       window.location.href = '/';
     }
   };
