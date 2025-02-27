@@ -14,7 +14,7 @@ export const supabase = createClient(
 );
 
 export type Newsletter = {
-  id: string;
+  id: number;
   title: string;
   sender: string;
   industry: string;
@@ -22,6 +22,13 @@ export type Newsletter = {
   content: string;
   created_at: string;
   published_at: string;
+}
+
+export type Category = {
+  id: number;
+  name: string;
+  slug: string;
+  created_at: string;
 }
 
 export async function getNewsletters({ 
@@ -58,7 +65,21 @@ export async function getNewsletters({
   return data;
 }
 
-export async function saveNewsletter(userId: string, newsletterId: string) {
+export async function getCategories() {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('name');
+
+  if (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function saveNewsletter(userId: string, newsletterId: number) {
   const { data, error } = await supabase
     .from('saved_newsletters')
     .insert([
@@ -73,7 +94,7 @@ export async function saveNewsletter(userId: string, newsletterId: string) {
   return data;
 }
 
-export async function unsaveNewsletter(userId: string, newsletterId: string) {
+export async function unsaveNewsletter(userId: string, newsletterId: number) {
   const { data, error } = await supabase
     .from('saved_newsletters')
     .delete()
@@ -87,17 +108,97 @@ export async function unsaveNewsletter(userId: string, newsletterId: string) {
   return data;
 }
 
-export async function isNewsletterSaved(userId: string, newsletterId: string) {
+export async function isNewsletterSaved(userId: string, newsletterId: number) {
   const { data, error } = await supabase
     .from('saved_newsletters')
     .select('*')
     .match({ user_id: userId, newsletter_id: newsletterId })
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') { // PGRST116 is the error code for no rows returned
+  if (error) {
     console.error('Error checking if newsletter is saved:', error);
     throw error;
   }
 
   return !!data;
+}
+
+export async function getSavedNewsletters(userId: string) {
+  const { data, error } = await supabase
+    .from('saved_newsletters')
+    .select(`
+      id,
+      newsletter_id,
+      newsletters:newsletter_id (*)
+    `)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching saved newsletters:', error);
+    throw error;
+  }
+
+  // Extract the actual newsletter objects
+  return data.map(item => item.newsletters);
+}
+
+export async function getNewsletter(id: number) {
+  const { data, error } = await supabase
+    .from('newsletters')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching newsletter:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Admin functions
+export async function createNewsletter(newsletter: Omit<Newsletter, 'id' | 'created_at'>) {
+  const { data, error } = await supabase
+    .from('newsletters')
+    .insert([newsletter])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating newsletter:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function updateNewsletter(id: number, newsletter: Partial<Omit<Newsletter, 'id' | 'created_at'>>) {
+  const { data, error } = await supabase
+    .from('newsletters')
+    .update(newsletter)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating newsletter:', error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function deleteNewsletter(id: number) {
+  const { error } = await supabase
+    .from('newsletters')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting newsletter:', error);
+    throw error;
+  }
+
+  return true;
 }
