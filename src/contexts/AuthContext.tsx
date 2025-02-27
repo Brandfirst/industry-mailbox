@@ -30,7 +30,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    const setData = async () => {
+    // Initial session check
+    const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
@@ -51,13 +52,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setProfileRole(profileData?.role || null);
             }
           }
-        } else {
-          setSession(null);
-          setUser(null);
-          setProfileRole(null);
         }
       } catch (error) {
-        console.error("Error loading session:", error);
+        console.error("Error checking session:", error);
       } finally {
         if (mounted) {
           setIsLoading(false);
@@ -65,8 +62,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    setData();
+    checkSession();
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session ? "session exists" : "no session");
       
@@ -101,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -111,7 +110,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { success: false, error: error.message };
       }
 
-      // Don't set isLoading to false here, as the auth state change will do that
       return { success: true };
     } catch (error) {
       console.error("Sign in error:", error);
@@ -159,32 +157,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Sign out initiated");
       
-      // Tell Supabase to sign out (this will remove cookies and other storage)
-      const { error } = await supabase.auth.signOut({
-        scope: 'global' // This ensures a complete sign out from all devices
-      });
-      
-      if (error) {
-        console.error("Error signing out:", error);
-        throw error;
-      }
-      
-      // Clear our local React state
-      setSession(null);
+      // First clear the local state
       setUser(null);
+      setSession(null);
       setProfileRole(null);
       
-      // Navigate to homepage
-      window.location.href = '/';
+      // Then tell Supabase to sign out
+      await supabase.auth.signOut();
       
+      // Finally redirect to home page
+      window.location.href = '/';
     } catch (error) {
       console.error("Sign out error:", error);
       
-      // Force sign out even if there was an error with Supabase
-      setSession(null);
+      // Force clear state and redirect anyway
       setUser(null);
+      setSession(null);
       setProfileRole(null);
-      localStorage.removeItem('supabase.auth.token'); // Force remove any persisted token
       window.location.href = '/';
     }
   };

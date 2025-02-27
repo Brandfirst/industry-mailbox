@@ -28,21 +28,21 @@ const Auth = () => {
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
   useEffect(() => {
-    // Only redirect if we have a user and initial loading is complete
+    // If user is logged in, redirect to search page
     if (user && !authLoading) {
       navigate("/search");
     }
   }, [user, authLoading, navigate]);
 
-  // Show loading state conditionally based on both authLoading and isSubmitting
-  if ((authLoading && isSubmitting) || (authLoading && !isSubmitting && user)) {
+  // Show loading screen during authentication loading
+  if (authLoading) {
     return (
       <div className="container max-w-md mx-auto py-8">
         <Card>
           <CardHeader>
             <CardTitle>Laster...</CardTitle>
             <CardDescription>
-              Vennligst vent mens vi verifiserer din innlogging.
+              Vennligst vent mens vi laster siden.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center p-6">
@@ -66,7 +66,6 @@ const Auth = () => {
             title: "Velkommen tilbake!",
             description: "Du er nå logget inn.",
           });
-          // Navigation is handled in useEffect when user state changes
         } else {
           setError(error || "Kunne ikke logge inn. Prøv igjen.");
           toast({
@@ -74,7 +73,6 @@ const Auth = () => {
             title: "Feil ved innlogging",
             description: error || "Kunne ikke logge inn. Prøv igjen.",
           });
-          setIsSubmitting(false);
         }
       } else {
         const { success, error } = await signUp(formData.email, formData.password, {
@@ -87,7 +85,6 @@ const Auth = () => {
             title: "Konto opprettet!",
             description: "En bekreftelseslenke er sendt til din e-postadresse. Vennligst bekreft e-posten din for å logge inn.",
           });
-          setIsSubmitting(false);
         } else {
           setError(error || "Kunne ikke opprette konto. Prøv igjen.");
           toast({
@@ -95,7 +92,6 @@ const Auth = () => {
             title: "Feil ved registrering",
             description: error || "Kunne ikke opprette konto. Prøv igjen.",
           });
-          setIsSubmitting(false);
         }
       }
     } catch (error) {
@@ -106,6 +102,7 @@ const Auth = () => {
         title: "En feil har oppstått",
         description: "Kunne ikke fullføre forespørselen. Prøv igjen senere.",
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
