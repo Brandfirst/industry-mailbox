@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,11 +36,22 @@ const Navbar = () => {
   const inactiveLink = "text-foreground/80 hover:text-foreground transition-colors";
   
   const handleSignOut = async () => {
-    await signOut();
-    toast({
-      title: "Logget ut",
-      description: "Du er nå logget ut",
-    });
+    try {
+      console.log("Sign out initiated");
+      await signOut();
+      toast({
+        title: "Logget ut",
+        description: "Du er nå logget ut",
+      });
+      console.log("Sign out completed");
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      toast({
+        title: "Feil ved utlogging",
+        description: "Kunne ikke logge ut. Prøv igjen.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
