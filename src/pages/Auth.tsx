@@ -27,12 +27,31 @@ const Auth = () => {
   const [error, setError] = useState<string | null>(null);
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
-  // Redirect if user is already logged in
   useEffect(() => {
+    // Only redirect if we have a user and initial loading is complete
     if (user && !authLoading) {
       navigate("/search");
     }
   }, [user, authLoading, navigate]);
+
+  // Don't show loading state during initial page load
+  if (authLoading && isSubmitting) {
+    return (
+      <div className="container max-w-md mx-auto py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Laster...</CardTitle>
+            <CardDescription>
+              Vennligst vent mens vi verifiserer din innlogging.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center p-6">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +66,6 @@ const Auth = () => {
             title: "Velkommen tilbake!",
             description: "Du er nå logget inn.",
           });
-          navigate("/search");
         } else {
           setError(error || "Kunne ikke logge inn. Prøv igjen.");
           toast({

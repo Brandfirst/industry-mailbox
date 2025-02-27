@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
@@ -24,22 +23,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileRole, setProfileRole] = useState<string | null>(null);
 
-  // Update these getters to check role in multiple places
   const isPremium = user?.user_metadata?.premium === true;
-  
-  // Check for admin role in both user metadata and profiles table
   const isAdmin = user?.user_metadata?.role === 'admin' || profileRole === 'admin';
 
   useEffect(() => {
+    let mounted = true;
+
     const setData = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
+        if (!mounted) return;
+
         if (session) {
           setSession(session);
           setUser(session.user);
           
-          // Also check the profiles table for role information
           if (session.user) {
             const { data: profileData } = await supabase
               .from('profiles')
@@ -47,26 +46,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .eq('id', session.user.id)
               .single();
               
-            setProfileRole(profileData?.role || null);
+            if (mounted) {
+              setProfileRole(profileData?.role || null);
+            }
           }
+        } else {
+          setSession(null);
+          setUser(null);
+          setProfileRole(null);
         }
       } catch (error) {
         console.error("Error loading session:", error);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    // Set initial data
     setData();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("Auth state changed:", _event, session ? "session exists" : "no session");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session ? "session exists" : "no session");
+      
+      if (!mounted) return;
+
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Update profile role when auth changes
       if (session?.user) {
         const { data: profileData } = await supabase
           .from('profiles')
@@ -74,7 +81,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .eq('id', session.user.id)
           .single();
           
-        setProfileRole(profileData?.role || null);
+        if (mounted) {
+          setProfileRole(profileData?.role || null);
+        }
       } else {
         setProfileRole(null);
       }
@@ -83,12 +92,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -105,6 +116,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         success: false, 
         error: error instanceof Error ? error.message : "An unexpected error occurred" 
       };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -142,14 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      console.log("Signing out...");
-      
-      // First clear local state
-      setUser(null);
-      setSession(null);
-      setProfileRole(null);
-      
-      // Then sign out from Supabase
+      setIsLoading(true);
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -157,17 +163,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      console.log("Signed out successfully");
+      setUser(null);
+      setSession(null);
+      setProfileRole(null);
       
-      // Hard navigation to home page
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
-      
+      window.location.href = '/';
     } catch (error) {
       console.error("Sign out error:", error);
-      // Re-throw the error so it can be caught by the caller
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
