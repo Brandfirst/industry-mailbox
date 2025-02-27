@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
+import Saved from "./pages/Saved";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -44,7 +46,15 @@ const App = () => (
               path="/saved" 
               element={
                 <ProtectedRoute>
-                  <NotFound />
+                  <Saved />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/account" 
+              element={
+                <ProtectedRoute>
+                  <Account />
                 </ProtectedRoute>
               } 
             />
