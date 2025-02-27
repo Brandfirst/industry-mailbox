@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Bookmark, BookmarkCheck, Mail } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { saveNewsletter, unsaveNewsletter, isNewsletterSaved } from "@/lib/supabase";
 
 interface NewsletterProps {
   id: string;
@@ -33,10 +34,27 @@ const NewsletterCard = ({
   date
 }: NewsletterProps) => {
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { user, isPremium } = useAuth();
   const navigate = useNavigate();
   
-  const handleSave = () => {
+  useEffect(() => {
+    // Check if this newsletter is saved for the current user
+    const checkSavedStatus = async () => {
+      if (user) {
+        try {
+          const isSaved = await isNewsletterSaved(user.id, id);
+          setSaved(isSaved);
+        } catch (error) {
+          console.error("Error checking saved status:", error);
+        }
+      }
+    };
+    
+    checkSavedStatus();
+  }, [user, id]);
+  
+  const handleSave = async () => {
     if (!user) {
       toast.error("Please sign in to save newsletters", {
         action: {
@@ -58,11 +76,23 @@ const NewsletterCard = ({
       return;
     }
     
-    setSaved(!saved);
-    if (!saved) {
-      toast.success("Newsletter saved to your collection");
-    } else {
-      toast.info("Newsletter removed from your collection");
+    try {
+      setIsSaving(true);
+      
+      if (!saved) {
+        await saveNewsletter(user.id, id);
+        toast.success("Newsletter saved to your collection");
+      } else {
+        await unsaveNewsletter(user.id, id);
+        toast.info("Newsletter removed from your collection");
+      }
+      
+      setSaved(!saved);
+    } catch (error) {
+      toast.error("Failed to update saved status");
+      console.error("Error updating saved status:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -86,6 +116,7 @@ const NewsletterCard = ({
                 size="icon"
                 onClick={handleSave}
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                disabled={isSaving}
               >
                 {saved ? (
                   <BookmarkCheck className="h-5 w-5 text-primary" />
@@ -107,7 +138,7 @@ const NewsletterCard = ({
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
         <span className="text-xs text-muted-foreground">
-          {formatDistanceToNow(date, { addSuffix: true })}
+          {formatDistanceToNow(new Date(date), { addSuffix: true })}
         </span>
         <Button 
           variant="ghost" 

@@ -6,100 +6,25 @@ import Navbar from "@/components/Navbar";
 import SearchBar from "@/components/SearchBar";
 import FilterBar from "@/components/FilterBar";
 import NewsletterCard from "@/components/NewsletterCard";
-
-// Mock newsletter data
-const mockNewsletters = [
-  {
-    id: "1",
-    title: "The Future of AI in Marketing: Trends to Watch",
-    sender: "MarketingWeekly",
-    industry: "Marketing",
-    preview: "AI is transforming how marketers connect with their audiences. Here are the key trends to watch in the coming year...",
-    date: new Date(2023, 4, 15)
-  },
-  {
-    id: "2",
-    title: "Decoding the Latest Tech IPOs",
-    sender: "TechInsider",
-    industry: "Technology",
-    preview: "This week saw several major tech companies go public. We break down what this means for the industry and investors...",
-    date: new Date(2023, 5, 20)
-  },
-  {
-    id: "3",
-    title: "Healthcare Innovation Report: Q2 2023",
-    sender: "HealthTech Today",
-    industry: "Healthcare",
-    preview: "Our quarterly report on innovations in healthcare technology, including breakthroughs in telemedicine and AI diagnostics...",
-    date: new Date(2023, 6, 5)
-  },
-  {
-    id: "4",
-    title: "Financial Markets: Mid-Year Overview",
-    sender: "Finance Daily",
-    industry: "Finance",
-    preview: "A comprehensive look at the financial markets halfway through the year, with projections for the remainder of 2023...",
-    date: new Date(2023, 6, 15)
-  },
-  {
-    id: "5",
-    title: "UX Design Principles for SaaS Products",
-    sender: "Design Weekly",
-    industry: "Design",
-    preview: "Learn the key UX design principles that are driving success for leading SaaS products in today's competitive market...",
-    date: new Date(2023, 7, 1)
-  },
-  {
-    id: "6",
-    title: "Education Technology Trends for 2023",
-    sender: "EduTech Review",
-    industry: "Education",
-    preview: "From AI-powered tutoring to immersive learning experiences, these are the edtech trends reshaping education in 2023...",
-    date: new Date(2023, 7, 10)
-  }
-];
+import { getNewsletters, Newsletter } from "@/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
-  const [filteredNewsletters, setFilteredNewsletters] = useState(mockNewsletters);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   
   useEffect(() => {
     document.title = "Search Newsletters | NewsletterHub";
   }, []);
 
-  useEffect(() => {
-    // Simulate API call with loading state
-    setIsLoading(true);
-    
-    const timer = setTimeout(() => {
-      let results = [...mockNewsletters];
-      
-      // Filter by search query
-      if (searchQuery) {
-        results = results.filter(
-          newsletter => 
-            newsletter.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            newsletter.preview.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            newsletter.sender.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-      
-      // Filter by selected industries
-      if (selectedIndustries.length > 0) {
-        results = results.filter(newsletter => 
-          selectedIndustries.includes(newsletter.industry)
-        );
-      }
-      
-      setFilteredNewsletters(results);
-      setIsLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [searchQuery, selectedIndustries]);
+  const { data: newsletters, isLoading, error } = useQuery({
+    queryKey: ['newsletters', searchQuery, selectedIndustries],
+    queryFn: () => getNewsletters({ 
+      searchQuery, 
+      industries: selectedIndustries 
+    }),
+  });
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -143,9 +68,23 @@ const Search = () => {
                 </div>
               ))}
             </div>
-          ) : filteredNewsletters.length > 0 ? (
+          ) : error ? (
+            <div className="text-center py-16 bg-white rounded-lg border border-border">
+              <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Error loading newsletters</h3>
+              <p className="text-muted-foreground mb-4">
+                {error instanceof Error ? error.message : "Something went wrong. Please try again."}
+              </p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="text-primary hover:text-mint-dark underline"
+              >
+                Refresh page
+              </button>
+            </div>
+          ) : newsletters && newsletters.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredNewsletters.map(newsletter => (
+              {newsletters.map((newsletter: Newsletter) => (
                 <NewsletterCard
                   key={newsletter.id}
                   id={newsletter.id}
@@ -153,7 +92,7 @@ const Search = () => {
                   sender={newsletter.sender}
                   industry={newsletter.industry}
                   preview={newsletter.preview}
-                  date={newsletter.date}
+                  date={new Date(newsletter.published_at)}
                 />
               ))}
             </div>
