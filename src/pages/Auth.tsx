@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode") || "signin";
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -23,22 +24,32 @@ const Auth = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/search");
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     
     try {
       if (mode === "signin") {
         const { success, error } = await signIn(formData.email, formData.password);
         if (success) {
-          navigate("/search");
           toast({
             title: "Velkommen tilbake!",
             description: "Du er nå logget inn.",
           });
+          navigate("/search");
         } else {
+          setError(error || "Kunne ikke logge inn. Prøv igjen.");
           toast({
             variant: "destructive",
             title: "Feil ved innlogging",
@@ -57,6 +68,7 @@ const Auth = () => {
             description: "En bekreftelseslenke er sendt til din e-postadresse. Vennligst bekreft e-posten din for å logge inn.",
           });
         } else {
+          setError(error || "Kunne ikke opprette konto. Prøv igjen.");
           toast({
             variant: "destructive",
             title: "Feil ved registrering",
@@ -65,6 +77,8 @@ const Auth = () => {
         }
       }
     } catch (error) {
+      console.error("Auth error:", error);
+      setError("En uventet feil oppstod. Prøv igjen senere.");
       toast({
         variant: "destructive",
         title: "En feil har oppstått",
@@ -107,6 +121,24 @@ const Auth = () => {
     );
   }
 
+  if (authLoading) {
+    return (
+      <div className="container max-w-md mx-auto py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Laster...</CardTitle>
+            <CardDescription>
+              Vennligst vent mens vi verifiserer din innlogging.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center p-6">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container max-w-md mx-auto py-8">
       <Card>
@@ -119,6 +151,13 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md flex items-start">
+              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "signup" && (
               <>
