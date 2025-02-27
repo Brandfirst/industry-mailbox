@@ -14,6 +14,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminStats from "@/components/AdminStats";
+import ConnectEmail from "@/components/ConnectEmail";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Sidebar = ({ activeTab, setActiveTab }: { 
   activeTab: string; 
@@ -69,6 +71,7 @@ const Sidebar = ({ activeTab, setActiveTab }: {
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { signOut } = useAuth();
   
   useEffect(() => {
     document.title = "Admin Dashboard | NewsletterHub";
@@ -82,6 +85,10 @@ const Admin = () => {
     { id: "4", title: "Healthcare Policy Updates", sender: "MedicalDaily", category: "Healthcare", date: "1 day ago" },
     { id: "5", title: "Crypto Market Analysis", sender: "CoinDesk", category: "Finance", date: "2 days ago" },
   ];
+  
+  const handleLogout = async () => {
+    await signOut();
+  };
   
   return (
     <div className="min-h-screen bg-background">
@@ -139,16 +146,7 @@ const Admin = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg border border-border p-6">
-                <h2 className="text-lg font-medium mb-4">Connect Email Account</h2>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Connect your Gmail account to automatically fetch and archive newsletters.
-                </p>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Connect Account
-                </Button>
-              </div>
+              <ConnectEmail />
               
               <div className="bg-white rounded-lg border border-border p-6">
                 <h2 className="text-lg font-medium mb-4">Quick Actions</h2>

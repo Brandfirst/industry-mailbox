@@ -38,6 +38,18 @@ export type Category = {
   created_at: string;
 }
 
+export type EmailAccount = {
+  id: string;
+  user_id: string;
+  email: string;
+  provider: string;
+  access_token: string;
+  refresh_token: string;
+  created_at: string;
+  last_sync: string | null;
+  is_connected: boolean;
+}
+
 export async function getNewsletters({ 
   searchQuery = '', 
   industries = [] 
@@ -307,5 +319,104 @@ export async function deleteNewsletter(id: number) {
   } catch (error) {
     console.error('Error in deleteNewsletter:', error);
     return false;
+  }
+}
+
+// Email account integration functions
+export async function getUserEmailAccounts(userId: string) {
+  try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot fetch email accounts.');
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('email_accounts')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error fetching email accounts:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error in getUserEmailAccounts:', error);
+    return [];
+  }
+}
+
+export async function connectGoogleEmail(userId: string, authCode: string) {
+  try {
+    // Call the Supabase Edge Function to handle the OAuth token exchange
+    const { data, error } = await supabase.functions.invoke('connect-gmail', {
+      body: {
+        userId,
+        authCode
+      }
+    });
+
+    if (error) {
+      console.error('Error connecting Gmail account:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in connectGoogleEmail:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "An unexpected error occurred" 
+    };
+  }
+}
+
+export async function disconnectEmailAccount(accountId: string) {
+  try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot disconnect email account.');
+      return { success: false };
+    }
+
+    const { error } = await supabase
+      .from('email_accounts')
+      .update({ is_connected: false })
+      .eq('id', accountId);
+
+    if (error) {
+      console.error('Error disconnecting email account:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in disconnectEmailAccount:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "An unexpected error occurred" 
+    };
+  }
+}
+
+export async function syncEmailAccount(accountId: string) {
+  try {
+    // Call the Supabase Edge Function to trigger email sync
+    const { data, error } = await supabase.functions.invoke('sync-emails', {
+      body: { accountId }
+    });
+
+    if (error) {
+      console.error('Error syncing email account:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in syncEmailAccount:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "An unexpected error occurred" 
+    };
   }
 }
