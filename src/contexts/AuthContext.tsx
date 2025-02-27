@@ -22,10 +22,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileRole, setProfileRole] = useState<string | null>(null);
 
-  // Update these getters to explicitly check role value
+  // Update these getters to check role in multiple places
   const isPremium = user?.user_metadata?.premium === true;
-  const isAdmin = user?.user_metadata?.role === 'admin';
+  
+  // Check for admin role in both user metadata and profiles table
+  const isAdmin = user?.user_metadata?.role === 'admin' || profileRole === 'admin';
 
   useEffect(() => {
     const setData = async () => {
@@ -36,13 +39,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setSession(session);
           setUser(session.user);
           
-          // Debug log to check user data
-          console.log('Auth Debug:', {
-            user: session.user,
-            isAdmin: session.user?.user_metadata?.role === 'admin',
-            userMetadata: session.user?.user_metadata,
-            role: session.user?.user_metadata?.role
-          });
+          // Also check the profiles table for role information
+          if (session.user) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single();
+              
+            setProfileRole(profileData?.role || null);
+            
+            // Debug log to check user data from both sources
+            console.log('Auth Debug:', {
+              user: session.user,
+              isAdmin: session.user?.user_metadata?.role === 'admin' || profileData?.role === 'admin',
+              userMetadata: session.user?.user_metadata,
+              metadataRole: session.user?.user_metadata?.role,
+              profileRole: profileData?.role
+            });
+          }
         }
       } catch (error) {
         console.error("Error loading session:", error);
@@ -55,9 +70,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setData();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Update profile role when auth changes
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+          
+        setProfileRole(profileData?.role || null);
+      } else {
+        setProfileRole(null);
+      }
+      
       setIsLoading(false);
     });
 
