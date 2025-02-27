@@ -57,18 +57,72 @@ export type Database = {
         }
         Relationships: []
       }
-      newsletters: {
+      email_accounts: {
         Row: {
-          created_at: string
-          id: number
+          access_token: string
+          created_at: string | null
+          email: string
+          id: string
+          is_connected: boolean | null
+          last_sync: string | null
+          provider: string
+          refresh_token: string | null
+          user_id: string
         }
         Insert: {
-          created_at?: string
-          id?: number
+          access_token: string
+          created_at?: string | null
+          email: string
+          id?: string
+          is_connected?: boolean | null
+          last_sync?: string | null
+          provider: string
+          refresh_token?: string | null
+          user_id: string
         }
         Update: {
+          access_token?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_connected?: boolean | null
+          last_sync?: string | null
+          provider?: string
+          refresh_token?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      newsletters: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: number
+          industry: string | null
+          preview: string | null
+          published_at: string | null
+          sender: string | null
+          title: string | null
+        }
+        Insert: {
+          content?: string | null
           created_at?: string
           id?: number
+          industry?: string | null
+          preview?: string | null
+          published_at?: string | null
+          sender?: string | null
+          title?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: number
+          industry?: string | null
+          preview?: string | null
+          published_at?: string | null
+          sender?: string | null
+          title?: string | null
         }
         Relationships: []
       }
