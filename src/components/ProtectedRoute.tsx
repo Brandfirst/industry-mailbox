@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requireAdmin = false
 }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const location = useLocation();
 
   // If still loading auth state, show nothing or a loading spinner
@@ -31,8 +31,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={`/auth?mode=signin&redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  // If admin access is required, check for admin role (would need to be in user metadata)
-  if (requireAdmin && (!user || user.user_metadata.role !== 'admin')) {
+  // If admin access is required, check for admin role
+  if (requireAdmin && !isAdmin) {
+    console.log('Admin access denied:', { user, isAdmin });
     return <Navigate to="/search" replace />;
   }
 

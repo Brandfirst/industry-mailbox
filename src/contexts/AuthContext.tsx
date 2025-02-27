@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simple getters for user properties
+  // Update these getters to explicitly check role value
   const isPremium = user?.user_metadata?.premium === true;
   const isAdmin = user?.user_metadata?.role === 'admin';
 
@@ -35,6 +35,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session) {
           setSession(session);
           setUser(session.user);
+          
+          // Debug log to check user data
+          console.log('Auth Debug:', {
+            user: session.user,
+            isAdmin: session.user?.user_metadata?.role === 'admin',
+            userMetadata: session.user?.user_metadata,
+            role: session.user?.user_metadata?.role
+          });
         }
       } catch (error) {
         console.error("Error loading session:", error);
