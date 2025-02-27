@@ -1,8 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { Users, Mail, Database, TrendingUp } from "lucide-react";
+import { Users, Mail, Database, TrendingUp, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StatsCardProps {
   title: string;
@@ -11,6 +13,7 @@ interface StatsCardProps {
   icon: React.ElementType;
   change?: number;
   trend?: "up" | "down" | "neutral";
+  isLoading?: boolean;
 }
 
 const StatsCard = ({ 
@@ -19,7 +22,8 @@ const StatsCard = ({
   description, 
   icon: Icon,
   change,
-  trend = "neutral"
+  trend = "neutral",
+  isLoading = false
 }: StatsCardProps) => {
   const trendColor = trend === "up" 
     ? "text-green-500" 
@@ -34,32 +38,150 @@ const StatsCard = ({
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <CardDescription className="flex items-center mt-1 text-xs">
-          {description}
-          {change !== undefined && (
-            <span className={`ml-2 flex items-center ${trendColor}`}>
-              {trend === "up" && "↑"}
-              {trend === "down" && "↓"}
-              {change}%
-            </span>
-          )}
-        </CardDescription>
+        {isLoading ? (
+          <div className="h-8 bg-gray-200 animate-pulse rounded"></div>
+        ) : (
+          <>
+            <div className="text-2xl font-bold">{value}</div>
+            <CardDescription className="flex items-center mt-1 text-xs">
+              {description}
+              {change !== undefined && (
+                <span className={`ml-2 flex items-center ${trendColor}`}>
+                  {trend === "up" && "↑"}
+                  {trend === "down" && "↓"}
+                  {change}%
+                </span>
+              )}
+            </CardDescription>
+          </>
+        )}
       </CardContent>
     </Card>
   );
 };
 
+interface AdminStatsType {
+  totalUsers: number;
+  premiumUsers: number;
+  totalNewsletters: number;
+  storageUsed: string;
+  newUsers: number;
+  activeUsers: number;
+  premiumConversion: string;
+  newNewslettersPastWeek: number;
+  categories: number;
+  uncategorized: number;
+}
+
 const AdminStats = () => {
-  // Mock data - would be replaced with real API calls
-  const stats = {
-    totalUsers: 1248,
-    premiumUsers: 342,
-    totalNewsletters: 8453,
-    newNewslettersPastWeek: 234,
-    storageUsed: "12.6 GB",
-    categories: 18
+  const { user, isAdmin } = useAuth();
+  const [stats, setStats] = useState<AdminStatsType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user || !isAdmin) {
+        setError("You don't have admin access");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        
+        // Fetch the latest stats from admin_stats table
+        const { data: statsData, error: statsError } = await supabase
+          .from('admin_stats')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (statsError) {
+          console.error("Error fetching admin stats:", statsError);
+          throw new Error(statsError.message);
+        }
+
+        // Fetch additional data that isn't stored in the stats table
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('count', { count: 'exact' });
+          
+        if (categoriesError) {
+          console.error("Error fetching categories:", categoriesError);
+          throw new Error(categoriesError.message);
+        }
+        
+        // Fetch weekly newsletters count
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        const { data: weeklyNewsletters, error: weeklyNewslettersError } = await supabase
+          .from('newsletters')
+          .select('count', { count: 'exact' })
+          .gte('created_at', oneWeekAgo.toISOString());
+          
+        if (weeklyNewslettersError) {
+          console.error("Error fetching weekly newsletters:", weeklyNewslettersError);
+          throw new Error(weeklyNewslettersError.message);
+        }
+
+        // For now, use some calculated or default values for data we don't have yet
+        const categoriesCount = categoriesData.length || 0;
+        const weeklyNewslettersCount = weeklyNewsletters.length || 0;
+        
+        const formattedStats: AdminStatsType = {
+          totalUsers: statsData?.total_users || 0,
+          premiumUsers: statsData?.premium_users || 0,
+          totalNewsletters: statsData?.total_newsletters || 0,
+          storageUsed: formatBytes(statsData?.storage_used || 0),
+          newUsers: Math.floor(statsData?.total_users * 0.12) || 0, // Placeholder: 12% of total
+          activeUsers: Math.floor(statsData?.total_users * 0.76) || 0, // Placeholder: 76% of total
+          premiumConversion: statsData?.premium_users ? 
+            `${((statsData.premium_users / statsData.total_users) * 100).toFixed(1)}%` : 
+            "0%",
+          newNewslettersPastWeek: weeklyNewslettersCount,
+          categories: categoriesCount,
+          uncategorized: Math.floor(statsData?.total_newsletters * 0.05) || 0 // Placeholder: 5% of total
+        };
+        
+        setStats(formattedStats);
+      } catch (err) {
+        console.error("Error in fetchStats:", err);
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+    
+    // Update stats automatically every 5 minutes
+    const intervalId = setInterval(fetchStats, 5 * 60 * 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [user, isAdmin]);
+
+  // Helper function to format bytes to human-readable format
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-700 flex items-center">
+        <AlertTriangle className="h-5 w-5 mr-2" />
+        <span>{error}</span>
+      </div>
+    );
+  }
 
   return (
     <Tabs defaultValue="overview" className="w-full">
@@ -73,33 +195,37 @@ const AdminStats = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total Users"
-            value={stats.totalUsers}
+            value={stats?.totalUsers || 0}
             description="All registered users"
             icon={Users}
             change={8.2}
             trend="up"
+            isLoading={isLoading}
           />
           <StatsCard
             title="Premium Users"
-            value={stats.premiumUsers}
-            description={`${((stats.premiumUsers / stats.totalUsers) * 100).toFixed(1)}% of total`}
+            value={stats?.premiumUsers || 0}
+            description={stats ? `${((stats.premiumUsers / stats.totalUsers) * 100).toFixed(1)}% of total` : "0% of total"}
             icon={Users}
             change={5.1}
             trend="up"
+            isLoading={isLoading}
           />
           <StatsCard
             title="Total Newsletters"
-            value={stats.totalNewsletters}
+            value={stats?.totalNewsletters || 0}
             description="Archived newsletters"
             icon={Mail}
             change={12.5}
             trend="up"
+            isLoading={isLoading}
           />
           <StatsCard
             title="Storage Used"
-            value={stats.storageUsed}
+            value={stats?.storageUsed || "0 KB"}
             description="Database storage"
             icon={Database}
+            isLoading={isLoading}
           />
         </div>
       </TabsContent>
@@ -108,27 +234,30 @@ const AdminStats = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <StatsCard
             title="New Users (Week)"
-            value="156"
+            value={stats?.newUsers || 0}
             description="New registrations"
             icon={Users}
             change={3.2}
             trend="up"
+            isLoading={isLoading}
           />
           <StatsCard
             title="Active Users"
-            value="892"
+            value={stats?.activeUsers || 0}
             description="Last 30 days"
             icon={Users}
             change={1.8}
             trend="up"
+            isLoading={isLoading}
           />
           <StatsCard
             title="Premium Conversion"
-            value="27.4%"
+            value={stats?.premiumConversion || "0%"}
             description="Conversion rate"
             icon={TrendingUp}
             change={0.5}
             trend="down"
+            isLoading={isLoading}
           />
         </div>
       </TabsContent>
@@ -137,27 +266,30 @@ const AdminStats = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <StatsCard
             title="New Newsletters"
-            value={stats.newNewslettersPastWeek}
+            value={stats?.newNewslettersPastWeek || 0}
             description="Last 7 days"
             icon={Mail}
             change={5.3}
             trend="up"
+            isLoading={isLoading}
           />
           <StatsCard
             title="Categories"
-            value={stats.categories}
+            value={stats?.categories || 0}
             description="Industry categories"
             icon={Database}
             change={2}
             trend="up"
+            isLoading={isLoading}
           />
           <StatsCard
             title="Uncategorized"
-            value="126"
+            value={stats?.uncategorized || 0}
             description="Needs review"
             icon={Mail}
             change={12}
             trend="down"
+            isLoading={isLoading}
           />
         </div>
       </TabsContent>

@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_stats: {
+        Row: {
+          created_at: string
+          id: number
+          premium_users: number
+          stats_date: string
+          storage_used: number
+          total_newsletters: number
+          total_users: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          premium_users?: number
+          stats_date?: string
+          storage_used?: number
+          total_newsletters?: number
+          total_users?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          premium_users?: number
+          stats_date?: string
+          storage_used?: number
+          total_newsletters?: number
+          total_users?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -118,7 +151,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_admin_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
