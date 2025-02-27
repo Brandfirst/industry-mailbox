@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Mail, User, Menu, X, LogOut } from "lucide-react";
+import { Search, Mail, User, Menu, X, LogOut, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isPremium, signOut } = useAuth();
+  const { user, isPremium, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -66,6 +66,15 @@ const Navbar = () => {
               Lagret
             </Link>
           )}
+          {isAdmin && (
+            <Link 
+              to="/admin" 
+              className={`${location.pathname === '/admin' ? activeLink : inactiveLink} animate-enter flex items-center`}
+            >
+              <Shield className="w-4 h-4 mr-1" />
+              Admin
+            </Link>
+          )}
           {user ? (
             <div className="flex items-center gap-4">
               {!isPremium && (
@@ -88,8 +97,9 @@ const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate('/account')}>
                     Min konto
                   </DropdownMenuItem>
-                  {user.user_metadata.role === 'admin' && (
+                  {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Shield className="w-4 h-4 mr-2" />
                       Admin panel
                     </DropdownMenuItem>
                   )}
@@ -158,6 +168,16 @@ const Navbar = () => {
                 Lagret
               </Link>
             )}
+            {isAdmin && (
+              <Link 
+                to="/admin" 
+                className={`${location.pathname === '/admin' ? activeLink : inactiveLink} py-2 flex items-center`}
+                onClick={toggleMenu}
+              >
+                <Shield className="w-4 h-4 mr-1" />
+                Admin
+              </Link>
+            )}
             {user ? (
               <div className="flex flex-col gap-2 pt-2 border-t">
                 {!isPremium && (
@@ -177,7 +197,7 @@ const Navbar = () => {
                   Min konto
                 </Button>
                 
-                {user.user_metadata.role === 'admin' && (
+                {isAdmin && (
                   <Button 
                     variant="outline" 
                     className="w-full"
@@ -186,6 +206,7 @@ const Navbar = () => {
                       toggleMenu();
                     }}
                   >
+                    <Shield className="w-4 h-4 mr-2" />
                     Admin panel
                   </Button>
                 )}
