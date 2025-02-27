@@ -87,7 +87,7 @@ const Search = () => {
               {newsletters.map((newsletter: Newsletter) => (
                 <NewsletterCard
                   key={newsletter.id}
-                  id={newsletter.id}
+                  id={newsletter.id} // This now correctly uses a number
                   title={newsletter.title}
                   sender={newsletter.sender}
                   industry={newsletter.industry}

@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { saveNewsletter, unsaveNewsletter, isNewsletterSaved } from "@/lib/supabase";
 
 interface NewsletterProps {
-  id: string;
+  id: number; // Changed from string to number
   title: string;
   sender: string;
   industry: string;
