@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -52,6 +53,11 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				mint: {
+					DEFAULT: '#4dd4ac',
+					light: '#e6f7f2',
+					dark: '#37a084'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -84,11 +90,38 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				fadeIn: {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				},
+				slideUp: {
+					'0%': { transform: 'translateY(10px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				slideDown: {
+					'0%': { transform: 'translateY(-10px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				pulse: {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fadeIn 0.5s ease-out',
+				'slide-up': 'slideUp 0.5s ease-out',
+				'slide-down': 'slideDown 0.5s ease-out',
+				'pulse-slow': 'pulse 3s ease-in-out infinite'
+			},
+			boxShadow: {
+				'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+				'card': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)'
+			},
+			backdropBlur: {
+				'xs': '2px',
 			}
 		}
 	},
