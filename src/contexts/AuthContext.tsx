@@ -107,18 +107,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
+        setIsLoading(false);
         return { success: false, error: error.message };
       }
 
+      // Don't set isLoading to false here, as the auth state change will do that
       return { success: true };
     } catch (error) {
       console.error("Sign in error:", error);
+      setIsLoading(false);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : "An unexpected error occurred" 
       };
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -158,23 +159,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Sign out initiated");
       
-      // Clear local state first
-      setSession(null);
-      setUser(null);
-      setProfileRole(null);
-      
-      // Then tell Supabase to sign out
-      const { error } = await supabase.auth.signOut();
+      // Tell Supabase to sign out (this will remove cookies and other storage)
+      const { error } = await supabase.auth.signOut({
+        scope: 'global' // This ensures a complete sign out from all devices
+      });
       
       if (error) {
         console.error("Error signing out:", error);
         throw error;
       }
       
-      // Redirect after a short delay to ensure state is cleared
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
+      // Clear our local React state
+      setSession(null);
+      setUser(null);
+      setProfileRole(null);
+      
+      // Navigate to homepage
+      window.location.href = '/';
       
     } catch (error) {
       console.error("Sign out error:", error);
@@ -183,6 +184,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       setUser(null);
       setProfileRole(null);
+      localStorage.removeItem('supabase.auth.token'); // Force remove any persisted token
       window.location.href = '/';
     }
   };
