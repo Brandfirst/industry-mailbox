@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
@@ -155,24 +156,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      setIsLoading(true);
+      // First tell Supabase to sign out
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error("Supabase sign out error:", error);
+        console.error("Error signing out:", error);
         throw error;
       }
       
+      // Clear local state
       setUser(null);
       setSession(null);
       setProfileRole(null);
       
+      // Force a hard reload to clear any cached states
       window.location.href = '/';
+      
+      return;
     } catch (error) {
       console.error("Sign out error:", error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
