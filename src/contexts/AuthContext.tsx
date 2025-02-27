@@ -48,15 +48,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .single();
               
             setProfileRole(profileData?.role || null);
-            
-            // Debug log to check user data from both sources
-            console.log('Auth Debug:', {
-              user: session.user,
-              isAdmin: session.user?.user_metadata?.role === 'admin' || profileData?.role === 'admin',
-              userMetadata: session.user?.user_metadata,
-              metadataRole: session.user?.user_metadata?.role,
-              profileRole: profileData?.role
-            });
           }
         }
       } catch (error) {
@@ -150,7 +141,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Sign out error:", error);
+        return;
+      }
+      // Clear local state
+      setUser(null);
+      setSession(null);
+      setProfileRole(null);
+      window.location.href = '/';  // Redirect to home page after sign out
     } catch (error) {
       console.error("Sign out error:", error);
     }
