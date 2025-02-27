@@ -22,8 +22,12 @@ const Auth = () => {
     lastName: "",
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     try {
       if (mode === "signin") {
@@ -47,10 +51,10 @@ const Auth = () => {
           lastName: formData.lastName,
         });
         if (success) {
-          navigate("/search");
+          setVerificationEmailSent(true);
           toast({
-            title: "Velkommen!",
-            description: "Kontoen din er opprettet.",
+            title: "Konto opprettet!",
+            description: "En bekreftelseslenke er sendt til din e-postadresse. Vennligst bekreft e-posten din for å logge inn.",
           });
         } else {
           toast({
@@ -66,8 +70,42 @@ const Auth = () => {
         title: "En feil har oppstått",
         description: "Kunne ikke fullføre forespørselen. Prøv igjen senere.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  if (verificationEmailSent) {
+    return (
+      <div className="container max-w-md mx-auto py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Bekreft e-postadressen din</CardTitle>
+            <CardDescription>
+              Vi har sendt en bekreftelseslenke til {formData.email}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>Vennligst sjekk innboksen din og klikk på bekreftelseslenken for å aktivere kontoen din.</p>
+            <p className="text-sm text-muted-foreground">
+              Hvis du ikke finner e-posten, sjekk spam-mappen din eller prøv å registrere deg på nytt.
+            </p>
+            <div className="flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => setVerificationEmailSent(false)}
+              >
+                Tilbake til registrering
+              </Button>
+              <Button onClick={() => navigate("/auth?mode=signin")}>
+                Gå til innlogging
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-md mx-auto py-8">
@@ -124,8 +162,12 @@ const Auth = () => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              {mode === "signin" ? "Logg inn" : "Registrer"}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting 
+                ? "Vennligst vent..." 
+                : mode === "signin" 
+                  ? "Logg inn" 
+                  : "Registrer"}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
