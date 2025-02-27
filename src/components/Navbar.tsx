@@ -12,12 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isPremium, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -26,6 +28,10 @@ const Navbar = () => {
   
   const handleSignOut = async () => {
     await signOut();
+    toast({
+      title: "Logget ut",
+      description: "Du er nå logget ut",
+    });
   };
 
   return (
@@ -44,27 +50,27 @@ const Navbar = () => {
             to="/" 
             className={`${location.pathname === '/' ? activeLink : inactiveLink} animate-enter`}
           >
-            Home
+            Hjem
           </Link>
           <Link 
             to="/search" 
             className={`${location.pathname === '/search' ? activeLink : inactiveLink} animate-enter`}
           >
-            Search
+            Søk
           </Link>
           {user && (
             <Link 
               to="/saved" 
               className={`${location.pathname === '/saved' ? activeLink : inactiveLink} animate-enter`}
             >
-              Saved
+              Lagret
             </Link>
           )}
           {user ? (
             <div className="flex items-center gap-4">
               {!isPremium && (
                 <Button variant="outline" className="btn-hover-effect text-mint-dark border-mint-dark hover:bg-mint-light">
-                  Upgrade
+                  Oppgrader
                 </Button>
               )}
               
@@ -80,20 +86,20 @@ const Navbar = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate('/account')}>
-                    Account
+                    Min konto
                   </DropdownMenuItem>
                   {user.user_metadata.role === 'admin' && (
                     <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      Admin Dashboard
+                      Admin panel
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => navigate('/saved')}>
-                    Saved Newsletters
+                    Lagrede nyhetsbrev
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
                     <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
+                    Logg ut
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -101,11 +107,11 @@ const Navbar = () => {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/auth?mode=signin">
-                <Button variant="ghost" className="btn-hover-effect">Sign In</Button>
+                <Button variant="ghost" className="btn-hover-effect">Logg inn</Button>
               </Link>
               <Link to="/auth?mode=signup">
                 <Button className="bg-primary text-white hover:bg-mint-dark transition-colors btn-hover-effect">
-                  Sign Up
+                  Registrer
                 </Button>
               </Link>
             </div>
@@ -134,14 +140,14 @@ const Navbar = () => {
               className={`${location.pathname === '/' ? activeLink : inactiveLink} py-2`}
               onClick={toggleMenu}
             >
-              Home
+              Hjem
             </Link>
             <Link 
               to="/search" 
               className={`${location.pathname === '/search' ? activeLink : inactiveLink} py-2`}
               onClick={toggleMenu}
             >
-              Search
+              Søk
             </Link>
             {user && (
               <Link 
@@ -149,14 +155,14 @@ const Navbar = () => {
                 className={`${location.pathname === '/saved' ? activeLink : inactiveLink} py-2`}
                 onClick={toggleMenu}
               >
-                Saved
+                Lagret
               </Link>
             )}
             {user ? (
               <div className="flex flex-col gap-2 pt-2 border-t">
                 {!isPremium && (
                   <Button variant="outline" className="w-full text-mint-dark border-mint-dark hover:bg-mint-light">
-                    Upgrade
+                    Oppgrader
                   </Button>
                 )}
                 
@@ -168,7 +174,7 @@ const Navbar = () => {
                     toggleMenu();
                   }}
                 >
-                  Account
+                  Min konto
                 </Button>
                 
                 {user.user_metadata.role === 'admin' && (
@@ -180,7 +186,7 @@ const Navbar = () => {
                       toggleMenu();
                     }}
                   >
-                    Admin Dashboard
+                    Admin panel
                   </Button>
                 )}
                 
@@ -190,16 +196,16 @@ const Navbar = () => {
                   className="w-full text-red-600 border-red-200 hover:bg-red-50"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
+                  Logg ut
                 </Button>
               </div>
             ) : (
               <div className="flex flex-col gap-2 pt-2 border-t">
                 <Link to="/auth?mode=signin" className="w-full" onClick={toggleMenu}>
-                  <Button variant="outline" className="w-full">Sign In</Button>
+                  <Button variant="outline" className="w-full">Logg inn</Button>
                 </Link>
                 <Link to="/auth?mode=signup" className="w-full" onClick={toggleMenu}>
-                  <Button className="w-full bg-primary text-white hover:bg-mint-dark">Sign Up</Button>
+                  <Button className="w-full bg-primary text-white hover:bg-mint-dark">Registrer</Button>
                 </Link>
               </div>
             )}

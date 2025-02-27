@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -17,6 +18,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   
   // Form state
   const [email, setEmail] = useState("");
@@ -25,31 +27,120 @@ const Auth = () => {
   const [lastName, setLastName] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   
-  const { signIn, signUp, isLoading } = useAuth();
+  const { signIn, signUp, isLoading, user } = useAuth();
   
   useEffect(() => {
     setActiveTab(mode === "signup" ? "signup" : "signin");
   }, [mode]);
   
   useEffect(() => {
-    document.title = `${activeTab === "signup" ? "Sign Up" : "Sign In"} | NewsletterHub`;
+    document.title = `${activeTab === "signup" ? "Registrer" : "Logg inn"} | NewsletterHub`;
   }, [activeTab]);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(redirect);
+    }
+  }, [user, navigate, redirect]);
   
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signIn(email, password);
+    
+    if (!email || !password) {
+      toast({
+        title: "Feil",
+        description: "Vennligst fyll inn alle feltene",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const result = await signIn(email, password);
+    
+    if (result.success) {
+      toast({
+        title: "Suksess",
+        description: "Du er nå logget inn",
+      });
+      navigate(redirect);
+    } else {
+      toast({
+        title: "Feil ved innlogging",
+        description: result.error || "Kunne ikke logge inn. Vennligst sjekk brukernavn og passord.",
+        variant: "destructive"
+      });
+    }
   };
   
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signUp(email, password, { firstName, lastName });
     
-    // Navigate to sign in tab after successful sign up
-    setActiveTab("signin");
+    if (!email || !password || !firstName || !lastName) {
+      toast({
+        title: "Feil",
+        description: "Vennligst fyll inn alle feltene",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!agreeToTerms) {
+      toast({
+        title: "Feil",
+        description: "Du må godta vilkårene for å registrere deg",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const result = await signUp(email, password, { firstName, lastName });
+    
+    if (result.success) {
+      toast({
+        title: "Konto opprettet",
+        description: "Din konto er nå opprettet. Du kan nå logge inn.",
+      });
+      // Navigate to sign in tab after successful sign up
+      setActiveTab("signin");
+    } else {
+      toast({
+        title: "Feil ved registrering",
+        description: result.error || "Kunne ikke opprette konto. Prøv igjen senere.",
+        variant: "destructive"
+      });
+    }
   };
   
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
+  };
+  
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Feil",
+        description: "Vennligst fyll inn e-postadresse",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const { forgotPassword } = useAuth();
+    const result = await forgotPassword(email);
+    
+    if (result.success) {
+      toast({
+        title: "E-post sendt",
+        description: "Sjekk e-posten din for instruksjoner om tilbakestilling av passord",
+      });
+    } else {
+      toast({
+        title: "Feil",
+        description: result.error || "Kunne ikke sende tilbakestillingslenke. Prøv igjen senere.",
+        variant: "destructive"
+      });
+    }
   };
   
   return (
@@ -63,19 +154,19 @@ const Auth = () => {
         <div className="bg-white rounded-xl shadow-card p-8 animate-fade-in">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 mb-8">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin">Logg inn</TabsTrigger>
+              <TabsTrigger value="signup">Registrer</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
               <form onSubmit={handleSignIn}>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email-signin">Email</Label>
+                    <Label htmlFor="email-signin">E-post</Label>
                     <Input 
                       id="email-signin" 
                       type="email" 
-                      placeholder="your@email.com" 
+                      placeholder="din@epost.no" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required 
@@ -85,12 +176,16 @@ const Auth = () => {
                   
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label htmlFor="password-signin">Password</Label>
+                      <Label htmlFor="password-signin">Passord</Label>
                       <Link 
                         to="#" 
                         className="text-xs text-primary hover:text-mint-dark"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleForgotPassword();
+                        }}
                       >
-                        Forgot password?
+                        Glemt passord?
                       </Link>
                     </div>
                     <div className="relative">
@@ -129,10 +224,10 @@ const Auth = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing In...
+                        Logger inn...
                       </>
                     ) : (
-                      "Sign In"
+                      "Logg inn"
                     )}
                   </Button>
                 </div>
@@ -144,10 +239,10 @@ const Auth = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="first-name">First Name</Label>
+                      <Label htmlFor="first-name">Fornavn</Label>
                       <Input 
                         id="first-name" 
-                        placeholder="John" 
+                        placeholder="Ola" 
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required 
@@ -155,10 +250,10 @@ const Auth = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="last-name">Last Name</Label>
+                      <Label htmlFor="last-name">Etternavn</Label>
                       <Input 
                         id="last-name" 
-                        placeholder="Doe" 
+                        placeholder="Nordmann" 
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         required 
@@ -168,11 +263,11 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="email-signup">Email</Label>
+                    <Label htmlFor="email-signup">E-post</Label>
                     <Input 
                       id="email-signup" 
                       type="email" 
-                      placeholder="your@email.com" 
+                      placeholder="din@epost.no" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required 
@@ -181,7 +276,7 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password-signup">Password</Label>
+                    <Label htmlFor="password-signup">Passord</Label>
                     <div className="relative">
                       <Input 
                         id="password-signup" 
@@ -219,7 +314,7 @@ const Auth = () => {
                       disabled={isLoading}
                     />
                     <Label htmlFor="terms" className="text-sm text-muted-foreground">
-                      I agree to the <Link to="#" className="text-primary hover:underline">Terms of Service</Link> and <Link to="#" className="text-primary hover:underline">Privacy Policy</Link>
+                      Jeg godtar <Link to="#" className="text-primary hover:underline">vilkårene</Link> og <Link to="#" className="text-primary hover:underline">personvernerklæringen</Link>
                     </Label>
                   </div>
                   
@@ -231,10 +326,10 @@ const Auth = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating Account...
+                        Oppretter konto...
                       </>
                     ) : (
-                      "Create Account"
+                      "Opprett konto"
                     )}
                   </Button>
                 </div>
@@ -244,7 +339,7 @@ const Auth = () => {
         </div>
         
         <p className="text-center text-sm text-muted-foreground mt-6">
-          By signing in, you agree to our <Link to="#" className="text-primary hover:underline">Terms of Service</Link> and <Link to="#" className="text-primary hover:underline">Privacy Policy</Link>.
+          Ved å logge inn godtar du våre <Link to="#" className="text-primary hover:underline">Vilkår</Link> og <Link to="#" className="text-primary hover:underline">Personvernerklæring</Link>.
         </p>
       </div>
     </div>
