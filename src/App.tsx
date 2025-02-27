@@ -9,25 +9,50 @@ import Search from "./pages/Search";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/auth" element={<Auth />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/search" element={<Search />} />
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute requireAuth requireAdmin>
+                  <Admin />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/auth" 
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <Auth />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/saved" 
+              element={
+                <ProtectedRoute>
+                  <NotFound />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TooltipProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

@@ -1,21 +1,32 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Mail, User, Menu, X } from "lucide-react";
+import { Search, Mail, User, Menu, X, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  // Mock authentication state - would be replaced with real auth
-  const isAuthenticated = false;
-  const isPremium = false;
+  const { user, isPremium, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const activeLink = "text-mint-dark font-medium";
   const inactiveLink = "text-foreground/80 hover:text-foreground transition-colors";
+  
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-sm border-b border-border">
@@ -41,7 +52,7 @@ const Navbar = () => {
           >
             Search
           </Link>
-          {isAuthenticated && (
+          {user && (
             <Link 
               to="/saved" 
               className={`${location.pathname === '/saved' ? activeLink : inactiveLink} animate-enter`}
@@ -49,18 +60,43 @@ const Navbar = () => {
               Saved
             </Link>
           )}
-          {isAuthenticated ? (
+          {user ? (
             <div className="flex items-center gap-4">
               {!isPremium && (
                 <Button variant="outline" className="btn-hover-effect text-mint-dark border-mint-dark hover:bg-mint-light">
                   Upgrade
                 </Button>
               )}
-              <Link to="/account">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <User className="w-5 h-5" />
-                </Button>
-              </Link>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <User className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    {user.user_metadata.first_name || user.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/account')}>
+                    Account
+                  </DropdownMenuItem>
+                  {user.user_metadata.role === 'admin' && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => navigate('/saved')}>
+                    Saved Newsletters
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -107,7 +143,7 @@ const Navbar = () => {
             >
               Search
             </Link>
-            {isAuthenticated && (
+            {user && (
               <Link 
                 to="/saved" 
                 className={`${location.pathname === '/saved' ? activeLink : inactiveLink} py-2`}
@@ -116,16 +152,46 @@ const Navbar = () => {
                 Saved
               </Link>
             )}
-            {isAuthenticated ? (
+            {user ? (
               <div className="flex flex-col gap-2 pt-2 border-t">
                 {!isPremium && (
                   <Button variant="outline" className="w-full text-mint-dark border-mint-dark hover:bg-mint-light">
                     Upgrade
                   </Button>
                 )}
-                <Link to="/account" className="w-full" onClick={toggleMenu}>
-                  <Button variant="default" className="w-full">Account</Button>
-                </Link>
+                
+                <Button 
+                  variant="default" 
+                  className="w-full"
+                  onClick={() => {
+                    navigate('/account');
+                    toggleMenu();
+                  }}
+                >
+                  Account
+                </Button>
+                
+                {user.user_metadata.role === 'admin' && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      navigate('/admin');
+                      toggleMenu();
+                    }}
+                  >
+                    Admin Dashboard
+                  </Button>
+                )}
+                
+                <Button 
+                  variant="outline" 
+                  onClick={handleSignOut}
+                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
               </div>
             ) : (
               <div className="flex flex-col gap-2 pt-2 border-t">

@@ -12,6 +12,8 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface NewsletterProps {
   id: string;
@@ -20,7 +22,6 @@ interface NewsletterProps {
   industry: string;
   preview: string;
   date: Date;
-  isPremium?: boolean;
 }
 
 const NewsletterCard = ({ 
@@ -29,17 +30,20 @@ const NewsletterCard = ({
   sender, 
   industry, 
   preview, 
-  date,
-  isPremium = false
+  date
 }: NewsletterProps) => {
   const [saved, setSaved] = useState(false);
+  const { user, isPremium } = useAuth();
+  const navigate = useNavigate();
   
-  // Mock authentication state - would be replaced with real auth
-  const isAuthenticated = false;
-
   const handleSave = () => {
-    if (!isAuthenticated) {
-      toast.error("Please sign in to save newsletters");
+    if (!user) {
+      toast.error("Please sign in to save newsletters", {
+        action: {
+          label: "Sign In",
+          onClick: () => navigate("/auth?mode=signin"),
+        },
+      });
       return;
     }
     
