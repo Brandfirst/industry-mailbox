@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -27,7 +28,20 @@ const Auth = () => {
   const [lastName, setLastName] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   
-  const { signIn, signUp, isLoading, user } = useAuth();
+  const { signIn, signUp, isLoading, user, forgotPassword } = useAuth();
+  
+  // Check if Supabase is configured
+  const [isConfigured] = useState(isSupabaseConfigured());
+  
+  useEffect(() => {
+    if (!isConfigured) {
+      toast({
+        title: "Konfigurasjonsfeil",
+        description: "Manglende Supabase-konfigurasjonsvariabler. Vennligst sjekk .env-filen.",
+        variant: "destructive"
+      });
+    }
+  }, [isConfigured, toast]);
   
   useEffect(() => {
     setActiveTab(mode === "signup" ? "signup" : "signin");
@@ -47,6 +61,15 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isConfigured) {
+      toast({
+        title: "Tjeneste utilgjengelig",
+        description: "Påloggingstjenesten er ikke riktig konfigurert.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!email || !password) {
       toast({
         title: "Feil",
@@ -56,18 +79,27 @@ const Auth = () => {
       return;
     }
     
-    const result = await signIn(email, password);
-    
-    if (result.success) {
-      toast({
-        title: "Suksess",
-        description: "Du er nå logget inn",
-      });
-      navigate(redirect);
-    } else {
+    try {
+      const result = await signIn(email, password);
+      
+      if (result.success) {
+        toast({
+          title: "Suksess",
+          description: "Du er nå logget inn",
+        });
+        navigate(redirect);
+      } else {
+        toast({
+          title: "Feil ved innlogging",
+          description: result.error || "Kunne ikke logge inn. Vennligst sjekk brukernavn og passord.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Sign in error:", error);
       toast({
         title: "Feil ved innlogging",
-        description: result.error || "Kunne ikke logge inn. Vennligst sjekk brukernavn og passord.",
+        description: "Det oppstod en feil ved innloggingsforsøket. Vennligst prøv igjen senere.",
         variant: "destructive"
       });
     }
@@ -76,10 +108,28 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isConfigured) {
+      toast({
+        title: "Tjeneste utilgjengelig",
+        description: "Registreringstjenesten er ikke riktig konfigurert.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!email || !password || !firstName || !lastName) {
       toast({
         title: "Feil",
         description: "Vennligst fyll inn alle feltene",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast({
+        title: "Feil",
+        description: "Passordet må være minst 6 tegn",
         variant: "destructive"
       });
       return;
@@ -94,19 +144,28 @@ const Auth = () => {
       return;
     }
     
-    const result = await signUp(email, password, { firstName, lastName });
-    
-    if (result.success) {
-      toast({
-        title: "Konto opprettet",
-        description: "Din konto er nå opprettet. Du kan nå logge inn.",
-      });
-      // Navigate to sign in tab after successful sign up
-      setActiveTab("signin");
-    } else {
+    try {
+      const result = await signUp(email, password, { firstName, lastName });
+      
+      if (result.success) {
+        toast({
+          title: "Konto opprettet",
+          description: "Din konto er nå opprettet. Du kan nå logge inn.",
+        });
+        // Navigate to sign in tab after successful sign up
+        setActiveTab("signin");
+      } else {
+        toast({
+          title: "Feil ved registrering",
+          description: result.error || "Kunne ikke opprette konto. Prøv igjen senere.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Sign up error:", error);
       toast({
         title: "Feil ved registrering",
-        description: result.error || "Kunne ikke opprette konto. Prøv igjen senere.",
+        description: "Det oppstod en feil ved registreringsforsøket. Vennligst prøv igjen senere.",
         variant: "destructive"
       });
     }
@@ -117,6 +176,15 @@ const Auth = () => {
   };
   
   const handleForgotPassword = async () => {
+    if (!isConfigured) {
+      toast({
+        title: "Tjeneste utilgjengelig",
+        description: "Tilbakestillingstjenesten er ikke riktig konfigurert.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!email) {
       toast({
         title: "Feil",
@@ -126,18 +194,26 @@ const Auth = () => {
       return;
     }
     
-    const { forgotPassword } = useAuth();
-    const result = await forgotPassword(email);
-    
-    if (result.success) {
-      toast({
-        title: "E-post sendt",
-        description: "Sjekk e-posten din for instruksjoner om tilbakestilling av passord",
-      });
-    } else {
+    try {
+      const result = await forgotPassword(email);
+      
+      if (result.success) {
+        toast({
+          title: "E-post sendt",
+          description: "Sjekk e-posten din for instruksjoner om tilbakestilling av passord",
+        });
+      } else {
+        toast({
+          title: "Feil",
+          description: result.error || "Kunne ikke sende tilbakestillingslenke. Prøv igjen senere.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Forgot password error:", error);
       toast({
         title: "Feil",
-        description: result.error || "Kunne ikke sende tilbakestillingslenke. Prøv igjen senere.",
+        description: "Det oppstod en feil ved forsøket på å tilbakestille passordet. Vennligst prøv igjen senere.",
         variant: "destructive"
       });
     }
@@ -151,6 +227,13 @@ const Auth = () => {
       </Link>
       
       <div className="w-full max-w-md">
+        {!isConfigured && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 text-amber-800">
+            <p className="text-sm font-medium">Tjenesten er ikke riktig konfigurert</p>
+            <p className="text-xs mt-1">Supabase-tilkoblingen mangler nødvendige miljøvariabler.</p>
+          </div>
+        )}
+        
         <div className="bg-white rounded-xl shadow-card p-8 animate-fade-in">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-2 mb-8">
@@ -177,16 +260,13 @@ const Auth = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <Label htmlFor="password-signin">Passord</Label>
-                      <Link 
-                        to="#" 
+                      <button
+                        type="button"
                         className="text-xs text-primary hover:text-mint-dark"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleForgotPassword();
-                        }}
+                        onClick={handleForgotPassword}
                       >
                         Glemt passord?
-                      </Link>
+                      </button>
                     </div>
                     <div className="relative">
                       <Input 
@@ -219,7 +299,7 @@ const Auth = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-primary hover:bg-mint-dark" 
-                    disabled={isLoading}
+                    disabled={isLoading || !isConfigured}
                   >
                     {isLoading ? (
                       <>
@@ -303,6 +383,7 @@ const Auth = () => {
                         )}
                       </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">Passordet må være minst 6 tegn</p>
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -321,7 +402,7 @@ const Auth = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-primary hover:bg-mint-dark"
-                    disabled={isLoading || !agreeToTerms}
+                    disabled={isLoading || !agreeToTerms || !isConfigured}
                   >
                     {isLoading ? (
                       <>

@@ -1,16 +1,24 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Default to empty strings or test values if environment variables are missing
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-url.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
+// Get environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Log warning but don't throw error
-if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-  console.warn('Missing environment variables for Supabase. Using placeholder values for development.');
+// Create client and validate configuration
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder-url.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+);
+
+// Utility to check if Supabase is properly configured
+export const isSupabaseConfigured = () => {
+  return !!supabaseUrl && !!supabaseAnonKey;
+};
 
 export type Newsletter = {
   id: number;
@@ -38,6 +46,11 @@ export async function getNewsletters({
   industries?: string[];
 }) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Using mock data.');
+      return [];
+    }
+
     let query = supabase
       .from('newsletters')
       .select('*')
@@ -71,6 +84,11 @@ export async function getNewsletters({
 
 export async function getCategories() {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Using mock data.');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -90,6 +108,11 @@ export async function getCategories() {
 
 export async function saveNewsletter(userId: string, newsletterId: number) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot save newsletter.');
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('saved_newsletters')
       .insert([
@@ -110,6 +133,11 @@ export async function saveNewsletter(userId: string, newsletterId: number) {
 
 export async function unsaveNewsletter(userId: string, newsletterId: number) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot unsave newsletter.');
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('saved_newsletters')
       .delete()
@@ -129,6 +157,11 @@ export async function unsaveNewsletter(userId: string, newsletterId: number) {
 
 export async function isNewsletterSaved(userId: string, newsletterId: number) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot check if newsletter is saved.');
+      return false;
+    }
+
     const { data, error } = await supabase
       .from('saved_newsletters')
       .select('*')
@@ -149,6 +182,11 @@ export async function isNewsletterSaved(userId: string, newsletterId: number) {
 
 export async function getSavedNewsletters(userId: string) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot fetch saved newsletters.');
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('saved_newsletters')
       .select(`
@@ -173,6 +211,11 @@ export async function getSavedNewsletters(userId: string) {
 
 export async function getNewsletter(id: number) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot fetch newsletter.');
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('newsletters')
       .select('*')
@@ -194,6 +237,11 @@ export async function getNewsletter(id: number) {
 // Admin functions
 export async function createNewsletter(newsletter: Omit<Newsletter, 'id' | 'created_at'>) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot create newsletter.');
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('newsletters')
       .insert([newsletter])
@@ -214,6 +262,11 @@ export async function createNewsletter(newsletter: Omit<Newsletter, 'id' | 'crea
 
 export async function updateNewsletter(id: number, newsletter: Partial<Omit<Newsletter, 'id' | 'created_at'>>) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot update newsletter.');
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('newsletters')
       .update(newsletter)
@@ -235,6 +288,11 @@ export async function updateNewsletter(id: number, newsletter: Partial<Omit<News
 
 export async function deleteNewsletter(id: number) {
   try {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not properly configured. Cannot delete newsletter.');
+      return false;
+    }
+
     const { error } = await supabase
       .from('newsletters')
       .delete()
