@@ -67,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const role = await fetchProfileRole(session.user.id);
             if (mounted) {
               setProfileRole(role);
+              console.log("Initial session check - Profile role:", role);
             }
           }
         }
@@ -97,6 +98,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const role = await fetchProfileRole(session.user.id);
         if (mounted) {
           setProfileRole(role);
+          console.log("Auth state changed - Profile role:", role);
         }
       } else {
         setProfileRole(null);

@@ -44,6 +44,7 @@ const ConnectEmail = () => {
 
     console.log("Using Google Client ID:", clientId);
     
+    // Use the current origin for the redirect URI
     const redirectUri = `${window.location.origin}/admin`;
     const scope = "https://www.googleapis.com/auth/gmail.readonly";
     const responseType = "code";

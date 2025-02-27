@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   ArrowLeft,
   Mail, 
@@ -16,11 +17,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminStats from "@/components/AdminStats";
 import ConnectEmail from "@/components/ConnectEmail";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Sidebar = ({ activeTab, setActiveTab }: { 
   activeTab: string; 
   setActiveTab: (tab: string) => void;
 }) => {
+  const { signOut } = useAuth();
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "newsletters", label: "Newsletters", icon: Mail },
@@ -28,6 +31,10 @@ const Sidebar = ({ activeTab, setActiveTab }: {
     { id: "categories", label: "Categories", icon: Layers },
     { id: "settings", label: "Settings", icon: Settings },
   ];
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   return (
     <div className="h-screen w-64 bg-white border-r border-border p-4 fixed left-0 top-0">
@@ -60,7 +67,11 @@ const Sidebar = ({ activeTab, setActiveTab }: {
             Back to Site
           </Button>
         </Link>
-        <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50">
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+          onClick={handleLogout}
+        >
           <LogOut className="mr-2 h-4 w-4" />
           Log Out
         </Button>
@@ -71,11 +82,32 @@ const Sidebar = ({ activeTab, setActiveTab }: {
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { signOut } = useAuth();
+  const { signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     document.title = "Admin Dashboard | NewsletterHub";
-  }, []);
+    
+    // Check for Google OAuth callback
+    const searchParams = new URLSearchParams(location.search);
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    
+    if (code && state === 'gmail_connect') {
+      console.log('Found OAuth callback parameters in Admin page URL');
+      // The ConnectEmail component will handle this automatically
+    }
+  }, [location]);
+  
+  useEffect(() => {
+    // If we notice we're not an admin at any point, redirect to home
+    if (isAdmin === false) {
+      console.log("Not an admin, redirecting to home");
+      toast.error("You don't have permission to access the admin area");
+      navigate('/');
+    }
+  }, [isAdmin, navigate]);
   
   // Mock newsletter data for admin view
   const recentNewsletters = [
