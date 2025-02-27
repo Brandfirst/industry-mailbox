@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, Mail, User, Menu, X, LogOut, Shield } from "lucide-react";
@@ -20,6 +19,15 @@ const Navbar = () => {
   const { user, isPremium, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    console.log('Auth Debug:', {
+      user: user,
+      isAdmin: isAdmin,
+      userMetadata: user?.user_metadata,
+      role: user?.user_metadata?.role
+    });
+  }, [user, isAdmin]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
