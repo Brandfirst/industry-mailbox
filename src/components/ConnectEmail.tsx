@@ -42,6 +42,8 @@ const ConnectEmail = () => {
       return;
     }
 
+    console.log("Using Google Client ID:", clientId);
+    
     const redirectUri = `${window.location.origin}/admin`;
     const scope = "https://www.googleapis.com/auth/gmail.readonly";
     const responseType = "code";
@@ -59,6 +61,7 @@ const ConnectEmail = () => {
     authUrl.searchParams.append("state", "gmail_connect");
 
     // Redirect to Google OAuth consent screen
+    console.log("Redirecting to Google OAuth URL:", authUrl.toString());
     window.location.href = authUrl.toString();
   };
 
@@ -71,6 +74,7 @@ const ConnectEmail = () => {
     const state = urlParams.get("state");
 
     if (authCode && state === "gmail_connect") {
+      console.log("Received OAuth callback with auth code");
       try {
         toast.loading("Connecting Gmail account...");
         const { success, error, data } = await connectGoogleEmail(user.id, authCode);
