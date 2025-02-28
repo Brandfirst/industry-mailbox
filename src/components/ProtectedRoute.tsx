@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -19,6 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const [checkComplete, setCheckComplete] = useState(false);
   const [timeoutReached, setTimeoutReached] = useState(false);
+  const isMounted = useRef(true);
 
   // Log auth status for debugging
   useEffect(() => {
@@ -37,19 +37,26 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!isLoading) {
       setCheckComplete(true);
     }
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted.current = false;
+    };
   }, [requireAuth, requireAdmin, user, isAdmin, location.pathname, isLoading, checkComplete, timeoutReached]);
 
-  // Add a timeout to avoid getting stuck in loading state
+  // Add a timeout to avoid getting stuck in loading state, but keep it as a fallback not primary mechanism
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isLoading) {
-        console.warn('Authentication check timed out - forcing continuation');
-        setTimeoutReached(true);
-      }
-    }, 3000); // 3 second timeout
-    
-    return () => clearTimeout(timer);
-  }, [isLoading]);
+    if (isLoading && !timeoutReached) {
+      const timer = setTimeout(() => {
+        if (isMounted.current) {
+          console.warn('Authentication check timed out - forcing continuation');
+          setTimeoutReached(true);
+        }
+      }, 3000); // 3 second timeout
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, timeoutReached]);
 
   // If still loading auth state and timeout not reached, show loading spinner
   if (isLoading && !timeoutReached) {

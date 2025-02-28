@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
 
@@ -37,31 +37,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     profileRole === 'admin' ||
     (user?.email && ADMIN_EMAILS.includes(user.email));
 
-  // Clean up any corrupted localStorage items when the app loads
-  useEffect(() => {
-    try {
-      // Specifically check and remove the problematic 'professional' key
-      if (localStorage.getItem('professional')) {
-        try {
-          // Try to parse it - if it fails, it's corrupted
-          JSON.parse(localStorage.getItem('professional') || '');
-        } catch (e) {
-          console.warn("Found corrupted 'professional' item in localStorage, removing it");
-          localStorage.removeItem('professional');
-        }
-      }
-    } catch (e) {
-      console.error("Error cleaning localStorage:", e);
-    }
-  }, []);
-
-  const fetchProfileRole = async (userId: string) => {
+  const fetchProfileRole = useCallback(async (userId: string) => {
     try {
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no record is found
+        .maybeSingle();
       
       if (error) {
         console.error("Error fetching profile role:", error);
@@ -73,7 +55,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Exception fetching profile role:", e);
       return null;
     }
-  };
+  }, []);
+
+  // Clean up any corrupted localStorage items when the app loads
+  useEffect(() => {
+    try {
+      // First try to selectively remove problematic items
+      try {
+        if (localStorage.getItem('professional')) {
+          try {
+            // Try to parse it - if it fails, it's corrupted
+            JSON.parse(localStorage.getItem('professional') || '');
+          } catch (e) {
+            console.warn("Found corrupted 'professional' item in localStorage, removing it");
+            localStorage.removeItem('professional');
+          }
+        }
+      } catch (e) {
+        console.error("Error cleaning localStorage:", e);
+      }
+    } catch (e) {
+      console.error("Error accessing localStorage:", e);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -161,30 +165,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchProfileRole]);
 
   // Debug auth state
   useEffect(() => {
     console.log("Auth Debug:", {
-      user,
+      userExists: !!user,
       isAdmin,
-      userMetadata: user?.user_metadata ? { message: "[Circular Reference to root.user.user_metadata]" } : undefined,
+      userMetadata: user?.user_metadata ? "[User metadata exists]" : undefined,
       role: profileRole,
       email: user?.email,
       isAdminByEmail: user?.email ? ADMIN_EMAILS.includes(user.email) : false
     });
   }, [user, isAdmin, profileRole]);
-
-  // Make sure isAdmin state is set correctly each time user or profileRole changes
-  useEffect(() => {
-    const adminByEmail = user?.email && ADMIN_EMAILS.includes(user.email);
-    console.log("Admin check:", {
-      byUserMetadata: user?.user_metadata?.role === 'admin',
-      byProfileRole: profileRole === 'admin',
-      byEmail: adminByEmail,
-      result: user?.user_metadata?.role === 'admin' || profileRole === 'admin' || adminByEmail
-    });
-  }, [user, profileRole]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -243,7 +236,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const clearLocalStorage = () => {
+  const clearLocalStorage = useCallback(() => {
     try {
       // First try to selectively remove problematic items
       try {
@@ -270,7 +263,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Failed even targeted localStorage cleanup:", fallbackError);
       }
     }
-  };
+  }, []);
 
   const signOut = async () => {
     try {

@@ -12,6 +12,7 @@ import { AlertCircle } from "lucide-react";
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode") || "signin";
+  const redirectPath = searchParams.get("redirect") || "/search";
   const navigate = useNavigate();
   const { signIn, signUp, user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -28,18 +29,23 @@ const Auth = () => {
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
   useEffect(() => {
+    console.log("Auth page mounted. Mode:", mode, "Redirect path:", redirectPath);
+    
     // Check if there was an ongoing Gmail OAuth process that got interrupted
     const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
     if (oauthInProgress === 'true') {
       // Clean up the OAuth flag since we're now on the auth page
+      console.log("Cleaning up interrupted OAuth flow");
       sessionStorage.removeItem('gmailOAuthInProgress');
+      sessionStorage.removeItem('oauth_nonce');
     }
     
-    // If user is logged in, redirect to search page
+    // If user is logged in, redirect to intended destination
     if (user && !authLoading) {
-      navigate("/search");
+      console.log("User already logged in, redirecting to:", redirectPath);
+      navigate(redirectPath);
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, mode, redirectPath]);
 
   // Show loading screen during authentication loading
   if (authLoading) {
@@ -73,6 +79,8 @@ const Auth = () => {
             title: "Velkommen tilbake!",
             description: "Du er nå logget inn.",
           });
+          // After successful login, redirect to the intended page
+          navigate(redirectPath);
         } else {
           setError(error || "Kunne ikke logge inn. Prøv igjen.");
           toast({
@@ -223,7 +231,7 @@ const Auth = () => {
                 <Button
                   variant="link"
                   className="p-0"
-                  onClick={() => navigate("/auth?mode=signup")}
+                  onClick={() => navigate(`/auth?mode=signup&redirect=${encodeURIComponent(redirectPath)}`)}
                 >
                   Registrer deg her
                 </Button>
@@ -234,7 +242,7 @@ const Auth = () => {
                 <Button
                   variant="link"
                   className="p-0"
-                  onClick={() => navigate("/auth?mode=signin")}
+                  onClick={() => navigate(`/auth?mode=signin&redirect=${encodeURIComponent(redirectPath)}`)}
                 >
                   Logg inn her
                 </Button>
