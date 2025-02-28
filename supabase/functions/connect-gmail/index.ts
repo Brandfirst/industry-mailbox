@@ -1,402 +1,336 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { corsHeaders } from '../_shared/cors.ts'
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || ''
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID') || ''
-const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET') || ''
-const GOOGLE_REDIRECT_URL = Deno.env.get('GOOGLE_REDIRECT_URL') || ''
+import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
+import { corsHeaders } from "../_shared/cors.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.1";
 
-async function exchangeCodeForTokens(code: string, redirectUri: string) {
-  console.log(`Exchanging code for tokens with redirect URI: ${redirectUri}`)
-  
-  try {
-    // Use the authorization code to get tokens
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        code,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
-      }),
-    })
+console.log("connect-gmail function loaded");
 
-    const tokenData = await tokenResponse.json()
-
-    // Log the token response for debugging (consider removing sensitive info in production)
-    console.log('Token response status:', tokenResponse.status)
-    
-    // Check if the token request failed
-    if (!tokenResponse.ok) {
-      console.error('Failed to exchange code for tokens:', tokenData)
-      return {
-        success: false,
-        error: 'Failed to exchange authorization code for tokens',
-        googleError: tokenData.error,
-        googleErrorDescription: tokenData.error_description,
-        status: tokenResponse.status
-      }
-    }
-    
-    // Log a success message (without the actual tokens)
-    console.log('Successfully exchanged code for tokens, got access_token, refresh_token, and token_type')
-    
-    return {
-      success: true,
-      tokens: tokenData
-    }
-  } catch (error) {
-    console.error('Exception during token exchange:', error)
-    return {
-      success: false,
-      error: 'Exception during token exchange',
-      details: error.message || String(error)
-    }
-  }
+// Define a type for the expected request body
+interface ConnectGmailRequest {
+  code: string;
+  userId: string;
+  redirectUri?: string;
 }
 
-async function getUserInfo(accessToken: string) {
-  console.log('Getting user info with access token')
-  
-  try {
-    // Use the access token to get user information
-    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    })
+const CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
+const CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
+const DEFAULT_REDIRECT_URI = Deno.env.get("GOOGLE_REDIRECT_URL");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    // Check if the user info request failed
-    if (!userInfoResponse.ok) {
-      console.error('Failed to get user info, status:', userInfoResponse.status)
-      
-      // Try to get the error message body
-      let errorBody
-      try {
-        errorBody = await userInfoResponse.json()
-      } catch (e) {
-        errorBody = await userInfoResponse.text()
-      }
-      
-      console.error('Error getting user info:', errorBody)
-      
-      return {
-        success: false,
-        error: 'Failed to get user information',
-        details: errorBody,
-        status: userInfoResponse.status
-      }
-    }
-
-    const userInfo = await userInfoResponse.json()
-    console.log('Successfully got user info for email:', userInfo.email)
-    
-    return {
-      success: true,
-      userInfo
-    }
-  } catch (error) {
-    console.error('Exception during user info fetch:', error)
-    return {
-      success: false,
-      error: 'Exception during user info fetch',
-      details: error.message || String(error)
-    }
-  }
+if (!CLIENT_ID || !CLIENT_SECRET) {
+  console.error("Missing required environment variables for Google OAuth");
 }
 
-async function saveEmailAccount(supabase, userId: string, email: string, tokens: any) {
-  console.log(`Saving email account for user ${userId} with email ${email}`)
-  
-  try {
-    // Check if an account with this email already exists for the user
-    const { data: existingAccounts, error: queryError } = await supabase
-      .from('email_accounts')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('email', email)
-    
-    if (queryError) {
-      console.error('Error checking for existing account:', queryError)
-      return {
-        success: false,
-        error: 'Failed to check for existing account',
-        details: queryError
-      }
-    }
-    
-    // If the account already exists, update it
-    if (existingAccounts && existingAccounts.length > 0) {
-      const accountId = existingAccounts[0].id
-      console.log(`Found existing account ${accountId}, updating tokens`)
-      
-      const { data, error: updateError } = await supabase
-        .from('email_accounts')
-        .update({
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
-          is_connected: true,
-          token_type: tokens.token_type,
-          expires_in: tokens.expires_in,
-          scope: tokens.scope
-        })
-        .eq('id', accountId)
-        .select()
-        .single()
-      
-      if (updateError) {
-        console.error('Error updating existing account:', updateError)
-        return {
-          success: false,
-          error: 'Failed to update existing account',
-          details: updateError
-        }
-      }
-      
-      console.log('Successfully updated existing email account')
-      return {
-        success: true,
-        account: data
-      }
-    }
-    
-    // Otherwise, create a new account
-    console.log('Creating new email account')
-    const { data: newAccount, error: insertError } = await supabase
-      .from('email_accounts')
-      .insert({
-        user_id: userId,
-        email: email,
-        provider: 'google',
-        is_connected: true,
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        token_type: tokens.token_type,
-        expires_in: tokens.expires_in,
-        scope: tokens.scope
-      })
-      .select()
-      .single()
-    
-    if (insertError) {
-      console.error('Error creating new account:', insertError)
-      return {
-        success: false,
-        error: 'Failed to create new account',
-        details: insertError
-      }
-    }
-    
-    console.log('Successfully created new email account')
-    return {
-      success: true,
-      account: newAccount
-    }
-  } catch (error) {
-    console.error('Exception during account save:', error)
-    return {
-      success: false,
-      error: 'Exception during account save',
-      details: error.message || String(error)
-    }
-  }
-}
-
-async function verifyToken(accessToken: string) {
-  console.log('Verifying token validity')
-  
-  try {
-    const tokenInfoResponse = await fetch(
-      `https://oauth2.googleapis.com/tokeninfo?access_token=${accessToken}`
-    )
-    
-    const tokenInfo = await tokenInfoResponse.json()
-    
-    if (!tokenInfoResponse.ok) {
-      console.error('Token verification failed:', tokenInfo)
-      return {
-        success: false,
-        error: 'Token verification failed',
-        details: tokenInfo
-      }
-    }
-    
-    console.log('Token verified successfully')
-    return {
-      success: true,
-      tokenInfo
-    }
-  } catch (error) {
-    console.error('Exception during token verification:', error)
-    return {
-      success: false,
-      error: 'Exception during token verification',
-      details: error.message || String(error)
-    }
-  }
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error("Missing required environment variables for Supabase");
 }
 
 serve(async (req) => {
-  console.log('Edge function called:', req.method)
+  // Handle CORS
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  // Start time for tracking performance
+  const startTime = Date.now();
   
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS request')
-    return new Response(null, { headers: corsHeaders, status: 204 })
-  }
-
-  // Process only POST requests
-  if (req.method !== 'POST') {
-    console.log('Invalid method, only POST is allowed')
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 405,
-    })
-  }
-
   try {
-    const { code, userId, redirectUri } = await req.json()
+    const supabase = createClient(
+      SUPABASE_URL || "",
+      SUPABASE_SERVICE_ROLE_KEY || ""
+    );
 
-    // Check required parameters
-    if (!code || !userId) {
-      console.error('Missing required parameters:', { code: !!code, userId: !!userId })
+    // Attempt to parse the request body
+    const requestBody = await req.json().catch((err) => {
+      console.error("Error parsing request body:", err);
+      return null;
+    });
+
+    if (!requestBody) {
+      console.error("Invalid request body");
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Missing required parameters',
-          details: { code: !!code, userId: !!userId }
+        JSON.stringify({
+          success: false,
+          error: "Invalid request body",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
     }
-    
-    // Check environment variables
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-      console.error('Missing environment variables:',  { 
-        clientId: !!GOOGLE_CLIENT_ID, 
-        clientSecret: !!GOOGLE_CLIENT_SECRET
-      })
+
+    // Type cast and destructure the request body
+    const { code, userId, redirectUri } = requestBody as ConnectGmailRequest;
+
+    // Validate required parameters
+    if (!code) {
+      console.error("Missing required parameter: code");
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Server configuration error: Missing required credentials',
-          details: { 
-            clientId: !!GOOGLE_CLIENT_ID, 
-            clientSecret: !!GOOGLE_CLIENT_SECRET,
-            redirectUrlVar: !!GOOGLE_REDIRECT_URL,
-            providedRedirect: redirectUri 
+        JSON.stringify({
+          success: false,
+          error: "Missing required parameter: code",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
+    if (!userId) {
+      console.error("Missing required parameter: userId");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Missing required parameter: userId",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
+    // Use the provided redirect URI or fall back to the default
+    const actualRedirectUri = redirectUri || DEFAULT_REDIRECT_URI || "https://preview--industry-mailbox.lovable.app/admin";
+    
+    console.log(`Using redirect URI: ${actualRedirectUri}`);
+    console.log(`Using client ID: ${CLIENT_ID?.substring(0, 10)}...`);
+
+    // Exchange authorization code for access token
+    console.log("Exchanging authorization code for tokens");
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: CLIENT_ID || "",
+        client_secret: CLIENT_SECRET || "",
+        redirect_uri: actualRedirectUri,
+        grant_type: "authorization_code",
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+    
+    // Log token response status for debugging
+    console.log(`Token exchange responded with status: ${tokenResponse.status}`);
+
+    if (!tokenResponse.ok) {
+      console.error("Error getting tokens from Google:", tokenData);
+      
+      // Extract Google's error information
+      const googleError = tokenData?.error || "unknown_error";
+      const googleErrorDescription = tokenData?.error_description || "No description provided";
+      
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Failed to get tokens from Google",
+          googleError,
+          googleErrorDescription,
+          tokenInfo: {
+            status: tokenResponse.status,
+            responseType: tokenResponse.headers.get("content-type"),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
+    // Successfully obtained tokens!
+    const { access_token, refresh_token, expires_in } = tokenData;
+    console.log(`Successfully obtained access token (expires in ${expires_in}s)`);
+
+    if (!access_token) {
+      console.error("Access token missing from Google response");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Access token missing from Google response",
+          tokenInfo: tokenData,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
+    // Get user info with the access token
+    console.log("Fetching user info from Google");
+    try {
+      const userInfoResponse = await fetch(
+        "https://www.googleapis.com/gmail/v1/users/me/profile",
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        }
+      );
+
+      if (!userInfoResponse.ok) {
+        const errorData = await userInfoResponse.json();
+        console.error("Error getting user info:", errorData);
+        
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Failed to get user info from Google",
+            details: errorData,
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
           }
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
-    }
+        );
+      }
 
-    // Create Supabase client with service role key
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-    
-    // Exchange the code for tokens
-    console.log('Exchanging code for tokens')
-    const tokensResult = await exchangeCodeForTokens(code, redirectUri)
-    
-    if (!tokensResult.success) {
-      console.error('Token exchange failed:', tokensResult)
+      const userInfo = await userInfoResponse.json();
+      console.log(`Got user info for email: ${userInfo.emailAddress}`);
+
+      // Check if this email account is already connected
+      const { data: existingAccounts, error: existingError } = await supabase
+        .from("email_accounts")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("email", userInfo.emailAddress);
+
+      if (existingError) {
+        console.error("Error checking for existing account:", existingError);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Error checking for existing account",
+            details: existingError,
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500,
+          }
+        );
+      }
+
+      if (existingAccounts && existingAccounts.length > 0) {
+        // Update the existing account with the new tokens
+        const { data: updatedAccount, error: updateError } = await supabase
+          .from("email_accounts")
+          .update({
+            access_token,
+            refresh_token: refresh_token || null,
+            is_connected: true,
+          })
+          .eq("id", existingAccounts[0].id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error("Error updating existing account:", updateError);
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Error updating existing account",
+              details: updateError,
+            }),
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 500,
+            }
+          );
+        }
+
+        const endTime = Date.now();
+        console.log(`Gmail connection updated successfully in ${endTime - startTime}ms`);
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            account: updatedAccount,
+            message: "Email account updated successfully",
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
+
+      // Create a new email account
+      const { data: newAccount, error: insertError } = await supabase
+        .from("email_accounts")
+        .insert({
+          user_id: userId,
+          email: userInfo.emailAddress,
+          provider: "gmail",
+          access_token,
+          refresh_token: refresh_token || null,
+          is_connected: true,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error inserting new account:", insertError);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Error inserting new account",
+            details: insertError,
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500,
+          }
+        );
+      }
+
+      const endTime = Date.now();
+      console.log(`Gmail connection created successfully in ${endTime - startTime}ms`);
+      
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: tokensResult.error,
-          googleError: tokensResult.googleError,
-          googleErrorDescription: tokensResult.googleErrorDescription,
-          status: tokensResult.status
+        JSON.stringify({
+          success: true,
+          account: newAccount,
+          message: "Email account connected successfully",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
-    }
-    
-    const tokens = tokensResult.tokens
-    
-    // Verify the token
-    const verifyResult = await verifyToken(tokens.access_token)
-    if (!verifyResult.success) {
-      console.error('Token verification failed:', verifyResult)
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    } catch (userInfoError) {
+      console.error("Exception fetching user info:", userInfoError);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Failed to verify access token',
-          details: verifyResult.details,
-          tokenInfo: verifyResult.details
+        JSON.stringify({
+          success: false,
+          error: "Exception fetching user info",
+          details: String(userInfoError),
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        }
+      );
     }
-    
-    // Get user info
-    console.log('Getting user info')
-    const userInfoResult = await getUserInfo(tokens.access_token)
-    
-    if (!userInfoResult.success) {
-      console.error('User info fetch failed:', userInfoResult)
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Failed to get user information',
-          details: userInfoResult.details,
-          status: userInfoResult.status,
-          tokenInfo: verifyResult.tokenInfo
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
-    }
-    
-    const userInfo = userInfoResult.userInfo
-    
-    // Save the email account
-    console.log('Saving email account')
-    const saveResult = await saveEmailAccount(supabase, userId, userInfo.email, tokens)
-    
-    if (!saveResult.success) {
-      console.error('Account save failed:', saveResult)
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Failed to save email account',
-          details: saveResult.details
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
-    }
-    
-    // Return success response
-    console.log('Successfully connected Gmail account:', userInfo.email)
+  } catch (e) {
+    console.error("Unhandled exception:", e);
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        account: saveResult.account,
-        message: 'Successfully connected Gmail account',
+      JSON.stringify({
+        success: false,
+        error: "Internal server error",
+        details: String(e),
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    )
-  } catch (error) {
-    console.error('Unhandled exception in Edge Function:', error)
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: 'Internal server error',
-        details: error.message || String(error)
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    )
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
+    );
   }
-})
-
-// To invoke:
-// curl -i --location --request POST 'http://localhost:54321/functions/v1/connect-gmail' \
-// --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-// --header 'Content-Type: application/json' \
-// --data '{"code":"AUTHORIZATION_CODE","userId":"USER_ID"}'
+});

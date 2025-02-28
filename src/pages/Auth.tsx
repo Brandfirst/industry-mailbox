@@ -47,12 +47,46 @@ const Auth = () => {
       });
     }
     
+    // Handle OAuth callback in the URL (if this is a return from Google OAuth)
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    
+    if (code && state === 'gmail_connect') {
+      console.log("Detected OAuth callback - redirecting to admin page");
+      if (user) {
+        // User is already authenticated, redirect to admin
+        navigate('/admin', { replace: true });
+      } else {
+        // User needs to log in first, set a session flag to redirect after login
+        sessionStorage.setItem('pendingOAuthCode', code);
+        sessionStorage.setItem('pendingOAuthState', state);
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to complete connecting your Gmail account.",
+        });
+      }
+    }
+    
     // If user is logged in, redirect to intended destination
     if (user && !authLoading) {
       console.log("User already logged in, redirecting to:", redirectPath);
-      navigate(redirectPath);
+      
+      // Check if there's a pending OAuth flow to complete
+      const pendingCode = sessionStorage.getItem('pendingOAuthCode');
+      const pendingState = sessionStorage.getItem('pendingOAuthState');
+      
+      if (pendingCode && pendingState === 'gmail_connect') {
+        // Clean up the pending OAuth data
+        sessionStorage.removeItem('pendingOAuthCode');
+        sessionStorage.removeItem('pendingOAuthState');
+        // Redirect to admin with the code and state
+        navigate(`/admin?code=${pendingCode}&state=${pendingState}`, { replace: true });
+      } else {
+        // Normal redirect
+        navigate(redirectPath);
+      }
     }
-  }, [user, authLoading, navigate, mode, redirectPath, toast]);
+  }, [user, authLoading, navigate, mode, redirectPath, toast, searchParams]);
 
   // Show loading screen during authentication loading
   if (authLoading) {
@@ -86,8 +120,21 @@ const Auth = () => {
             title: "Velkommen tilbake!",
             description: "Du er nå logget inn.",
           });
-          // After successful login, redirect to the intended page
-          navigate(redirectPath);
+          
+          // Check if there's a pending OAuth flow to complete
+          const pendingCode = sessionStorage.getItem('pendingOAuthCode');
+          const pendingState = sessionStorage.getItem('pendingOAuthState');
+          
+          if (pendingCode && pendingState === 'gmail_connect') {
+            // Clean up the pending OAuth data
+            sessionStorage.removeItem('pendingOAuthCode');
+            sessionStorage.removeItem('pendingOAuthState');
+            // Redirect to admin with the code and state
+            navigate(`/admin?code=${pendingCode}&state=${pendingState}`, { replace: true });
+          } else {
+            // After successful login, redirect to the intended page
+            navigate(redirectPath);
+          }
         } else {
           setError(error || "Kunne ikke logge inn. Prøv igjen.");
           toast({
