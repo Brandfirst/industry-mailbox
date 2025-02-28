@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -102,7 +103,7 @@ export async function getAllNewsletters(page = 1, limit = 10, search = "", filte
 }
 
 // Support for legacy interface - accepts an object with searchQuery and industries
-export async function getNewsletters(options) {
+export async function getNewsletters(options: number | { searchQuery?: string; industries?: string[] }) {
   // If options is a plain number, treat it as the page number
   if (typeof options === 'number') {
     return getAllNewsletters(options);
@@ -110,7 +111,7 @@ export async function getNewsletters(options) {
   
   // Otherwise, extract properties from the options object
   const { searchQuery = "", industries = [] } = options || {};
-  const filters = {};
+  const filters: { category?: string } = {};
   
   // Map industries to category if needed
   if (industries && industries.length > 0) {
@@ -244,7 +245,16 @@ export async function getUserEmailAccounts(userId) {
   return data;
 }
 
-export async function connectGoogleEmail(userId, code) {
+interface GoogleOAuthResult {
+  success: boolean;
+  account?: any;
+  error?: string;
+  details?: any;
+  googleError?: string;
+  googleErrorDescription?: string;
+}
+
+export async function connectGoogleEmail(userId, code): Promise<GoogleOAuthResult> {
   try {
     // Get the current location's origin for the redirect URI
     let origin = window.location.origin;

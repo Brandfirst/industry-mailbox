@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Users, Mail, Database, TrendingUp, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAdminStats } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StatsCardProps {
   title: string;
@@ -90,13 +92,8 @@ const AdminStats = () => {
         setIsLoading(true);
         
         // Fetch the latest stats from admin_stats table
-        const { data: statsData, error: statsError } = await getAdminStats();
+        const statsData = await getAdminStats();
         
-        if (statsError) {
-          console.error("Error fetching admin stats:", statsError);
-          throw new Error(statsError.message);
-        }
-
         // Get the latest stats or use empty default if no stats exist
         const latestStats = statsData || null;
         
