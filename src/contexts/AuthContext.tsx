@@ -225,52 +225,72 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const safelyRemoveLocalStorageItems = () => {
+    // Get a list of all localStorage keys
+    const keys = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) keys.push(key);
+      }
+      
+      // First try to remove the problematic items specifically
+      if (keys.includes('professional')) {
+        localStorage.removeItem('professional');
+      }
+      
+      // Handle Supabase-related items
+      keys.forEach(key => {
+        if (key.startsWith('supabase.')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Then try to safely remove remaining items
+      keys.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+        } catch (e) {
+          console.warn(`Failed to remove localStorage item: ${key}`, e);
+        }
+      });
+    } catch (e) {
+      console.error("Error clearing localStorage:", e);
+    }
+  };
+
   const signOut = async () => {
     try {
       console.log("Sign out initiated");
       
-      // Clear local state first
+      // First call Supabase signOut to handle the backend session
+      await supabase.auth.signOut();
+      
+      // Clear local state
       setUser(null);
       setSession(null);
       setProfileRole(null);
       
-      // Safely clear localStorage items
-      try {
-        // Clear specific Supabase items to avoid the parsing error
-        localStorage.removeItem('supabase.auth.token');
-        localStorage.removeItem('professional');
-        
-        // Then clear everything else
-        localStorage.clear();
-      } catch (localStorageError) {
-        console.error("Error clearing localStorage:", localStorageError);
-      }
+      // Safely remove localStorage items
+      safelyRemoveLocalStorageItems();
       
-      // Call Supabase signOut
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Error during Supabase signOut:", error);
-      }
-      
-      // Force a page reload to clear any remaining state
-      window.location.href = '/';
+      // Use a hard redirect to the home page
+      // This will completely reload the page and all state
+      window.location.replace('/');
       
     } catch (error) {
       console.error("Sign out error:", error);
       
-      // Force clear everything even on error
+      // Force clear state even on error
       setUser(null);
       setSession(null);
       setProfileRole(null);
       
-      try {
-        localStorage.clear();
-      } catch (e) {
-        console.error("Error forcing localStorage clear:", e);
-      }
+      // Try to clean localStorage again
+      safelyRemoveLocalStorageItems();
       
-      // Force redirect
-      window.location.href = '/';
+      // Force redirect anyway
+      window.location.replace('/');
     }
   };
 
