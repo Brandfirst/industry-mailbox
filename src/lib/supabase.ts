@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -34,7 +33,6 @@ export interface NewsletterFilters {
 }
 
 // User profile functions
-
 export async function getUserProfile(userId) {
   const { data, error } = await supabase
     .from("profiles")
@@ -68,103 +66,78 @@ export async function updateUserProfile(userId, updates) {
 
 // Newsletter functions
 
-// Simplified approach to avoid TypeScript deep instantiation
+// Most simplified approach to avoid TypeScript deep instantiation
 export async function getAllNewsletters(
   page = 1, 
   limit = 10, 
   search = "", 
   filters: NewsletterFilters = {}
-) {
+): Promise<{ data: Newsletter[], count: number | null }> {
   try {
     // Calculate pagination values
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     
-    // Build query parts without chaining to avoid TypeScript complexity
-    let query = `*, categories(name, slug, color)`;
-    let conditions = [];
-    let queryParams: any = {};
+    // Start with a basic query builder
+    let queryBuilder = supabase
+      .from("newsletters")
+      .select("*, categories(name, slug, color)", { count: "exact" });
     
-    // Add search condition if provided
+    // Add filters one by one to avoid complex chaining
     if (search) {
-      conditions.push(`(title.ilike.%${search}% OR description.ilike.%${search}%)`);
+      queryBuilder = queryBuilder.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
     }
     
-    // Add category filter
     if (filters.category) {
-      conditions.push("category_id=:categoryId");
-      queryParams.categoryId = filters.category;
+      queryBuilder = queryBuilder.eq("category_id", filters.category);
     }
     
-    // Add date filters
     if (filters.fromDate) {
-      conditions.push("published_date>=:fromDate");
-      queryParams.fromDate = filters.fromDate;
+      queryBuilder = queryBuilder.gte("published_date", filters.fromDate);
     }
     
     if (filters.toDate) {
-      conditions.push("published_date<=:toDate");
-      queryParams.toDate = filters.toDate;
+      queryBuilder = queryBuilder.lte("published_date", filters.toDate);
     }
     
-    // Execute the query with all conditions
-    let finalQuery = supabase.from("newsletters").select(query, { count: "exact" });
+    // Add ordering and pagination
+    queryBuilder = queryBuilder.order("published_date", { ascending: false });
+    queryBuilder = queryBuilder.range(from, to);
     
-    // Apply filters as conditions
-    if (conditions.length > 0) {
-      // Use simple .eq, .gte, etc. rather than complex filter chains
-      if (filters.category) {
-        finalQuery = finalQuery.eq("category_id", filters.category);
-      }
-      
-      if (filters.fromDate) {
-        finalQuery = finalQuery.gte("published_date", filters.fromDate);
-      }
-      
-      if (filters.toDate) {
-        finalQuery = finalQuery.lte("published_date", filters.toDate);
-      }
-      
-      // Apply text search last
-      if (search) {
-        finalQuery = finalQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-      }
+    // Execute the query
+    const response = await queryBuilder;
+    
+    if (response.error) {
+      throw response.error;
     }
     
-    // Apply ordering and pagination as separate operations
-    finalQuery = finalQuery.order("published_date", { ascending: false });
-    finalQuery = finalQuery.range(from, to);
-    
-    // Execute query
-    const { data, error, count } = await finalQuery;
-    
-    if (error) throw error;
-    
-    return { data, count };
+    return { 
+      data: response.data as Newsletter[], 
+      count: response.count 
+    };
   } catch (error) {
     console.error("Error fetching newsletters:", error);
     throw error;
   }
 }
 
-// Using a different approach for getNewsletters to avoid type issues
-export function getNewsletters(options: number | { searchQuery?: string; industries?: string[] }) {
-  // Handle numeric case (page number)
+// Helper function to handle different parameter formats
+export async function getNewsletters(options: any): Promise<{ data: Newsletter[], count: number | null }> {
   if (typeof options === 'number') {
+    // If options is a number, treat it as page number
     return getAllNewsletters(options, 10, '', {});
+  } else {
+    // Otherwise, extract search and industries from the options object
+    const searchQuery = options?.searchQuery || '';
+    const industries = options?.industries || [];
+    
+    const filters: NewsletterFilters = {};
+    if (industries.length > 0) {
+      filters.category = industries[0];
+    }
+    
+    return getAllNewsletters(1, 10, searchQuery, filters);
   }
-  
-  // Handle object case with options
-  const opts = options as { searchQuery?: string; industries?: string[] };
-  const searchQuery = opts?.searchQuery || '';
-  const industries = opts?.industries || [];
-  
-  const filters: NewsletterFilters = {};
-  if (industries.length > 0) {
-    filters.category = industries[0];
-  }
-  
-  return getAllNewsletters(1, 10, searchQuery, filters);
 }
 
 export async function getNewsletterById(id) {
@@ -242,7 +215,6 @@ export async function getUserSavedNewsletters(userId, page = 1, limit = 10) {
 }
 
 // Admin stats functions
-
 export async function getAdminStats() {
   const { data, error } = await supabase
     .from("admin_stats")
@@ -259,7 +231,6 @@ export async function getAdminStats() {
 }
 
 // Category functions
-
 export async function getAllCategories() {
   const { data, error } = await supabase
     .from("categories")
@@ -275,7 +246,6 @@ export async function getAllCategories() {
 }
 
 // Email account functions
-
 export async function getUserEmailAccounts(userId) {
   const { data, error } = await supabase
     .from("email_accounts")

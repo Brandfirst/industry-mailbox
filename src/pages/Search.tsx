@@ -87,7 +87,8 @@ const Search = () => {
             </div>
           ) : newsletters.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {newsletters.map((newsletter: Newsletter) => (
+              {/* Explicitly type each newsletter as a Newsletter */}
+              {(newsletters as Newsletter[]).map((newsletter: Newsletter) => (
                 <NewsletterCard
                   key={newsletter.id}
                   id={newsletter.id}
