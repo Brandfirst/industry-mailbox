@@ -95,14 +95,16 @@ const AdminStats = () => {
           .from('admin_stats')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
         
         if (statsError) {
           console.error("Error fetching admin stats:", statsError);
           throw new Error(statsError.message);
         }
 
+        // Get the latest stats or use empty default if no stats exist
+        const latestStats = statsData && statsData.length > 0 ? statsData[0] : null;
+        
         // Fetch additional data that isn't stored in the stats table
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('categories')
@@ -128,22 +130,64 @@ const AdminStats = () => {
         }
 
         // For now, use some calculated or default values for data we don't have yet
-        const categoriesCount = categoriesData.length || 0;
-        const weeklyNewslettersCount = weeklyNewsletters.length || 0;
+        const categoriesCount = categoriesData?.length || 0;
+        const weeklyNewslettersCount = weeklyNewsletters?.length || 0;
+        
+        // If we don't have stats data, fetch direct counts
+        let totalUsers = latestStats?.total_users || 0;
+        let premiumUsers = latestStats?.premium_users || 0;
+        let totalNewsletters = latestStats?.total_newsletters || 0;
+        
+        // If we don't have stats data, try to get direct counts
+        if (!latestStats) {
+          // Get user count
+          const { count: userCount, error: userCountError } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true });
+            
+          if (userCountError) {
+            console.error("Error fetching user count:", userCountError);
+          } else {
+            totalUsers = userCount || 0;
+          }
+          
+          // Get premium user count
+          const { count: premiumCount, error: premiumCountError } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('premium', true);
+            
+          if (premiumCountError) {
+            console.error("Error fetching premium user count:", premiumCountError);
+          } else {
+            premiumUsers = premiumCount || 0;
+          }
+          
+          // Get newsletter count
+          const { count: newsletterCount, error: newsletterCountError } = await supabase
+            .from('newsletters')
+            .select('*', { count: 'exact', head: true });
+            
+          if (newsletterCountError) {
+            console.error("Error fetching newsletter count:", newsletterCountError);
+          } else {
+            totalNewsletters = newsletterCount || 0;
+          }
+        }
         
         const formattedStats: AdminStatsType = {
-          totalUsers: statsData?.total_users || 0,
-          premiumUsers: statsData?.premium_users || 0,
-          totalNewsletters: statsData?.total_newsletters || 0,
-          storageUsed: formatBytes(statsData?.storage_used || 0),
-          newUsers: Math.floor(statsData?.total_users * 0.12) || 0, // Placeholder: 12% of total
-          activeUsers: Math.floor(statsData?.total_users * 0.76) || 0, // Placeholder: 76% of total
-          premiumConversion: statsData?.premium_users ? 
-            `${((statsData.premium_users / statsData.total_users) * 100).toFixed(1)}%` : 
+          totalUsers: totalUsers,
+          premiumUsers: premiumUsers,
+          totalNewsletters: totalNewsletters,
+          storageUsed: formatBytes(latestStats?.storage_used || 0),
+          newUsers: Math.floor(totalUsers * 0.12) || 0, // Placeholder: 12% of total
+          activeUsers: Math.floor(totalUsers * 0.76) || 0, // Placeholder: 76% of total
+          premiumConversion: totalUsers > 0 ? 
+            `${((premiumUsers / totalUsers) * 100).toFixed(1)}%` : 
             "0%",
           newNewslettersPastWeek: weeklyNewslettersCount,
           categories: categoriesCount,
-          uncategorized: Math.floor(statsData?.total_newsletters * 0.05) || 0 // Placeholder: 5% of total
+          uncategorized: Math.floor(totalNewsletters * 0.05) || 0 // Placeholder: 5% of total
         };
         
         setStats(formattedStats);
@@ -205,7 +249,7 @@ const AdminStats = () => {
           <StatsCard
             title="Premium Users"
             value={stats?.premiumUsers || 0}
-            description={stats ? `${((stats.premiumUsers / stats.totalUsers) * 100).toFixed(1)}% of total` : "0% of total"}
+            description={stats && stats.totalUsers > 0 ? `${((stats.premiumUsers / stats.totalUsers) * 100).toFixed(1)}% of total` : "0% of total"}
             icon={Users}
             change={5.1}
             trend="up"
