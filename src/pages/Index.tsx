@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Mail, Search, Shield, Sparkles, ChevronRight } from "lucide-react";
+import { ArrowRight, Mail, Search, Shield, Sparkles, ChevronRight, Star, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -151,12 +151,12 @@ const Index = () => {
                         </div>
                       </div>
                       
-                      {/* Newsletter Grid */}
+                      {/* Newsletter Grid - Fixed gradient issue */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {/* Newsletter Card 1 */}
                         <div className="bg-white rounded-md overflow-hidden">
                           <div className="relative">
-                            <div className="w-full h-40 bg-blue-100 flex items-center justify-center">
+                            <div className="w-full h-40 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
                               <div className="text-center px-4">
                                 <h3 className="text-blue-800 font-bold">Ukens Tilbud</h3>
                                 <p className="text-blue-600 text-sm">Opptil 50% rabatt!</p>
@@ -182,7 +182,7 @@ const Index = () => {
                         {/* Newsletter Card 2 */}
                         <div className="bg-white rounded-md overflow-hidden">
                           <div className="relative">
-                            <div className="w-full h-40 bg-green-100 flex items-center justify-center">
+                            <div className="w-full h-40 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
                               <div className="text-center px-4">
                                 <h3 className="text-green-800 font-bold">Sommertilbud</h3>
                                 <p className="text-green-600 text-sm">Nye kolleksjoner</p>
@@ -208,7 +208,7 @@ const Index = () => {
                         {/* Newsletter Card 3 */}
                         <div className="bg-white rounded-md overflow-hidden">
                           <div className="relative">
-                            <div className="w-full h-40 bg-orange-100 flex items-center justify-center">
+                            <div className="w-full h-40 bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
                               <div className="text-center px-4">
                                 <h3 className="text-orange-800 font-bold">Helgetilbud</h3>
                                 <p className="text-orange-600 text-sm">Gratis frakt!</p>
@@ -234,7 +234,7 @@ const Index = () => {
                         {/* Newsletter Card 4 */}
                         <div className="bg-white rounded-md overflow-hidden">
                           <div className="relative">
-                            <div className="w-full h-40 bg-purple-100 flex items-center justify-center">
+                            <div className="w-full h-40 bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center">
                               <div className="text-center px-4">
                                 <h3 className="text-purple-800 font-bold">Månedens Nytt</h3>
                                 <p className="text-purple-600 text-sm">Tips og trender</p>
@@ -259,6 +259,89 @@ const Index = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section - New Social Proof */}
+        <section className="py-16 px-4 bg-dark-200">
+          <div className="container mx-auto max-w-6xl">
+            <h2 className="text-2xl font-bold text-center mb-12 text-white">
+              Hva våre kunder sier
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Testimonial 1 */}
+              <div className="testimonial-card flex flex-col">
+                <div className="flex items-center mb-4">
+                  <div className="bg-blue-500/20 h-10 w-10 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-blue-400 font-bold">MH</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium">Morten Hansen</h3>
+                    <p className="text-sm text-gray-400">Markedssjef, Teknologix</p>
+                  </div>
+                </div>
+                <div className="mb-4 flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 text-yellow-400" fill="#FBBF24" />
+                  ))}
+                </div>
+                <p className="text-gray-300 text-sm italic flex-grow">
+                  "NewsletterHub har vært en game-changer for oss. Vi har økt åpningsraten på våre nyhetsbrev med 32% ved å bruke innsikten vi fikk fra plattformen."
+                </p>
+                <div className="mt-4 pt-4 border-t border-white/10 flex items-center">
+                  <span className="text-blue-400 text-xs font-medium">Bruker siden 2023</span>
+                </div>
+              </div>
+              
+              {/* Testimonial 2 */}
+              <div className="testimonial-card flex flex-col">
+                <div className="flex items-center mb-4">
+                  <div className="bg-blue-500/20 h-10 w-10 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-blue-400 font-bold">KS</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium">Kari Svendsen</h3>
+                    <p className="text-sm text-gray-400">Eier, Mediebyrådet</p>
+                  </div>
+                </div>
+                <div className="mb-4 flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 text-yellow-400" fill="#FBBF24" />
+                  ))}
+                </div>
+                <p className="text-gray-300 text-sm italic flex-grow">
+                  "Som mediebyrå sparer vi utallige timer hver uke på å bruke NewsletterHub. Det gir oss rask tilgang til markedsinnsikt og konkurranseanalyse på tvers av bransjer."
+                </p>
+                <div className="mt-4 pt-4 border-t border-white/10 flex items-center">
+                  <span className="text-blue-400 text-xs font-medium">Bruker siden 2022</span>
+                </div>
+              </div>
+              
+              {/* Testimonial 3 */}
+              <div className="testimonial-card flex flex-col">
+                <div className="flex items-center mb-4">
+                  <div className="bg-blue-500/20 h-10 w-10 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-blue-400 font-bold">OL</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium">Ole Larsen</h3>
+                    <p className="text-sm text-gray-400">Digital Markedsfører, RetailPlus</p>
+                  </div>
+                </div>
+                <div className="mb-4 flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 text-yellow-400" fill="#FBBF24" />
+                  ))}
+                </div>
+                <p className="text-gray-300 text-sm italic flex-grow">
+                  "Jeg har jobbet med e-postmarkedsføring i 10 år, og har aldri hatt et verktøy som gir så mye verdi. NewsletterHub er essensielt for enhver som jobber med direktemarkedsføring."
+                </p>
+                <div className="mt-4 pt-4 border-t border-white/10 flex items-center">
+                  <span className="text-blue-400 text-xs font-medium">Bruker siden 2023</span>
                 </div>
               </div>
             </div>
@@ -409,6 +492,37 @@ const Index = () => {
                   <path d="M31 4H41C43.2 4 45 5.8 45 8V16C45 18.2 43.2 20 41 20H31V4ZM35 8V16H40C40.6 16 41 15.6 41 15V9C41 8.4 40.6 8 40 8H35Z" fill="currentColor"/>
                   <path d="M48 4H58C60.2 4 62 5.8 62 8V16C62 18.2 60.2 20 58 20H48V4ZM52 8V16H57C57.6 16 58 15.6 58 15V9C58 8.4 57.6 8 57 8H52Z" fill="currentColor"/>
                 </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust Badges Section - New Social Proof */}
+        <section className="py-12 px-4 bg-dark-200">
+          <div className="container mx-auto max-w-6xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-dark-300 rounded-xl p-6 border border-white/5 text-center">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-blue-500/10 text-blue-400 mb-4">
+                  <CheckCircle className="h-6 w-6" />
+                </div>
+                <h3 className="text-white font-medium text-lg mb-2">5,000+ kunder</h3>
+                <p className="text-gray-400 text-sm">Stolte av å betjene over 5000 markedsførere og byråer i Norge.</p>
+              </div>
+              
+              <div className="bg-dark-300 rounded-xl p-6 border border-white/5 text-center">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-blue-500/10 text-blue-400 mb-4">
+                  <CheckCircle className="h-6 w-6" />
+                </div>
+                <h3 className="text-white font-medium text-lg mb-2">25 000+ nyhetsbrev</h3>
+                <p className="text-gray-400 text-sm">Norges største samling av nyhetsbrev og markedsføringskampanjer.</p>
+              </div>
+              
+              <div className="bg-dark-300 rounded-xl p-6 border border-white/5 text-center">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-blue-500/10 text-blue-400 mb-4">
+                  <CheckCircle className="h-6 w-6" />
+                </div>
+                <h3 className="text-white font-medium text-lg mb-2">99.9% oppetid</h3>
+                <p className="text-gray-400 text-sm">Stol på vår pålitelige plattform for dine markedsføringsbehov.</p>
               </div>
             </div>
           </div>
