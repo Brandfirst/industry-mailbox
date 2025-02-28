@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { saveNewsletter, unsaveNewsletter, isNewsletterSaved } from "@/lib/supabase";
 
 interface NewsletterProps {
-  id: number; // Changed from string to number
+  id: number;
   title: string;
   sender: string;
   industry: string;
@@ -97,14 +97,14 @@ const NewsletterCard = ({
   };
 
   return (
-    <Card className="w-full h-full transition-all duration-300 hover:shadow-card overflow-hidden">
+    <Card className="w-full h-full transition-all duration-300 hover:shadow-card overflow-hidden bg-dark-300 border-white/5">
       <CardHeader className="p-4 pb-0 flex flex-row items-start justify-between space-y-0">
         <div>
-          <Badge className="mb-2 bg-secondary text-secondary-foreground">
+          <Badge className="mb-2 bg-dark-500 text-blue-400 hover:bg-dark-600">
             {industry}
           </Badge>
-          <h3 className="text-lg font-medium line-clamp-1">{title}</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-lg font-medium line-clamp-1 text-white">{title}</h3>
+          <p className="text-sm text-gray-500">
             From: {sender}
           </p>
         </div>
@@ -115,35 +115,35 @@ const NewsletterCard = ({
                 variant="ghost"
                 size="icon"
                 onClick={handleSave}
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 text-gray-500 hover:text-white hover:bg-dark-400"
                 disabled={isSaving}
               >
                 {saved ? (
-                  <BookmarkCheck className="h-5 w-5 text-primary" />
+                  <BookmarkCheck className="h-5 w-5 text-blue-400" />
                 ) : (
                   <Bookmark className="h-5 w-5" />
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="bg-dark-400 border-white/10">
               <p>{saved ? "Remove from saved" : "Save newsletter"}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
       <CardContent className="p-4">
-        <p className="text-sm text-muted-foreground line-clamp-3">
+        <p className="text-sm text-gray-400 line-clamp-3">
           {preview}
         </p>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-gray-500">
           {formatDistanceToNow(new Date(date), { addSuffix: true })}
         </span>
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-xs text-primary hover:text-primary hover:bg-mint-light"
+          className="text-xs text-blue-400 hover:text-blue-400 hover:bg-blue-500/10"
         >
           <Mail className="mr-1 h-3 w-3" />
           Read More

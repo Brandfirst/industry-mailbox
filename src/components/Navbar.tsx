@@ -32,8 +32,8 @@ const Navbar = () => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const activeLink = "text-mint-dark font-medium";
-  const inactiveLink = "text-foreground/80 hover:text-foreground transition-colors";
+  const activeLink = "text-blue-400 font-medium";
+  const inactiveLink = "text-gray-300 hover:text-white transition-colors";
   
   const handleSignOut = async (e) => {
     e.preventDefault();
@@ -58,12 +58,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-sm border-b border-border">
+    <nav className="sticky top-0 z-50 w-full bg-dark-200/80 backdrop-blur-sm border-b border-white/10">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2">
-            <Mail className="w-6 h-6 text-mint-dark" />
-            <span className="text-xl font-medium tracking-tight">NewsletterHub</span>
+            <Mail className="w-6 h-6 text-blue-400" />
+            <span className="text-xl font-medium tracking-tight text-white">NewsletterHub</span>
           </Link>
         </div>
         
@@ -101,38 +101,38 @@ const Navbar = () => {
           {user ? (
             <div className="flex items-center gap-4">
               {!isPremium && (
-                <Button variant="outline" className="btn-hover-effect text-mint-dark border-mint-dark hover:bg-mint-light">
+                <Button variant="outline" className="btn-hover-effect border-blue-400 text-blue-400 hover:bg-blue-400/10">
                   Oppgrader
                 </Button>
               )}
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <User className="w-5 h-5" />
+                  <Button variant="ghost" size="icon" className="rounded-full bg-dark-400 hover:bg-dark-500">
+                    <User className="w-5 h-5 text-gray-300" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="bg-dark-300 border-white/10">
+                  <DropdownMenuLabel className="text-gray-100">
                     {user.user_metadata.firstName || user.email}
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/account')}>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem onClick={() => navigate('/account')} className="hover:bg-dark-400 text-gray-200">
                     Min konto
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                    <DropdownMenuItem onClick={() => navigate('/admin')} className="hover:bg-dark-400 text-gray-200">
                       <Shield className="w-4 h-4 mr-2" />
                       Admin panel
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={() => navigate('/saved')}>
+                  <DropdownMenuItem onClick={() => navigate('/saved')} className="hover:bg-dark-400 text-gray-200">
                     Lagrede nyhetsbrev
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-white/10" />
                   <DropdownMenuItem 
                     onClick={handleSignOut} 
-                    className="text-red-600"
+                    className="text-red-400 hover:bg-dark-400"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Logg ut
@@ -143,10 +143,10 @@ const Navbar = () => {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/auth?mode=signin">
-                <Button variant="ghost" className="btn-hover-effect">Logg inn</Button>
+                <Button variant="ghost" className="btn-hover-effect text-gray-300 hover:text-white">Logg inn</Button>
               </Link>
               <Link to="/auth?mode=signup">
-                <Button className="bg-primary text-white hover:bg-mint-dark transition-colors btn-hover-effect">
+                <Button className="bg-blue-500 text-white hover:bg-blue-600 transition-colors btn-hover-effect">
                   Registrer
                 </Button>
               </Link>
@@ -161,6 +161,7 @@ const Navbar = () => {
             size="icon" 
             onClick={toggleMenu}
             aria-label="Toggle menu"
+            className="text-gray-300"
           >
             {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
@@ -170,7 +171,7 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       {isMenuOpen && (
         <div className="md:hidden animate-slide-down">
-          <div className="flex flex-col px-4 pt-2 pb-4 space-y-4 border-t">
+          <div className="flex flex-col px-4 pt-2 pb-4 space-y-4 border-t border-white/10 bg-dark-300">
             <Link 
               to="/" 
               className={`${location.pathname === '/' ? activeLink : inactiveLink} py-2`}
@@ -205,16 +206,16 @@ const Navbar = () => {
               </Link>
             )}
             {user ? (
-              <div className="flex flex-col gap-2 pt-2 border-t">
+              <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
                 {!isPremium && (
-                  <Button variant="outline" className="w-full text-mint-dark border-mint-dark hover:bg-mint-light">
+                  <Button variant="outline" className="w-full border-blue-400 text-blue-400 hover:bg-blue-400/10">
                     Oppgrader
                   </Button>
                 )}
                 
                 <Button 
                   variant="default" 
-                  className="w-full"
+                  className="w-full bg-dark-400 text-white hover:bg-dark-500"
                   onClick={() => {
                     navigate('/account');
                     toggleMenu();
@@ -226,7 +227,7 @@ const Navbar = () => {
                 {isAdmin && (
                   <Button 
                     variant="outline" 
-                    className="w-full"
+                    className="w-full text-gray-300 border-white/10 hover:bg-dark-400"
                     onClick={() => {
                       navigate('/admin');
                       toggleMenu();
@@ -240,19 +241,19 @@ const Navbar = () => {
                 <Button 
                   variant="outline" 
                   onClick={handleSignOut}
-                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                  className="w-full text-red-400 border-red-400/20 hover:bg-red-400/10"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Logg ut
                 </Button>
               </div>
             ) : (
-              <div className="flex flex-col gap-2 pt-2 border-t">
+              <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
                 <Link to="/auth?mode=signin" className="w-full" onClick={toggleMenu}>
-                  <Button variant="outline" className="w-full">Logg inn</Button>
+                  <Button variant="outline" className="w-full text-gray-300 border-white/10 hover:bg-dark-400">Logg inn</Button>
                 </Link>
                 <Link to="/auth?mode=signup" className="w-full" onClick={toggleMenu}>
-                  <Button className="w-full bg-primary text-white hover:bg-mint-dark">Registrer</Button>
+                  <Button className="w-full bg-blue-500 text-white hover:bg-blue-600">Registrer</Button>
                 </Link>
               </div>
             )}

@@ -53,10 +53,22 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				mint: {
-					DEFAULT: '#4dd4ac',
-					light: '#e6f7f2',
-					dark: '#37a084'
+				dark: {
+					DEFAULT: '#000000',
+					'100': '#0A0A0A',
+					'200': '#121212',
+					'300': '#1A1A1A',
+					'400': '#242424',
+					'500': '#363636',
+					'600': '#484848',
+					'700': '#5A5A5A',
+					'800': '#6C6C6C',
+					'900': '#7E7E7E'
+				},
+				blue: {
+					DEFAULT: '#3b82f6',
+					light: '#93c5fd',
+					dark: '#1d4ed8'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
@@ -106,6 +118,11 @@ export default {
 				pulse: {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.5' }
+				},
+				gradientMove: {
+					'0%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' },
+					'100%': { backgroundPosition: '0% 50%' }
 				}
 			},
 			animation: {
@@ -114,14 +131,19 @@ export default {
 				'fade-in': 'fadeIn 0.5s ease-out',
 				'slide-up': 'slideUp 0.5s ease-out',
 				'slide-down': 'slideDown 0.5s ease-out',
-				'pulse-slow': 'pulse 3s ease-in-out infinite'
+				'pulse-slow': 'pulse 3s ease-in-out infinite',
+				'gradient-x': 'gradientMove 15s ease infinite'
 			},
 			boxShadow: {
-				'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
-				'card': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)'
+				'glass': '0 4px 30px rgba(0, 0, 0, 0.2)',
+				'card': '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
+				'glow': '0 0 20px rgba(59, 130, 246, 0.25)'
 			},
 			backdropBlur: {
 				'xs': '2px',
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 			}
 		}
 	},
