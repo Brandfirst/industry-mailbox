@@ -1,122 +1,140 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')!;
-const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+interface RequestBody {
+  userId: string;
+  authCode: string;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Get the request body
-    const { userId, authCode } = await req.json();
+    // Parse request body
+    const body: RequestBody = await req.json();
+    const { userId, authCode } = body;
 
     if (!userId || !authCode) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing required parameters: userId and authCode' }),
-        { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 400 }
+        JSON.stringify({ error: "userId and authCode are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Log inputs for debugging
-    console.log(`Processing request for userId: ${userId}, authCode length: ${authCode.length}`);
+    // Get credentials from environment variables
+    const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
+    const clientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET");
+    const redirectUri = Deno.env.get("GOOGLE_REDIRECT_URI") || `${req.headers.get("origin")}/admin`;
 
-    // Get the URL origin for the redirect URI
-    const url = new URL(req.url);
-    const origin = url.origin.includes('localhost') ? 'http://localhost:5173' : url.origin;
-    const redirectUri = `${origin}/admin`;
+    if (!clientId || !clientSecret) {
+      console.error("Google OAuth credentials not configured");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error - OAuth credentials missing" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    console.log(`Using redirect URI: ${redirectUri}`);
+    console.log(`Exchanging auth code for tokens. Redirect URI: ${redirectUri}`);
 
-    // Exchange the authorization code for tokens
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
+    // Exchange auth code for tokens
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
         code: authCode,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
+        grant_type: "authorization_code",
       }),
     });
 
-    const tokenData = await tokenResponse.json();
-
     if (!tokenResponse.ok) {
-      console.error('Token exchange error:', tokenData);
+      const errorData = await tokenResponse.text();
+      console.error("Error exchanging auth code for tokens:", errorData);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: `Failed to exchange auth code: ${tokenData.error_description || tokenData.error}` 
-        }),
-        { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 400 }
+        JSON.stringify({ error: "Failed to exchange auth code for tokens" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Get user info to get email address
-    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    const tokens = await tokenResponse.json();
+    console.log("Received tokens from Google");
+
+    // Get user info from Google
+    const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
       headers: {
-        Authorization: `Bearer ${tokenData.access_token}`,
+        Authorization: `Bearer ${tokens.access_token}`,
       },
     });
 
-    const userInfo = await userInfoResponse.json();
-
     if (!userInfoResponse.ok) {
-      console.error('User info error:', userInfo);
+      console.error("Error getting user info from Google");
       return new Response(
-        JSON.stringify({ success: false, error: 'Failed to get user info' }),
-        { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 400 }
+        JSON.stringify({ error: "Failed to get user info from Google" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Store the tokens in the database
+    const userInfo = await userInfoResponse.json();
+    console.log("Received user info from Google");
+
+    // Store the connection in the database
     const { data, error } = await supabase
-      .from('email_accounts')
-      .upsert({
-        user_id: userId,
-        email: userInfo.email,
-        provider: 'gmail',
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        is_connected: true,
-        created_at: new Date().toISOString(),
-      })
-      .select();
+      .from("email_accounts")
+      .upsert(
+        {
+          user_id: userId,
+          email: userInfo.email,
+          provider: "gmail",
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token || null, // Not all flows return a refresh token
+          is_connected: true,
+          last_sync: null,
+        },
+        { onConflict: "user_id,email" }
+      )
+      .select("id")
+      .single();
 
     if (error) {
-      console.error('Database error:', error);
+      console.error("Error storing email connection:", error);
       return new Response(
-        JSON.stringify({ success: false, error: 'Failed to store tokens in database' }),
-        { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 500 }
+        JSON.stringify({ error: "Failed to store email connection" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Return success with some basic info (but not tokens for security)
     return new Response(
-      JSON.stringify({ success: true, data }),
-      { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      JSON.stringify({
+        success: true,
+        email: userInfo.email,
+        accountId: data.id,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message || 'An unexpected error occurred' }),
-      { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 500 }
+      JSON.stringify({ error: "Unexpected server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

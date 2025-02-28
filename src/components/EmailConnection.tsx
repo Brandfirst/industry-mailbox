@@ -7,9 +7,11 @@ import { Mail, RefreshCw, Trash2, PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { getUserEmailAccounts, connectGoogleEmail, disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase";
+import { useLocation } from "react-router-dom";
 
 const EmailConnection = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [emailAccounts, setEmailAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(null);
@@ -17,7 +19,16 @@ const EmailConnection = () => {
 
   useEffect(() => {
     fetchEmailAccounts();
-  }, [user]);
+    
+    // Check for OAuth callback
+    const searchParams = new URLSearchParams(location.search);
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    
+    if (code && state === 'gmail_connect' && user) {
+      handleOAuthCallback(code);
+    }
+  }, [user, location]);
 
   const fetchEmailAccounts = async () => {
     if (!user) return;
@@ -34,15 +45,41 @@ const EmailConnection = () => {
     }
   };
 
+  const handleOAuthCallback = async (code) => {
+    if (!user) return;
+    
+    try {
+      toast.loading("Connecting Gmail account...");
+      const result = await connectGoogleEmail(user.id, code);
+      
+      if (result.success) {
+        toast.success("Gmail account connected successfully!");
+        // Refresh the email accounts list
+        fetchEmailAccounts();
+        
+        // Clean up the URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else {
+        toast.error(`Failed to connect Gmail: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error handling OAuth callback:", error);
+      toast.error("Failed to complete Gmail connection");
+    }
+  };
+
   const initiateGoogleOAuth = () => {
     console.log("Starting Google OAuth flow...");
     
     // Use the current origin for the redirect URI
     const redirectUri = `${window.location.origin}/admin`;
     
-    // Build the OAuth URL - this would typically use environment variables for the client ID
-    // For testing, we'll use a placeholder client ID
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_CLIENT_ID";
+    // Get the OAuth client ID from environment variables
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      toast.error("Google client ID not configured. Please add VITE_GOOGLE_CLIENT_ID to your environment.");
+      return;
+    }
     
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     authUrl.searchParams.append("client_id", clientId);
@@ -55,12 +92,51 @@ const EmailConnection = () => {
 
     // Redirect to Google OAuth consent screen
     console.log("Redirecting to Google OAuth URL:", authUrl.toString());
+    window.location.href = authUrl.toString();
+  };
+
+  const handleDisconnect = async (accountId) => {
+    if (!user) return;
     
-    // For testing purposes, just show a toast message instead of actually redirecting
-    toast.info("Gmail connection would redirect to Google login (simulation)");
+    setIsDisconnecting(accountId);
+    try {
+      const result = await disconnectEmailAccount(accountId);
+      
+      if (result.success) {
+        toast.success("Email account disconnected");
+        // Refresh the email accounts list
+        fetchEmailAccounts();
+      } else {
+        toast.error(`Failed to disconnect: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error disconnecting email account:", error);
+      toast.error("Failed to disconnect email account");
+    } finally {
+      setIsDisconnecting(null);
+    }
+  };
+
+  const handleSync = async (accountId) => {
+    if (!user) return;
     
-    // In production, uncomment this line to actually redirect
-    // window.location.href = authUrl.toString();
+    setIsSyncing(accountId);
+    try {
+      const result = await syncEmailAccount(accountId);
+      
+      if (result.success) {
+        toast.success("Email account synced successfully");
+        // Refresh the email accounts list to get the updated last_sync time
+        fetchEmailAccounts();
+      } else {
+        toast.error(`Failed to sync: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error syncing email account:", error);
+      toast.error("Failed to sync email account");
+    } finally {
+      setIsSyncing(null);
+    }
   };
 
   return (
@@ -113,15 +189,21 @@ const EmailConnection = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => toast.info("Sync initiated")}
+                    disabled={isSyncing === account.id}
+                    onClick={() => handleSync(account.id)}
                   >
-                    <RefreshCw className="h-4 w-4 mr-1" />
+                    {isSyncing === account.id ? (
+                      <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                    )}
                     Sync
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => toast.info("Account disconnected")}
+                    disabled={isDisconnecting === account.id}
+                    onClick={() => handleDisconnect(account.id)}
                   >
                     <Trash2 className="h-4 w-4 mr-1 text-red-500" />
                     Disconnect
