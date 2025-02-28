@@ -22,19 +22,9 @@ const EmailConnection = () => {
   const [isDisconnecting, setIsDisconnecting] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [oauthError, setOauthError] = useState(null);
-  const [redirectUri, setRedirectUri] = useState('');
   
-  // Set the redirect URI at component mount
-  useEffect(() => {
-    // Use the exact redirect URI that's configured in Google Cloud Console
-    // Get current window URL for dynamic redirect URI
-    const baseUrl = window.location.origin;
-    const adminPath = "/admin";
-    const dynamicRedirectUri = `${baseUrl}${adminPath}`;
-    
-    setRedirectUri(dynamicRedirectUri);
-    console.log("Using dynamic redirect URI:", dynamicRedirectUri);
-  }, []);
+  // IMPORTANT: Use the fixed redirect URI that must match exactly with Google Cloud Console
+  const redirectUri = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin";
   
   // Reset state on mount
   useEffect(() => {
@@ -174,14 +164,12 @@ const EmailConnection = () => {
       // Store the current path to return to after auth
       sessionStorage.setItem('auth_return_path', location.pathname);
       
-      // Use the current window's location to build the redirect URI
-      const dynamicRedirectUri = redirectUri || window.location.origin + "/admin";
-      console.log("Using redirect URI for OAuth flow:", dynamicRedirectUri);
+      console.log("Using fixed redirect URI for OAuth flow:", redirectUri);
       
       // Properly construct the Google OAuth URL
       const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
       authUrl.searchParams.append("client_id", clientId);
-      authUrl.searchParams.append("redirect_uri", dynamicRedirectUri);
+      authUrl.searchParams.append("redirect_uri", redirectUri);
       authUrl.searchParams.append("scope", "https://www.googleapis.com/auth/gmail.readonly");
       authUrl.searchParams.append("response_type", "code");
       authUrl.searchParams.append("access_type", "offline");
@@ -275,7 +263,7 @@ const EmailConnection = () => {
                     Google Cloud Console under "Authorized redirect URIs":
                   </p>
                   <div className="mt-2 p-2 bg-red-100 rounded-md text-sm font-mono overflow-auto">
-                    {redirectUri || window.location.origin + "/admin"}
+                    {redirectUri}
                   </div>
                   <p className="text-xs mt-2">
                     Note: It may take up to 5 minutes for changes in Google Cloud Console to take effect.
@@ -341,7 +329,7 @@ const EmailConnection = () => {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Redirect URI being used:</p>
                   <code className="px-2 py-1 bg-gray-100 rounded text-xs block overflow-auto">
-                    {redirectUri || window.location.origin + "/admin"}
+                    {redirectUri}
                   </code>
                 </div>
                 <div>

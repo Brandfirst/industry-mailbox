@@ -65,54 +65,43 @@ export async function updateUserProfile(userId, updates) {
   return data;
 }
 
-// Newsletter functions - basic implementation to avoid TS errors
+// Basic implementation to avoid TypeScript errors
 export async function getNewsletters(options: any) {
-  // Convert options to our expected parameters
-  let page = 1;
-  let limit = 10;
-  let searchQuery = "";
-  let categoryId = "";
-
+  // Determine the parameters based on input type
+  let query = supabase.from("newsletters").select("*", { count: "exact" });
+  
+  // Apply different logic based on the options type
   if (typeof options === 'number') {
-    page = options;
-  } else if (options && typeof options === 'object') {
-    if (options.searchQuery) searchQuery = options.searchQuery;
-    if (options.industries && options.industries.length > 0) {
-      categoryId = options.industries[0];
+    // If options is a number, it's a page number
+    const page = options;
+    const limit = 10;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    query = query.range(from, to);
+  } 
+  else if (options && typeof options === 'object') {
+    // If options is an object, it has search and filter parameters
+    if (options.searchQuery) {
+      query = query.or(`title.ilike.%${options.searchQuery}%,description.ilike.%${options.searchQuery}%`);
     }
+
+    if (options.industries && options.industries.length > 0) {
+      query = query.eq("category_id", options.industries[0]);
+    }
+    
+    // Default pagination
+    query = query.range(0, 9);
   }
-
-  // Calculate pagination
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-
-  // Create the base query
-  let query = supabase
-    .from("newsletters")
-    .select("*, categories(name, slug, color)", { count: "exact" });
-
-  // Add filters
-  if (searchQuery) {
-    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-  }
-
-  if (categoryId) {
-    query = query.eq("category_id", categoryId);
-  }
-
-  // Add ordering and pagination
-  query = query.order("published_date", { ascending: false });
-  query = query.range(from, to);
-
-  // Execute the query
+  
+  // Execute the query and return results
   const { data, error, count } = await query;
-
+  
   if (error) {
     console.error("Error fetching newsletters:", error);
     throw error;
   }
-
-  return { data, count };
+  
+  return { data: data || [], count };
 }
 
 export async function getNewsletterById(id) {
