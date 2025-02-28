@@ -68,6 +68,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Safe function to clear localStorage
+  const safeRemoveFromLocalStorage = useCallback((key: string) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn(`Could not remove '${key}' from localStorage:`, e);
+    }
+  }, []);
+  
+  // Safe function to clean potentially corrupted localStorage
+  const cleanLocalStorage = useCallback(() => {
+    try {
+      // First try to clear known problematic items
+      safeRemoveFromLocalStorage('professional');
+      
+      // Clean any Supabase-related items
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('supabase.') || key === 'professional')) {
+            keysToRemove.push(key);
+          }
+        }
+        
+        // Remove the collected keys
+        keysToRemove.forEach(key => safeRemoveFromLocalStorage(key));
+        
+        console.log("Local storage cleared successfully");
+      } catch (e) {
+        console.error("Error clearing localStorage:", e);
+      }
+    } catch (e) {
+      console.error("Exception during localStorage cleanup:", e);
+    }
+  }, [safeRemoveFromLocalStorage]);
+
   // Clean up corrupted localStorage on startup
   useEffect(() => {
     try {
@@ -79,7 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             JSON.parse(professionalItem);
           } catch (e) {
             console.warn("Found corrupted 'professional' item in localStorage, removing it");
-            localStorage.removeItem('professional');
+            safeRemoveFromLocalStorage('professional');
           }
         }
       } catch (e) {
@@ -96,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               JSON.parse(item);
             } catch (e) {
               console.warn(`Found corrupted '${key}' item in localStorage, removing it`);
-              localStorage.removeItem(key);
+              safeRemoveFromLocalStorage(key);
             }
           }
         }
@@ -106,7 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       console.error("Error accessing localStorage:", e);
     }
-  }, []);
+  }, [safeRemoveFromLocalStorage]);
 
   // Log auth state once and only when it actually changes
   useEffect(() => {
@@ -342,64 +379,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const clearLocalStorage = useCallback(() => {
-    try {
-      // First try to selectively remove problematic items
-      try {
-        localStorage.removeItem('professional');
-      } catch (e) {
-        console.warn("Could not remove 'professional' item:", e);
-      }
-      
-      // Remove all Supabase items
-      try {
-        const keys = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (key.startsWith('supabase.') || key === 'professional')) {
-            keys.push(key);
-          }
-        }
-        // Remove keys in a separate loop to avoid index shifting issues
-        keys.forEach(key => localStorage.removeItem(key));
-      } catch (e) {
-        console.error("Error removing Supabase items from localStorage:", e);
-      }
-      
-      console.log("Local storage cleared successfully");
-    } catch (e) {
-      console.error("Error clearing localStorage:", e);
-    }
-  }, []);
-
   const signOut = async () => {
     try {
       console.log("Sign out initiated");
       
-      // First clear our local state
+      // First clean localStorage of any corrupted items
+      cleanLocalStorage();
+      
+      // Clear local state
       setUser(null);
       setSession(null);
       setProfileRole(null);
       
-      // Clear localStorage before Supabase signOut
-      clearLocalStorage();
+      try {
+        // Try to sign out with Supabase
+        await supabase.auth.signOut();
+        console.log("Sign out complete, redirecting...");
+      } catch (signOutError) {
+        console.error("Error during Supabase signOut:", signOutError);
+        // Even if Supabase sign out fails, continue with redirect
+      }
       
-      // Call Supabase signOut synchronously
-      await supabase.auth.signOut();
-      
-      console.log("Sign out complete, redirecting...");
-      
-      // Force redirect to the home page immediately after signout completes
+      // Force redirect to the home page
       window.location.href = '/';
       
     } catch (error) {
       console.error("Sign out error:", error);
       
-      // Even on error, force clear state and redirect
+      // Even on error, clear state to ensure the user is logged out locally
       setUser(null);
       setSession(null);
       setProfileRole(null);
-      clearLocalStorage();
+      cleanLocalStorage();
       
       // Force redirect on error
       window.location.href = '/';
