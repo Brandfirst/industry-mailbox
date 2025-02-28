@@ -74,43 +74,43 @@ export async function getAllNewsletters(
   search = "", 
   filters: NewsletterFilters = {}
 ) {
-  let query = supabase
-    .from("newsletters")
-    .select("*, categories(name, slug, color)", { count: "exact" });
-
+  // Start the query
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  
+  // Build the query step by step to avoid complex type inference
+  let query = supabase.from("newsletters").select("*, categories(name, slug, color)", { count: "exact" });
+  
   // Apply search if provided
   if (search) {
     query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
-
-  // Apply category filter if present
+  
+  // Apply filters individually to avoid complex type inference
   if (filters.category) {
     query = query.eq("category_id", filters.category);
   }
-
-  // Apply date filters if present
+  
   if (filters.fromDate) {
     query = query.gte("published_date", filters.fromDate);
   }
+  
   if (filters.toDate) {
     query = query.lte("published_date", filters.toDate);
   }
-
-  // Apply pagination
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-  query = query.range(from, to);
-
-  // Order by published date
+  
+  // Apply pagination and ordering
   query = query.order("published_date", { ascending: false });
-
+  query = query.range(from, to);
+  
+  // Execute the query
   const { data, error, count } = await query;
-
+  
   if (error) {
     console.error("Error fetching newsletters:", error);
     throw error;
   }
-
+  
   return { data, count };
 }
 
