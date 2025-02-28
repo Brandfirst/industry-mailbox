@@ -7,18 +7,22 @@ import { Mail, RefreshCw, Trash2, PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { getUserEmailAccounts, connectGoogleEmail, disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const EmailConnection = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [emailAccounts, setEmailAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(null);
   const [isDisconnecting, setIsDisconnecting] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-    fetchEmailAccounts();
+    if (user) {
+      fetchEmailAccounts();
+    }
     
     // Check for OAuth callback
     const searchParams = new URLSearchParams(location.search);
@@ -27,6 +31,8 @@ const EmailConnection = () => {
     
     if (code && state === 'gmail_connect' && user) {
       handleOAuthCallback(code);
+      // Remove the query parameters to prevent reprocessing
+      navigate('/admin', { replace: true });
     }
   }, [user, location]);
 
@@ -49,6 +55,7 @@ const EmailConnection = () => {
     if (!user) return;
     
     try {
+      setIsConnecting(true);
       toast.loading("Connecting Gmail account...");
       const result = await connectGoogleEmail(user.id, code);
       
@@ -56,20 +63,22 @@ const EmailConnection = () => {
         toast.success("Gmail account connected successfully!");
         // Refresh the email accounts list
         fetchEmailAccounts();
-        
-        // Clean up the URL
-        window.history.replaceState({}, document.title, window.location.pathname);
       } else {
         toast.error(`Failed to connect Gmail: ${result.error}`);
       }
     } catch (error) {
       console.error("Error handling OAuth callback:", error);
       toast.error("Failed to complete Gmail connection");
+    } finally {
+      setIsConnecting(false);
     }
   };
 
   const initiateGoogleOAuth = () => {
+    if (isConnecting) return; // Prevent multiple clicks
+    
     console.log("Starting Google OAuth flow...");
+    setIsConnecting(true);
     
     // Use the current origin for the redirect URI
     const redirectUri = `${window.location.origin}/admin`;
@@ -78,21 +87,32 @@ const EmailConnection = () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!clientId) {
       toast.error("Google client ID not configured. Please add VITE_GOOGLE_CLIENT_ID to your environment.");
+      setIsConnecting(false);
       return;
     }
     
-    const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    authUrl.searchParams.append("client_id", clientId);
-    authUrl.searchParams.append("redirect_uri", redirectUri);
-    authUrl.searchParams.append("scope", "https://www.googleapis.com/auth/gmail.readonly");
-    authUrl.searchParams.append("response_type", "code");
-    authUrl.searchParams.append("access_type", "offline");
-    authUrl.searchParams.append("prompt", "consent");
-    authUrl.searchParams.append("state", "gmail_connect");
+    try {
+      // Save a flag in sessionStorage to detect if we're in the middle of an OAuth flow
+      sessionStorage.setItem('gmailOAuthInProgress', 'true');
+      
+      const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+      authUrl.searchParams.append("client_id", clientId);
+      authUrl.searchParams.append("redirect_uri", redirectUri);
+      authUrl.searchParams.append("scope", "https://www.googleapis.com/auth/gmail.readonly");
+      authUrl.searchParams.append("response_type", "code");
+      authUrl.searchParams.append("access_type", "offline");
+      authUrl.searchParams.append("prompt", "consent");
+      authUrl.searchParams.append("state", "gmail_connect");
 
-    // Redirect to Google OAuth consent screen
-    console.log("Redirecting to Google OAuth URL:", authUrl.toString());
-    window.location.href = authUrl.toString();
+      // Redirect to Google OAuth consent screen
+      console.log("Redirecting to Google OAuth URL:", authUrl.toString());
+      window.location.href = authUrl.toString();
+    } catch (error) {
+      console.error("Error initiating OAuth flow:", error);
+      toast.error("Failed to start Google authentication");
+      setIsConnecting(false);
+      sessionStorage.removeItem('gmailOAuthInProgress');
+    }
   };
 
   const handleDisconnect = async (accountId) => {
@@ -139,6 +159,26 @@ const EmailConnection = () => {
     }
   };
 
+  // Check if we just returned from a failed OAuth flow
+  useEffect(() => {
+    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
+    
+    if (oauthInProgress === 'true' && !location.search.includes('code=')) {
+      // We were in an OAuth flow but came back without a code
+      console.log("Detected return from OAuth flow without code");
+      toast.error("Gmail connection was cancelled or failed");
+      sessionStorage.removeItem('gmailOAuthInProgress');
+      setIsConnecting(false);
+    }
+    
+    // Cleanup on component unmount
+    return () => {
+      if (sessionStorage.getItem('gmailOAuthInProgress') === 'true' && !location.search.includes('code=')) {
+        sessionStorage.removeItem('gmailOAuthInProgress');
+      }
+    };
+  }, [location]);
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -164,9 +204,21 @@ const EmailConnection = () => {
             <p className="text-muted-foreground text-sm max-w-md mb-6">
               Connect your Gmail account to automatically import newsletters.
             </p>
-            <Button onClick={initiateGoogleOAuth}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Connect Gmail
+            <Button 
+              onClick={initiateGoogleOAuth} 
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Connect Gmail
+                </>
+              )}
             </Button>
           </div>
         ) : (
@@ -217,8 +269,16 @@ const EmailConnection = () => {
 
       <CardFooter className="flex justify-between">
         {emailAccounts.length > 0 && (
-          <Button variant="outline" onClick={initiateGoogleOAuth}>
-            <PlusCircle className="mr-2 h-4 w-4" />
+          <Button 
+            variant="outline" 
+            onClick={initiateGoogleOAuth}
+            disabled={isConnecting}
+          >
+            {isConnecting ? (
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <PlusCircle className="mr-2 h-4 w-4" />
+            )}
             Connect Another Account
           </Button>
         )}

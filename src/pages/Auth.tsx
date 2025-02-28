@@ -28,6 +28,13 @@ const Auth = () => {
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
   useEffect(() => {
+    // Check if there was an ongoing Gmail OAuth process that got interrupted
+    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
+    if (oauthInProgress === 'true') {
+      // Clean up the OAuth flag since we're now on the auth page
+      sessionStorage.removeItem('gmailOAuthInProgress');
+    }
+    
     // If user is logged in, redirect to search page
     if (user && !authLoading) {
       navigate("/search");
