@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('profiles')
         .select('role')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no record is found
       
       if (error) {
         console.error("Error fetching profile role:", error);
@@ -55,19 +55,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkSession = async () => {
       try {
         setIsLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
+
+        if (error) {
+          console.error("Error getting session:", error);
+          setIsLoading(false);
+          return;
+        }
 
         if (session) {
           setSession(session);
           setUser(session.user);
           
           if (session.user) {
-            const role = await fetchProfileRole(session.user.id);
-            if (mounted) {
-              setProfileRole(role);
-              console.log("Initial session check - Profile role:", role);
+            try {
+              const role = await fetchProfileRole(session.user.id);
+              if (mounted) {
+                setProfileRole(role);
+                console.log("Initial session check - Profile role:", role);
+              }
+            } catch (profileError) {
+              console.error("Error fetching profile role during session check:", profileError);
             }
           }
         }
@@ -79,6 +89,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     };
+
+    // Add a timeout to ensure we never get stuck in loading state
+    const timeoutId = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.warn("Authentication check timed out, forcing state to non-loading");
+        setIsLoading(false);
+      }
+    }, 5000); // 5 second timeout
 
     checkSession();
 
@@ -95,10 +113,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const role = await fetchProfileRole(session.user.id);
-        if (mounted) {
-          setProfileRole(role);
-          console.log("Auth state changed - Profile role:", role);
+        try {
+          const role = await fetchProfileRole(session.user.id);
+          if (mounted) {
+            setProfileRole(role);
+            console.log("Auth state changed - Profile role:", role);
+          }
+        } catch (profileError) {
+          console.error("Error fetching profile role during auth state change:", profileError);
         }
       } else {
         setProfileRole(null);
@@ -109,9 +131,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
+
+  // Debug auth state
+  useEffect(() => {
+    console.log("Auth Debug:", {
+      user,
+      isAdmin,
+      userMetadata: user?.user_metadata ? { message: "[Circular Reference to root.user.user_metadata]" } : undefined,
+      role: profileRole,
+    });
+  }, [user, isAdmin, profileRole]);
 
   const signIn = async (email: string, password: string) => {
     try {

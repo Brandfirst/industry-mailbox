@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -17,7 +17,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, isLoading, isAdmin } = useAuth();
   const location = useLocation();
 
-  // If still loading auth state, show nothing or a loading spinner
+  // Log auth status for debugging
+  useEffect(() => {
+    console.log('Protected Route Check:', { 
+      requireAuth, 
+      requireAdmin, 
+      userExists: !!user, 
+      isAdmin,
+      pathname: location.pathname
+    });
+  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname]);
+
+  // If still loading auth state, show a loading spinner
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -26,15 +37,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       </div>
     );
   }
-
-  // Log auth status for debugging
-  console.log('Protected Route Check:', { 
-    requireAuth, 
-    requireAdmin, 
-    userExists: !!user, 
-    isAdmin,
-    pathname: location.pathname
-  });
 
   // If authentication is required and user is not logged in, redirect to login
   if (requireAuth && !user) {
