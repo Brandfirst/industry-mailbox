@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -78,45 +77,39 @@ export async function getAllNewsletters(
   const from = (page - 1) * limit;
   const to = from + limit - 1;
   
-  // Create a basic query without any filters first
-  const baseQuery = supabase.from("newsletters");
+  // Define a base query
+  const query = supabase.from("newsletters");
   
-  // Then add select with count
-  const selectQuery = baseQuery.select("*, categories(name, slug, color)", { count: "exact" });
+  // Add select part
+  const queryWithSelect = query.select("*, categories(name, slug, color)", { count: "exact" });
   
-  // Create a more specific typed variable for our filtered query
-  // This explicit intermediate step helps TypeScript avoid infinite type recursion
-  const filteredQuery = (() => {
-    let q = selectQuery;
-    
-    // Apply search if provided
-    if (search) {
-      q = q.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-    }
-    
-    // Apply category filter if present
-    if (filters.category) {
-      q = q.eq("category_id", filters.category);
-    }
-    
-    // Apply date filters if present
-    if (filters.fromDate) {
-      q = q.gte("published_date", filters.fromDate);
-    }
-    
-    if (filters.toDate) {
-      q = q.lte("published_date", filters.toDate);
-    }
-    
-    return q;
-  })();
+  // Apply search if provided
+  let filteredQuery = queryWithSelect;
+  if (search) {
+    filteredQuery = filteredQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+  }
+  
+  // Apply category filter if present
+  if (filters.category) {
+    filteredQuery = filteredQuery.eq("category_id", filters.category);
+  }
+  
+  // Apply date filters if present
+  if (filters.fromDate) {
+    filteredQuery = filteredQuery.gte("published_date", filters.fromDate);
+  }
+  
+  if (filters.toDate) {
+    filteredQuery = filteredQuery.lte("published_date", filters.toDate);
+  }
   
   // Apply ordering and pagination
-  const orderedQuery = filteredQuery.order("published_date", { ascending: false });
-  const pagedQuery = orderedQuery.range(from, to);
+  const finalQuery = filteredQuery
+    .order("published_date", { ascending: false })
+    .range(from, to);
   
   // Execute the final query
-  const { data, error, count } = await pagedQuery;
+  const { data, error, count } = await finalQuery;
   
   if (error) {
     console.error("Error fetching newsletters:", error);
@@ -287,20 +280,13 @@ interface GoogleOAuthResult {
 export async function connectGoogleEmail(userId, code): Promise<GoogleOAuthResult> {
   try {
     // Get the current location's origin for the redirect URI
-    let origin = window.location.origin;
+    // Use the specific redirect URI that matches Google Cloud Console
+    const redirectUri = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin";
     
-    // If we're on a preview domain, format it correctly
-    if (origin.includes('preview--')) {
-      const match = origin.match(/https:\/\/preview--([^.]+)\.([^/]+)/);
-      if (match) {
-        origin = `https://preview--${match[1]}.${match[2]}`;
-      }
-    }
-    
-    console.log("Using origin for redirect:", origin);
+    console.log("Using hardcoded redirect URI for connectGoogleEmail:", redirectUri);
     
     const { data, error } = await supabase.functions.invoke("connect-gmail", {
-      body: { code, userId, origin },
+      body: { code, userId, redirectUri },
     });
 
     if (error) {

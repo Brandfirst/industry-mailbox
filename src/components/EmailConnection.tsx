@@ -26,20 +26,11 @@ const EmailConnection = () => {
   
   // Set the redirect URI at component mount
   useEffect(() => {
-    // Get the actual deployed URL or the origin
-    let uri = window.location.origin;
+    // Use the exact redirect URI that's configured in Google Cloud Console
+    setRedirectUri("https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin");
     
-    // If we're on a preview domain, use the format from Google config
-    if (uri.includes('preview--')) {
-      // Extract the preview domain pattern
-      const match = uri.match(/https:\/\/preview--([^.]+)\.([^/]+)/);
-      if (match) {
-        uri = `https://preview--${match[1]}.${match[2]}`;
-      }
-    }
-    
-    // Add the admin path
-    setRedirectUri(`${uri}/admin`);
+    // Log the redirect URI for debugging
+    console.log("Using the following redirect URI:", "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin");
   }, []);
   
   // Reset state on mount
@@ -179,7 +170,7 @@ const EmailConnection = () => {
       // Store the current path to return to after auth
       sessionStorage.setItem('auth_return_path', location.pathname);
       
-      // Redirect URI - use the one we computed at mount time which should match Google config
+      // Use the explicit redirect URI that matches what's configured in Google Cloud Console
       console.log("Using redirect URI:", redirectUri);
       
       // Properly construct the Google OAuth URL
