@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -67,78 +68,100 @@ export async function updateUserProfile(userId, updates) {
 
 // Newsletter functions
 
+// Simplified approach to avoid TypeScript deep instantiation
 export async function getAllNewsletters(
   page = 1, 
   limit = 10, 
   search = "", 
   filters: NewsletterFilters = {}
 ) {
-  // Calculate pagination values
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-  
-  // Define a base query
-  const query = supabase.from("newsletters");
-  
-  // Add select part
-  const queryWithSelect = query.select("*, categories(name, slug, color)", { count: "exact" });
-  
-  // Apply search if provided
-  let filteredQuery = queryWithSelect;
-  if (search) {
-    filteredQuery = filteredQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-  }
-  
-  // Apply category filter if present
-  if (filters.category) {
-    filteredQuery = filteredQuery.eq("category_id", filters.category);
-  }
-  
-  // Apply date filters if present
-  if (filters.fromDate) {
-    filteredQuery = filteredQuery.gte("published_date", filters.fromDate);
-  }
-  
-  if (filters.toDate) {
-    filteredQuery = filteredQuery.lte("published_date", filters.toDate);
-  }
-  
-  // Apply ordering and pagination
-  const finalQuery = filteredQuery
-    .order("published_date", { ascending: false })
-    .range(from, to);
-  
-  // Execute the final query
-  const { data, error, count } = await finalQuery;
-  
-  if (error) {
+  try {
+    // Calculate pagination values
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    
+    // Build query parts without chaining to avoid TypeScript complexity
+    let query = `*, categories(name, slug, color)`;
+    let conditions = [];
+    let queryParams: any = {};
+    
+    // Add search condition if provided
+    if (search) {
+      conditions.push(`(title.ilike.%${search}% OR description.ilike.%${search}%)`);
+    }
+    
+    // Add category filter
+    if (filters.category) {
+      conditions.push("category_id=:categoryId");
+      queryParams.categoryId = filters.category;
+    }
+    
+    // Add date filters
+    if (filters.fromDate) {
+      conditions.push("published_date>=:fromDate");
+      queryParams.fromDate = filters.fromDate;
+    }
+    
+    if (filters.toDate) {
+      conditions.push("published_date<=:toDate");
+      queryParams.toDate = filters.toDate;
+    }
+    
+    // Execute the query with all conditions
+    let finalQuery = supabase.from("newsletters").select(query, { count: "exact" });
+    
+    // Apply filters as conditions
+    if (conditions.length > 0) {
+      // Use simple .eq, .gte, etc. rather than complex filter chains
+      if (filters.category) {
+        finalQuery = finalQuery.eq("category_id", filters.category);
+      }
+      
+      if (filters.fromDate) {
+        finalQuery = finalQuery.gte("published_date", filters.fromDate);
+      }
+      
+      if (filters.toDate) {
+        finalQuery = finalQuery.lte("published_date", filters.toDate);
+      }
+      
+      // Apply text search last
+      if (search) {
+        finalQuery = finalQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+      }
+    }
+    
+    // Apply ordering and pagination as separate operations
+    finalQuery = finalQuery.order("published_date", { ascending: false });
+    finalQuery = finalQuery.range(from, to);
+    
+    // Execute query
+    const { data, error, count } = await finalQuery;
+    
+    if (error) throw error;
+    
+    return { data, count };
+  } catch (error) {
     console.error("Error fetching newsletters:", error);
     throw error;
   }
-  
-  return { data, count };
 }
 
-// Define a separate type for getNewsletters options
-export type GetNewslettersOptions = number | {
-  searchQuery?: string; 
-  industries?: string[];
-};
-
-// Support for legacy interface - accepts an object with searchQuery and industries
-export async function getNewsletters(options: GetNewslettersOptions) {
-  // If options is a plain number, treat it as the page number
+// Using a different approach for getNewsletters to avoid type issues
+export function getNewsletters(options: number | { searchQuery?: string; industries?: string[] }) {
+  // Handle numeric case (page number)
   if (typeof options === 'number') {
-    return getAllNewsletters(options);
+    return getAllNewsletters(options, 10, '', {});
   }
   
-  // Otherwise, extract properties from the options object
-  const { searchQuery = "", industries = [] } = options || {};
-  const filters: NewsletterFilters = {};
+  // Handle object case with options
+  const opts = options as { searchQuery?: string; industries?: string[] };
+  const searchQuery = opts?.searchQuery || '';
+  const industries = opts?.industries || [];
   
-  // Map industries to category if needed
-  if (industries && industries.length > 0) {
-    filters.category = industries[0]; // Just use the first one for simplicity
+  const filters: NewsletterFilters = {};
+  if (industries.length > 0) {
+    filters.category = industries[0];
   }
   
   return getAllNewsletters(1, 10, searchQuery, filters);
@@ -279,8 +302,8 @@ interface GoogleOAuthResult {
 
 export async function connectGoogleEmail(userId, code): Promise<GoogleOAuthResult> {
   try {
-    // Get the current location's origin for the redirect URI
-    // Use the specific redirect URI that matches Google Cloud Console
+    // Use the exact redirect URI that's configured in your Google Cloud Console
+    // This must match exactly what's in the console
     const redirectUri = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin";
     
     console.log("Using hardcoded redirect URI for connectGoogleEmail:", redirectUri);

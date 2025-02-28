@@ -38,6 +38,13 @@ const Auth = () => {
       console.log("Cleaning up interrupted OAuth flow");
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
+      
+      // Inform the user that authentication was interrupted
+      toast({
+        variant: "destructive",
+        title: "Authentication Interrupted",
+        description: "Your Google authentication process was interrupted. Please try again.",
+      });
     }
     
     // If user is logged in, redirect to intended destination
@@ -45,7 +52,7 @@ const Auth = () => {
       console.log("User already logged in, redirecting to:", redirectPath);
       navigate(redirectPath);
     }
-  }, [user, authLoading, navigate, mode, redirectPath]);
+  }, [user, authLoading, navigate, mode, redirectPath, toast]);
 
   // Show loading screen during authentication loading
   if (authLoading) {

@@ -24,8 +24,8 @@ pop3_port = 54326
 file_size_limit = "50MiB"
 
 [auth]
-site_url = "https://example.com"
-additional_redirect_urls = ["https://localhost:3000"]
+site_url = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com"
+additional_redirect_urls = ["https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin", "https://preview--industry-mailbox.lovable.app"]
 
 [functions.connect-gmail]
 verify_jwt = false
