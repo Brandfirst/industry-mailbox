@@ -23,11 +23,6 @@ pop3_port = 54326
 [storage]
 file_size_limit = "50MiB"
 
-[jwt]
-secret = "super-secret-jwt-token-with-at-least-32-characters-long"
-exp = 3600
-
 [auth]
-port = 54327
 site_url = "https://example.com"
 additional_redirect_urls = ["https://localhost:3000"]
