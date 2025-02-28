@@ -81,7 +81,7 @@ const Sidebar = ({ activeTab, setActiveTab }: {
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { signOut, isAdmin } = useAuth();
+  const { signOut, isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -95,7 +95,14 @@ const Admin = () => {
     
     if (code && state === 'gmail_connect') {
       console.log('Found OAuth callback parameters in Admin page URL');
-      // The EmailConnection component will handle this automatically
+      // The EmailConnection component will handle this
+    }
+    
+    // Clean up any OAuth flags if user refreshes admin page without completing OAuth
+    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
+    if (oauthInProgress === 'true' && !location.search.includes('code=') && !location.search.includes('error=')) {
+      console.log('Detected refresh during OAuth flow, resetting state');
+      sessionStorage.removeItem('gmailOAuthInProgress');
     }
   }, [location]);
   
@@ -107,6 +114,13 @@ const Admin = () => {
       navigate('/');
     }
   }, [isAdmin, navigate]);
+  
+  // Make sure user is authenticated
+  useEffect(() => {
+    if (!user && !isAdmin) {
+      navigate('/auth?mode=signin');
+    }
+  }, [user, isAdmin, navigate]);
   
   // Mock newsletter data for admin view
   const recentNewsletters = [
@@ -177,7 +191,7 @@ const Admin = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Using our new EmailConnection component instead of ConnectEmail */}
+              {/* Using our EmailConnection component */}
               <EmailConnection />
               
               <div className="bg-white rounded-lg border border-border p-6">

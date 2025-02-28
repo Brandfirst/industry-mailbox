@@ -71,6 +71,8 @@ const EmailConnection = () => {
       toast.error("Failed to complete Gmail connection");
     } finally {
       setIsConnecting(false);
+      // Always clear the OAuth flag
+      sessionStorage.removeItem('gmailOAuthInProgress');
     }
   };
 
@@ -79,9 +81,6 @@ const EmailConnection = () => {
     
     console.log("Starting Google OAuth flow...");
     setIsConnecting(true);
-    
-    // Use the current origin for the redirect URI
-    const redirectUri = `${window.location.origin}/admin`;
     
     // Get the OAuth client ID from environment variables
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -95,6 +94,10 @@ const EmailConnection = () => {
       // Save a flag in sessionStorage to detect if we're in the middle of an OAuth flow
       sessionStorage.setItem('gmailOAuthInProgress', 'true');
       
+      // Use the same origin for the redirect URI
+      const redirectUri = `${window.location.origin}/admin`;
+      
+      // Properly construct the Google OAuth URL
       const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
       authUrl.searchParams.append("client_id", clientId);
       authUrl.searchParams.append("redirect_uri", redirectUri);
@@ -159,7 +162,7 @@ const EmailConnection = () => {
     }
   };
 
-  // Check if we just returned from a failed OAuth flow
+  // Check if we just returned from a failed OAuth flow and make sure the button doesn't disappear
   useEffect(() => {
     const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
     
@@ -171,8 +174,9 @@ const EmailConnection = () => {
       setIsConnecting(false);
     }
     
-    // Cleanup on component unmount
+    // Always reset isConnecting when component mounts/unmounts to ensure button is visible
     return () => {
+      setIsConnecting(false);
       if (sessionStorage.getItem('gmailOAuthInProgress') === 'true' && !location.search.includes('code=')) {
         sessionStorage.removeItem('gmailOAuthInProgress');
       }
@@ -207,6 +211,7 @@ const EmailConnection = () => {
             <Button 
               onClick={initiateGoogleOAuth} 
               disabled={isConnecting}
+              className="relative"
             >
               {isConnecting ? (
                 <>
