@@ -18,7 +18,15 @@ const EmailConnection = () => {
   const [isSyncing, setIsSyncing] = useState(null);
   const [isDisconnecting, setIsDisconnecting] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  
+  // Force reset connection state on mount
+  useEffect(() => {
+    setIsConnecting(false);
+    // Clear any orphaned OAuth flags
+    sessionStorage.removeItem('gmailOAuthInProgress');
+  }, []);
 
+  // Fetch email accounts whenever user changes or we return to the page
   useEffect(() => {
     if (user) {
       fetchEmailAccounts();
@@ -33,6 +41,9 @@ const EmailConnection = () => {
       handleOAuthCallback(code);
       // Remove the query parameters to prevent reprocessing
       navigate('/admin', { replace: true });
+    } else {
+      // If we've returned without a code, make sure we're not in connecting state
+      setIsConnecting(false);
     }
   }, [user, location]);
 
@@ -173,15 +184,15 @@ const EmailConnection = () => {
       sessionStorage.removeItem('gmailOAuthInProgress');
       setIsConnecting(false);
     }
-    
-    // Always reset isConnecting when component mounts/unmounts to ensure button is visible
-    return () => {
-      setIsConnecting(false);
-      if (sessionStorage.getItem('gmailOAuthInProgress') === 'true' && !location.search.includes('code=')) {
-        sessionStorage.removeItem('gmailOAuthInProgress');
-      }
-    };
   }, [location]);
+
+  // Always check and reset state if component is unmounted and remounted
+  useEffect(() => {
+    return () => {
+      // Cleanup on unmount
+      sessionStorage.removeItem('gmailOAuthInProgress');
+    };
+  }, []);
 
   return (
     <Card className="w-full">
