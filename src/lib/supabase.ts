@@ -219,15 +219,16 @@ interface GoogleOAuthResult {
   tokenInfo?: any;
 }
 
-export async function connectGoogleEmail(userId, code): Promise<GoogleOAuthResult> {
+export async function connectGoogleEmail(userId, code, redirectUri): Promise<GoogleOAuthResult> {
   try {
-    // Use the exact redirect URI that's configured in your Google Cloud Console
-    const redirectUri = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin";
+    // Get the redirect URI from env or use the provided one
+    const actualRedirectUri = redirectUri || import.meta.env.VITE_REDIRECT_URI || 
+      "https://preview--industry-mailbox.lovable.app/admin";
     
-    console.log("Using hardcoded redirect URI for connectGoogleEmail:", redirectUri);
+    console.log("Using redirect URI for connectGoogleEmail:", actualRedirectUri);
     
     const response = await supabase.functions.invoke("connect-gmail", {
-      body: { code, userId, redirectUri },
+      body: { code, userId, redirectUri: actualRedirectUri },
     });
 
     // Check if there's an error with the function invocation itself

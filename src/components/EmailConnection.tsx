@@ -25,8 +25,11 @@ const EmailConnection = () => {
   const [errorDetails, setErrorDetails] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
   
-  // IMPORTANT: Use the fixed redirect URI that must match exactly with Google Cloud Console
-  const redirectUri = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin";
+  // Use the redirect URI from environment variables or fall back to a default
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI || 
+    "https://preview--industry-mailbox.lovable.app/admin";
+  
+  console.log("Current redirect URI being used:", redirectUri);
   
   // Reset state on mount
   useEffect(() => {
@@ -58,6 +61,8 @@ const EmailConnection = () => {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const error = searchParams.get('error');
+    
+    console.log("URL parameters detected:", { code: !!code, state, error });
     
     if (error) {
       console.error("OAuth error returned:", error);
@@ -122,8 +127,8 @@ const EmailConnection = () => {
       setIsConnecting(true);
       const toastId = toast.loading("Connecting Gmail account...");
       
-      console.log("Exchanging code for access token");
-      const result = await connectGoogleEmail(user.id, code);
+      console.log("Exchanging code for access token with redirectUri:", redirectUri);
+      const result = await connectGoogleEmail(user.id, code, redirectUri);
       
       if (result.success) {
         toast.dismiss(toastId);
@@ -141,7 +146,8 @@ const EmailConnection = () => {
           googleErrorDescription: result.googleErrorDescription || null,
           tokenInfo: result.tokenInfo || null,
           edgeFunctionError: result.edgeFunctionError || null,
-          statusCode: result.statusCode || null
+          statusCode: result.statusCode || null,
+          redirectUriUsed: redirectUri
         });
         
         // Format a more descriptive error message
@@ -198,7 +204,7 @@ const EmailConnection = () => {
       // Store the current path to return to after auth
       sessionStorage.setItem('auth_return_path', location.pathname);
       
-      console.log("Using fixed redirect URI for OAuth flow:", redirectUri);
+      console.log("Using redirect URI for OAuth flow:", redirectUri);
       
       // Properly construct the Google OAuth URL
       const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
