@@ -78,16 +78,16 @@ const ConnectEmail = () => {
       console.log("Received OAuth callback with auth code");
       try {
         toast.loading("Connecting Gmail account...");
-        const { success, error, data } = await connectGoogleEmail(user.id, authCode);
+        const result = await connectGoogleEmail(user.id, authCode);
         
-        if (success) {
+        if (result.success) {
           toast.success("Gmail account connected successfully");
           // Clean up URL
           window.history.replaceState({}, document.title, window.location.pathname);
           // Refresh accounts list
           fetchEmailAccounts();
         } else {
-          toast.error(`Failed to connect Gmail account: ${error}`);
+          toast.error(`Failed to connect Gmail account: ${result.error}`);
         }
       } catch (error) {
         console.error("Error connecting Gmail account:", error);

@@ -61,7 +61,7 @@ export async function updateUserProfile(userId, updates) {
 
 // Newsletter functions
 
-export async function getAllNewsletters(page = 1, limit = 10, search = "", filters = {}) {
+export async function getAllNewsletters(page = 1, limit = 10, search = "", filters: { category?: string; fromDate?: string; toDate?: string } = {}) {
   let query = supabase
     .from("newsletters")
     .select("*, categories(name, slug, color)", { count: "exact" });
@@ -72,15 +72,15 @@ export async function getAllNewsletters(page = 1, limit = 10, search = "", filte
   }
 
   // Apply category filter if present in filters
-  if (filters && typeof filters === 'object' && 'category' in filters) {
+  if (filters.category) {
     query = query.eq("category_id", filters.category);
   }
 
   // Apply date filter if present in filters
-  if (filters && typeof filters === 'object' && 'fromDate' in filters) {
+  if (filters.fromDate) {
     query = query.gte("published_date", filters.fromDate);
   }
-  if (filters && typeof filters === 'object' && 'toDate' in filters) {
+  if (filters.toDate) {
     query = query.lte("published_date", filters.toDate);
   }
 
