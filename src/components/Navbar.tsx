@@ -22,8 +22,8 @@ const Navbar = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log('Auth Debug:', {
-      user: user,
+    console.log('Navbar Auth Debug:', {
+      user: user?.email,
       isAdmin: isAdmin,
       userMetadata: user?.user_metadata,
       role: user?.user_metadata?.role
@@ -113,7 +113,7 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>
-                    {user.user_metadata.first_name || user.email}
+                    {user.user_metadata.firstName || user.email}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate('/account')}>

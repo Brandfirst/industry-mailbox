@@ -1,7 +1,8 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, isLoading, isAdmin } = useAuth();
   const location = useLocation();
+  const [checkComplete, setCheckComplete] = useState(false);
 
   // Log auth status for debugging
   useEffect(() => {
@@ -26,7 +28,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       isAdmin,
       pathname: location.pathname
     });
-  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname]);
+    
+    // Mark check as complete after the first render
+    if (!isLoading) {
+      setCheckComplete(true);
+    }
+  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname, isLoading]);
 
   // If still loading auth state, show a loading spinner
   if (isLoading) {
@@ -44,8 +51,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If admin access is required, check for admin role
-  if (requireAdmin && !isAdmin) {
+  if (requireAdmin && checkComplete && !isAdmin) {
     console.log('Admin access denied:', { user, isAdmin });
+    toast.error("You don't have permission to access the admin area");
     return <Navigate to="/search" replace />;
   }
 

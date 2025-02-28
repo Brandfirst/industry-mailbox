@@ -16,6 +16,9 @@ interface AuthContextType {
   resetPassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
+// Define a list of admin emails for testing/backup purposes
+const ADMIN_EMAILS = ['christina@brandfirst.no'];
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -24,9 +27,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileRole, setProfileRole] = useState<string | null>(null);
 
-  // Derive admin status from both user metadata and profile role
+  // Derive admin status from multiple sources:
+  // 1. User metadata role
+  // 2. Profile role from database
+  // 3. Email in admin list (as a backup)
   const isPremium = user?.user_metadata?.premium === true;
-  const isAdmin = user?.user_metadata?.role === 'admin' || profileRole === 'admin';
+  const isAdmin = 
+    user?.user_metadata?.role === 'admin' || 
+    profileRole === 'admin' ||
+    (user?.email && ADMIN_EMAILS.includes(user.email));
 
   const fetchProfileRole = async (userId: string) => {
     try {
@@ -143,8 +152,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isAdmin,
       userMetadata: user?.user_metadata ? { message: "[Circular Reference to root.user.user_metadata]" } : undefined,
       role: profileRole,
+      email: user?.email,
+      isAdminByEmail: user?.email ? ADMIN_EMAILS.includes(user.email) : false
     });
   }, [user, isAdmin, profileRole]);
+
+  // Make sure isAdmin state is set correctly each time user or profileRole changes
+  useEffect(() => {
+    const adminByEmail = user?.email && ADMIN_EMAILS.includes(user.email);
+    console.log("Admin check:", {
+      byUserMetadata: user?.user_metadata?.role === 'admin',
+      byProfileRole: profileRole === 'admin',
+      byEmail: adminByEmail,
+      result: user?.user_metadata?.role === 'admin' || profileRole === 'admin' || adminByEmail
+    });
+  }, [user, profileRole]);
 
   const signIn = async (email: string, password: string) => {
     try {
