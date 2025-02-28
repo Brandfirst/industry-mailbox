@@ -27,6 +27,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [profileRole, setProfileRole] = useState<string | null>(null);
   const [authInitialized, setAuthInitialized] = useState(false);
+  
+  // Track profile role fetch attempts to prevent excessive retries
+  const [profileRoleFetchAttempted, setProfileRoleFetchAttempted] = useState(false);
 
   // Derive admin status from multiple sources:
   // 1. User metadata role
@@ -39,6 +42,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     (user?.email && ADMIN_EMAILS.includes(user.email));
 
   const fetchProfileRole = useCallback(async (userId: string) => {
+    // If we've already attempted to fetch the profile role, don't try again
+    // This prevents excessive retries that could overload the database
+    if (profileRoleFetchAttempted) {
+      return null;
+    }
+    
+    setProfileRoleFetchAttempted(true);
+    
     try {
       const { data: profileData, error } = await supabase
         .from('profiles')
@@ -56,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Exception fetching profile role:", e);
       return null;
     }
-  }, []);
+  }, [profileRoleFetchAttempted]);
 
   // Clean up corrupted localStorage on startup
   useEffect(() => {
