@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const Navbar = () => {
   const location = useLocation();
@@ -35,25 +36,87 @@ const Navbar = () => {
   const activeLink = "text-blue-400 font-medium";
   const inactiveLink = "text-gray-300 hover:text-white transition-colors";
   
-  const handleSignOut = async (e) => {
+  // Fix corrupted localStorage and sign out
+  const forceCleanSignOut = async (e) => {
     e.preventDefault();
+    
     try {
       toast({
         title: "Logger ut...",
         description: "Du blir logget ut av systemet",
       });
       
-      // Call the signOut function and wait for it to complete
-      await signOut();
+      // Forcefully clean localStorage first
+      try {
+        // Specific cleanup for the problematic 'professional' item
+        try {
+          localStorage.removeItem('professional');
+          console.log("Removed 'professional' item");
+        } catch (localErr) {
+          console.warn("Failed to remove 'professional' directly", localErr);
+        }
+        
+        // Attempt to forcefully overwrite the corrupted item
+        try {
+          localStorage.setItem('professional', 'null');
+          localStorage.removeItem('professional');
+          console.log("Overwrote and removed 'professional' item");
+        } catch (overwriteErr) {
+          console.warn("Failed to overwrite 'professional'", overwriteErr);
+        }
+        
+        // Try clearing all supabase-related items
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('supabase.') || key === 'professional')) {
+            keysToRemove.push(key);
+          }
+        }
+        
+        console.log("Will attempt to remove these keys:", keysToRemove);
+        
+        // Remove each item
+        for (const key of keysToRemove) {
+          try {
+            localStorage.removeItem(key);
+            console.log(`Removed ${key} from localStorage`);
+          } catch (e) {
+            console.warn(`Failed to remove ${key}:`, e);
+          }
+        }
+      } catch (storageErr) {
+        console.error("Error cleaning localStorage:", storageErr);
+      }
       
-      // The redirect is handled by the signOut function
+      // Now try direct Supabase signout
+      try {
+        await supabase.auth.signOut();
+        console.log("Supabase signOut successful");
+      } catch (signOutErr) {
+        console.error("Error in direct supabase.auth.signOut():", signOutErr);
+      }
+      
+      // Call the main signOut function provided by the context
+      await signOut().catch(err => {
+        console.error("Error in AuthContext signOut:", err);
+      });
+      
+      // As a backup, forcefully clear the session
+      setTimeout(() => {
+        console.log("Forcefully redirecting to homepage");
+        window.location.href = '/';
+      }, 500);
     } catch (error) {
-      console.error("Error during sign out:", error);
+      console.error("Error during forced sign out:", error);
       toast({
         title: "Feil ved utlogging",
         description: "Kunne ikke logge ut. Prøv igjen.",
         variant: "destructive",
       });
+      
+      // Last resort: redirect anyway
+      window.location.href = '/';
     }
   };
 
@@ -131,7 +194,7 @@ const Navbar = () => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-white/10" />
                   <DropdownMenuItem 
-                    onClick={handleSignOut} 
+                    onClick={forceCleanSignOut} 
                     className="text-red-400 hover:bg-dark-400"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
@@ -240,7 +303,7 @@ const Navbar = () => {
                 
                 <Button 
                   variant="outline" 
-                  onClick={handleSignOut}
+                  onClick={forceCleanSignOut}
                   className="w-full text-red-400 border-red-400/20 hover:bg-red-400/10"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
