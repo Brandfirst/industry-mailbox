@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profileRole, setProfileRole] = useState<string | null>(null);
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   // Derive admin status from multiple sources:
   // 1. User metadata role
@@ -57,10 +58,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Clean up corrupted localStorage on startup - improved method
+  // Clean up corrupted localStorage on startup
   useEffect(() => {
     try {
-      // Clean up 'professional' item first if it's corrupted
+      // Clean up 'professional' item if it's corrupted
       try {
         const professionalItem = localStorage.getItem('professional');
         if (professionalItem !== null) {
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error checking 'professional' localStorage item:", e);
       }
       
-      // Check all localStorage items for corruption and clean them
+      // Check other key localStorage items for corruption
       try {
         const keysToCheck = ['supabase.auth.token'];
         for (const key of keysToCheck) {
@@ -105,13 +106,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         setIsLoading(true);
         
-        // To prevent getting stuck in loading state
+        // Very important: Set a timeout to prevent getting stuck in loading state
         const timeoutId = setTimeout(() => {
-          if (mounted && isLoading) {
-            console.warn("Session check timed out, forcing completion");
+          if (mounted) {
+            console.warn("Initial session check timed out, forcing completion");
             setIsLoading(false);
+            setAuthInitialized(true);
           }
-        }, 3000);
+        }, 2000);
         
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -123,6 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (error) {
           console.error("Error getting session:", error);
           setIsLoading(false);
+          setAuthInitialized(true);
           return;
         }
 
@@ -145,11 +148,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (mounted) {
           setIsLoading(false);
+          setAuthInitialized(true);
         }
       } catch (error) {
         console.error("Error checking session:", error);
         if (mounted) {
           setIsLoading(false);
+          setAuthInitialized(true);
         }
       }
     };
@@ -162,8 +167,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (!mounted) return;
 
-      // We should NOT set loading to true during auth changes as it causes UI flicker
-      // Only set loading for specific operations that require it
+      // We shouldn't set loading to true during these events as it causes flickering
       
       setSession(session);
       setUser(session?.user ?? null);
@@ -189,6 +193,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [fetchProfileRole]);
 
+  // Force isLoading to false if auth has been initialized for more than 3 seconds
+  // This is a safety net to ensure we never get stuck in loading
+  useEffect(() => {
+    if (authInitialized && isLoading) {
+      const timer = setTimeout(() => {
+        console.warn('Auth has been initialized but is still loading after delay, forcing to false');
+        setIsLoading(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [authInitialized, isLoading]);
+
   // Debug auth state
   useEffect(() => {
     console.log("Auth Debug:", {
@@ -197,9 +214,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userMetadata: user?.user_metadata ? "[User metadata exists]" : undefined,
       role: profileRole,
       email: user?.email,
-      isAdminByEmail: user?.email ? ADMIN_EMAILS.includes(user.email) : false
+      isAdminByEmail: user?.email ? ADMIN_EMAILS.includes(user.email) : false,
+      isLoading,
+      authInitialized
     });
-  }, [user, isAdmin, profileRole]);
+  }, [user, isAdmin, profileRole, isLoading, authInitialized]);
 
   const signIn = async (email: string, password: string) => {
     try {
