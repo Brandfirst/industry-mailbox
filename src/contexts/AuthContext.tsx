@@ -234,13 +234,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       setProfileRole(null);
       
-      // Remove any stored tokens
-      localStorage.clear(); // Clear all localStorage to be thorough
+      // Safely clear localStorage items
+      try {
+        // Clear specific Supabase items to avoid the parsing error
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('professional');
+        
+        // Then clear everything else
+        localStorage.clear();
+      } catch (localStorageError) {
+        console.error("Error clearing localStorage:", localStorageError);
+      }
       
       // Call Supabase signOut
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error during Supabase signOut:", error);
+      }
       
-      // Redirect immediately to home
+      // Force a page reload to clear any remaining state
       window.location.href = '/';
       
     } catch (error) {
@@ -250,7 +262,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setSession(null);
       setProfileRole(null);
-      localStorage.clear();
+      
+      try {
+        localStorage.clear();
+      } catch (e) {
+        console.error("Error forcing localStorage clear:", e);
+      }
       
       // Force redirect
       window.location.href = '/';
