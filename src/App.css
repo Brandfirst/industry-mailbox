@@ -316,3 +316,30 @@
   flex: 0 0 100%;
   min-width: 0;
 }
+
+/* Enhanced carousel styles */
+.carousel-container {
+  position: relative;
+  perspective: 1000px;
+}
+
+.carousel-container::before,
+.carousel-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.carousel-container::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(17, 24, 39, 0.7), transparent);
+}
+
+.carousel-container::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(17, 24, 39, 0.7), transparent);
+}

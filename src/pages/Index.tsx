@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ArrowRight, Database, Users, BarChart, Calendar, Mail, Star, Award, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ArrowRight, Database, Users, BarChart, Calendar, Mail, Star, Award, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,12 +12,23 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const Index = () => {
   const isMobile = useIsMobile();
-  const [testimonialViewportRef, emblaApi] = Embla({ loop: true });
+  const [testimonialViewportRef, emblaApi] = Embla({ 
+    loop: true, 
+    align: "center",
+    skipSnaps: false
+  });
   const [isNewFeaturesOpen, setIsNewFeaturesOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   
   useEffect(() => {
     document.title = "NewsletterHub - Norges største nyhetsbrev arkiv";
-  }, []);
+
+    if (emblaApi) {
+      emblaApi.on('select', () => {
+        setActiveIndex(emblaApi.selectedScrollSnap());
+      });
+    }
+  }, [emblaApi]);
 
   // Stats data with mock values for now
   const stats = [
@@ -165,96 +176,68 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Right column: Testimonials */}
+                {/* Right column: Testimonials - Redesigned Carousel */}
                 <div className="order-3 lg:order-3">
-                  {/* Swipeable testimonials carousel with indicators */}
-                  <div className="relative">
-                    <div className="overflow-hidden" ref={testimonialViewportRef}>
-                      <div className="flex">
+                  {/* Centered-card testimonials carousel with perspective */}
+                  <div className="relative carousel-container overflow-hidden w-full px-2">
+                    <div 
+                      className="overflow-hidden cursor-grab active:cursor-grabbing" 
+                      ref={testimonialViewportRef}
+                    >
+                      <div className="flex -mx-4">
                         {testimonials.map((testimonial, index) => (
                           <div 
                             key={index}
-                            className="testimonial-card shine-effect min-w-full p-3"
+                            className={`testimonial-card shine-effect min-w-[100%] p-3 transition-all duration-300 px-4 flex-shrink-0 ${
+                              index === activeIndex 
+                                ? 'scale-100 opacity-100 z-10' 
+                                : 'scale-[0.85] opacity-70 z-0'
+                            }`}
                           >
-                            <div className="flex items-start mb-2">
-                              <div className="testimonial-avatar mr-2">
-                                {testimonial.initial}
-                              </div>
-                              <div>
-                                <div className="testimonial-name text-xs">{testimonial.author}</div>
-                                <div className="testimonial-company text-xs">{testimonial.company}</div>
-                                <div className="flex mt-1">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star 
-                                      key={i} 
-                                      className={`w-3 h-3 ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-600'}`}
-                                      fill={i < testimonial.rating ? 'currentColor' : 'none'}
-                                    />
-                                  ))}
+                            <div className={`bg-gradient-to-b from-gray-800 to-gray-900 p-4 rounded-lg shadow-lg transform transition-transform duration-300 ${
+                              index === activeIndex ? 'translate-y-0' : 'translate-y-2'
+                            }`}>
+                              <div className="flex items-start mb-2">
+                                <div className="testimonial-avatar mr-2 bg-blue-900 flex items-center justify-center rounded-full w-8 h-8 text-blue-400 text-sm font-bold">
+                                  {testimonial.initial}
+                                </div>
+                                <div>
+                                  <div className="testimonial-name text-xs font-semibold text-white">{testimonial.author}</div>
+                                  <div className="testimonial-company text-xs text-gray-400">{testimonial.company}</div>
+                                  <div className="flex mt-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star 
+                                        key={i} 
+                                        className={`w-3 h-3 ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-600'}`}
+                                        fill={i < testimonial.rating ? 'currentColor' : 'none'}
+                                      />
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="testimonial-text text-xs">
-                              "{testimonial.text}"
+                              <div className="testimonial-text text-xs text-gray-300 leading-relaxed">
+                                "{testimonial.text}"
+                              </div>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                     
-                    {/* Carousel swipe indicators */}
-                    <div className="flex justify-center mt-3 space-x-1">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button 
-                              className="p-1 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400"
-                              onClick={() => emblaApi?.scrollPrev()}
-                              aria-label="Previous testimonial"
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom">
-                            <p className="text-xs">Swipe left</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
+                    {/* Simple indicator dots */}
+                    <div className="flex justify-center mt-3 space-x-1.5">
                       {testimonials.map((_, index) => (
                         <button
                           key={index}
-                          className="w-2 h-2 rounded-full bg-gray-600 opacity-50 hover:opacity-100 transition-opacity"
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            index === activeIndex 
+                              ? 'bg-blue-400 w-4' 
+                              : 'bg-gray-600 opacity-50'
+                          }`}
                           onClick={() => emblaApi?.scrollTo(index)}
                           aria-label={`Go to testimonial ${index + 1}`}
                         />
                       ))}
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button 
-                              className="p-1 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400"
-                              onClick={() => emblaApi?.scrollNext()}
-                              aria-label="Next testimonial"
-                            >
-                              <ChevronRight className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom">
-                            <p className="text-xs">Swipe right</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    
-                    {/* Mobile swipe instruction (appears briefly) */}
-                    <div className="absolute inset-x-0 bottom-0 text-center text-xs text-gray-400 opacity-60 animate-fade-in">
-                      <span className="inline-flex items-center">
-                        <ChevronLeft className="h-3 w-3" />
-                        Swipe
-                        <ChevronRight className="h-3 w-3" />
-                      </span>
                     </div>
                   </div>
                 </div>
