@@ -19,7 +19,7 @@ import AdminStats from "@/components/AdminStats";
 import EmailConnection from "@/components/EmailConnection";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Sidebar = ({ activeTab, setActiveTab, isMobileSidebarOpen, toggleMobileSidebar }: { 
   activeTab: string; 
@@ -28,7 +28,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobileSidebarOpen, toggleMobileSid
   toggleMobileSidebar: () => void;
 }) => {
   const { signOut } = useAuth();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "newsletters", label: "Newsletters", icon: Mail },
@@ -127,7 +127,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [forceRerender, setForceRerender] = useState(0);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
