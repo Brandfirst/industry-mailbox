@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEmblaCarousel } from 'embla-carousel-react';
+import Embla from 'embla-carousel-react';
 
 const Index = () => {
   const isMobile = useIsMobile();
-  const [testimonialViewportRef] = useEmblaCarousel({ loop: true });
+  const [testimonialViewportRef] = Embla({ loop: true });
   
   useEffect(() => {
     document.title = "NewsletterHub - Norges største nyhetsbrev arkiv";
@@ -352,3 +352,4 @@ const Index = () => {
 };
 
 export default Index;
+
