@@ -238,7 +238,7 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
         success: false, 
         error: "Error connecting to Gmail service", 
         edgeFunctionError: response.error.message || String(response.error),
-        statusCode: response.status
+        statusCode: 500  // Use a default status code for error
       };
     }
 
@@ -248,7 +248,7 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
       return { 
         success: false, 
         error: "Empty response from server",
-        statusCode: response.status
+        statusCode: 400  // Use a default status code for empty response
       };
     }
 
@@ -264,21 +264,22 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
         googleError: response.data.googleError || null,
         googleErrorDescription: response.data.googleErrorDescription || null,
         tokenInfo: response.data.tokenInfo || null,
-        statusCode: response.status
+        statusCode: 400  // Use a default status code for business logic error
       };
     }
 
     return { 
       success: true, 
       account: response.data.account,
-      statusCode: response.status 
+      statusCode: 200  // Use a default status code for success
     };
   } catch (error) {
     console.error("Exception in connectGoogleEmail:", error);
     return { 
       success: false, 
       error: error.message || "An unexpected error occurred",
-      details: String(error)
+      details: String(error),
+      statusCode: 500  // Use a default status code for exception
     };
   }
 }
@@ -314,7 +315,7 @@ export async function syncEmailAccount(accountId) {
       return { 
         success: false, 
         error: response.error.message || "Error connecting to sync service",
-        statusCode: response.status
+        statusCode: 500  // Use a default status code for error
       };
     }
 
@@ -324,14 +325,14 @@ export async function syncEmailAccount(accountId) {
         success: false, 
         error: response.data?.error || "Failed to sync emails",
         details: response.data?.details || null,
-        statusCode: response.status
+        statusCode: 400  // Use a default status code for business logic error
       };
     }
 
     return { 
       success: true, 
       synced: response.data.synced,
-      statusCode: response.status
+      statusCode: 200  // Use a default status code for success
     };
   } catch (error) {
     console.error("Exception in syncEmailAccount:", error);
