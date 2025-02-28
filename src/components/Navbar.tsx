@@ -43,6 +43,7 @@ const Navbar = () => {
         description: "Du blir logget ut av systemet",
       });
       
+      // Call the signOut function and wait for it to complete
       await signOut();
       
       // The redirect is handled by the signOut function

@@ -276,44 +276,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Sign out initiated");
       
-      // Clear local state first
+      // First clear our local state
       setUser(null);
       setSession(null);
       setProfileRole(null);
       
-      // Clear localStorage before Supabase signOut to prevent any OAuth state conflicts
+      // Clear localStorage before Supabase signOut
       clearLocalStorage();
       
-      // Then call Supabase signOut to handle the backend session
-      const { error } = await supabase.auth.signOut({
-        scope: 'global' // Ensure we sign out completely, including any other tabs
-      });
+      // Call Supabase signOut synchronously
+      await supabase.auth.signOut();
       
-      if (error) {
-        console.error("Error during sign out:", error);
-      }
+      console.log("Sign out complete, redirecting...");
       
-      // Wait a moment to ensure all cleanup is complete before redirecting
-      setTimeout(() => {
-        // Force redirect to the home page
-        window.location.href = '/';
-      }, 100);
+      // Force redirect to the home page immediately after signout completes
+      window.location.href = '/';
       
     } catch (error) {
       console.error("Sign out error:", error);
       
-      // Force clear state even on error
+      // Even on error, force clear state and redirect
       setUser(null);
       setSession(null);
       setProfileRole(null);
-      
-      // Try to clear localStorage again
       clearLocalStorage();
       
-      // Force redirect anyway
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
+      // Force redirect on error
+      window.location.href = '/';
     }
   };
 
