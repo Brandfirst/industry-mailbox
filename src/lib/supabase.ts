@@ -47,15 +47,15 @@ export async function getAllNewsletters(page = 1, limit = 10, search = "", filte
   }
 
   // Apply category filter
-  if (filters.category) {
+  if (filters && typeof filters === 'object' && 'category' in filters) {
     query = query.eq("category_id", filters.category);
   }
 
   // Apply date filter
-  if (filters.fromDate) {
+  if (filters && typeof filters === 'object' && 'fromDate' in filters) {
     query = query.gte("published_date", filters.fromDate);
   }
-  if (filters.toDate) {
+  if (filters && typeof filters === 'object' && 'toDate' in filters) {
     query = query.lte("published_date", filters.toDate);
   }
 
@@ -94,7 +94,7 @@ export async function getNewsletterById(id) {
 
 export async function saveUserNewsletter(userId, newsletterId) {
   const { data, error } = await supabase
-    .from("user_saved_newsletters")
+    .from("saved_newsletters")
     .insert({
       user_id: userId,
       newsletter_id: newsletterId,
@@ -112,7 +112,7 @@ export async function saveUserNewsletter(userId, newsletterId) {
 
 export async function unsaveUserNewsletter(userId, newsletterId) {
   const { data, error } = await supabase
-    .from("user_saved_newsletters")
+    .from("saved_newsletters")
     .delete()
     .eq("user_id", userId)
     .eq("newsletter_id", newsletterId)
@@ -132,7 +132,7 @@ export async function getUserSavedNewsletters(userId, page = 1, limit = 10) {
   const to = from + limit - 1;
 
   const { data, error, count } = await supabase
-    .from("user_saved_newsletters")
+    .from("saved_newsletters")
     .select("newsletter_id, newsletters!inner(*, categories(name, slug, color))", {
       count: "exact",
     })
@@ -282,4 +282,26 @@ export async function syncEmailAccount(accountId) {
     console.error("Exception in syncEmailAccount:", error);
     return { success: false, error: error.message };
   }
+}
+
+// For compatibility with existing imports
+export const getNewsletters = getAllNewsletters;
+export const saveNewsletter = saveUserNewsletter;
+export const unsaveNewsletter = unsaveUserNewsletter;
+
+// Placeholder for isNewsletterSaved function that might be used in the code
+export async function isNewsletterSaved(userId, newsletterId) {
+  const { data, error } = await supabase
+    .from("saved_newsletters")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("newsletter_id", newsletterId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error checking if newsletter is saved:", error);
+    throw error;
+  }
+
+  return !!data;
 }

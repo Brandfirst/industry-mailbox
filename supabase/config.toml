@@ -27,10 +27,8 @@ file_size_limit = "50MiB"
 site_url = "https://example.com"
 additional_redirect_urls = ["https://localhost:3000"]
 
-[[functions]]
-name = "connect-gmail"
+[functions.connect-gmail]
 verify_jwt = false
 
-[[functions]]
-name = "sync-emails"
+[functions.sync-emails]
 verify_jwt = false
