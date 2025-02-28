@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { NewsletterWidget } from "@/components/NewsletterWidget";
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -145,11 +144,6 @@ const Index = () => {
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
-                  </div>
-                  
-                  {/* Widget in the middle column */}
-                  <div className="w-full mt-4">
-                    <NewsletterWidget />
                   </div>
                 </div>
                 
