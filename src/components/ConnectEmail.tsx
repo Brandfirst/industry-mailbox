@@ -78,7 +78,9 @@ const ConnectEmail = () => {
       console.log("Received OAuth callback with auth code");
       try {
         toast.loading("Connecting Gmail account...");
-        const result = await connectGoogleEmail(user.id, authCode);
+        // Get the redirect URI from the current origin
+        const redirectUri = `${window.location.origin}/admin`;
+        const result = await connectGoogleEmail(user.id, authCode, redirectUri);
         
         if (result.success) {
           toast.success("Gmail account connected successfully");
