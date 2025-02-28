@@ -123,6 +123,22 @@ export default {
 					'0%': { backgroundPosition: '0% 50%' },
 					'50%': { backgroundPosition: '100% 50%' },
 					'100%': { backgroundPosition: '0% 50%' }
+				},
+				float: {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' }
+				},
+				shine: {
+					'0%': { backgroundPosition: '-100% 0' },
+					'100%': { backgroundPosition: '200% 0' }
+				},
+				breathe: {
+					'0%, 100%': { transform: 'scale(1)' },
+					'50%': { transform: 'scale(1.03)' }
+				},
+				subtleBounce: {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-3px)' }
 				}
 			},
 			animation: {
@@ -132,7 +148,11 @@ export default {
 				'slide-up': 'slideUp 0.5s ease-out',
 				'slide-down': 'slideDown 0.5s ease-out',
 				'pulse-slow': 'pulse 3s ease-in-out infinite',
-				'gradient-x': 'gradientMove 15s ease infinite'
+				'gradient-x': 'gradientMove 15s ease infinite',
+				'float': 'float 3s ease-in-out infinite',
+				'shine': 'shine 3s linear infinite',
+				'breathe': 'breathe 4s ease-in-out infinite',
+				'subtle-bounce': 'subtleBounce 4s ease-in-out infinite'
 			},
 			boxShadow: {
 				'glass': '0 4px 30px rgba(0, 0, 0, 0.2)',
