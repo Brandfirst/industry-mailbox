@@ -1,4 +1,5 @@
 
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -115,11 +116,18 @@
   );
   background-size: 200% 200%;
   animation: border-shine 3s linear infinite;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+  filter: blur(0.5px);
 }
 
 @keyframes border-shine {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+/* CSS class for smaller "byråer" text */
+.smaller-text {
+  font-size: 0.85em;
 }
 
