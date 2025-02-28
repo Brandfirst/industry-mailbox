@@ -1,14 +1,16 @@
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Search, ArrowRight, Database, Users, BarChart, Calendar, Mail, Star, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEmblaCarousel } from 'embla-carousel-react';
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const [testimonialViewportRef] = useEmblaCarousel({ loop: true });
   
   useEffect(() => {
     document.title = "NewsletterHub - Norges største nyhetsbrev arkiv";
@@ -71,7 +73,7 @@ const Index = () => {
           <div className="container mx-auto max-w-5xl text-center px-4 md:px-8 relative z-10">
             <div className="animate-slide-down">
               {/* New version badge */}
-              <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-blue-900/50 border border-blue-700/40 text-blue-400 text-xs">
+              <div className="inline-flex items-center px-3 py-1 mb-4 rounded-full bg-blue-900/50 border border-blue-700/40 text-blue-400 text-xs pulse-glow">
                 <Star className="w-3 h-3 mr-1" />
                 <span>Version 2.0 lansert</span>
               </div>
@@ -101,7 +103,7 @@ const Index = () => {
                             key={index} 
                             className={`stat-card shine-effect animate-count-up animate-delay-${index * 100}`}
                           >
-                            <div className="flex justify-between items-center mb-1">
+                            <div className="flex justify-between items-center">
                               <div className="stat-value">{stat.value}</div>
                               <Icon className="w-4 h-4 text-blue-400" />
                             </div>
@@ -149,35 +151,39 @@ const Index = () => {
                 
                 {/* Right column: Testimonials */}
                 <div className="order-3 lg:order-3">
-                  {/* More compact testimonials */}
-                  {testimonials.map((testimonial, index) => (
-                    <div 
-                      key={index}
-                      className="testimonial-card shine-effect mb-3 last:mb-0 p-3"
-                    >
-                      <div className="flex items-start mb-2">
-                        <div className="testimonial-avatar mr-2">
-                          {testimonial.initial}
-                        </div>
-                        <div>
-                          <div className="testimonial-name text-xs">{testimonial.author}</div>
-                          <div className="testimonial-company text-xs">{testimonial.company}</div>
-                          <div className="flex mt-1">
-                            {[...Array(5)].map((_, i) => (
-                              <Star 
-                                key={i} 
-                                className={`w-3 h-3 ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-600'}`}
-                                fill={i < testimonial.rating ? 'currentColor' : 'none'}
-                              />
-                            ))}
+                  {/* Swipeable testimonials carousel */}
+                  <div className="overflow-hidden" ref={testimonialViewportRef}>
+                    <div className="flex">
+                      {testimonials.map((testimonial, index) => (
+                        <div 
+                          key={index}
+                          className="testimonial-card shine-effect min-w-full p-3"
+                        >
+                          <div className="flex items-start mb-2">
+                            <div className="testimonial-avatar mr-2">
+                              {testimonial.initial}
+                            </div>
+                            <div>
+                              <div className="testimonial-name text-xs">{testimonial.author}</div>
+                              <div className="testimonial-company text-xs">{testimonial.company}</div>
+                              <div className="flex mt-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star 
+                                    key={i} 
+                                    className={`w-3 h-3 ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-600'}`}
+                                    fill={i < testimonial.rating ? 'currentColor' : 'none'}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="testimonial-text text-xs">
+                            "{testimonial.text}"
                           </div>
                         </div>
-                      </div>
-                      <div className="testimonial-text text-xs">
-                        "{testimonial.text}"
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             </div>
