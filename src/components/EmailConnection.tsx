@@ -22,6 +22,7 @@ const EmailConnection = () => {
   const [isDisconnecting, setIsDisconnecting] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [oauthError, setOauthError] = useState(null);
+  const [errorDetails, setErrorDetails] = useState(null);
   
   // IMPORTANT: Use the fixed redirect URI that must match exactly with Google Cloud Console
   const redirectUri = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin";
@@ -34,6 +35,7 @@ const EmailConnection = () => {
     setIsConnecting(false);
     setStatus({ loading: false, error: null });
     setOauthError(null);
+    setErrorDetails(null);
     
     // Clear any OAuth flags that might be leftover
     sessionStorage.removeItem('gmailOAuthInProgress');
@@ -118,6 +120,7 @@ const EmailConnection = () => {
       setIsConnecting(true);
       toast.loading("Connecting Gmail account...");
       
+      console.log("Exchanging code for access token");
       const result = await connectGoogleEmail(user.id, code);
       
       if (result.success) {
@@ -125,11 +128,25 @@ const EmailConnection = () => {
         // Refresh the email accounts list
         fetchEmailAccounts();
       } else {
-        toast.error(`Failed to connect Gmail: ${result.error}`);
         console.error("Connection error details:", result);
+        setOauthError(result.error);
+        setErrorDetails(result.details);
+        
+        // Format a more descriptive error message
+        let errorMessage = result.error || "Unknown error";
+        if (result.googleError) {
+          errorMessage += `: ${result.googleError}`;
+          if (result.googleErrorDescription) {
+            errorMessage += ` - ${result.googleErrorDescription}`;
+          }
+        }
+        
+        toast.error(`Failed to connect Gmail: ${errorMessage}`);
       }
     } catch (error) {
       console.error("Error handling OAuth callback:", error);
+      setOauthError("Exception during callback");
+      setErrorDetails(error.message || String(error));
       toast.error("Failed to complete Gmail connection");
     } finally {
       setIsConnecting(false);
@@ -234,6 +251,7 @@ const EmailConnection = () => {
 
   // Check if we should show URI setup guidance
   const hasRedirectUriMismatch = oauthError === 'redirect_uri_mismatch';
+  const showDebugInfo = !!errorDetails;
 
   // Always render the connect button section even if loading
   // This ensures it's available after returning from OAuth flow
@@ -269,6 +287,17 @@ const EmailConnection = () => {
                     Note: It may take up to 5 minutes for changes in Google Cloud Console to take effect.
                   </p>
                 </>
+              )}
+              
+              {showDebugInfo && (
+                <div className="mt-2">
+                  <p className="text-sm font-medium">Error Details:</p>
+                  <pre className="mt-1 p-2 bg-red-100 rounded-md text-xs overflow-auto max-h-40">
+                    {typeof errorDetails === 'object' 
+                      ? JSON.stringify(errorDetails, null, 2) 
+                      : errorDetails}
+                  </pre>
+                </div>
               )}
             </div>
           </div>
@@ -335,7 +364,7 @@ const EmailConnection = () => {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Client ID:</p>
                   <code className="px-2 py-1 bg-gray-100 rounded text-xs block overflow-hidden text-ellipsis whitespace-nowrap">
-                    {import.meta.env.VITE_GOOGLE_CLIENT_ID?.substring(0, 12)}...
+                    {import.meta.env.VITE_GOOGLE_CLIENT_ID}
                   </code>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -350,6 +379,36 @@ const EmailConnection = () => {
                     <ExternalLink className="h-3 w-3 ml-0.5" />
                   </a>
                   under "Authorized redirect URIs".
+                </p>
+              </div>
+              
+              <div className="mt-3 pt-3 border-t">
+                <h4 className="text-sm font-medium mb-2">Supabase Edge Function Status</h4>
+                <p className="text-xs text-muted-foreground">
+                  If you're encountering errors connecting to Gmail, check the 
+                  <a 
+                    href="https://supabase.com/dashboard/project/ldhnqpkaifyoxtuchxko/functions/connect-gmail/logs" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline inline-flex items-center mx-1"
+                  >
+                    Edge Function Logs
+                    <ExternalLink className="h-3 w-3 ml-0.5" />
+                  </a>
+                  for more detailed error information.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Also verify the 
+                  <a 
+                    href="https://supabase.com/dashboard/project/ldhnqpkaifyoxtuchxko/settings/functions" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline inline-flex items-center mx-1"
+                  >
+                    Edge Function Secrets
+                    <ExternalLink className="h-3 w-3 ml-0.5" />
+                  </a>
+                  for GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URL.
                 </p>
               </div>
             </div>
