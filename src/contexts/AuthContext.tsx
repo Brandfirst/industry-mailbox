@@ -111,6 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
+    let sessionCheckAttempted = false;
 
     // Function to ensure loading state gets cleared
     const ensureLoadingCleared = () => {
@@ -121,8 +122,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    // Initial session check
+    // Initial session check - only performed once
     const checkSession = async () => {
+      if (sessionCheckAttempted) return;
+      sessionCheckAttempted = true;
+      
       try {
         setIsLoading(true);
         
@@ -191,48 +195,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     checkSession();
 
-    // Listen for auth changes
+    // Create a debounced auth state change handler to prevent multiple rapid calls
+    let authChangeTimeout: NodeJS.Timeout | null = null;
+    
+    // Listen for auth changes with debouncing
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session ? "session exists" : "no session");
       
       if (!mounted) return;
       
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Don't block UI on profile role fetch
-        fetchProfileRole(session.user.id).then(role => {
-          if (mounted) {
-            setProfileRole(role);
-            console.log("Auth state changed - Profile role:", role);
-          }
-        }).catch(err => {
-          console.error("Error in profile role fetch during auth change:", err);
-        });
-      } else {
-        setProfileRole(null);
+      // Debounce auth state changes to prevent multiple rapid updates
+      if (authChangeTimeout) {
+        clearTimeout(authChangeTimeout);
       }
       
-      // Ensure auth is initialized and not loading
-      if (!authInitialized) {
-        setAuthInitialized(true);
-      }
-      
-      // For sign-in events, we need to ensure loading is cleared
-      if (event === 'SIGNED_IN' && isLoading) {
-        setIsLoading(false);
-      }
+      authChangeTimeout = setTimeout(() => {
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user && !profileRoleFetchAttempted) {
+          // Only fetch profile role if we haven't attempted it yet
+          fetchProfileRole(session.user.id).then(role => {
+            if (mounted) {
+              setProfileRole(role);
+              console.log("Auth state changed - Profile role:", role);
+            }
+          }).catch(err => {
+            console.error("Error in profile role fetch during auth change:", err);
+          });
+        } else if (!session) {
+          setProfileRole(null);
+        }
+        
+        // Ensure auth is initialized and not loading
+        if (!authInitialized) {
+          setAuthInitialized(true);
+        }
+        
+        // For sign-in events, we need to ensure loading is cleared
+        if (event === 'SIGNED_IN' && isLoading) {
+          setIsLoading(false);
+        }
+      }, 300); // 300ms debounce
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [fetchProfileRole, isLoading, authInitialized]);
-
-  // Extra safety measure: force isLoading to false after component mount
-  useEffect(() => {
+    // Extra safety measure: force isLoading to false after component mount
     const forceLoadingFalse = setTimeout(() => {
       if (isLoading) {
         console.warn('Forcing isLoading to false after 2s component mount');
@@ -240,11 +249,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setAuthInitialized(true);
       }
     }, 2000);
-    
-    return () => clearTimeout(forceLoadingFalse);
-  }, [isLoading]);
 
-  // Debug auth state
+    return () => {
+      mounted = false;
+      if (authChangeTimeout) {
+        clearTimeout(authChangeTimeout);
+      }
+      clearTimeout(forceLoadingFalse);
+      subscription.unsubscribe();
+    };
+  }, [fetchProfileRole, isLoading, authInitialized, profileRoleFetchAttempted]);
+
+  // Debug auth state - limit to critical changes to reduce console noise
   useEffect(() => {
     console.log("Auth Debug:", {
       userExists: !!user,
