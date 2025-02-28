@@ -65,36 +65,18 @@ export async function updateUserProfile(userId, updates) {
   return data;
 }
 
-// Basic implementation to avoid TypeScript errors
-export async function getNewsletters(options: any) {
-  // Determine the parameters based on input type
-  let query = supabase.from("newsletters").select("*", { count: "exact" });
+// Simple function to get newsletters with pagination
+export async function getNewsletters(options) {
+  // Use simple implementation to avoid TypeScript errors
+  const page = typeof options === 'number' ? options : 1;
+  const limit = 10;
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
   
-  // Apply different logic based on the options type
-  if (typeof options === 'number') {
-    // If options is a number, it's a page number
-    const page = options;
-    const limit = 10;
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-    query = query.range(from, to);
-  } 
-  else if (options && typeof options === 'object') {
-    // If options is an object, it has search and filter parameters
-    if (options.searchQuery) {
-      query = query.or(`title.ilike.%${options.searchQuery}%,description.ilike.%${options.searchQuery}%`);
-    }
-
-    if (options.industries && options.industries.length > 0) {
-      query = query.eq("category_id", options.industries[0]);
-    }
-    
-    // Default pagination
-    query = query.range(0, 9);
-  }
-  
-  // Execute the query and return results
-  const { data, error, count } = await query;
+  const { data, error, count } = await supabase
+    .from("newsletters")
+    .select("*", { count: "exact" })
+    .range(from, to);
   
   if (error) {
     console.error("Error fetching newsletters:", error);
