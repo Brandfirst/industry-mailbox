@@ -10,19 +10,25 @@ import {
   PlusCircle, 
   Layers,
   LayoutDashboard,
-  Inbox
+  Inbox,
+  Menu,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminStats from "@/components/AdminStats";
 import EmailConnection from "@/components/EmailConnection";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useMobile } from "@/hooks/use-mobile";
 
-const Sidebar = ({ activeTab, setActiveTab }: { 
+const Sidebar = ({ activeTab, setActiveTab, isMobileSidebarOpen, toggleMobileSidebar }: { 
   activeTab: string; 
   setActiveTab: (tab: string) => void;
+  isMobileSidebarOpen: boolean;
+  toggleMobileSidebar: () => void;
 }) => {
   const { signOut } = useAuth();
+  const isMobile = useMobile();
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "newsletters", label: "Newsletters", icon: Mail },
@@ -35,45 +41,80 @@ const Sidebar = ({ activeTab, setActiveTab }: {
     await signOut();
   };
 
+  // Only render if sidebar is open on mobile, always render on desktop
+  if (isMobile && !isMobileSidebarOpen) {
+    return null;
+  }
+
   return (
-    <div className="h-screen w-64 bg-sidebar fixed left-0 top-0 border-r border-border">
-      <div className="flex items-center gap-2 mb-8 p-4">
-        <Mail className="w-6 h-6 text-primary" />
-        <span className="text-lg font-medium text-white">Admin Portal</span>
-      </div>
+    <div className={`${isMobile ? 'fixed inset-0 z-40' : 'h-screen w-64 fixed left-0 top-0'}`}>
+      {/* Mobile overlay */}
+      {isMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40" 
+          onClick={toggleMobileSidebar}
+          aria-hidden="true"
+        />
+      )}
       
-      <nav className="space-y-1 px-3">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-              activeTab === tab.id 
-                ? "bg-primary text-white font-medium" 
-                : "text-gray-300 hover:bg-secondary hover:text-white"
-            }`}
+      {/* Sidebar content */}
+      <div className={`
+        ${isMobile ? 'w-[240px] h-screen z-50 absolute' : 'w-64 h-screen'} 
+        bg-sidebar left-0 top-0 border-r border-border
+      `}>
+        <div className="flex items-center justify-between p-4 border-b border-border/50">
+          <div className="flex items-center gap-2">
+            <Mail className="w-6 h-6 text-primary" />
+            <span className="text-lg font-medium text-white">Admin Portal</span>
+          </div>
+          {isMobile && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleMobileSidebar}
+              className="text-white hover:bg-white/10"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
+        
+        <nav className="space-y-1 px-3 py-4">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                if (isMobile) toggleMobileSidebar();
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                activeTab === tab.id 
+                  ? "bg-primary text-white font-medium" 
+                  : "text-gray-300 hover:bg-secondary hover:text-white"
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+        
+        <div className="absolute bottom-8 left-0 w-full px-4">
+          <Link to="/">
+            <Button variant="outline" className="w-full justify-start mb-2 border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Site
+            </Button>
+          </Link>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
+            onClick={handleLogout}
           >
-            <tab.icon className="w-5 h-5" />
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-      
-      <div className="absolute bottom-8 left-0 w-full px-4">
-        <Link to="/">
-          <Button variant="outline" className="w-full justify-start mb-2 border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Site
+            <LogOut className="mr-2 h-4 w-4" />
+            Log Out
           </Button>
-        </Link>
-        <Button 
-          variant="ghost" 
-          className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
-          onClick={handleLogout}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Log Out
-        </Button>
+        </div>
       </div>
     </div>
   );
@@ -81,10 +122,16 @@ const Sidebar = ({ activeTab, setActiveTab }: {
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { signOut, isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [forceRerender, setForceRerender] = useState(0);
+  const isMobile = useMobile();
+  
+  const toggleMobileSidebar = () => {
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  };
   
   // Force rerender when returning to the admin page (important for OAuth flow)
   useEffect(() => {
@@ -147,11 +194,34 @@ const Admin = () => {
   // whenever the location or forceRerender state changes
   const emailConnectionKey = `email-connection-${user?.id || 'no-user'}-${forceRerender}`;
   
+  // Only show mobile menu button on mobile
+  const renderMobileMenuButton = () => {
+    if (!isMobile) return null;
+    
+    return (
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={toggleMobileSidebar}
+        className="lg:hidden text-white absolute left-4 top-4 z-20"
+      >
+        <Menu className="h-6 w-6" />
+      </Button>
+    );
+  };
+  
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isMobileSidebarOpen={isMobileSidebarOpen}
+        toggleMobileSidebar={toggleMobileSidebar}
+      />
       
-      <div className="ml-64 p-8">
+      {renderMobileMenuButton()}
+      
+      <div className={`${isMobile ? 'ml-0 px-4 pt-16' : 'ml-64 p-8'}`}>
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground">
             {activeTab === "dashboard" && "Dashboard"}
@@ -174,7 +244,7 @@ const Admin = () => {
           <div className="space-y-8">
             <AdminStats />
             
-            <div className="bg-card rounded-lg border border-border p-6">
+            <div className="bg-card rounded-lg border border-border p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-medium text-card-foreground">Recently Added Newsletters</h2>
                 <Button variant="outline" size="sm" className="text-xs">
@@ -185,16 +255,16 @@ const Admin = () => {
               
               <div className="divide-y divide-border">
                 {recentNewsletters.map(newsletter => (
-                  <div key={newsletter.id} className="py-3 flex items-center justify-between">
+                  <div key={newsletter.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h3 className="font-medium text-card-foreground">{newsletter.title}</h3>
-                      <div className="flex items-center text-sm text-muted-foreground">
+                      <div className="flex items-center flex-wrap text-sm text-muted-foreground">
                         <span>{newsletter.sender}</span>
-                        <span className="mx-2">•</span>
+                        <span className="mx-2 hidden sm:inline">•</span>
                         <span>{newsletter.category}</span>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground mt-1 sm:mt-0">
                       {newsletter.date}
                     </div>
                   </div>
@@ -202,13 +272,13 @@ const Admin = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Using standalone EmailConnection component with key to force re-render */}
               <div key={emailConnectionKey}>
                 <EmailConnection />
               </div>
               
-              <div className="bg-card rounded-lg border border-border p-6">
+              <div className="bg-card rounded-lg border border-border p-4 sm:p-6">
                 <h2 className="text-lg font-medium mb-4 text-card-foreground">Quick Actions</h2>
                 <div className="space-y-2">
                   <Button variant="outline" className="w-full justify-start text-foreground">
@@ -231,7 +301,7 @@ const Admin = () => {
         
         {/* Other tabs would be implemented similarly */}
         {activeTab !== "dashboard" && (
-          <div className="bg-card rounded-lg border border-border p-8 text-center">
+          <div className="bg-card rounded-lg border border-border p-6 text-center my-4">
             <h2 className="text-xl font-medium mb-2 text-card-foreground">This Section is Under Construction</h2>
             <p className="text-muted-foreground mb-4">
               We're working on bringing you a complete admin experience.
