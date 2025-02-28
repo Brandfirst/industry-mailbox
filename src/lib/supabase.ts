@@ -1,422 +1,285 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/integrations/supabase/client";
 
-// Get environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// User profile functions
 
-// Create client and validate configuration
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file');
-}
+export async function getUserProfile(userId) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
 
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder-url.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
-);
-
-// Utility to check if Supabase is properly configured
-export const isSupabaseConfigured = () => {
-  return !!supabaseUrl && !!supabaseAnonKey;
-};
-
-export type Newsletter = {
-  id: number;
-  title: string;
-  sender: string;
-  industry: string;
-  preview: string;
-  content: string;
-  created_at: string;
-  published_at: string;
-}
-
-export type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  created_at: string;
-}
-
-export type EmailAccount = {
-  id: string;
-  user_id: string;
-  email: string;
-  provider: string;
-  access_token: string;
-  refresh_token: string;
-  created_at: string;
-  last_sync: string | null;
-  is_connected: boolean;
-}
-
-export async function getNewsletters({ 
-  searchQuery = '', 
-  industries = [] 
-}: { 
-  searchQuery?: string;
-  industries?: string[];
-}) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Using mock data.');
-      return [];
-    }
-
-    let query = supabase
-      .from('newsletters')
-      .select('*')
-      .order('published_at', { ascending: false });
-
-    // Apply search filter if provided
-    if (searchQuery) {
-      query = query.or(
-        `title.ilike.%${searchQuery}%,preview.ilike.%${searchQuery}%,sender.ilike.%${searchQuery}%`
-      );
-    }
-
-    // Apply industry filter if provided
-    if (industries.length > 0) {
-      query = query.in('industry', industries);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching newsletters:', error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error('Error in getNewsletters:', error);
-    return [];
+  if (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
   }
+
+  return data;
 }
 
-export async function getCategories() {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Using mock data.');
-      return [];
-    }
+export async function updateUserProfile(userId, updates) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", userId)
+    .select()
+    .single();
 
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name');
-
-    if (error) {
-      console.error('Error fetching categories:', error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error('Error in getCategories:', error);
-    return [];
+  if (error) {
+    console.error("Error updating user profile:", error);
+    throw error;
   }
+
+  return data;
 }
 
-export async function saveNewsletter(userId: string, newsletterId: number) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot save newsletter.');
-      return null;
-    }
+// Newsletter functions
 
-    const { data, error } = await supabase
-      .from('saved_newsletters')
-      .insert([
-        { user_id: userId, newsletter_id: newsletterId }
-      ]);
+export async function getAllNewsletters(page = 1, limit = 10, search = "", filters = {}) {
+  let query = supabase
+    .from("newsletters")
+    .select("*, categories(name, slug, color)", { count: "exact" });
 
-    if (error) {
-      console.error('Error saving newsletter:', error);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in saveNewsletter:', error);
-    return null;
+  // Apply search if provided
+  if (search) {
+    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
-}
 
-export async function unsaveNewsletter(userId: string, newsletterId: number) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot unsave newsletter.');
-      return null;
-    }
-
-    const { data, error } = await supabase
-      .from('saved_newsletters')
-      .delete()
-      .match({ user_id: userId, newsletter_id: newsletterId });
-
-    if (error) {
-      console.error('Error removing saved newsletter:', error);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in unsaveNewsletter:', error);
-    return null;
+  // Apply category filter
+  if (filters.category) {
+    query = query.eq("category_id", filters.category);
   }
-}
 
-export async function isNewsletterSaved(userId: string, newsletterId: number) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot check if newsletter is saved.');
-      return false;
-    }
-
-    const { data, error } = await supabase
-      .from('saved_newsletters')
-      .select('*')
-      .match({ user_id: userId, newsletter_id: newsletterId })
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error checking if newsletter is saved:', error);
-      return false;
-    }
-
-    return !!data;
-  } catch (error) {
-    console.error('Error in isNewsletterSaved:', error);
-    return false;
+  // Apply date filter
+  if (filters.fromDate) {
+    query = query.gte("published_date", filters.fromDate);
   }
-}
-
-export async function getSavedNewsletters(userId: string) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot fetch saved newsletters.');
-      return [];
-    }
-
-    const { data, error } = await supabase
-      .from('saved_newsletters')
-      .select(`
-        id,
-        newsletter_id,
-        newsletters:newsletter_id (*)
-      `)
-      .eq('user_id', userId);
-
-    if (error) {
-      console.error('Error fetching saved newsletters:', error);
-      return [];
-    }
-
-    // Extract the actual newsletter objects
-    return data ? data.map(item => item.newsletters) : [];
-  } catch (error) {
-    console.error('Error in getSavedNewsletters:', error);
-    return [];
+  if (filters.toDate) {
+    query = query.lte("published_date", filters.toDate);
   }
-}
 
-export async function getNewsletter(id: number) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot fetch newsletter.');
-      return null;
-    }
+  // Apply pagination
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  query = query.range(from, to);
 
-    const { data, error } = await supabase
-      .from('newsletters')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+  // Order by published date
+  query = query.order("published_date", { ascending: false });
 
-    if (error) {
-      console.error('Error fetching newsletter:', error);
-      return null;
-    }
+  const { data, error, count } = await query;
 
-    return data;
-  } catch (error) {
-    console.error('Error in getNewsletter:', error);
-    return null;
+  if (error) {
+    console.error("Error fetching newsletters:", error);
+    throw error;
   }
+
+  return { data, count };
 }
 
-// Admin functions
-export async function createNewsletter(newsletter: Omit<Newsletter, 'id' | 'created_at'>) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot create newsletter.');
-      return null;
-    }
+export async function getNewsletterById(id) {
+  const { data, error } = await supabase
+    .from("newsletters")
+    .select("*, categories(name, slug, color)")
+    .eq("id", id)
+    .single();
 
-    const { data, error } = await supabase
-      .from('newsletters')
-      .insert([newsletter])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating newsletter:', error);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in createNewsletter:', error);
-    return null;
+  if (error) {
+    console.error("Error fetching newsletter:", error);
+    throw error;
   }
+
+  return data;
 }
 
-export async function updateNewsletter(id: number, newsletter: Partial<Omit<Newsletter, 'id' | 'created_at'>>) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot update newsletter.');
-      return null;
-    }
+export async function saveUserNewsletter(userId, newsletterId) {
+  const { data, error } = await supabase
+    .from("user_saved_newsletters")
+    .insert({
+      user_id: userId,
+      newsletter_id: newsletterId,
+    })
+    .select()
+    .single();
 
-    const { data, error } = await supabase
-      .from('newsletters')
-      .update(newsletter)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating newsletter:', error);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in updateNewsletter:', error);
-    return null;
+  if (error) {
+    console.error("Error saving newsletter:", error);
+    throw error;
   }
+
+  return data;
 }
 
-export async function deleteNewsletter(id: number) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot delete newsletter.');
-      return false;
-    }
+export async function unsaveUserNewsletter(userId, newsletterId) {
+  const { data, error } = await supabase
+    .from("user_saved_newsletters")
+    .delete()
+    .eq("user_id", userId)
+    .eq("newsletter_id", newsletterId)
+    .select()
+    .single();
 
-    const { error } = await supabase
-      .from('newsletters')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error deleting newsletter:', error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error in deleteNewsletter:', error);
-    return false;
+  if (error) {
+    console.error("Error unsaving newsletter:", error);
+    throw error;
   }
+
+  return data;
 }
 
-// Email account integration functions
-export async function getUserEmailAccounts(userId: string) {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot fetch email accounts.');
-      return [];
-    }
+export async function getUserSavedNewsletters(userId, page = 1, limit = 10) {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
 
-    const { data, error } = await supabase
-      .from('email_accounts')
-      .select('*')
-      .eq('user_id', userId);
+  const { data, error, count } = await supabase
+    .from("user_saved_newsletters")
+    .select("newsletter_id, newsletters!inner(*, categories(name, slug, color))", {
+      count: "exact",
+    })
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
-    if (error) {
-      console.error('Error fetching email accounts:', error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error('Error in getUserEmailAccounts:', error);
-    return [];
+  if (error) {
+    console.error("Error fetching saved newsletters:", error);
+    throw error;
   }
+
+  // Transform the data to get just the newsletters
+  const newsletters = data.map((item) => item.newsletters);
+
+  return { data: newsletters, count };
 }
 
-export async function connectGoogleEmail(userId: string, authCode: string) {
+// Admin stats functions
+
+export async function getAdminStats() {
+  const { data, error } = await supabase
+    .from("admin_stats")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.error("Error fetching admin stats:", error);
+    throw error;
+  }
+
+  return data[0] || null;
+}
+
+// Category functions
+
+export async function getAllCategories() {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .order("name");
+
+  if (error) {
+    console.error("Error fetching categories:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Email account functions
+
+export async function getUserEmailAccounts(userId) {
+  const { data, error } = await supabase
+    .from("email_accounts")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching email accounts:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function connectGoogleEmail(userId, code) {
   try {
-    // Call the Supabase Edge Function to handle the OAuth token exchange
-    const { data, error } = await supabase.functions.invoke('connect-gmail', {
-      body: {
-        userId,
-        authCode
+    // Get the current location's origin for the redirect URI
+    let origin = window.location.origin;
+    
+    // If we're on a preview domain, format it correctly
+    if (origin.includes('preview--')) {
+      const match = origin.match(/https:\/\/preview--([^.]+)\.([^/]+)/);
+      if (match) {
+        origin = `https://preview--${match[1]}.${match[2]}`;
       }
+    }
+    
+    console.log("Using origin for redirect:", origin);
+    
+    const { data, error } = await supabase.functions.invoke("connect-gmail", {
+      body: { code, userId, origin },
     });
 
     if (error) {
-      console.error('Error connecting Gmail account:', error);
-      return { success: false, error: error.message };
+      console.error("Error connecting Gmail:", error);
+      return { success: false, error: error.message || "Failed to connect to Gmail" };
     }
 
-    return { success: true, data };
+    if (!data.success) {
+      console.error("Error in connect-gmail function:", data.error);
+      return { 
+        success: false, 
+        error: data.error || "Failed to connect Gmail account",
+        details: data.details || data.googleError || data.googleErrorDescription
+      };
+    }
+
+    return { success: true, account: data.account };
   } catch (error) {
-    console.error('Error in connectGoogleEmail:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "An unexpected error occurred" 
-    };
+    console.error("Exception in connectGoogleEmail:", error);
+    return { success: false, error: error.message || "An unexpected error occurred" };
   }
 }
 
-export async function disconnectEmailAccount(accountId: string) {
+export async function disconnectEmailAccount(accountId) {
   try {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not properly configured. Cannot disconnect email account.');
-      return { success: false };
-    }
-
+    // First delete the account from the database
     const { error } = await supabase
-      .from('email_accounts')
-      .update({ is_connected: false })
-      .eq('id', accountId);
+      .from("email_accounts")
+      .delete()
+      .eq("id", accountId);
 
     if (error) {
-      console.error('Error disconnecting email account:', error);
+      console.error("Error disconnecting email account:", error);
       return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in disconnectEmailAccount:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "An unexpected error occurred" 
-    };
+    console.error("Exception in disconnectEmailAccount:", error);
+    return { success: false, error: error.message };
   }
 }
 
-export async function syncEmailAccount(accountId: string) {
+export async function syncEmailAccount(accountId) {
   try {
-    // Call the Supabase Edge Function to trigger email sync
-    const { data, error } = await supabase.functions.invoke('sync-emails', {
-      body: { accountId }
+    const { data, error } = await supabase.functions.invoke("sync-emails", {
+      body: { accountId },
     });
 
     if (error) {
-      console.error('Error syncing email account:', error);
+      console.error("Error syncing emails:", error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    if (!data.success) {
+      console.error("Error in sync-emails function:", data.error);
+      return { success: false, error: data.error };
+    }
+
+    return { success: true, synced: data.synced };
   } catch (error) {
-    console.error('Error in syncEmailAccount:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "An unexpected error occurred" 
-    };
+    console.error("Exception in syncEmailAccount:", error);
+    return { success: false, error: error.message };
   }
 }
