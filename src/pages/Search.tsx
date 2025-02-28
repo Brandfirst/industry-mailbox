@@ -18,7 +18,7 @@ const Search = () => {
     document.title = "Search Newsletters | NewsletterHub";
   }, []);
 
-  const { data: newsletters, isLoading, error } = useQuery({
+  const { data: newsletterData, isLoading, error } = useQuery({
     queryKey: ['newsletters', searchQuery, selectedIndustries],
     queryFn: () => getNewsletters({ 
       searchQuery, 
@@ -33,6 +33,9 @@ const Search = () => {
   const handleFilterChange = (industries: string[]) => {
     setSelectedIndustries(industries);
   };
+
+  // Extract the newsletter data for easier rendering
+  const newsletters = newsletterData?.data || [];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -82,12 +85,12 @@ const Search = () => {
                 Refresh page
               </button>
             </div>
-          ) : newsletters && newsletters.length > 0 ? (
+          ) : newsletters.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {newsletters.map((newsletter: Newsletter) => (
                 <NewsletterCard
                   key={newsletter.id}
-                  id={newsletter.id} // This now correctly uses a number
+                  id={newsletter.id}
                   title={newsletter.title}
                   sender={newsletter.sender}
                   industry={newsletter.industry}

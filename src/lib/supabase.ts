@@ -1,5 +1,29 @@
-
 import { supabase } from "@/integrations/supabase/client";
+
+// Types
+export interface Newsletter {
+  id: number;
+  title: string;
+  sender: string;
+  industry: string;
+  preview: string;
+  content: string;
+  published_at: string;
+  created_at: string;
+  categories?: any;
+}
+
+export interface EmailAccount {
+  id: string;
+  user_id: string;
+  email: string;
+  provider: string;
+  is_connected: boolean;
+  access_token: string;
+  refresh_token: string | null;
+  created_at: string | null;
+  last_sync: string | null;
+}
 
 // User profile functions
 
@@ -46,12 +70,12 @@ export async function getAllNewsletters(page = 1, limit = 10, search = "", filte
     query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
-  // Apply category filter
+  // Apply category filter if present in filters
   if (filters && typeof filters === 'object' && 'category' in filters) {
     query = query.eq("category_id", filters.category);
   }
 
-  // Apply date filter
+  // Apply date filter if present in filters
   if (filters && typeof filters === 'object' && 'fromDate' in filters) {
     query = query.gte("published_date", filters.fromDate);
   }
@@ -75,6 +99,25 @@ export async function getAllNewsletters(page = 1, limit = 10, search = "", filte
   }
 
   return { data, count };
+}
+
+// Support for legacy interface - accepts an object with searchQuery and industries
+export async function getNewsletters(options) {
+  // If options is a plain number, treat it as the page number
+  if (typeof options === 'number') {
+    return getAllNewsletters(options);
+  }
+  
+  // Otherwise, extract properties from the options object
+  const { searchQuery = "", industries = [] } = options || {};
+  const filters = {};
+  
+  // Map industries to category if needed
+  if (industries && industries.length > 0) {
+    filters.category = industries[0]; // Just use the first one for simplicity
+  }
+  
+  return getAllNewsletters(1, 10, searchQuery, filters);
 }
 
 export async function getNewsletterById(id) {
@@ -284,12 +327,11 @@ export async function syncEmailAccount(accountId) {
   }
 }
 
-// For compatibility with existing imports
-export const getNewsletters = getAllNewsletters;
+// Alias functions for backward compatibility
 export const saveNewsletter = saveUserNewsletter;
 export const unsaveNewsletter = unsaveUserNewsletter;
 
-// Placeholder for isNewsletterSaved function that might be used in the code
+// Check if a newsletter is saved by a user
 export async function isNewsletterSaved(userId, newsletterId) {
   const { data, error } = await supabase
     .from("saved_newsletters")
@@ -305,3 +347,6 @@ export async function isNewsletterSaved(userId, newsletterId) {
 
   return !!data;
 }
+
+// Export the supabase instance for components that need direct access
+export { supabase };
