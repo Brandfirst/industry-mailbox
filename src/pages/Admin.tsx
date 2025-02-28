@@ -135,6 +135,9 @@ const Admin = () => {
     await signOut();
   };
   
+  // Force re-render of EmailConnection component with a key
+  const emailConnectionKey = `email-connection-${user?.id || 'no-user'}-${Date.now()}`;
+  
   return (
     <div className="min-h-screen bg-background">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -191,8 +194,10 @@ const Admin = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Using our EmailConnection component */}
-              <EmailConnection />
+              {/* Using standalone EmailConnection component with key to force re-render */}
+              <div key={emailConnectionKey}>
+                <EmailConnection />
+              </div>
               
               <div className="bg-white rounded-lg border border-border p-6">
                 <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
