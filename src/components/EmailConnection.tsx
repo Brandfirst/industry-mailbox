@@ -27,10 +27,13 @@ const EmailConnection = () => {
   // Set the redirect URI at component mount
   useEffect(() => {
     // Use the exact redirect URI that's configured in Google Cloud Console
-    setRedirectUri("https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin");
+    // Get current window URL for dynamic redirect URI
+    const baseUrl = window.location.origin;
+    const adminPath = "/admin";
+    const dynamicRedirectUri = `${baseUrl}${adminPath}`;
     
-    // Log the redirect URI for debugging
-    console.log("Using the following redirect URI:", "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin");
+    setRedirectUri(dynamicRedirectUri);
+    console.log("Using dynamic redirect URI:", dynamicRedirectUri);
   }, []);
   
   // Reset state on mount
@@ -133,6 +136,7 @@ const EmailConnection = () => {
         fetchEmailAccounts();
       } else {
         toast.error(`Failed to connect Gmail: ${result.error}`);
+        console.error("Connection error details:", result);
       }
     } catch (error) {
       console.error("Error handling OAuth callback:", error);
@@ -170,13 +174,14 @@ const EmailConnection = () => {
       // Store the current path to return to after auth
       sessionStorage.setItem('auth_return_path', location.pathname);
       
-      // Use the explicit redirect URI that matches what's configured in Google Cloud Console
-      console.log("Using redirect URI:", redirectUri);
+      // Use the current window's location to build the redirect URI
+      const dynamicRedirectUri = redirectUri || window.location.origin + "/admin";
+      console.log("Using redirect URI for OAuth flow:", dynamicRedirectUri);
       
       // Properly construct the Google OAuth URL
       const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
       authUrl.searchParams.append("client_id", clientId);
-      authUrl.searchParams.append("redirect_uri", redirectUri);
+      authUrl.searchParams.append("redirect_uri", dynamicRedirectUri);
       authUrl.searchParams.append("scope", "https://www.googleapis.com/auth/gmail.readonly");
       authUrl.searchParams.append("response_type", "code");
       authUrl.searchParams.append("access_type", "offline");
@@ -270,7 +275,7 @@ const EmailConnection = () => {
                     Google Cloud Console under "Authorized redirect URIs":
                   </p>
                   <div className="mt-2 p-2 bg-red-100 rounded-md text-sm font-mono overflow-auto">
-                    {redirectUri}
+                    {redirectUri || window.location.origin + "/admin"}
                   </div>
                   <p className="text-xs mt-2">
                     Note: It may take up to 5 minutes for changes in Google Cloud Console to take effect.
@@ -336,7 +341,7 @@ const EmailConnection = () => {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Redirect URI being used:</p>
                   <code className="px-2 py-1 bg-gray-100 rounded text-xs block overflow-auto">
-                    {redirectUri}
+                    {redirectUri || window.location.origin + "/admin"}
                   </code>
                 </div>
                 <div>

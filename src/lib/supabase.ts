@@ -26,7 +26,7 @@ export interface EmailAccount {
   last_sync: string | null;
 }
 
-// Define filters interface to avoid excessive type instantiation
+// Simple interface to avoid deep type instantiation
 export interface NewsletterFilters {
   category?: string;
   fromDate?: string;
@@ -65,54 +65,53 @@ export async function updateUserProfile(userId, updates) {
   return data;
 }
 
-// Newsletter functions
-export async function getNewsletters(options) {
+// Newsletter functions - basic implementation to avoid TS errors
+export async function getNewsletters(options: any) {
+  // Convert options to our expected parameters
   let page = 1;
   let limit = 10;
-  let search = "";
-  let category = "";
-  
-  // Parse options based on type
+  let searchQuery = "";
+  let categoryId = "";
+
   if (typeof options === 'number') {
     page = options;
   } else if (options && typeof options === 'object') {
-    search = options.searchQuery || "";
-    category = options.industries && options.industries.length 
-      ? options.industries[0] 
-      : "";
+    if (options.searchQuery) searchQuery = options.searchQuery;
+    if (options.industries && options.industries.length > 0) {
+      categoryId = options.industries[0];
+    }
   }
-  
+
   // Calculate pagination
   const from = (page - 1) * limit;
   const to = from + limit - 1;
-  
-  // Build query
+
+  // Create the base query
   let query = supabase
     .from("newsletters")
     .select("*, categories(name, slug, color)", { count: "exact" });
-  
-  // Add search filter if provided
-  if (search) {
-    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+
+  // Add filters
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
   }
-  
-  // Add category filter if provided
-  if (category) {
-    query = query.eq("category_id", category);
+
+  if (categoryId) {
+    query = query.eq("category_id", categoryId);
   }
-  
+
   // Add ordering and pagination
   query = query.order("published_date", { ascending: false });
   query = query.range(from, to);
-  
-  // Execute query
+
+  // Execute the query
   const { data, error, count } = await query;
-  
+
   if (error) {
     console.error("Error fetching newsletters:", error);
     throw error;
   }
-  
+
   return { data, count };
 }
 
@@ -249,7 +248,6 @@ interface GoogleOAuthResult {
 export async function connectGoogleEmail(userId, code): Promise<GoogleOAuthResult> {
   try {
     // Use the exact redirect URI that's configured in your Google Cloud Console
-    // This must match exactly what's in the console
     const redirectUri = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin";
     
     console.log("Using hardcoded redirect URI for connectGoogleEmail:", redirectUri);
