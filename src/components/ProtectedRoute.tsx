@@ -18,6 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, isLoading, isAdmin } = useAuth();
   const location = useLocation();
   const [hasTimedOut, setHasTimedOut] = useState(false);
+  const [loggedOnce, setLoggedOnce] = useState(false);
 
   // Set a timeout to ensure the loading state doesn't get stuck
   useEffect(() => {
@@ -26,24 +27,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       const timer = setTimeout(() => {
         console.warn('Auth check timeout reached - forcing completion');
         setHasTimedOut(true);
-      }, 1500); // Even shorter timeout of 1.5 seconds
+      }, 1500); // Short timeout of 1.5 seconds
       
       return () => clearTimeout(timer);
     }
   }, [isLoading, hasTimedOut]);
 
-  // Log current auth state
+  // Log current auth state - but only once
   useEffect(() => {
-    console.log('Protected Route Check:', { 
-      requireAuth,
-      requireAdmin, 
-      userExists: !!user, 
-      isAdmin,
-      pathname: location.pathname,
-      isLoading,
-      hasTimedOut
-    });
-  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname, isLoading, hasTimedOut]);
+    if (!loggedOnce) {
+      console.log('Protected Route Check:', { 
+        requireAuth,
+        requireAdmin, 
+        userExists: !!user, 
+        isAdmin,
+        pathname: location.pathname,
+        isLoading,
+        hasTimedOut
+      });
+      setLoggedOnce(true);
+    }
+  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname, isLoading, hasTimedOut, loggedOnce]);
 
   // Show loading state only if still loading and timeout not reached
   if (isLoading && !hasTimedOut) {

@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
 
@@ -28,13 +28,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profileRole, setProfileRole] = useState<string | null>(null);
   const [authInitialized, setAuthInitialized] = useState(false);
   
-  // Track profile role fetch attempts to prevent excessive retries
-  const [profileRoleFetchAttempted, setProfileRoleFetchAttempted] = useState(false);
+  // Use refs to track state without causing re-renders
+  const profileRoleFetchAttempted = useRef(false);
+  const debugLogged = useRef(false);
+  const sessionCheckAttempted = useRef(false);
+  const authChangeHandlers = useRef<NodeJS.Timeout[]>([]);
 
-  // Derive admin status from multiple sources:
-  // 1. User metadata role
-  // 2. Profile role from database
-  // 3. Email in admin list (as a backup)
+  // Derive admin status from multiple sources
   const isPremium = user?.user_metadata?.premium === true;
   const isAdmin = 
     user?.user_metadata?.role === 'admin' || 
@@ -43,12 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchProfileRole = useCallback(async (userId: string) => {
     // If we've already attempted to fetch the profile role, don't try again
-    // This prevents excessive retries that could overload the database
-    if (profileRoleFetchAttempted) {
+    if (profileRoleFetchAttempted.current) {
       return null;
     }
     
-    setProfileRoleFetchAttempted(true);
+    profileRoleFetchAttempted.current = true;
     
     try {
       const { data: profileData, error } = await supabase
@@ -67,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Exception fetching profile role:", e);
       return null;
     }
-  }, [profileRoleFetchAttempted]);
+  }, []);
 
   // Clean up corrupted localStorage on startup
   useEffect(() => {
@@ -109,9 +108,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Log auth state once and only when it actually changes
+  useEffect(() => {
+    // Skip repeated logs with same values
+    const authStateSnapshot = JSON.stringify({
+      userExists: !!user,
+      isAdmin,
+      email: user?.email,
+      isLoading,
+      authInitialized
+    });
+    
+    if (!debugLogged.current) {
+      console.log("Auth Debug (INITIAL):", {
+        userExists: !!user,
+        isAdmin,
+        userMetadata: user?.user_metadata ? "[User metadata exists]" : undefined,
+        role: profileRole,
+        email: user?.email,
+        isAdminByEmail: user?.email ? ADMIN_EMAILS.includes(user.email) : false,
+        isLoading,
+        authInitialized
+      });
+      debugLogged.current = true;
+    } else {
+      // Limit debug logs to only once
+      // console.log("Auth state updated");
+    }
+  }, [user, isAdmin, profileRole, isLoading, authInitialized]);
+
   useEffect(() => {
     let mounted = true;
-    let sessionCheckAttempted = false;
 
     // Function to ensure loading state gets cleared
     const ensureLoadingCleared = () => {
@@ -124,8 +151,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Initial session check - only performed once
     const checkSession = async () => {
-      if (sessionCheckAttempted) return;
-      sessionCheckAttempted = true;
+      if (sessionCheckAttempted.current) return;
+      sessionCheckAttempted.current = true;
       
       try {
         setIsLoading(true);
@@ -173,7 +200,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               fetchProfileRole(session.user.id).then(role => {
                 if (mounted) {
                   setProfileRole(role);
-                  console.log("Initial session check - Profile role:", role);
                 }
               }).catch(err => {
                 console.error("Error in profile role fetch:", err);
@@ -195,32 +221,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     checkSession();
 
-    // Create a debounced auth state change handler to prevent multiple rapid calls
-    let authChangeTimeout: NodeJS.Timeout | null = null;
-    
-    // Listen for auth changes with debouncing
+    // Listen for auth changes with major debouncing
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session ? "session exists" : "no session");
+      // Only log significant auth events
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        console.log("Auth state changed:", event, session ? "session exists" : "no session");
+      }
       
       if (!mounted) return;
       
-      // Debounce auth state changes to prevent multiple rapid updates
-      if (authChangeTimeout) {
-        clearTimeout(authChangeTimeout);
-      }
+      // Clean up any pending timeouts
+      authChangeHandlers.current.forEach(timeout => clearTimeout(timeout));
       
-      authChangeTimeout = setTimeout(() => {
+      // Use a single debounced handler
+      const timeoutId = setTimeout(() => {
         if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user && !profileRoleFetchAttempted) {
+        if (session?.user && !profileRoleFetchAttempted.current) {
           // Only fetch profile role if we haven't attempted it yet
           fetchProfileRole(session.user.id).then(role => {
             if (mounted) {
               setProfileRole(role);
-              console.log("Auth state changed - Profile role:", role);
             }
           }).catch(err => {
             console.error("Error in profile role fetch during auth change:", err);
@@ -234,11 +258,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setAuthInitialized(true);
         }
         
-        // For sign-in events, we need to ensure loading is cleared
+        // For sign-in events, ensure loading is cleared
         if (event === 'SIGNED_IN' && isLoading) {
           setIsLoading(false);
         }
-      }, 300); // 300ms debounce
+      }, 500); // 500ms debounce
+      
+      authChangeHandlers.current.push(timeoutId);
     });
 
     // Extra safety measure: force isLoading to false after component mount
@@ -252,27 +278,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       mounted = false;
-      if (authChangeTimeout) {
-        clearTimeout(authChangeTimeout);
-      }
+      authChangeHandlers.current.forEach(timeout => clearTimeout(timeout));
+      authChangeHandlers.current = [];
       clearTimeout(forceLoadingFalse);
       subscription.unsubscribe();
     };
-  }, [fetchProfileRole, isLoading, authInitialized, profileRoleFetchAttempted]);
-
-  // Debug auth state - limit to critical changes to reduce console noise
-  useEffect(() => {
-    console.log("Auth Debug:", {
-      userExists: !!user,
-      isAdmin,
-      userMetadata: user?.user_metadata ? "[User metadata exists]" : undefined,
-      role: profileRole,
-      email: user?.email,
-      isAdminByEmail: user?.email ? ADMIN_EMAILS.includes(user.email) : false,
-      isLoading,
-      authInitialized
-    });
-  }, [user, isAdmin, profileRole, isLoading, authInitialized]);
+  }, [fetchProfileRole, isLoading, authInitialized]);
 
   const signIn = async (email: string, password: string) => {
     try {
