@@ -37,6 +37,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     profileRole === 'admin' ||
     (user?.email && ADMIN_EMAILS.includes(user.email));
 
+  // Clean up any corrupted localStorage items when the app loads
+  useEffect(() => {
+    try {
+      // Specifically check and remove the problematic 'professional' key
+      if (localStorage.getItem('professional')) {
+        try {
+          // Try to parse it - if it fails, it's corrupted
+          JSON.parse(localStorage.getItem('professional') || '');
+        } catch (e) {
+          console.warn("Found corrupted 'professional' item in localStorage, removing it");
+          localStorage.removeItem('professional');
+        }
+      }
+    } catch (e) {
+      console.error("Error cleaning localStorage:", e);
+    }
+  }, []);
+
   const fetchProfileRole = async (userId: string) => {
     try {
       const { data: profileData, error } = await supabase
@@ -227,11 +245,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const clearLocalStorage = () => {
     try {
-      // Clear all localStorage items
+      // First try to selectively remove problematic items
+      try {
+        localStorage.removeItem('professional');
+      } catch (e) {
+        console.warn("Could not remove 'professional' item:", e);
+      }
+      
+      // Then clear remaining items
       localStorage.clear();
       console.log("Local storage cleared successfully");
     } catch (e) {
       console.error("Error clearing localStorage:", e);
+      
+      // Attempt targeted removal of Supabase items if full clear fails
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('supabase.')) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch (fallbackError) {
+        console.error("Failed even targeted localStorage cleanup:", fallbackError);
+      }
     }
   };
 
@@ -248,14 +285,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       clearLocalStorage();
       
       // Then call Supabase signOut to handle the backend session
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut({
+        scope: 'global' // Ensure we sign out completely, including any other tabs
+      });
       
       if (error) {
         console.error("Error during sign out:", error);
       }
       
-      // Force redirect to the home page
-      window.location.href = '/';
+      // Wait a moment to ensure all cleanup is complete before redirecting
+      setTimeout(() => {
+        // Force redirect to the home page
+        window.location.href = '/';
+      }, 100);
       
     } catch (error) {
       console.error("Sign out error:", error);
@@ -269,7 +311,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       clearLocalStorage();
       
       // Force redirect anyway
-      window.location.href = '/';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     }
   };
 
