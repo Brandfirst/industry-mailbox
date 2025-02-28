@@ -14,22 +14,29 @@ const EmailConnection = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [emailAccounts, setEmailAccounts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start with false to show connect button immediately
   const [isSyncing, setIsSyncing] = useState(null);
   const [isDisconnecting, setIsDisconnecting] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   
-  // Force reset connection state on mount
+  // Force reset connection state and loading state on mount
   useEffect(() => {
+    console.log("EmailConnection component mounted");
     setIsConnecting(false);
+    setIsLoading(false);
     // Clear any orphaned OAuth flags
     sessionStorage.removeItem('gmailOAuthInProgress');
   }, []);
 
   // Fetch email accounts whenever user changes or we return to the page
   useEffect(() => {
+    console.log("User changed or location changed", { user, path: location.pathname });
     if (user) {
       fetchEmailAccounts();
+    } else {
+      // If no user, make sure we're showing empty state with button
+      setEmailAccounts([]);
+      setIsLoading(false);
     }
     
     // Check for OAuth callback
@@ -38,6 +45,7 @@ const EmailConnection = () => {
     const state = searchParams.get('state');
     
     if (code && state === 'gmail_connect' && user) {
+      console.log("Handling OAuth callback with code");
       handleOAuthCallback(code);
       // Remove the query parameters to prevent reprocessing
       navigate('/admin', { replace: true });
@@ -45,18 +53,21 @@ const EmailConnection = () => {
       // If we've returned without a code, make sure we're not in connecting state
       setIsConnecting(false);
     }
-  }, [user, location]);
+  }, [user, location.pathname]); // Only depend on pathname to avoid infinite loops
 
   const fetchEmailAccounts = async () => {
     if (!user) return;
     
+    console.log("Fetching email accounts for user", user.id);
     setIsLoading(true);
     try {
       const accounts = await getUserEmailAccounts(user.id);
-      setEmailAccounts(accounts);
+      console.log("Fetched email accounts:", accounts);
+      setEmailAccounts(accounts || []);
     } catch (error) {
       console.error("Error fetching email accounts:", error);
       toast.error("Failed to load email accounts");
+      setEmailAccounts([]);
     } finally {
       setIsLoading(false);
     }
@@ -193,6 +204,15 @@ const EmailConnection = () => {
       sessionStorage.removeItem('gmailOAuthInProgress');
     };
   }, []);
+
+  console.log("Rendering EmailConnection with state:", { 
+    isLoading, 
+    emailAccountsCount: emailAccounts.length, 
+    isConnecting 
+  });
+
+  // Always show the connect button if there's any issue with loading or accounts
+  const showConnectButton = !isLoading || emailAccounts.length === 0;
 
   return (
     <Card className="w-full">
