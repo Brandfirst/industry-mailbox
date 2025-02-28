@@ -1,5 +1,5 @@
 
-import { Mail, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,10 @@ export function NewsletterWidget() {
   return (
     <div className="w-full bg-gradient-to-r from-blue-900/60 to-blue-800/40 border border-blue-800/50 rounded-lg p-4 backdrop-blur-sm">
       <div className="flex items-center mb-2 text-blue-300">
-        <Mail className="w-4 h-4 mr-2" />
+        <div className="relative mr-2">
+          <div className="w-2 h-2 bg-blue-400 rounded-full pulse-glow"></div>
+          <div className="absolute -inset-1 bg-blue-400 rounded-full opacity-30 animate-ping"></div>
+        </div>
         <h3 className="text-sm font-medium">NewsletterHub Updates</h3>
       </div>
       <p className="text-xs text-gray-300 mb-3">
@@ -44,7 +47,7 @@ export function NewsletterWidget() {
         />
         <Button 
           type="submit" 
-          className="bg-blue-600 hover:bg-blue-700 text-xs" 
+          className="bg-blue-600 hover:bg-blue-700 text-xs w-full sm:w-auto" 
           size="sm"
           disabled={isLoading}
         >
