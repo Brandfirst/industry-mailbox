@@ -23,6 +23,7 @@ const EmailConnection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [oauthError, setOauthError] = useState(null);
   const [errorDetails, setErrorDetails] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
   
   // IMPORTANT: Use the fixed redirect URI that must match exactly with Google Cloud Console
   const redirectUri = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin";
@@ -36,6 +37,7 @@ const EmailConnection = () => {
     setStatus({ loading: false, error: null });
     setOauthError(null);
     setErrorDetails(null);
+    setDebugInfo(null);
     
     // Clear any OAuth flags that might be leftover
     sessionStorage.removeItem('gmailOAuthInProgress');
@@ -118,12 +120,13 @@ const EmailConnection = () => {
     
     try {
       setIsConnecting(true);
-      toast.loading("Connecting Gmail account...");
+      const toastId = toast.loading("Connecting Gmail account...");
       
       console.log("Exchanging code for access token");
       const result = await connectGoogleEmail(user.id, code);
       
       if (result.success) {
+        toast.dismiss(toastId);
         toast.success("Gmail account connected successfully!");
         // Refresh the email accounts list
         fetchEmailAccounts();
@@ -131,6 +134,15 @@ const EmailConnection = () => {
         console.error("Connection error details:", result);
         setOauthError(result.error);
         setErrorDetails(result.details);
+        
+        // Capture debug info
+        setDebugInfo({
+          googleError: result.googleError || null,
+          googleErrorDescription: result.googleErrorDescription || null,
+          tokenInfo: result.tokenInfo || null,
+          edgeFunctionError: result.edgeFunctionError || null,
+          statusCode: result.statusCode || null
+        });
         
         // Format a more descriptive error message
         let errorMessage = result.error || "Unknown error";
@@ -141,6 +153,11 @@ const EmailConnection = () => {
           }
         }
         
+        if (result.statusCode) {
+          errorMessage += ` (Status: ${result.statusCode})`;
+        }
+        
+        toast.dismiss(toastId);
         toast.error(`Failed to connect Gmail: ${errorMessage}`);
       }
     } catch (error) {
@@ -251,7 +268,7 @@ const EmailConnection = () => {
 
   // Check if we should show URI setup guidance
   const hasRedirectUriMismatch = oauthError === 'redirect_uri_mismatch';
-  const showDebugInfo = !!errorDetails;
+  const showDebugInfo = !!errorDetails || !!debugInfo;
 
   // Always render the connect button section even if loading
   // This ensures it's available after returning from OAuth flow
@@ -274,6 +291,7 @@ const EmailConnection = () => {
             <div>
               <p className="font-medium mb-1">Google OAuth Error</p>
               <p className="text-sm">There was an error connecting to Google: {oauthError}</p>
+              
               {hasRedirectUriMismatch && (
                 <>
                   <p className="text-sm mt-2">
@@ -297,8 +315,28 @@ const EmailConnection = () => {
                       ? JSON.stringify(errorDetails, null, 2) 
                       : errorDetails}
                   </pre>
+                  
+                  {debugInfo && (
+                    <>
+                      <p className="text-sm font-medium mt-2">Google API Response:</p>
+                      <pre className="mt-1 p-2 bg-red-100 rounded-md text-xs overflow-auto max-h-40">
+                        {JSON.stringify(debugInfo, null, 2)}
+                      </pre>
+                    </>
+                  )}
                 </div>
               )}
+              
+              <div className="mt-3 space-y-2">
+                <p className="text-sm font-medium">Common Auth Error Solutions:</p>
+                <ol className="list-decimal list-inside text-sm space-y-1 pl-2">
+                  <li>Ensure the Google Cloud project has Gmail API enabled</li>
+                  <li>Check that GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are correctly set in Supabase secrets</li>
+                  <li>Verify GOOGLE_REDIRECT_URL in Supabase matches exactly: {redirectUri}</li>
+                  <li>Confirm OAuth consent screen is properly configured with necessary scopes</li>
+                  <li>Try clearing browser cookies and cache, then attempt again</li>
+                </ol>
+              </div>
             </div>
           </div>
         )}

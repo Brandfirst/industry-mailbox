@@ -214,6 +214,9 @@ interface GoogleOAuthResult {
   details?: any;
   googleError?: string;
   googleErrorDescription?: string;
+  statusCode?: number;
+  edgeFunctionError?: string;
+  tokenInfo?: any;
 }
 
 export async function connectGoogleEmail(userId, code): Promise<GoogleOAuthResult> {
@@ -223,28 +226,59 @@ export async function connectGoogleEmail(userId, code): Promise<GoogleOAuthResul
     
     console.log("Using hardcoded redirect URI for connectGoogleEmail:", redirectUri);
     
-    const { data, error } = await supabase.functions.invoke("connect-gmail", {
+    const response = await supabase.functions.invoke("connect-gmail", {
       body: { code, userId, redirectUri },
     });
 
-    if (error) {
-      console.error("Error connecting Gmail:", error);
-      return { success: false, error: error.message || "Failed to connect to Gmail" };
-    }
-
-    if (!data.success) {
-      console.error("Error in connect-gmail function:", data.error);
+    // Check if there's an error with the function invocation itself
+    if (response.error) {
+      console.error("Error invoking connect-gmail function:", response.error);
       return { 
         success: false, 
-        error: data.error || "Failed to connect Gmail account",
-        details: data.details || data.googleError || data.googleErrorDescription
+        error: "Error connecting to Gmail service", 
+        edgeFunctionError: response.error.message || String(response.error),
+        statusCode: response.status
       };
     }
 
-    return { success: true, account: data.account };
+    // Check for expected data structure
+    if (!response.data) {
+      console.error("Empty response from connect-gmail function");
+      return { 
+        success: false, 
+        error: "Empty response from server",
+        statusCode: response.status
+      };
+    }
+
+    // If there's data but success is false, it means the function returned an error
+    if (!response.data.success) {
+      console.error("Error in connect-gmail function:", response.data);
+      
+      // Extract more detailed error information
+      return { 
+        success: false, 
+        error: response.data.error || "Failed to connect Gmail account",
+        details: response.data.details || null,
+        googleError: response.data.googleError || null,
+        googleErrorDescription: response.data.googleErrorDescription || null,
+        tokenInfo: response.data.tokenInfo || null,
+        statusCode: response.status
+      };
+    }
+
+    return { 
+      success: true, 
+      account: response.data.account,
+      statusCode: response.status 
+    };
   } catch (error) {
     console.error("Exception in connectGoogleEmail:", error);
-    return { success: false, error: error.message || "An unexpected error occurred" };
+    return { 
+      success: false, 
+      error: error.message || "An unexpected error occurred",
+      details: String(error)
+    };
   }
 }
 
@@ -270,21 +304,34 @@ export async function disconnectEmailAccount(accountId) {
 
 export async function syncEmailAccount(accountId) {
   try {
-    const { data, error } = await supabase.functions.invoke("sync-emails", {
+    const response = await supabase.functions.invoke("sync-emails", {
       body: { accountId },
     });
 
-    if (error) {
-      console.error("Error syncing emails:", error);
-      return { success: false, error: error.message };
+    if (response.error) {
+      console.error("Error invoking sync-emails function:", response.error);
+      return { 
+        success: false, 
+        error: response.error.message || "Error connecting to sync service",
+        statusCode: response.status
+      };
     }
 
-    if (!data.success) {
-      console.error("Error in sync-emails function:", data.error);
-      return { success: false, error: data.error };
+    if (!response.data || !response.data.success) {
+      console.error("Error in sync-emails function:", response.data?.error || "Unknown error");
+      return { 
+        success: false, 
+        error: response.data?.error || "Failed to sync emails",
+        details: response.data?.details || null,
+        statusCode: response.status
+      };
     }
 
-    return { success: true, synced: data.synced };
+    return { 
+      success: true, 
+      synced: response.data.synced,
+      statusCode: response.status
+    };
   } catch (error) {
     console.error("Exception in syncEmailAccount:", error);
     return { success: false, error: error.message };
