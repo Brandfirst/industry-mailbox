@@ -93,7 +93,7 @@ const Index = () => {
                 <div className="order-2 lg:order-1">
                   {/* Stats section - More compact */}
                   <div className="mb-4">
-                    <div className="stats-grid">
+                    <div className="stats-grid grid grid-cols-2 gap-2">
                       {stats.map((stat, index) => {
                         const Icon = stat.icon;
                         return (
