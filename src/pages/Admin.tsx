@@ -13,9 +13,8 @@ import {
   Inbox
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminStats from "@/components/AdminStats";
-import ConnectEmail from "@/components/ConnectEmail";
+import EmailConnection from "@/components/EmailConnection";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -96,7 +95,7 @@ const Admin = () => {
     
     if (code && state === 'gmail_connect') {
       console.log('Found OAuth callback parameters in Admin page URL');
-      // The ConnectEmail component will handle this automatically
+      // The EmailConnection component will handle this automatically
     }
   }, [location]);
   
@@ -178,7 +177,8 @@ const Admin = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ConnectEmail />
+              {/* Using our new EmailConnection component instead of ConnectEmail */}
+              <EmailConnection />
               
               <div className="bg-white rounded-lg border border-border p-6">
                 <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
