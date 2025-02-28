@@ -256,13 +256,13 @@ const EmailConnection = () => {
   // Always render the connect button section even if loading
   // This ensures it's available after returning from OAuth flow
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-card-foreground">
           <Mail className="h-5 w-5" />
           Connect Email Accounts
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-muted-foreground">
           Connect your email accounts to automatically fetch and archive newsletters.
         </CardDescription>
       </CardHeader>
@@ -305,8 +305,8 @@ const EmailConnection = () => {
 
         {status.loading && emailAccounts.length === 0 ? (
           <div className="space-y-4">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full bg-muted" />
+            <Skeleton className="h-16 w-full bg-muted" />
             <div className="flex flex-col items-center justify-center py-4 text-center">
               <Button 
                 onClick={initiateGoogleOAuth} 
@@ -330,7 +330,7 @@ const EmailConnection = () => {
         ) : emailAccounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Mail className="h-10 w-10 text-muted-foreground mb-4" />
-            <h3 className="font-medium text-lg mb-1">No Email Accounts Connected</h3>
+            <h3 className="font-medium text-lg mb-1 text-card-foreground">No Email Accounts Connected</h3>
             <p className="text-muted-foreground text-sm max-w-md mb-6">
               Connect your Gmail account to automatically import newsletters.
             </p>
@@ -352,18 +352,18 @@ const EmailConnection = () => {
               )}
             </Button>
             
-            <div className="mt-4 p-3 border rounded-md bg-gray-50 text-left w-full max-w-md">
-              <h4 className="text-sm font-medium mb-2">Google OAuth Configuration</h4>
+            <div className="mt-4 p-3 border rounded-md bg-secondary text-left w-full max-w-md">
+              <h4 className="text-sm font-medium mb-2 text-card-foreground">Google OAuth Configuration</h4>
               <div className="space-y-2">
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Redirect URI being used:</p>
-                  <code className="px-2 py-1 bg-gray-100 rounded text-xs block overflow-auto">
+                  <code className="px-2 py-1 bg-background rounded text-xs block overflow-auto text-foreground">
                     {redirectUri}
                   </code>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Client ID:</p>
-                  <code className="px-2 py-1 bg-gray-100 rounded text-xs block overflow-hidden text-ellipsis whitespace-nowrap">
+                  <code className="px-2 py-1 bg-background rounded text-xs block overflow-hidden text-ellipsis whitespace-nowrap text-foreground">
                     {import.meta.env.VITE_GOOGLE_CLIENT_ID}
                   </code>
                 </div>
@@ -373,7 +373,7 @@ const EmailConnection = () => {
                     href="https://console.cloud.google.com/apis/credentials" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline inline-flex items-center mx-1"
+                    className="text-primary hover:underline inline-flex items-center mx-1"
                   >
                     Google Cloud Console
                     <ExternalLink className="h-3 w-3 ml-0.5" />
@@ -382,15 +382,15 @@ const EmailConnection = () => {
                 </p>
               </div>
               
-              <div className="mt-3 pt-3 border-t">
-                <h4 className="text-sm font-medium mb-2">Supabase Edge Function Status</h4>
+              <div className="mt-3 pt-3 border-t border-border">
+                <h4 className="text-sm font-medium mb-2 text-card-foreground">Supabase Edge Function Status</h4>
                 <p className="text-xs text-muted-foreground">
                   If you're encountering errors connecting to Gmail, check the 
                   <a 
                     href="https://supabase.com/dashboard/project/ldhnqpkaifyoxtuchxko/functions/connect-gmail/logs" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline inline-flex items-center mx-1"
+                    className="text-primary hover:underline inline-flex items-center mx-1"
                   >
                     Edge Function Logs
                     <ExternalLink className="h-3 w-3 ml-0.5" />
@@ -403,7 +403,7 @@ const EmailConnection = () => {
                     href="https://supabase.com/dashboard/project/ldhnqpkaifyoxtuchxko/settings/functions" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline inline-flex items-center mx-1"
+                    className="text-primary hover:underline inline-flex items-center mx-1"
                   >
                     Edge Function Secrets
                     <ExternalLink className="h-3 w-3 ml-0.5" />
@@ -418,10 +418,10 @@ const EmailConnection = () => {
             {emailAccounts.map((account) => (
               <div 
                 key={account.id} 
-                className="border rounded-lg p-4 flex items-center justify-between"
+                className="border rounded-lg p-4 flex items-center justify-between bg-card"
               >
                 <div>
-                  <div className="font-medium">{account.email}</div>
+                  <div className="font-medium text-card-foreground">{account.email}</div>
                   <div className="text-sm text-muted-foreground">
                     Connected {new Date(account.created_at).toLocaleDateString()}
                   </div>
@@ -435,6 +435,7 @@ const EmailConnection = () => {
                     size="sm"
                     disabled={isSyncing === account.id}
                     onClick={() => handleSync(account.id)}
+                    className="text-foreground"
                   >
                     {isSyncing === account.id ? (
                       <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
@@ -448,6 +449,7 @@ const EmailConnection = () => {
                     size="sm"
                     disabled={isDisconnecting === account.id}
                     onClick={() => handleDisconnect(account.id)}
+                    className="border-red-300 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4 mr-1 text-red-500" />
                     Disconnect
@@ -465,6 +467,7 @@ const EmailConnection = () => {
             variant="outline" 
             onClick={initiateGoogleOAuth}
             disabled={isConnecting}
+            className="text-foreground"
           >
             {isConnecting ? (
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />

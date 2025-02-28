@@ -35,15 +35,15 @@ const StatsCard = ({
   return (
     <Card className="overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-card-foreground">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="h-8 bg-gray-200 animate-pulse rounded"></div>
+          <div className="h-8 bg-muted animate-pulse rounded"></div>
         ) : (
           <>
-            <div className="text-2xl font-bold">{value}</div>
+            <div className="text-2xl font-bold text-card-foreground">{value}</div>
             <CardDescription className="flex items-center mt-1 text-xs">
               {description}
               {change !== undefined && (

@@ -36,13 +36,13 @@ const Sidebar = ({ activeTab, setActiveTab }: {
   };
 
   return (
-    <div className="h-screen w-64 bg-white border-r border-border p-4 fixed left-0 top-0">
-      <div className="flex items-center gap-2 mb-8">
+    <div className="h-screen w-64 bg-sidebar fixed left-0 top-0 border-r border-border">
+      <div className="flex items-center gap-2 mb-8 p-4">
         <Mail className="w-6 h-6 text-primary" />
-        <span className="text-lg font-medium">Admin Portal</span>
+        <span className="text-lg font-medium text-white">Admin Portal</span>
       </div>
       
-      <nav className="space-y-1">
+      <nav className="space-y-1 px-3">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -50,7 +50,7 @@ const Sidebar = ({ activeTab, setActiveTab }: {
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
               activeTab === tab.id 
                 ? "bg-primary text-white font-medium" 
-                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                : "text-gray-300 hover:bg-secondary hover:text-white"
             }`}
           >
             <tab.icon className="w-5 h-5" />
@@ -61,14 +61,14 @@ const Sidebar = ({ activeTab, setActiveTab }: {
       
       <div className="absolute bottom-8 left-0 w-full px-4">
         <Link to="/">
-          <Button variant="outline" className="w-full justify-start mb-2">
+          <Button variant="outline" className="w-full justify-start mb-2 border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Site
           </Button>
         </Link>
         <Button 
           variant="ghost" 
-          className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+          className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
           onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
@@ -153,7 +153,7 @@ const Admin = () => {
       
       <div className="ml-64 p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold text-foreground">
             {activeTab === "dashboard" && "Dashboard"}
             {activeTab === "newsletters" && "Newsletters"}
             {activeTab === "users" && "Users"}
@@ -174,20 +174,20 @@ const Admin = () => {
           <div className="space-y-8">
             <AdminStats />
             
-            <div className="bg-white rounded-lg border border-border p-6">
+            <div className="bg-card rounded-lg border border-border p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-medium">Recently Added Newsletters</h2>
+                <h2 className="text-lg font-medium text-card-foreground">Recently Added Newsletters</h2>
                 <Button variant="outline" size="sm" className="text-xs">
                   <Inbox className="mr-1 h-3 w-3" />
                   View All
                 </Button>
               </div>
               
-              <div className="divide-y">
+              <div className="divide-y divide-border">
                 {recentNewsletters.map(newsletter => (
                   <div key={newsletter.id} className="py-3 flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium">{newsletter.title}</h3>
+                      <h3 className="font-medium text-card-foreground">{newsletter.title}</h3>
                       <div className="flex items-center text-sm text-muted-foreground">
                         <span>{newsletter.sender}</span>
                         <span className="mx-2">•</span>
@@ -208,18 +208,18 @@ const Admin = () => {
                 <EmailConnection />
               </div>
               
-              <div className="bg-white rounded-lg border border-border p-6">
-                <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
+              <div className="bg-card rounded-lg border border-border p-6">
+                <h2 className="text-lg font-medium mb-4 text-card-foreground">Quick Actions</h2>
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start text-foreground">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Newsletter Manually
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start text-foreground">
                     <Users className="mr-2 h-4 w-4" />
                     Invite New Admin
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start text-foreground">
                     <Layers className="mr-2 h-4 w-4" />
                     Create New Category
                   </Button>
@@ -231,8 +231,8 @@ const Admin = () => {
         
         {/* Other tabs would be implemented similarly */}
         {activeTab !== "dashboard" && (
-          <div className="bg-white rounded-lg border border-border p-8 text-center">
-            <h2 className="text-xl font-medium mb-2">This Section is Under Construction</h2>
+          <div className="bg-card rounded-lg border border-border p-8 text-center">
+            <h2 className="text-xl font-medium mb-2 text-card-foreground">This Section is Under Construction</h2>
             <p className="text-muted-foreground mb-4">
               We're working on bringing you a complete admin experience.
             </p>
