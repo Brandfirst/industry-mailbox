@@ -84,6 +84,13 @@ const Admin = () => {
   const { signOut, isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [forceRerender, setForceRerender] = useState(0);
+  
+  // Force rerender when returning to the admin page (important for OAuth flow)
+  useEffect(() => {
+    // This will trigger a rerender whenever the location changes
+    setForceRerender(prev => prev + 1);
+  }, [location.pathname, location.search]);
   
   useEffect(() => {
     document.title = "Admin Dashboard | NewsletterHub";
@@ -103,6 +110,7 @@ const Admin = () => {
     if (oauthInProgress === 'true' && !location.search.includes('code=') && !location.search.includes('error=')) {
       console.log('Detected refresh during OAuth flow, resetting state');
       sessionStorage.removeItem('gmailOAuthInProgress');
+      sessionStorage.removeItem('oauth_nonce');
     }
   }, [location]);
   
@@ -135,8 +143,9 @@ const Admin = () => {
     await signOut();
   };
   
-  // Force re-render of EmailConnection component with a key
-  const emailConnectionKey = `email-connection-${user?.id || 'no-user'}-${Date.now()}`;
+  // Force re-render of EmailConnection component with a key that changes
+  // whenever the location or forceRerender state changes
+  const emailConnectionKey = `email-connection-${user?.id || 'no-user'}-${forceRerender}`;
   
   return (
     <div className="min-h-screen bg-background">

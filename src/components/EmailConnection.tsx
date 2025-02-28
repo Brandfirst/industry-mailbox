@@ -92,7 +92,7 @@ const EmailConnection = () => {
       // If we've returned without a code, make sure we're not in connecting state
       setIsConnecting(false);
     }
-  }, [user, location.pathname, fetchEmailAccounts, navigate]);
+  }, [user, location.pathname, location.search, fetchEmailAccounts, navigate]);
 
   const handleOAuthCallback = async (code, state) => {
     if (!user || !isMounted.current) return;
@@ -239,7 +239,7 @@ const EmailConnection = () => {
       sessionStorage.removeItem('oauth_nonce');
       setIsConnecting(false);
     }
-  }, [location]);
+  }, [location.search]);
 
   console.log("Rendering EmailConnection with state:", { 
     isLoading: status.loading, 
@@ -247,9 +247,8 @@ const EmailConnection = () => {
     isConnecting 
   });
 
-  // Always show the connect button if there's any issue with loading or accounts
-  const showConnectButton = !status.loading || emailAccounts.length === 0;
-
+  // IMPORTANT: Always show the connect button regardless of loading state
+  // This ensures the button is visible even when returning from OAuth flow
   return (
     <Card className="w-full">
       <CardHeader>
