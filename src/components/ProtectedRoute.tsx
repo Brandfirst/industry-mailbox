@@ -18,6 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, isLoading, isAdmin } = useAuth();
   const location = useLocation();
   const [checkComplete, setCheckComplete] = useState(false);
+  const [timeoutReached, setTimeoutReached] = useState(false);
 
   // Log auth status for debugging
   useEffect(() => {
@@ -26,17 +27,32 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       requireAdmin, 
       userExists: !!user, 
       isAdmin,
-      pathname: location.pathname
+      pathname: location.pathname,
+      isLoading,
+      checkComplete,
+      timeoutReached
     });
     
     // Mark check as complete after the first render
     if (!isLoading) {
       setCheckComplete(true);
     }
-  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname, isLoading]);
+  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname, isLoading, checkComplete, timeoutReached]);
 
-  // If still loading auth state, show a loading spinner
-  if (isLoading) {
+  // Add a timeout to avoid getting stuck in loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Authentication check timed out - forcing continuation');
+        setTimeoutReached(true);
+      }
+    }, 3000); // 3 second timeout
+    
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  // If still loading auth state and timeout not reached, show loading spinner
+  if (isLoading && !timeoutReached) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -51,7 +67,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If admin access is required, check for admin role
-  if (requireAdmin && checkComplete && !isAdmin) {
+  if (requireAdmin && (checkComplete || timeoutReached) && !isAdmin) {
     console.log('Admin access denied:', { user, isAdmin });
     toast.error("You don't have permission to access the admin area");
     return <Navigate to="/search" replace />;
