@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,28 +22,58 @@ const EmailConnection = () => {
   const [isDisconnecting, setIsDisconnecting] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   
-  // Track if component is mounted to prevent state updates after unmount
-  const isMounted = useRef(true);
-  
-  // Force reset connection state and loading state on mount
+  // Reset state on mount
   useEffect(() => {
     console.log("EmailConnection component mounted");
+    
+    // Reset states
     setIsConnecting(false);
     setStatus({ loading: false, error: null });
     
-    // Clear any orphaned OAuth flags
+    // Clear any OAuth flags that might be leftover
     sessionStorage.removeItem('gmailOAuthInProgress');
     sessionStorage.removeItem('oauth_nonce');
     
-    return () => {
-      // Set mounted flag to false when component unmounts
-      isMounted.current = false;
-    };
-  }, []);
+    // Initial fetch if user exists
+    if (user) {
+      fetchEmailAccounts();
+    }
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Only re-run when user ID changes
+  
+  // Handle OAuth callback in URL
+  useEffect(() => {
+    // Check for OAuth callback
+    const searchParams = new URLSearchParams(location.search);
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    
+    if (code && state === 'gmail_connect' && user) {
+      console.log("Handling OAuth callback with code");
+      handleOAuthCallback(code);
+      // Remove the query parameters to prevent reprocessing
+      navigate('/admin', { replace: true });
+    } else if (location.pathname === '/admin' && !location.search) {
+      // Reset connecting state when we return to clean admin URL
+      setIsConnecting(false);
+    }
+    
+    // Check if we returned from a failed OAuth flow
+    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
+    if (oauthInProgress === 'true' && !location.search.includes('code=')) {
+      console.log("Detected return from OAuth flow without code");
+      toast.error("Gmail connection was cancelled or failed");
+      sessionStorage.removeItem('gmailOAuthInProgress');
+      sessionStorage.removeItem('oauth_nonce');
+      setIsConnecting(false);
+    }
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search, location.pathname, user?.id]);
 
-  // Define fetchEmailAccounts as a callback so we can use it in multiple places
   const fetchEmailAccounts = useCallback(async () => {
-    if (!user || !isMounted.current) return;
+    if (!user) return;
     
     console.log("Fetching email accounts for user", user.id);
     setStatus({ loading: true, error: null });
@@ -52,60 +82,23 @@ const EmailConnection = () => {
       const accounts = await getUserEmailAccounts(user.id);
       console.log("Fetched email accounts:", accounts);
       
-      if (isMounted.current) {
-        setEmailAccounts(accounts || []);
-        setStatus({ loading: false, error: null });
-      }
+      setEmailAccounts(accounts || []);
+      setStatus({ loading: false, error: null });
     } catch (error) {
       console.error("Error fetching email accounts:", error);
       
-      if (isMounted.current) {
-        toast.error("Failed to load email accounts");
-        setEmailAccounts([]);
-        setStatus({ loading: false, error: error.message });
-      }
+      toast.error("Failed to load email accounts");
+      setEmailAccounts([]);
+      setStatus({ loading: false, error: error.message });
     }
   }, [user]);
 
-  // Fetch email accounts whenever user changes or we return to the page
-  useEffect(() => {
-    console.log("User changed or location changed", { user, path: location.pathname });
-    if (user) {
-      fetchEmailAccounts();
-    } else {
-      // If no user, make sure we're showing empty state with button
-      setEmailAccounts([]);
-      setStatus({ loading: false, error: null });
-    }
-    
-    // Check for OAuth callback
-    const searchParams = new URLSearchParams(location.search);
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
-    
-    if (code && state === 'gmail_connect' && user) {
-      console.log("Handling OAuth callback with code");
-      handleOAuthCallback(code, state);
-      // Remove the query parameters to prevent reprocessing
-      navigate('/admin', { replace: true });
-    } else {
-      // If we've returned without a code, make sure we're not in connecting state
-      setIsConnecting(false);
-    }
-  }, [user, location.pathname, location.search, fetchEmailAccounts, navigate]);
-
-  const handleOAuthCallback = async (code, state) => {
-    if (!user || !isMounted.current) return;
+  const handleOAuthCallback = async (code) => {
+    if (!user) return;
     
     try {
       setIsConnecting(true);
       toast.loading("Connecting Gmail account...");
-      
-      // Verify state parameter if we stored a nonce
-      const storedNonce = sessionStorage.getItem('oauth_nonce');
-      if (storedNonce && state !== 'gmail_connect') {
-        throw new Error("Invalid OAuth state parameter");
-      }
       
       const result = await connectGoogleEmail(user.id, code);
       
@@ -120,9 +113,7 @@ const EmailConnection = () => {
       console.error("Error handling OAuth callback:", error);
       toast.error("Failed to complete Gmail connection");
     } finally {
-      if (isMounted.current) {
-        setIsConnecting(false);
-      }
+      setIsConnecting(false);
       // Always clear the OAuth flags
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
@@ -130,7 +121,7 @@ const EmailConnection = () => {
   };
 
   const initiateGoogleOAuth = () => {
-    if (isConnecting || !isMounted.current) return; // Prevent multiple clicks
+    if (isConnecting || !user) return; // Prevent multiple clicks
     
     console.log("Starting Google OAuth flow...");
     setIsConnecting(true);
@@ -180,7 +171,7 @@ const EmailConnection = () => {
   };
 
   const handleDisconnect = async (accountId) => {
-    if (!user || !isMounted.current) return;
+    if (!user) return;
     
     setIsDisconnecting(accountId);
     try {
@@ -197,14 +188,12 @@ const EmailConnection = () => {
       console.error("Error disconnecting email account:", error);
       toast.error("Failed to disconnect email account");
     } finally {
-      if (isMounted.current) {
-        setIsDisconnecting(null);
-      }
+      setIsDisconnecting(null);
     }
   };
 
   const handleSync = async (accountId) => {
-    if (!user || !isMounted.current) return;
+    if (!user) return;
     
     setIsSyncing(accountId);
     try {
@@ -221,25 +210,9 @@ const EmailConnection = () => {
       console.error("Error syncing email account:", error);
       toast.error("Failed to sync email account");
     } finally {
-      if (isMounted.current) {
-        setIsSyncing(null);
-      }
+      setIsSyncing(null);
     }
   };
-
-  // Check if we just returned from a failed OAuth flow and make sure the button doesn't disappear
-  useEffect(() => {
-    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
-    
-    if (oauthInProgress === 'true' && !location.search.includes('code=') && isMounted.current) {
-      // We were in an OAuth flow but came back without a code
-      console.log("Detected return from OAuth flow without code");
-      toast.error("Gmail connection was cancelled or failed");
-      sessionStorage.removeItem('gmailOAuthInProgress');
-      sessionStorage.removeItem('oauth_nonce');
-      setIsConnecting(false);
-    }
-  }, [location.search]);
 
   console.log("Rendering EmailConnection with state:", { 
     isLoading: status.loading, 
@@ -247,8 +220,8 @@ const EmailConnection = () => {
     isConnecting 
   });
 
-  // IMPORTANT: Always show the connect button regardless of loading state
-  // This ensures the button is visible even when returning from OAuth flow
+  // Always render the connect button section even if loading
+  // This ensures it's available after returning from OAuth flow
   return (
     <Card className="w-full">
       <CardHeader>
@@ -266,6 +239,25 @@ const EmailConnection = () => {
           <div className="space-y-4">
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-16 w-full" />
+            <div className="flex flex-col items-center justify-center py-4 text-center">
+              <Button 
+                onClick={initiateGoogleOAuth} 
+                disabled={isConnecting}
+                className="relative"
+              >
+                {isConnecting ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Connect Gmail
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         ) : emailAccounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">

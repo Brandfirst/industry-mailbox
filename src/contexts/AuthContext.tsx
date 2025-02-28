@@ -57,22 +57,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Clean up any corrupted localStorage items when the app loads
+  // Clean up corrupted localStorage on startup - improved method
   useEffect(() => {
     try {
-      // First try to selectively remove problematic items
+      // Clean up 'professional' item first if it's corrupted
       try {
-        if (localStorage.getItem('professional')) {
+        const professionalItem = localStorage.getItem('professional');
+        if (professionalItem !== null) {
           try {
-            // Try to parse it - if it fails, it's corrupted
-            JSON.parse(localStorage.getItem('professional') || '');
+            JSON.parse(professionalItem);
           } catch (e) {
             console.warn("Found corrupted 'professional' item in localStorage, removing it");
             localStorage.removeItem('professional');
           }
         }
       } catch (e) {
-        console.error("Error cleaning localStorage:", e);
+        console.error("Error checking 'professional' localStorage item:", e);
+      }
+      
+      // Check all localStorage items for corruption and clean them
+      try {
+        const keysToCheck = ['supabase.auth.token'];
+        for (const key of keysToCheck) {
+          const item = localStorage.getItem(key);
+          if (item !== null) {
+            try {
+              JSON.parse(item);
+            } catch (e) {
+              console.warn(`Found corrupted '${key}' item in localStorage, removing it`);
+              localStorage.removeItem(key);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error checking localStorage items:", e);
       }
     } catch (e) {
       console.error("Error accessing localStorage:", e);
@@ -86,7 +104,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const checkSession = async () => {
       try {
         setIsLoading(true);
+        
+        // To prevent getting stuck in loading state
+        const timeoutId = setTimeout(() => {
+          if (mounted && isLoading) {
+            console.warn("Session check timed out, forcing completion");
+            setIsLoading(false);
+          }
+        }, 3000);
+        
         const { data: { session }, error } = await supabase.auth.getSession();
+        
+        // Clear timeout as we got a response
+        clearTimeout(timeoutId);
         
         if (!mounted) return;
 
@@ -112,22 +142,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
           }
         }
+        
+        if (mounted) {
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error("Error checking session:", error);
-      } finally {
         if (mounted) {
           setIsLoading(false);
         }
       }
     };
-
-    // Add a timeout to ensure we never get stuck in loading state
-    const timeoutId = setTimeout(() => {
-      if (mounted && isLoading) {
-        console.warn("Authentication check timed out, forcing state to non-loading");
-        setIsLoading(false);
-      }
-    }, 5000); // 5 second timeout
 
     checkSession();
 
@@ -137,8 +162,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (!mounted) return;
 
-      // Set loading state for auth changes
-      setIsLoading(true);
+      // We should NOT set loading to true during auth changes as it causes UI flicker
+      // Only set loading for specific operations that require it
       
       setSession(session);
       setUser(session?.user ?? null);
@@ -156,13 +181,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setProfileRole(null);
       }
-      
-      setIsLoading(false);
     });
 
     return () => {
       mounted = false;
-      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, [fetchProfileRole]);
@@ -245,23 +267,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.warn("Could not remove 'professional' item:", e);
       }
       
-      // Then clear remaining items
-      localStorage.clear();
+      // Remove all Supabase items
+      try {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('supabase.') || key === 'professional')) {
+            keys.push(key);
+          }
+        }
+        // Remove keys in a separate loop to avoid index shifting issues
+        keys.forEach(key => localStorage.removeItem(key));
+      } catch (e) {
+        console.error("Error removing Supabase items from localStorage:", e);
+      }
+      
       console.log("Local storage cleared successfully");
     } catch (e) {
       console.error("Error clearing localStorage:", e);
-      
-      // Attempt targeted removal of Supabase items if full clear fails
-      try {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('supabase.')) {
-            localStorage.removeItem(key);
-          }
-        }
-      } catch (fallbackError) {
-        console.error("Failed even targeted localStorage cleanup:", fallbackError);
-      }
     }
   }, []);
 

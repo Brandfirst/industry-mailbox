@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -16,75 +17,64 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, isLoading, isAdmin } = useAuth();
   const location = useLocation();
-  const [checkComplete, setCheckComplete] = useState(false);
-  const [timeoutReached, setTimeoutReached] = useState(false);
-  const isMounted = useRef(true);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
 
-  // Log auth status for debugging
+  // Set a timeout to ensure the loading state doesn't get stuck
+  useEffect(() => {
+    // Only set a timeout if we're loading
+    if (isLoading && !hasTimedOut) {
+      const timer = setTimeout(() => {
+        console.warn('Auth check timeout reached');
+        setHasTimedOut(true);
+      }, 2000); // Shorter timeout of 2 seconds
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, hasTimedOut]);
+
+  // Log current auth state
   useEffect(() => {
     console.log('Protected Route Check:', { 
-      requireAuth, 
+      requireAuth,
       requireAdmin, 
       userExists: !!user, 
       isAdmin,
       pathname: location.pathname,
       isLoading,
-      checkComplete,
-      timeoutReached
+      hasTimedOut
     });
-    
-    // Mark check as complete after the first render
-    if (!isLoading) {
-      setCheckComplete(true);
-    }
+  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname, isLoading, hasTimedOut]);
 
-    // Cleanup function to prevent state updates after unmount
-    return () => {
-      isMounted.current = false;
-    };
-  }, [requireAuth, requireAdmin, user, isAdmin, location.pathname, isLoading, checkComplete, timeoutReached]);
-
-  // Add a timeout to avoid getting stuck in loading state, but keep it as a fallback not primary mechanism
-  useEffect(() => {
-    if (isLoading && !timeoutReached) {
-      const timer = setTimeout(() => {
-        if (isMounted.current) {
-          console.warn('Authentication check timed out - forcing continuation');
-          setTimeoutReached(true);
-        }
-      }, 3000); // 3 second timeout
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading, timeoutReached]);
-
-  // If still loading auth state and timeout not reached, show loading spinner
-  if (isLoading && !timeoutReached) {
+  // Show loading state only if still loading and timeout not reached
+  if (isLoading && !hasTimedOut) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        <p className="ml-3 text-primary font-medium">Checking authentication...</p>
+      <div className="flex items-center justify-center min-h-screen p-5">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary border-r-transparent mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
 
-  // If authentication is required and user is not logged in, redirect to login
+  // Route protection logic
   if (requireAuth && !user) {
+    // User is not logged in but route requires auth
     return <Navigate to={`/auth?mode=signin&redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  // If admin access is required, check for admin role
-  if (requireAdmin && (checkComplete || timeoutReached) && !isAdmin) {
-    console.log('Admin access denied:', { user, isAdmin });
-    toast.error("You don't have permission to access the admin area");
+  if (requireAdmin && !isAdmin) {
+    // User is not an admin but route requires admin
+    toast.error("You don't have permission to access this area");
     return <Navigate to="/search" replace />;
   }
 
-  // If we have a user but this is a route that should only be accessible when logged out
   if (!requireAuth && user) {
+    // User is logged in but route is only for non-authenticated users
     return <Navigate to="/search" replace />;
   }
 
+  // All checks passed, render the children
   return <>{children}</>;
 };
 
