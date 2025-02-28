@@ -101,31 +101,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
+    // Function to ensure loading state gets cleared
+    const ensureLoadingCleared = () => {
+      if (mounted && isLoading) {
+        console.log("Ensuring loading state is cleared");
+        setIsLoading(false);
+        setAuthInitialized(true);
+      }
+    };
+
     // Initial session check
     const checkSession = async () => {
       try {
         setIsLoading(true);
         
-        // Very important: Set a timeout to prevent getting stuck in loading state
+        // Short timeout to prevent getting stuck in loading state (1.5 seconds)
         const timeoutId = setTimeout(() => {
           if (mounted) {
             console.warn("Initial session check timed out, forcing completion");
-            setIsLoading(false);
-            setAuthInitialized(true);
+            ensureLoadingCleared();
           }
-        }, 2000);
+        }, 1500);
+        
+        // Ultra-safe backup timeout (3 seconds)
+        const backupTimeoutId = setTimeout(() => {
+          if (mounted && isLoading) {
+            console.warn("BACKUP TIMEOUT: Forcing auth loading to complete");
+            ensureLoadingCleared();
+          }
+        }, 3000);
         
         const { data: { session }, error } = await supabase.auth.getSession();
         
         // Clear timeout as we got a response
         clearTimeout(timeoutId);
         
-        if (!mounted) return;
+        if (!mounted) {
+          clearTimeout(backupTimeoutId);
+          return;
+        }
 
         if (error) {
           console.error("Error getting session:", error);
-          setIsLoading(false);
-          setAuthInitialized(true);
+          ensureLoadingCleared();
+          clearTimeout(backupTimeoutId);
           return;
         }
 
@@ -135,27 +154,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           if (session.user) {
             try {
-              const role = await fetchProfileRole(session.user.id);
-              if (mounted) {
-                setProfileRole(role);
-                console.log("Initial session check - Profile role:", role);
-              }
+              // Don't wait for profile role to set loading to false
+              fetchProfileRole(session.user.id).then(role => {
+                if (mounted) {
+                  setProfileRole(role);
+                  console.log("Initial session check - Profile role:", role);
+                }
+              }).catch(err => {
+                console.error("Error in profile role fetch:", err);
+              });
             } catch (profileError) {
-              console.error("Error fetching profile role during session check:", profileError);
+              console.error("Exception in profile role fetch:", profileError);
             }
           }
         }
         
-        if (mounted) {
-          setIsLoading(false);
-          setAuthInitialized(true);
-        }
+        // Always ensure loading is completed after getting session
+        ensureLoadingCleared();
+        clearTimeout(backupTimeoutId);
       } catch (error) {
         console.error("Error checking session:", error);
-        if (mounted) {
-          setIsLoading(false);
-          setAuthInitialized(true);
-        }
+        ensureLoadingCleared();
       }
     };
 
@@ -166,24 +185,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Auth state changed:", event, session ? "session exists" : "no session");
       
       if (!mounted) return;
-
-      // We shouldn't set loading to true during these events as it causes flickering
       
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        try {
-          const role = await fetchProfileRole(session.user.id);
+        // Don't block UI on profile role fetch
+        fetchProfileRole(session.user.id).then(role => {
           if (mounted) {
             setProfileRole(role);
             console.log("Auth state changed - Profile role:", role);
           }
-        } catch (profileError) {
-          console.error("Error fetching profile role during auth state change:", profileError);
-        }
+        }).catch(err => {
+          console.error("Error in profile role fetch during auth change:", err);
+        });
       } else {
         setProfileRole(null);
+      }
+      
+      // Ensure auth is initialized and not loading
+      if (!authInitialized) {
+        setAuthInitialized(true);
+      }
+      
+      // For sign-in events, we need to ensure loading is cleared
+      if (event === 'SIGNED_IN' && isLoading) {
+        setIsLoading(false);
       }
     });
 
@@ -191,20 +218,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchProfileRole]);
+  }, [fetchProfileRole, isLoading, authInitialized]);
 
-  // Force isLoading to false if auth has been initialized for more than 3 seconds
-  // This is a safety net to ensure we never get stuck in loading
+  // Extra safety measure: force isLoading to false after component mount
   useEffect(() => {
-    if (authInitialized && isLoading) {
-      const timer = setTimeout(() => {
-        console.warn('Auth has been initialized but is still loading after delay, forcing to false');
+    const forceLoadingFalse = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Forcing isLoading to false after 2s component mount');
         setIsLoading(false);
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [authInitialized, isLoading]);
+        setAuthInitialized(true);
+      }
+    }, 2000);
+    
+    return () => clearTimeout(forceLoadingFalse);
+  }, [isLoading]);
 
   // Debug auth state
   useEffect(() => {
