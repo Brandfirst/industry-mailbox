@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, RefreshCw, Trash2, PlusCircle } from "lucide-react";
+import { Mail, RefreshCw, Trash2, PlusCircle, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { getUserEmailAccounts, connectGoogleEmail, disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase";
@@ -21,6 +21,7 @@ const EmailConnection = () => {
   const [isSyncing, setIsSyncing] = useState(null);
   const [isDisconnecting, setIsDisconnecting] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [oauthError, setOauthError] = useState(null);
   
   // Reset state on mount
   useEffect(() => {
@@ -29,6 +30,7 @@ const EmailConnection = () => {
     // Reset states
     setIsConnecting(false);
     setStatus({ loading: false, error: null });
+    setOauthError(null);
     
     // Clear any OAuth flags that might be leftover
     sessionStorage.removeItem('gmailOAuthInProgress');
@@ -48,6 +50,19 @@ const EmailConnection = () => {
     const searchParams = new URLSearchParams(location.search);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
+    const error = searchParams.get('error');
+    
+    if (error) {
+      console.error("OAuth error returned:", error);
+      setOauthError(error);
+      toast.error("Failed to connect Gmail account");
+      sessionStorage.removeItem('gmailOAuthInProgress');
+      sessionStorage.removeItem('oauth_nonce');
+      setIsConnecting(false);
+      // Remove the query parameters to prevent reprocessing
+      navigate('/admin', { replace: true });
+      return;
+    }
     
     if (code && state === 'gmail_connect' && user) {
       console.log("Handling OAuth callback with code");
@@ -145,8 +160,11 @@ const EmailConnection = () => {
       // Store the current path to return to after auth
       sessionStorage.setItem('auth_return_path', location.pathname);
       
-      // Use the same origin for the redirect URI
-      const redirectUri = `${window.location.origin}/admin`;
+      // Use the current origin for the redirect URI
+      const currentOrigin = window.location.origin;
+      const redirectUri = `${currentOrigin}/admin`;
+      
+      console.log("Using redirect URI:", redirectUri);
       
       // Properly construct the Google OAuth URL
       const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -235,6 +253,21 @@ const EmailConnection = () => {
       </CardHeader>
 
       <CardContent>
+        {oauthError && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-700 flex items-start">
+            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium mb-1">Google OAuth Error</p>
+              <p className="text-sm">There was an error connecting to Google: {oauthError}</p>
+              <p className="text-sm mt-2">
+                This may be due to a redirect URI mismatch. Make sure the redirect URI 
+                <code className="mx-1 px-1 py-0.5 bg-red-100 rounded">{window.location.origin}/admin</code>
+                is configured in your Google Cloud Console.
+              </p>
+            </div>
+          </div>
+        )}
+
         {status.loading && emailAccounts.length === 0 ? (
           <div className="space-y-4">
             <Skeleton className="h-16 w-full" />
@@ -283,6 +316,10 @@ const EmailConnection = () => {
                 </>
               )}
             </Button>
+            <div className="mt-4 text-xs text-muted-foreground">
+              <p>Using redirect URI: <code className="px-1 py-0.5 bg-gray-100 rounded">{window.location.origin}/admin</code></p>
+              <p className="mt-1">Make sure this matches the redirect URI in your Google Cloud Console.</p>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
