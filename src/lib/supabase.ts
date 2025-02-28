@@ -26,6 +26,13 @@ export interface EmailAccount {
   last_sync: string | null;
 }
 
+// Define filters interface to avoid excessive type instantiation
+export interface NewsletterFilters {
+  category?: string;
+  fromDate?: string;
+  toDate?: string;
+}
+
 // User profile functions
 
 export async function getUserProfile(userId) {
@@ -61,7 +68,12 @@ export async function updateUserProfile(userId, updates) {
 
 // Newsletter functions
 
-export async function getAllNewsletters(page = 1, limit = 10, search = "", filters: { category?: string; fromDate?: string; toDate?: string } = {}) {
+export async function getAllNewsletters(
+  page = 1, 
+  limit = 10, 
+  search = "", 
+  filters: NewsletterFilters = {}
+) {
   let query = supabase
     .from("newsletters")
     .select("*, categories(name, slug, color)", { count: "exact" });
@@ -71,12 +83,12 @@ export async function getAllNewsletters(page = 1, limit = 10, search = "", filte
     query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
-  // Apply category filter if present in filters
+  // Apply category filter if present
   if (filters.category) {
     query = query.eq("category_id", filters.category);
   }
 
-  // Apply date filter if present in filters
+  // Apply date filters if present
   if (filters.fromDate) {
     query = query.gte("published_date", filters.fromDate);
   }
@@ -102,8 +114,14 @@ export async function getAllNewsletters(page = 1, limit = 10, search = "", filte
   return { data, count };
 }
 
+// Define a separate type for getNewsletters options
+export type GetNewslettersOptions = number | {
+  searchQuery?: string; 
+  industries?: string[];
+};
+
 // Support for legacy interface - accepts an object with searchQuery and industries
-export async function getNewsletters(options: number | { searchQuery?: string; industries?: string[] }) {
+export async function getNewsletters(options: GetNewslettersOptions) {
   // If options is a plain number, treat it as the page number
   if (typeof options === 'number') {
     return getAllNewsletters(options);
@@ -111,7 +129,7 @@ export async function getNewsletters(options: number | { searchQuery?: string; i
   
   // Otherwise, extract properties from the options object
   const { searchQuery = "", industries = [] } = options || {};
-  const filters: { category?: string } = {};
+  const filters: NewsletterFilters = {};
   
   // Map industries to category if needed
   if (industries && industries.length > 0) {
