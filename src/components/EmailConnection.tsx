@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, RefreshCw, Trash2, PlusCircle, AlertCircle } from "lucide-react";
+import { Mail, RefreshCw, Trash2, PlusCircle, AlertCircle, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { getUserEmailAccounts, connectGoogleEmail, disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase";
@@ -22,6 +22,25 @@ const EmailConnection = () => {
   const [isDisconnecting, setIsDisconnecting] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [oauthError, setOauthError] = useState(null);
+  const [redirectUri, setRedirectUri] = useState('');
+  
+  // Set the redirect URI at component mount
+  useEffect(() => {
+    // Get the actual deployed URL or the origin
+    let uri = window.location.origin;
+    
+    // If we're on a preview domain, use the format from Google config
+    if (uri.includes('preview--')) {
+      // Extract the preview domain pattern
+      const match = uri.match(/https:\/\/preview--([^.]+)\.([^/]+)/);
+      if (match) {
+        uri = `https://preview--${match[1]}.${match[2]}`;
+      }
+    }
+    
+    // Add the admin path
+    setRedirectUri(`${uri}/admin`);
+  }, []);
   
   // Reset state on mount
   useEffect(() => {
@@ -160,10 +179,7 @@ const EmailConnection = () => {
       // Store the current path to return to after auth
       sessionStorage.setItem('auth_return_path', location.pathname);
       
-      // Use the current origin for the redirect URI
-      const currentOrigin = window.location.origin;
-      const redirectUri = `${currentOrigin}/admin`;
-      
+      // Redirect URI - use the one we computed at mount time which should match Google config
       console.log("Using redirect URI:", redirectUri);
       
       // Properly construct the Google OAuth URL
@@ -232,11 +248,8 @@ const EmailConnection = () => {
     }
   };
 
-  console.log("Rendering EmailConnection with state:", { 
-    isLoading: status.loading, 
-    emailAccountsCount: emailAccounts.length, 
-    isConnecting 
-  });
+  // Check if we should show URI setup guidance
+  const hasRedirectUriMismatch = oauthError === 'redirect_uri_mismatch';
 
   // Always render the connect button section even if loading
   // This ensures it's available after returning from OAuth flow
@@ -259,11 +272,20 @@ const EmailConnection = () => {
             <div>
               <p className="font-medium mb-1">Google OAuth Error</p>
               <p className="text-sm">There was an error connecting to Google: {oauthError}</p>
-              <p className="text-sm mt-2">
-                This may be due to a redirect URI mismatch. Make sure the redirect URI 
-                <code className="mx-1 px-1 py-0.5 bg-red-100 rounded">{window.location.origin}/admin</code>
-                is configured in your Google Cloud Console.
-              </p>
+              {hasRedirectUriMismatch && (
+                <>
+                  <p className="text-sm mt-2">
+                    This is due to a redirect URI mismatch. You need to add the following URI to your 
+                    Google Cloud Console under "Authorized redirect URIs":
+                  </p>
+                  <div className="mt-2 p-2 bg-red-100 rounded-md text-sm font-mono overflow-auto">
+                    {redirectUri}
+                  </div>
+                  <p className="text-xs mt-2">
+                    Note: It may take up to 5 minutes for changes in Google Cloud Console to take effect.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -316,9 +338,36 @@ const EmailConnection = () => {
                 </>
               )}
             </Button>
-            <div className="mt-4 text-xs text-muted-foreground">
-              <p>Using redirect URI: <code className="px-1 py-0.5 bg-gray-100 rounded">{window.location.origin}/admin</code></p>
-              <p className="mt-1">Make sure this matches the redirect URI in your Google Cloud Console.</p>
+            
+            <div className="mt-4 p-3 border rounded-md bg-gray-50 text-left w-full max-w-md">
+              <h4 className="text-sm font-medium mb-2">Google OAuth Configuration</h4>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Redirect URI being used:</p>
+                  <code className="px-2 py-1 bg-gray-100 rounded text-xs block overflow-auto">
+                    {redirectUri}
+                  </code>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Client ID:</p>
+                  <code className="px-2 py-1 bg-gray-100 rounded text-xs block overflow-hidden text-ellipsis whitespace-nowrap">
+                    {import.meta.env.VITE_GOOGLE_CLIENT_ID?.substring(0, 12)}...
+                  </code>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Make sure the redirect URI matches exactly what's configured in your 
+                  <a 
+                    href="https://console.cloud.google.com/apis/credentials" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline inline-flex items-center mx-1"
+                  >
+                    Google Cloud Console
+                    <ExternalLink className="h-3 w-3 ml-0.5" />
+                  </a>
+                  under "Authorized redirect URIs".
+                </p>
+              </div>
             </div>
           </div>
         ) : (
