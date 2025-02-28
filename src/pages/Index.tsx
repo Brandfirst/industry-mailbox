@@ -5,8 +5,11 @@ import { ArrowRight, Mail, Search, Shield, Sparkles, ChevronRight, Star, CheckCi
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
+  const isMobile = useIsMobile();
+  
   useEffect(() => {
     document.title = "NewsletterHub - Norges største nyhetsbrev arkiv";
   }, []);
@@ -35,10 +38,10 @@ const Index = () => {
           <div className="container mx-auto max-w-5xl text-center relative z-10">
             <div className="animate-slide-down">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
-                For byråer og markedsførere
+                For <span className="smaller-text">byråer</span> og markedsførere
                 <span className="block text-blue-400 mt-2 relative">
                   Norges største database av nyhetsbrev
-                  <div className="absolute -bottom-2 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
+                  <div className="absolute -bottom-2 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animated-border"></div>
                 </span>
               </h1>
               <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
@@ -46,13 +49,13 @@ const Index = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
                 <Link to="/search">
-                  <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white">
+                  <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto">
                     Start Søket
                     <Search className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
                 <Link to="/auth?mode=signup">
-                  <Button size="lg" variant="outline" className="border-blue-400/30 text-blue-400 hover:bg-blue-900/20">
+                  <Button size="lg" variant="outline" className="border-blue-400/30 text-blue-400 hover:bg-blue-900/20 w-full sm:w-auto">
                     Opprett Konto
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -119,7 +122,7 @@ const Index = () => {
                           <h3 className="text-white text-sm font-medium">Søk i Nyhetsbrev</h3>
                           <p className="text-gray-400 text-xs">Finn og analyser norske nyhetsbrev</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="hidden md:flex items-center gap-2">
                           <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Mine Favoritter</div>
                           <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Merker</div>
                           <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Hjelp</div>
@@ -128,8 +131,8 @@ const Index = () => {
                       </div>
                       
                       {/* Search Bar */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center bg-dark-400 rounded-md px-3 py-1.5 w-64">
+                      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                        <div className="flex items-center bg-dark-400 rounded-md px-3 py-1.5 w-full sm:w-64">
                           <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
@@ -151,8 +154,8 @@ const Index = () => {
                         </div>
                       </div>
                       
-                      {/* Newsletter Grid - Fixed gradient issue */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {/* Newsletter Grid - Fixed gradient issue for mobile */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {/* Newsletter Card 1 */}
                         <div className="bg-white rounded-md overflow-hidden">
                           <div className="relative">
