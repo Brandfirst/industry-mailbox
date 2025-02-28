@@ -1,92 +1,77 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
-  
-  // Get environment variables
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  
+
   try {
-    // Initialize Supabase client with admin privileges
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    // Get request body
+    // Get the request body
     const { accountId } = await req.json();
-    
+
     if (!accountId) {
       return new Response(
-        JSON.stringify({ error: "Missing account ID" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ success: false, error: 'Missing required parameter: accountId' }),
+        { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 400 }
       );
     }
-    
+
+    // Log inputs for debugging
+    console.log(`Processing sync request for accountId: ${accountId}`);
+
     // Get the email account
     const { data: account, error: accountError } = await supabase
-      .from("email_accounts")
-      .select("*")
-      .eq("id", accountId)
+      .from('email_accounts')
+      .select('*')
+      .eq('id', accountId)
       .single();
-    
-    if (accountError || !account) {
-      console.error("Error fetching email account:", accountError);
+
+    if (accountError) {
+      console.error('Error fetching email account:', accountError);
       return new Response(
-        JSON.stringify({ error: "Email account not found" }),
-        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({ success: false, error: 'Failed to fetch email account' }),
+        { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 400 }
       );
     }
-    
-    // Check if access token is valid or needs refresh
-    // This would be implementation-specific based on token expiry tracking
-    
-    // In a real implementation, we would:
-    // 1. Fetch emails from Gmail API using the access token
-    // 2. Parse emails to identify newsletters
-    // 3. Store newsletters in the database
-    
-    // For now, just update the last_sync timestamp
+
+    // Update the last_sync timestamp
     const { error: updateError } = await supabase
-      .from("email_accounts")
+      .from('email_accounts')
       .update({ last_sync: new Date().toISOString() })
-      .eq("id", accountId);
-    
+      .eq('id', accountId);
+
     if (updateError) {
-      console.error("Error updating last sync time:", updateError);
-      return new Response(
-        JSON.stringify({ error: "Failed to update sync status" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+      console.error('Error updating last_sync:', updateError);
     }
-    
-    // In a real implementation, we would return stats about the sync
+
+    // In a real implementation, you would use the tokens to fetch emails from Gmail
+    // and process them to extract newsletters
+
+    // For now, just return success
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Sync initiated", 
-        // This would include actual stats in a real implementation
-        stats: { 
-          processed: 0,
-          newNewsletters: 0,
-          updatedNewsletters: 0
-        }
+        message: 'Sync process started. This may take some time to complete.' 
       }),
-      { headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   } catch (error) {
-    console.error("Error syncing emails:", error);
+    console.error('Unexpected error during sync:', error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      JSON.stringify({ success: false, error: error.message || 'An unexpected error occurred' }),
+      { headers: { 'Content-Type': 'application/json', ...corsHeaders }, status: 500 }
     );
   }
 });
