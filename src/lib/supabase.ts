@@ -74,37 +74,49 @@ export async function getAllNewsletters(
   search = "", 
   filters: NewsletterFilters = {}
 ) {
-  // Start the query
+  // Calculate pagination values
   const from = (page - 1) * limit;
   const to = from + limit - 1;
   
-  // Build the query step by step to avoid complex type inference
-  let query = supabase.from("newsletters").select("*, categories(name, slug, color)", { count: "exact" });
+  // Create a basic query without any filters first
+  const baseQuery = supabase.from("newsletters");
   
-  // Apply search if provided
-  if (search) {
-    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-  }
+  // Then add select with count
+  const selectQuery = baseQuery.select("*, categories(name, slug, color)", { count: "exact" });
   
-  // Apply filters individually to avoid complex type inference
-  if (filters.category) {
-    query = query.eq("category_id", filters.category);
-  }
+  // Create a more specific typed variable for our filtered query
+  // This explicit intermediate step helps TypeScript avoid infinite type recursion
+  const filteredQuery = (() => {
+    let q = selectQuery;
+    
+    // Apply search if provided
+    if (search) {
+      q = q.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+    
+    // Apply category filter if present
+    if (filters.category) {
+      q = q.eq("category_id", filters.category);
+    }
+    
+    // Apply date filters if present
+    if (filters.fromDate) {
+      q = q.gte("published_date", filters.fromDate);
+    }
+    
+    if (filters.toDate) {
+      q = q.lte("published_date", filters.toDate);
+    }
+    
+    return q;
+  })();
   
-  if (filters.fromDate) {
-    query = query.gte("published_date", filters.fromDate);
-  }
+  // Apply ordering and pagination
+  const orderedQuery = filteredQuery.order("published_date", { ascending: false });
+  const pagedQuery = orderedQuery.range(from, to);
   
-  if (filters.toDate) {
-    query = query.lte("published_date", filters.toDate);
-  }
-  
-  // Apply pagination and ordering
-  query = query.order("published_date", { ascending: false });
-  query = query.range(from, to);
-  
-  // Execute the query
-  const { data, error, count } = await query;
+  // Execute the final query
+  const { data, error, count } = await pagedQuery;
   
   if (error) {
     console.error("Error fetching newsletters:", error);
