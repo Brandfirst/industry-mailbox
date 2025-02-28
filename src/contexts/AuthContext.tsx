@@ -225,35 +225,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const safelyRemoveLocalStorageItems = () => {
-    // Get a list of all localStorage keys
-    const keys = [];
+  const clearLocalStorage = () => {
     try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key) keys.push(key);
-      }
-      
-      // First try to remove the problematic items specifically
-      if (keys.includes('professional')) {
-        localStorage.removeItem('professional');
-      }
-      
-      // Handle Supabase-related items
-      keys.forEach(key => {
-        if (key.startsWith('supabase.')) {
-          localStorage.removeItem(key);
-        }
-      });
-      
-      // Then try to safely remove remaining items
-      keys.forEach(key => {
-        try {
-          localStorage.removeItem(key);
-        } catch (e) {
-          console.warn(`Failed to remove localStorage item: ${key}`, e);
-        }
-      });
+      // Clear all localStorage items
+      localStorage.clear();
+      console.log("Local storage cleared successfully");
     } catch (e) {
       console.error("Error clearing localStorage:", e);
     }
@@ -263,20 +239,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Sign out initiated");
       
-      // First call Supabase signOut to handle the backend session
-      await supabase.auth.signOut();
-      
-      // Clear local state
+      // Clear local state first
       setUser(null);
       setSession(null);
       setProfileRole(null);
       
-      // Safely remove localStorage items
-      safelyRemoveLocalStorageItems();
+      // Clear localStorage before Supabase signOut to prevent any OAuth state conflicts
+      clearLocalStorage();
       
-      // Use a hard redirect to the home page
-      // This will completely reload the page and all state
-      window.location.replace('/');
+      // Then call Supabase signOut to handle the backend session
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Error during sign out:", error);
+      }
+      
+      // Force redirect to the home page
+      window.location.href = '/';
       
     } catch (error) {
       console.error("Sign out error:", error);
@@ -286,11 +265,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       setProfileRole(null);
       
-      // Try to clean localStorage again
-      safelyRemoveLocalStorageItems();
+      // Try to clear localStorage again
+      clearLocalStorage();
       
       // Force redirect anyway
-      window.location.replace('/');
+      window.location.href = '/';
     }
   };
 
