@@ -1,158 +1,133 @@
 
-import { serve } from "https://deno.land/std@0.132.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-// Create a Supabase client with the auth context of the logged in user.
-const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+// Define CORS headers to ensure frontend can communicate with this function
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
-interface EmailSyncRequest {
+interface SyncRequestBody {
   accountId: string;
 }
 
-serve(async (req) => {
+serve(async (req: Request): Promise<Response> => {
+  console.log("Sync-emails function called");
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
-
-  // Parse the request body or return an error
-  let body: EmailSyncRequest;
-  try {
-    body = await req.json();
-  } catch (error) {
-    console.error("Error parsing request body:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Invalid request format",
-        details: error.message,
-      }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-
-  // Validate the request body
-  if (!body.accountId) {
-    console.error("Missing required parameters: accountId");
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Missing required parameter: accountId",
-      }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
-
-  const accountId = body.accountId;
-  console.log(`Starting sync process for account ID: ${accountId}`);
 
   try {
-    // Create a supabase client
+    // Create a Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Parse request body
+    const requestData: SyncRequestBody = await req.json();
+    const { accountId } = requestData;
+
+    if (!accountId) {
+      console.error("Missing accountId in request");
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing accountId parameter" }),
+        { 
+          status: 400, 
+          headers: { "Content-Type": "application/json", ...corsHeaders } 
+        }
+      );
+    }
+
+    console.log(`Processing sync for email account: ${accountId}`);
+
     // Get the email account details
-    const { data: accountData, error: accountError } = await supabase
+    const { data: emailAccount, error: accountError } = await supabase
       .from("email_accounts")
       .select("*")
       .eq("id", accountId)
       .single();
 
-    if (accountError || !accountData) {
-      console.error("Error fetching email account:", accountError || "Account not found");
+    if (accountError || !emailAccount) {
+      console.error("Error fetching email account:", accountError);
       return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Failed to fetch email account details",
-          details: accountError?.message || "Account not found",
+        JSON.stringify({ 
+          success: false, 
+          error: "Email account not found",
+          details: accountError
         }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        { 
+          status: 404, 
+          headers: { "Content-Type": "application/json", ...corsHeaders } 
         }
       );
     }
 
-    console.log(`Found email account: ${accountData.email}`);
+    console.log(`Found email account: ${emailAccount.email}`);
 
-    // For development and testing, we'll insert some sample newsletters
-    // In a real implementation, you would connect to Gmail API and fetch real emails
-    const sampleNewsletters = [];
-    
-    // Create 10 sample newsletters for testing
-    for (let i = 1; i <= 10; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      
-      sampleNewsletters.push({
-        title: `Newsletter #${i} from ${accountData.email}`,
-        sender: `Sample Sender ${i}`,
-        sender_email: `sender${i}@example.com`,
-        industry: "Technology",
-        preview: `This is a preview of newsletter #${i}`,
-        content: `
-          <html>
-            <head>
-              <title>Newsletter #${i}</title>
-              <style>
-                body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-                h1 { color: #333; }
-                p { line-height: 1.6; }
-                .footer { margin-top: 40px; font-size: 12px; color: #666; }
-              </style>
-            </head>
-            <body>
-              <h1>Newsletter #${i} from ${accountData.email}</h1>
-              <p>Hello subscriber,</p>
-              <p>This is sample content for newsletter #${i}. In a real implementation, this would be the actual content of the email.</p>
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam euismod, nisl eget ultricies aliquam, quam nisl tincidunt nunc, eget ultricies nisl nisl eget. Nullam euismod, nisl eget ultricies aliquam, quam nisl tincidunt nunc, eget ultricies nisl nisl eget.</p>
-              <p>Best regards,<br>The Sample Team</p>
-              <div class="footer">
-                <p>You are receiving this email because you subscribed to our newsletter. If you no longer wish to receive these emails, you can unsubscribe at any time.</p>
-              </div>
-            </body>
-          </html>
-        `,
-        published_at: date.toISOString(),
+    // Since we're not actually connecting to Gmail API yet,
+    // we'll insert some sample newsletters for the demo
+    const sampleNewsletters = [
+      {
         email_id: accountId,
-      });
-    }
+        title: "Weekly Tech Roundup",
+        sender: "TechNews",
+        sender_email: "news@technewsletter.com",
+        content: "<h1>This Week in Technology</h1><p>Here are the top stories from this week in technology...</p>",
+        published_at: new Date().toISOString(),
+        industry: "Technology"
+      },
+      {
+        email_id: accountId,
+        title: "Financial Markets Today",
+        sender: "MarketWatch",
+        sender_email: "updates@marketwatch.com",
+        content: "<h1>Market Summary</h1><p>The S&P 500 rose 1.2% today, while tech stocks...</p>",
+        published_at: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+        industry: "Finance"
+      },
+      {
+        email_id: accountId,
+        title: "Health & Wellness Monthly",
+        sender: "Wellness Today",
+        sender_email: "newsletter@wellnesstoday.com",
+        content: "<h1>Stay Healthy This Month</h1><p>Try these five exercises to improve your posture...</p>",
+        published_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+        industry: "Health"
+      }
+    ];
 
-    console.log(`Created ${sampleNewsletters.length} sample newsletters`);
-
-    // Insert the sample newsletters into the database
-    const { data: insertedData, error: insertError } = await supabase
+    // Insert the sample newsletters
+    const { data: insertedNewsletters, error: insertError } = await supabase
       .from("newsletters")
-      .upsert(sampleNewsletters, {
-        onConflict: "email_id, title, published_at",
-        ignoreDuplicates: true,
-      });
+      .upsert(
+        sampleNewsletters, 
+        { 
+          onConflict: 'email_id, title, sender_email', 
+          ignoreDuplicates: true 
+        }
+      );
 
     if (insertError) {
-      console.error("Error inserting newsletters:", insertError);
+      console.error("Error inserting sample newsletters:", insertError);
       return new Response(
-        JSON.stringify({
-          success: false,
+        JSON.stringify({ 
+          success: false, 
           error: "Failed to insert newsletters",
-          details: insertError.message,
+          details: insertError
         }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        { 
+          status: 500, 
+          headers: { "Content-Type": "application/json", ...corsHeaders } 
         }
       );
     }
 
-    console.log(`Successfully synced ${sampleNewsletters.length} newsletters`);
+    console.log("Successfully inserted sample newsletters");
 
-    // Update the last_sync timestamp for the email account
+    // Update the email account's last_sync timestamp
     const { error: updateError } = await supabase
       .from("email_accounts")
       .update({ last_sync: new Date().toISOString() })
@@ -160,32 +135,33 @@ serve(async (req) => {
 
     if (updateError) {
       console.error("Error updating last_sync timestamp:", updateError);
-      // We don't want to fail the entire operation if this fails
+      // Continue anyway since we did insert the newsletters
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Sync completed successfully",
+      JSON.stringify({ 
+        success: true, 
+        synced: sampleNewsletters.length,
         count: sampleNewsletters.length,
-        synced: sampleNewsletters.map(n => n.title),
+        message: "Successfully synced sample newsletters"
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      { 
+        status: 200, 
+        headers: { "Content-Type": "application/json", ...corsHeaders } 
       }
     );
+
   } catch (error) {
-    console.error("Unexpected error during sync:", error);
+    console.error("Unhandled error in sync-emails function:", error);
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: "An unexpected error occurred",
-        details: error.message || String(error),
+      JSON.stringify({ 
+        success: false, 
+        error: "Internal server error", 
+        details: error.message || String(error)
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      { 
+        status: 500, 
+        headers: { "Content-Type": "application/json", ...corsHeaders } 
       }
     );
   }
