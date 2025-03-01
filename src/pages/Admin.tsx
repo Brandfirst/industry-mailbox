@@ -334,7 +334,7 @@ const Admin = () => {
             </div>
             
             <div className="grid grid-cols-1 gap-6">
-              {/* Using standalone EmailConnection component with key to force re-render */}
+              {/* Using refactored EmailConnection component with key to force re-render */}
               <div key={emailConnectionKey}>
                 <EmailConnection />
               </div>
