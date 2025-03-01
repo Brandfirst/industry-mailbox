@@ -12,7 +12,7 @@ import SenderList from "@/components/newsletter-senders/SenderList";
 import { ArrowUpDown, RefreshCw, Search } from "lucide-react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 import { toast } from "sonner";
-import { updateSenderCategory } from "@/lib/supabase/newsletters";
+import { updateSenderCategory, updateSenderBrand } from "@/lib/supabase/newsletters";
 
 export default function NewsletterSenders() {
   const { user } = useAuth();
@@ -24,6 +24,7 @@ export default function NewsletterSenders() {
   const [sortAsc, setSortAsc] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState(false);
+  const [updatingBrand, setUpdatingBrand] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,6 +90,29 @@ export default function NewsletterSenders() {
       throw error; // Re-throw to let the component handle the error message
     } finally {
       setUpdatingCategory(false);
+    }
+  };
+  
+  const handleBrandChange = async (senderEmail: string, brandName: string) => {
+    if (!user) return;
+    
+    try {
+      setUpdatingBrand(true);
+      await updateSenderBrand(senderEmail, brandName, user.id);
+      
+      // Update the brand name for this sender in the local state
+      setSenders(prevSenders => 
+        prevSenders.map(sender => 
+          sender.sender_email === senderEmail
+            ? { ...sender, brand_name: brandName }
+            : sender
+        )
+      );
+    } catch (error) {
+      console.error("Error updating brand:", error);
+      throw error;
+    } finally {
+      setUpdatingBrand(false);
     }
   };
   
@@ -189,6 +213,7 @@ export default function NewsletterSenders() {
           categories={categories}
           loading={loading}
           onCategoryChange={handleCategoryChange}
+          onBrandChange={handleBrandChange}
         />
       </CardContent>
     </Card>

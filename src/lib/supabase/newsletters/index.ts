@@ -1,10 +1,7 @@
+export * from './fetch';
+export * from './manage';
+export * from './save';
+export * from './types';
 
-// Re-export all newsletter related functionality
-export * from "./types";
-export * from "./fetch";
-// Export everything from save.ts except updateSenderCategory 
-// (we'll use the version from manage.ts)
-export * from "./save";
-// Re-export everything from manage.ts
-export * from "./manage";
-
+// Export the updateSenderCategory function from this file
+export { updateSenderCategory, updateSenderBrand } from './manage';

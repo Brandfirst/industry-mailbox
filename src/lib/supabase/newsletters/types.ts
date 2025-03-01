@@ -23,10 +23,14 @@ export interface NewsletterQueryResult {
   count: number | null;
 }
 
+/**
+ * Newsletter sender statistics
+ */
 export interface NewsletterSenderStats {
   sender_email: string;
-  sender_name: string;
+  sender_name: string | null;
   newsletter_count: number;
   last_sync_date: string | null;
   category_id: number | null;
+  brand_name?: string | null;
 }

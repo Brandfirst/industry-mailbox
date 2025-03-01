@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Mail, Calendar, Tag, ChevronDown, ChevronUp } from "lucide-react";
+import { Mail, Calendar, Tag, ChevronDown, ChevronUp, Briefcase } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -16,16 +16,25 @@ type SenderListProps = {
   categories: NewsletterCategory[];
   loading?: boolean;
   onCategoryChange?: (senderEmail: string, categoryId: number | null) => Promise<void>;
+  onBrandChange?: (senderEmail: string, brandName: string) => Promise<void>;
 };
 
 type SortField = 'name' | 'count' | 'last_sync';
 type SortDirection = 'asc' | 'desc';
 
-const SenderList = ({ senders, categories, loading = false, onCategoryChange }: SenderListProps) => {
+const SenderList = ({ 
+  senders, 
+  categories, 
+  loading = false, 
+  onCategoryChange,
+  onBrandChange
+}: SenderListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>('count');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
+  const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
+  const [brandInputValues, setBrandInputValues] = useState<Record<string, string>>({});
 
   // Handle sorting
   const handleSort = (field: SortField) => {
@@ -100,6 +109,40 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
     }
   };
 
+  // Handle brand input change
+  const handleBrandInputChange = (senderEmail: string, value: string) => {
+    setBrandInputValues(prev => ({
+      ...prev,
+      [senderEmail]: value
+    }));
+  };
+
+  // Handle brand name update
+  const handleBrandUpdate = async (senderEmail: string) => {
+    if (!onBrandChange) return;
+    
+    const brandName = brandInputValues[senderEmail] || "";
+    
+    setUpdatingBrand(senderEmail);
+    try {
+      await onBrandChange(senderEmail, brandName);
+      toast.success(`Brand updated for ${senderEmail}`);
+    } catch (error) {
+      console.error("Error updating brand:", error);
+      toast.error("Failed to update brand");
+    } finally {
+      setUpdatingBrand(null);
+    }
+  };
+
+  // Initialize brand input value if not set
+  const getBrandInputValue = (sender: NewsletterSenderStats) => {
+    if (brandInputValues[sender.sender_email] !== undefined) {
+      return brandInputValues[sender.sender_email];
+    }
+    return sender.brand_name || "";
+  };
+
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
     return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 ml-1" /> : <ChevronDown className="h-4 w-4 ml-1" />;
@@ -135,11 +178,16 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
           <TableHeader>
             <TableRow>
               <TableHead 
-                className="w-[300px] cursor-pointer" 
+                className="w-[250px] cursor-pointer" 
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center">
                   Sender <SortIcon field="name" />
+                </div>
+              </TableHead>
+              <TableHead className="w-[200px]">
+                <div className="flex items-center">
+                  Brand
                 </div>
               </TableHead>
               <TableHead 
@@ -164,7 +212,7 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
           <TableBody>
             {filteredSenders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   No senders found.
                 </TableCell>
               </TableRow>
@@ -175,6 +223,27 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
                     <div>
                       <div>{sender.sender_name}</div>
                       <div className="text-sm text-muted-foreground">{sender.sender_email}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex w-full md:w-40">
+                        <Input
+                          placeholder="Enter brand name"
+                          value={getBrandInputValue(sender)}
+                          onChange={(e) => handleBrandInputChange(sender.sender_email, e.target.value)}
+                          className="mr-2 text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleBrandUpdate(sender.sender_email)}
+                          disabled={updatingBrand === sender.sender_email}
+                        >
+                          Save
+                        </Button>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
