@@ -30,6 +30,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   Pagination, 
   PaginationContent, 
@@ -38,7 +45,7 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
-import { RefreshCw, Filter, Check, Tag, Calendar, Mail } from "lucide-react";
+import { RefreshCw, Filter, Check, Tag, Calendar, Mail, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { 
@@ -63,6 +70,7 @@ export default function NewsletterSync() {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [selectedNewsletter, setSelectedNewsletter] = useState<Newsletter | null>(null);
   const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -119,7 +127,9 @@ export default function NewsletterSync() {
     toast.info("Starting email sync...");
     
     try {
+      console.log("Syncing account:", selectedAccount);
       const result = await syncEmailAccount(selectedAccount);
+      console.log("Sync result:", result);
       
       if (result.success) {
         toast.success(`Successfully synced ${result.count || 0} newsletters`);
@@ -131,6 +141,7 @@ export default function NewsletterSync() {
         );
         setNewsletters(data);
       } else {
+        console.error("Sync error details:", result);
         toast.error(result.error || "Failed to sync emails");
       }
     } catch (error) {
@@ -143,14 +154,17 @@ export default function NewsletterSync() {
 
   const handleCategoryChange = async (newsletterId: number, categoryId: string) => {
     try {
-      await updateNewsletterCategory(newsletterId, parseInt(categoryId));
+      // Convert categoryId to number or null if empty string
+      const numericCategoryId = categoryId ? parseInt(categoryId) : null;
+      
+      await updateNewsletterCategory(newsletterId, numericCategoryId);
       toast.success("Category updated successfully");
       
       // Update the local state to reflect the change
       setNewsletters(prev => 
         prev.map(newsletter => 
           newsletter.id === newsletterId 
-            ? { ...newsletter, category_id: parseInt(categoryId) } 
+            ? { ...newsletter, category_id: numericCategoryId } 
             : newsletter
         )
       );
@@ -256,6 +270,7 @@ export default function NewsletterSync() {
                         <TableHead>Sender</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Category</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -289,6 +304,36 @@ export default function NewsletterSync() {
                                 ))}
                               </SelectContent>
                             </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => setSelectedNewsletter(newsletter)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl h-[80vh]">
+                                <DialogHeader>
+                                  <DialogTitle>{newsletter.title || "Untitled Newsletter"}</DialogTitle>
+                                </DialogHeader>
+                                <div className="mt-4 overflow-auto h-full pb-6">
+                                  {newsletter.content ? (
+                                    <div 
+                                      className="prose max-w-none"
+                                      dangerouslySetInnerHTML={{ __html: newsletter.content }} 
+                                    />
+                                  ) : (
+                                    <div className="text-center py-12">
+                                      <p>No content available for this newsletter.</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           </TableCell>
                         </TableRow>
                       ))}

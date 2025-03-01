@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -76,7 +77,7 @@ export async function updateUserProfile(userId, updates) {
 }
 
 // Simple function to get newsletters with pagination
-export async function getNewsletters(options) {
+export async function getNewsletters(options: any = {}) {
   // Use simple implementation to avoid TypeScript errors
   const page = typeof options === 'number' ? options : 1;
   const limit = 10;
@@ -207,18 +208,30 @@ export async function getAdminStats() {
 }
 
 // Category functions
-export async function getAllCategories() {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, name, slug, color, created_at")
-    .order("name");
+export async function getAllCategories(): Promise<NewsletterCategory[]> {
+  try {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, name, slug, color, created_at")
+      .order("name");
 
-  if (error) {
-    console.error("Error fetching categories:", error);
-    throw error;
+    if (error) {
+      console.error("Error fetching categories:", error);
+      throw error;
+    }
+
+    // Ensure type safety by validating the response structure
+    if (!data || !Array.isArray(data)) {
+      console.error("Invalid categories data format:", data);
+      return [];
+    }
+
+    // Cast to the expected type after validation
+    return data as NewsletterCategory[];
+  } catch (error) {
+    console.error("Exception in getAllCategories:", error);
+    return [];
   }
-
-  return data as NewsletterCategory[];
 }
 
 // Create a new category
@@ -238,15 +251,14 @@ export async function createCategory(categoryData) {
 }
 
 // Update newsletter category
-export async function updateNewsletterCategory(newsletterId, categoryId) {
-  // First check if category_id column exists
+export async function updateNewsletterCategory(newsletterId: number, categoryId: number | null) {
   try {
     const { error } = await supabase
       .from("newsletters")
-      .update({ category_id: categoryId })
-      .eq("id", newsletterId)
-      .select()
-      .single();
+      .update({ 
+        category_id: categoryId 
+      })
+      .eq("id", newsletterId);
 
     if (error) {
       console.error("Error updating newsletter category:", error);
@@ -385,26 +397,40 @@ export async function syncEmailAccount(accountId) {
   try {
     console.log("Starting sync for email account:", accountId);
     
+    // Add more detailed logging
+    console.log(`Invoking sync-emails function with accountId: ${accountId}`);
+    
     const response = await supabase.functions.invoke("sync-emails", {
       body: { accountId },
     });
 
+    console.log("Sync-emails response:", response);
+    
     if (response.error) {
       console.error("Error invoking sync-emails function:", response.error);
       return { 
         success: false, 
         error: response.error.message || "Error connecting to sync service",
-        statusCode: 500  // Use a default status code for error
+        statusCode: 500
       };
     }
 
-    if (!response.data || !response.data.success) {
+    if (!response.data) {
+      console.error("Empty response from sync-emails function");
+      return { 
+        success: false, 
+        error: "Empty response from server", 
+        statusCode: 400 
+      };
+    }
+
+    if (!response.data.success) {
       console.error("Error in sync-emails function:", response.data?.error || "Unknown error");
       return { 
         success: false, 
         error: response.data?.error || "Failed to sync emails",
         details: response.data?.details || null,
-        statusCode: 400  // Use a default status code for business logic error
+        statusCode: 400
       };
     }
 
@@ -418,7 +444,7 @@ export async function syncEmailAccount(accountId) {
       success: true, 
       synced: response.data.synced || [],
       count: response.data.count || 0,
-      statusCode: 200  // Use a default status code for success
+      statusCode: 200
     };
   } catch (error) {
     console.error("Exception in syncEmailAccount:", error);

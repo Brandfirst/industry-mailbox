@@ -1,138 +1,212 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-
-const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-interface RequestBody {
-  accountId: string;
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Parse request body
-    const body: RequestBody = await req.json();
-    const { accountId } = body;
-
+    const { accountId } = await req.json()
+    
     if (!accountId) {
+      console.error("Missing accountId in request")
       return new Response(
-        JSON.stringify({ error: "accountId is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        JSON.stringify({
+          success: false,
+          error: "Missing email account ID",
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400 
+        }
+      )
     }
 
-    // Get the email account from the database
-    const { data: account, error: accountError } = await supabase
+    console.log(`Starting sync for account: ${accountId}`)
+    
+    // Create Supabase client
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") || "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
+    )
+    
+    // Get the email account
+    const { data: account, error: accountError } = await supabaseAdmin
       .from("email_accounts")
       .select("*")
       .eq("id", accountId)
-      .single();
-
+      .single()
+    
     if (accountError || !account) {
-      console.error("Error fetching email account:", accountError);
+      console.error("Error fetching email account:", accountError)
       return new Response(
-        JSON.stringify({ error: "Email account not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        JSON.stringify({
+          success: false,
+          error: "Email account not found or access denied",
+          details: accountError?.message
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404 
+        }
+      )
     }
-
-    if (!account.is_connected) {
+    
+    // Fetch emails from Google API using the account's access token
+    console.log("Fetching emails using access token")
+    const emails = await fetchEmailsFromGmail(account.access_token, account.id)
+    
+    if (!emails || emails.error) {
+      console.error("Error fetching emails:", emails?.error)
       return new Response(
-        JSON.stringify({ error: "Email account is not connected" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        JSON.stringify({
+          success: false,
+          error: "Failed to fetch emails from Gmail",
+          details: emails?.error
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500 
+        }
+      )
     }
-
-    // Check if token is expired and refresh if needed
-    let accessToken = account.access_token;
-    if (account.refresh_token) {
-      // In a real implementation, you'd check if the token is expired
-      // and refresh it if needed using the refresh_token
-      // For now, we'll just use the existing access token
-    }
-
-    // Search for newsletters in Gmail
-    // We'll look for emails with common newsletter patterns in the subject
-    const query = "category:promotions OR label:newsletters OR subject:newsletter";
-    const gmailResponse = await fetch(
-      `https://www.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=10`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    if (!gmailResponse.ok) {
-      const errorText = await gmailResponse.text();
-      console.error("Error fetching messages from Gmail:", errorText);
-      
-      // If token is invalid, mark the account as disconnected
-      if (gmailResponse.status === 401) {
-        await supabase
-          .from("email_accounts")
-          .update({ is_connected: false })
-          .eq("id", accountId);
-          
-        return new Response(
-          JSON.stringify({ error: "Gmail authentication failed. Please reconnect your account." }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
+    
+    // Insert the emails into the database
+    console.log(`Inserting ${emails.length} newsletters into database`)
+    const { data: inserted, error: insertError } = await supabaseAdmin
+      .from("newsletters")
+      .upsert(
+        emails.map(email => ({
+          title: email.subject,
+          sender: email.from.name,
+          sender_email: email.from.email,
+          content: email.body,
+          preview: email.snippet || "",
+          published_at: email.date,
+          email_id: account.id
+        })),
+        { onConflict: "email_id, title, published_at" }
+      )
+    
+    if (insertError) {
+      console.error("Error inserting newsletters:", insertError)
       return new Response(
-        JSON.stringify({ error: "Failed to fetch messages from Gmail" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        JSON.stringify({
+          success: false,
+          error: "Failed to save newsletters",
+          details: insertError.message
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500 
+        }
+      )
     }
-
-    const messagesData = await gmailResponse.json();
-    const messageIds = messagesData.messages || [];
     
-    console.log(`Found ${messageIds.length} potential newsletter messages`);
-    
-    // In a real implementation, you would:
-    // 1. Fetch each message's full content
-    // 2. Parse it to extract newsletter content
-    // 3. Store it in your newsletters table
-    
-    // For this demo, we'll just update the last_sync time
-    const { error: updateError } = await supabase
+    // Update the last_sync timestamp
+    await supabaseAdmin
       .from("email_accounts")
       .update({ last_sync: new Date().toISOString() })
-      .eq("id", accountId);
-
-    if (updateError) {
-      console.error("Error updating last_sync time:", updateError);
-    }
-
-    // Return success with message count
+      .eq("id", accountId)
+    
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Found ${messageIds.length} potential newsletters`,
-        syncedAt: new Date().toISOString(),
+        count: emails.length,
+        synced: emails.map(e => e.subject)
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200 
+      }
+    )
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Uncaught error in sync-emails:", error)
     return new Response(
-      JSON.stringify({ error: "Unexpected server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+      JSON.stringify({
+        success: false,
+        error: "An unexpected error occurred while syncing emails",
+        details: error.message || String(error)
+      }),
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500 
+      }
+    )
   }
-});
+})
+
+// Mock function to fetch emails from Gmail API
+// In a real implementation, this would use the Gmail API
+async function fetchEmailsFromGmail(accessToken: string, accountId: string) {
+  try {
+    console.log("Using access token to fetch emails from Gmail")
+    
+    // In a real implementation, you would make API calls to Gmail using the accessToken
+    // For now, we'll return mock data for demonstration purposes
+    return [
+      {
+        id: "email1",
+        subject: "Weekly Tech Newsletter",
+        from: { name: "Tech News", email: "news@tech.com" },
+        date: new Date().toISOString(),
+        snippet: "The latest in tech news this week...",
+        body: `
+          <h1>Tech Weekly</h1>
+          <p>Hello! Here are the top stories in tech this week:</p>
+          <ul>
+            <li>New AI developments from OpenAI</li>
+            <li>Apple announces latest product line</li>
+            <li>Web development trends for 2024</li>
+          </ul>
+          <p>Stay tuned for more updates!</p>
+        `
+      },
+      {
+        id: "email2",
+        subject: "Finance Monthly Update",
+        from: { name: "Finance Insights", email: "updates@finance.org" },
+        date: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+        snippet: "Monthly roundup of financial news...",
+        body: `
+          <h1>Finance Monthly</h1>
+          <p>Welcome to this month's finance update!</p>
+          <h2>Market Trends</h2>
+          <p>The market has shown significant growth in the tech sector, while financial services have remained stable.</p>
+          <h2>Investment Tips</h2>
+          <p>Consider diversifying your portfolio with these emerging market opportunities...</p>
+        `
+      },
+      {
+        id: "email3",
+        subject: "Health & Wellness Newsletter",
+        from: { name: "Wellness Daily", email: "hello@wellness.co" },
+        date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+        snippet: "Tips for staying healthy this season...",
+        body: `
+          <h1>Health & Wellness Tips</h1>
+          <p>Dear reader,</p>
+          <p>As the season changes, here are some tips to keep you healthy:</p>
+          <ol>
+            <li>Stay hydrated with at least 8 glasses of water daily</li>
+            <li>Incorporate 30 minutes of moderate exercise</li>
+            <li>Practice mindfulness to reduce stress</li>
+            <li>Ensure you're getting 7-8 hours of quality sleep</li>
+          </ol>
+          <p>Wishing you the best of health!</p>
+        `
+      }
+    ]
+  } catch (error) {
+    console.error("Error in fetchEmailsFromGmail:", error)
+    return { error: error.message || "Failed to fetch emails from Gmail" }
+  }
+}

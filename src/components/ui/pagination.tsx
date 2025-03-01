@@ -36,46 +36,39 @@ const PaginationItem = React.forwardRef<
 ))
 PaginationItem.displayName = "PaginationItem"
 
-type PaginationLinkProps = {
-  className?: string;
+type PaginationLinkProps = ButtonProps & {
   isActive?: boolean;
-  disabled?: boolean;
-  children?: React.ReactNode;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 const PaginationLink = ({
   className,
   isActive,
-  disabled,
-  children,
+  size = "icon",
   ...props
 }: PaginationLinkProps) => (
   <Button
     aria-current={isActive ? "page" : undefined}
     variant={isActive ? "default" : "outline"}
-    size="sm"
-    disabled={disabled}
+    size={size}
+    {...props}
     className={cn(
       "h-8 w-8 p-0",
       {
-        "pointer-events-none": disabled || isActive,
+        "pointer-events-none": props.disabled || isActive,
       },
       className
     )}
-    {...props}
-  >
-    {children}
-  </Button>
+  />
 )
 PaginationLink.displayName = "PaginationLink"
 
 const PaginationPrevious = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
+}: ButtonProps) => (
   <PaginationLink
     aria-label="Go to previous page"
+    size="icon"
     className={cn("h-8 w-8 p-0", className)}
     {...props}
   >
@@ -87,9 +80,10 @@ PaginationPrevious.displayName = "PaginationPrevious"
 const PaginationNext = ({
   className,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
+}: ButtonProps) => (
   <PaginationLink
     aria-label="Go to next page"
+    size="icon"
     className={cn("h-8 w-8 p-0", className)}
     {...props}
   >
