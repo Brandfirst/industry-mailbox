@@ -8,7 +8,7 @@ type AccountSelectorProps = {
   accounts: EmailAccount[];
   selectedAccount: string | null;
   onSelectAccount: (accountId: string) => void;
-  isDisabled: boolean;
+  isDisabled?: boolean;
 };
 
 export function AccountSelector({ accounts, selectedAccount, onSelectAccount, isDisabled }: AccountSelectorProps) {

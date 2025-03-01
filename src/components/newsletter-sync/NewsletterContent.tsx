@@ -57,7 +57,7 @@ export function NewsletterContent({
         accounts={emailAccounts}
         selectedAccount={selectedAccount}
         onSelectAccount={onSelectAccount}
-        isLoading={isLoading || isSyncing}
+        isDisabled={isLoading || isSyncing}
       />
       
       {isLoading ? (

@@ -3,7 +3,6 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { 
   Newsletter,
-  EmailAccount,
   syncEmailAccountNewsletters,
   updateNewsletterCategories,
   deleteNewsletters as apiDeleteNewsletters
