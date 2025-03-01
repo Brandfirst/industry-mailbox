@@ -178,21 +178,45 @@ export function getNewsletters(options: NewsletterFilterOptions = {}) {
 /**
  * Updates the category for all newsletters from a specific sender
  */
-export async function updateSenderCategory(senderEmail: string, categoryId: number): Promise<void> {
+export async function updateSenderCategory(
+  senderEmail: string,
+  categoryId: number | null,
+  userId: string
+): Promise<void> {
+  console.log(`Updating category for all newsletters from ${senderEmail} to category ${categoryId}`);
+  
   try {
-    console.log(`Updating category to ${categoryId} for all newsletters from sender: ${senderEmail}`);
-    
-    const { error } = await supabase
-      .from("newsletters")
-      .update({ category_id: categoryId })
-      .eq("sender_email", senderEmail);
-    
-    if (error) {
-      console.error("Error updating sender category:", error);
-      throw error;
+    // First, get all of the user's email accounts
+    const { data: accounts, error: accountsError } = await supabase
+      .from("email_accounts")
+      .select("id")
+      .eq("user_id", userId);
+      
+    if (accountsError) {
+      console.error("Error fetching email accounts:", accountsError);
+      throw accountsError;
     }
     
-    console.log(`Successfully updated category for sender: ${senderEmail}`);
+    if (!accounts || accounts.length === 0) {
+      console.log("No email accounts found for user");
+      return;
+    }
+    
+    const accountIds = accounts.map(account => account.id);
+    
+    // Update all newsletters from this sender across all user's email accounts
+    const { error: updateError } = await supabase
+      .from("newsletters")
+      .update({ category_id: categoryId })
+      .in("email_id", accountIds)
+      .eq("sender_email", senderEmail);
+      
+    if (updateError) {
+      console.error("Error updating newsletter categories:", updateError);
+      throw updateError;
+    }
+    
+    console.log(`Successfully updated category for all newsletters from ${senderEmail}`);
   } catch (error) {
     console.error("Exception in updateSenderCategory:", error);
     throw error;

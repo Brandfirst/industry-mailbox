@@ -2,6 +2,6 @@
 // Re-export all newsletter related functionality
 export * from "./types";
 export * from "./fetch";
-// Export everything except updateSenderCategory from save.ts
-export { getNewsletters, updateNewsletterCategories, syncEmailAccountNewsletters } from "./save";
+// Export everything from save.ts, including updateSenderCategory
+export * from "./save";
 export * from "./manage";

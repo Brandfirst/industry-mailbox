@@ -5,7 +5,7 @@ import { AccountSelector } from "./AccountSelector";
 import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
 import { FilterToolbar, FiltersState } from "./FilterToolbar";
-import { NewsletterList } from "./NewsletterList";
+import { NewsletterList } from "./newsletter-list/NewsletterList";
 import { NewsletterPagination } from "./NewsletterPagination";
 
 type NewsletterContentProps = {
@@ -18,7 +18,6 @@ type NewsletterContentProps = {
   isSyncing: boolean;
   newsletters: Newsletter[];
   categories: NewsletterCategory[];
-  onCategoryChange: (newsletters: Newsletter[], applySenderWide: boolean) => void;
   onDeleteNewsletters?: (ids: number[]) => Promise<void>;
   currentPage: number;
   totalPages: number;
@@ -37,7 +36,6 @@ export function NewsletterContent({
   isSyncing,
   newsletters,
   categories,
-  onCategoryChange,
   onDeleteNewsletters,
   currentPage,
   totalPages,
@@ -78,7 +76,6 @@ export function NewsletterContent({
           <NewsletterList 
             newsletters={newsletters}
             categories={categories}
-            onCategoryChange={onCategoryChange}
             onDeleteNewsletters={onDeleteNewsletters}
           />
           

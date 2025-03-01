@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import SenderList from "@/components/newsletter-senders/SenderList";
 import { ArrowUpDown, RefreshCw, Search } from "lucide-react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 import { toast } from "sonner";
+import { updateSenderCategory } from "@/lib/supabase/newsletters";
 
 export default function NewsletterSenders() {
   const { user } = useAuth();
@@ -21,6 +23,7 @@ export default function NewsletterSenders() {
   const [sortKey, setSortKey] = useState<"name" | "count" | "date">("name");
   const [sortAsc, setSortAsc] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [updatingCategory, setUpdatingCategory] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +66,29 @@ export default function NewsletterSenders() {
       toast.error("Failed to refresh sender data");
     } finally {
       setRefreshing(false);
+    }
+  };
+  
+  const handleCategoryChange = async (senderEmail: string, categoryId: number | null) => {
+    if (!user) return;
+    
+    try {
+      setUpdatingCategory(true);
+      await updateSenderCategory(senderEmail, categoryId, user.id);
+      
+      // Update the category for this sender in the local state
+      setSenders(prevSenders => 
+        prevSenders.map(sender => 
+          sender.sender_email === senderEmail
+            ? { ...sender, category_id: categoryId }
+            : sender
+        )
+      );
+    } catch (error) {
+      console.error("Error updating category:", error);
+      throw error; // Re-throw to let the component handle the error message
+    } finally {
+      setUpdatingCategory(false);
     }
   };
   
@@ -162,6 +188,7 @@ export default function NewsletterSenders() {
           senders={filteredSenders}
           categories={categories}
           loading={loading}
+          onCategoryChange={handleCategoryChange}
         />
       </CardContent>
     </Card>

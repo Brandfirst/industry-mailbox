@@ -1,3 +1,4 @@
+
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,15 +11,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { SenderGroup } from "./SenderGroup";
-import { CategorySelector } from "../CategorySelector";
+import { Badge } from "@/components/ui/badge";
 import { NewsletterViewDialog } from "../NewsletterViewDialog";
 
 type NewsletterListTableProps = {
   newsletters: Newsletter[];
   categories: NewsletterCategory[];
   senderGroups: Record<string, Newsletter[]>;
-  onCategoryChange: (newsletter: Newsletter, applySenderWide: boolean) => void;
   isSelected: (id: number) => boolean;
   onToggleSelectAll: () => void;
   onToggleSelectNewsletter: (id: number) => void;
@@ -29,7 +28,6 @@ export function NewsletterListTable({
   newsletters,
   categories,
   senderGroups,
-  onCategoryChange,
   isSelected,
   onToggleSelectAll,
   onToggleSelectNewsletter,
@@ -37,6 +35,13 @@ export function NewsletterListTable({
 }: NewsletterListTableProps) {
   // Get unique senders
   const uniqueSenders = Object.keys(senderGroups);
+  
+  // Get category name by ID
+  const getCategoryNameById = (categoryId: number | null) => {
+    if (!categoryId) return "Uncategorized";
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : "Uncategorized";
+  };
   
   return (
     <div className="rounded-md border">
@@ -62,7 +67,7 @@ export function NewsletterListTable({
                       <Info className="h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p>Categories are applied to all newsletters from the same sender</p>
+                      <p>Categories are managed in the Newsletter Senders section</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -123,17 +128,9 @@ export function NewsletterListTable({
                       : "Unknown"}
                   </TableCell>
                   <TableCell>
-                    {isFirstInGroup ? (
-                      <CategorySelector 
-                        newsletter={representativeNewsletter}
-                        categories={categories}
-                        onCategoryChange={onCategoryChange}
-                      />
-                    ) : (
-                      <div className="text-sm text-muted-foreground italic">
-                        ↑ Same as sender
-                      </div>
-                    )}
+                    <Badge variant="outline" className="bg-primary/5">
+                      {getCategoryNameById(newsletter.category_id)}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="transition-transform duration-200 hover:scale-105">

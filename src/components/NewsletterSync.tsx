@@ -25,7 +25,6 @@ export default function NewsletterSync() {
     displayRange,
     filters,
     handleSync,
-    handleCategoryChange,
     handleDeleteNewsletters,
     handleFiltersChange
   } = useNewsletterSync(user?.id);
@@ -40,12 +39,12 @@ export default function NewsletterSync() {
           onSync={handleSync}
         />
         <CardDescription>
-          Import and categorize newsletters from your connected email accounts
+          Import newsletters from your connected email accounts
         </CardDescription>
         <Alert variant="default" className="mt-4 bg-blue-50/10 border-blue-200">
           <InfoIcon className="h-4 w-4 text-blue-500" />
           <AlertDescription className="text-sm text-blue-700">
-            Categories are now applied to all newsletters from the same sender automatically
+            Categories can be managed in the Newsletter Senders section
           </AlertDescription>
         </Alert>
       </CardHeader>
@@ -63,7 +62,6 @@ export default function NewsletterSync() {
           isSyncing={isSyncing}
           newsletters={newsletters}
           categories={categories}
-          onCategoryChange={handleCategoryChange}
           onDeleteNewsletters={handleDeleteNewsletters}
           currentPage={page}
           totalPages={totalPages}

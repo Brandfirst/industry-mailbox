@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
 import { NewsletterCategory } from "@/lib/supabase/types";
 
@@ -14,7 +15,7 @@ type SenderListProps = {
   senders: NewsletterSenderStats[];
   categories: NewsletterCategory[];
   loading?: boolean;
-  onCategoryChange?: (senderEmail: string, categoryId: number) => Promise<void>;
+  onCategoryChange?: (senderEmail: string, categoryId: number | null) => Promise<void>;
 };
 
 type SortField = 'name' | 'count' | 'last_sync';
@@ -24,6 +25,7 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>('count');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
 
   // Handle sorting
   const handleSort = (field: SortField) => {
@@ -78,6 +80,24 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
   const formatLastSync = (date: string | null) => {
     if (!date) return "Never";
     return formatDistanceToNow(new Date(date), { addSuffix: true });
+  };
+
+  // Handle category change
+  const handleCategoryChange = async (senderEmail: string, categoryId: string) => {
+    if (!onCategoryChange) return;
+    
+    setUpdatingCategory(senderEmail);
+    try {
+      // Convert empty string to null, otherwise parse as number
+      const parsedCategoryId = categoryId === "" ? null : parseInt(categoryId);
+      await onCategoryChange(senderEmail, parsedCategoryId);
+      toast.success(`Category updated for all newsletters from ${senderEmail}`);
+    } catch (error) {
+      console.error("Error updating category:", error);
+      toast.error("Failed to update category");
+    } finally {
+      setUpdatingCategory(null);
+    }
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
@@ -175,11 +195,8 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
                       {onCategoryChange ? (
                         <Select
                           value={sender.category_id?.toString() || ""}
-                          onValueChange={(value) => {
-                            if (onCategoryChange) {
-                              onCategoryChange(sender.sender_email, parseInt(value) || null);
-                            }
-                          }}
+                          onValueChange={(value) => handleCategoryChange(sender.sender_email, value)}
+                          disabled={updatingCategory === sender.sender_email}
                         >
                           <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Select category" />

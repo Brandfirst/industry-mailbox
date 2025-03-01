@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { NewsletterListTable } from "./NewsletterListTable";
@@ -8,14 +7,12 @@ import { NewsletterListActions } from "./NewsletterListActions";
 type NewsletterListProps = {
   newsletters: Newsletter[];
   categories: NewsletterCategory[];
-  onCategoryChange: (newsletters: Newsletter[], applySenderWide: boolean) => void;
   onDeleteNewsletters?: (ids: number[]) => Promise<void>;
 };
 
 export function NewsletterList({
   newsletters,
   categories,
-  onCategoryChange,
   onDeleteNewsletters,
 }: NewsletterListProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -31,12 +28,6 @@ export function NewsletterList({
     }
     senderGroups[senderKey].push(newsletter);
   });
-
-  const handleCategoryChange = (newsletter: Newsletter, applySenderWide: boolean) => {
-    // We only need to pass the one newsletter - the onCategoryChange function will handle
-    // applying it to all newsletters from the same sender if applySenderWide is true
-    onCategoryChange([newsletter], applySenderWide);
-  };
 
   const handleDeleteConfirm = async () => {
     if (!onDeleteNewsletters) return;
@@ -89,7 +80,6 @@ export function NewsletterList({
         newsletters={newsletters}
         categories={categories}
         senderGroups={senderGroups}
-        onCategoryChange={handleCategoryChange}
         isSelected={isSelected}
         onToggleSelectAll={toggleSelectAll}
         onToggleSelectNewsletter={toggleSelectNewsletter}
