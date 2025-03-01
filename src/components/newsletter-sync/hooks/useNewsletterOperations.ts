@@ -45,16 +45,28 @@ export function useNewsletterOperations(
         if (result.partial) {
           // Check if there are failed items to display
           if (result.failed && result.failed.length > 0) {
-            // Get database schema errors
+            // Check for database schema errors
             const schemaErrors = result.failed.filter(item => 
               item.error?.includes('gmail_message_id') || 
-              item.details?.includes('gmail_message_id')
+              item.details?.includes('gmail_message_id') ||
+              item.error?.includes('gmail_thread_id') || 
+              item.details?.includes('gmail_thread_id')
             );
             
             if (schemaErrors.length > 0) {
               // This is definitely a database schema issue
               const errorDetails = "Newsletter sync failed due to missing database column.";
-              const dbError = "The database is missing the 'gmail_message_id' column in the newsletters table. This needs to be added to the database schema.";
+              let dbError = "";
+              
+              if (schemaErrors.some(e => e.error?.includes('gmail_message_id') || e.details?.includes('gmail_message_id'))) {
+                dbError += "The database is missing the 'gmail_message_id' column in the newsletters table. ";
+              }
+              
+              if (schemaErrors.some(e => e.error?.includes('gmail_thread_id') || e.details?.includes('gmail_thread_id'))) {
+                dbError += "The database is missing the 'gmail_thread_id' column in the newsletters table. ";
+              }
+              
+              dbError += "Please contact the developer for assistance.";
               setErrorMessage(`${errorDetails} ${dbError}`);
               
               // Log detailed info for debugging
@@ -62,7 +74,7 @@ export function useNewsletterOperations(
               toast.error("Database schema issue detected. See console for details.");
               
               // Show a more specific error in the UI
-              setWarningMessage("To fix this issue, add the 'gmail_message_id' column to the newsletters table. Contact developer for assistance.");
+              setWarningMessage("To fix this issue, check the database schema for required columns. Contact developer for assistance.");
             } else {
               // Format the failed items for display
               const failedDetails = result.failed.slice(0, 3).map(item => {
@@ -87,7 +99,7 @@ export function useNewsletterOperations(
             // No newsletters synced at all, so it's more of an error
             const errorDetails = result.details || 
                               "Failed to sync newsletters. There may be a database schema issue.";
-            const dbError = "The database might be missing required columns. Check the logs for 'gmail_message_id' errors.";
+            const dbError = "The database might be missing required columns. Check the logs for column errors.";
             setErrorMessage(`${errorDetails} ${dbError}`);
             toast.error(errorDetails);
           }
@@ -126,13 +138,30 @@ export function useNewsletterOperations(
           errorMsg += `: ${result.details}`;
         }
         
+        // Check for specific missing column errors in the result
+        if (
+          (result.error && result.error.includes('gmail_thread_id')) ||
+          (result.details && result.details.includes('gmail_thread_id'))
+        ) {
+          errorMsg = "Database schema error: The 'gmail_thread_id' column is missing from the newsletters table.";
+          console.error("Database schema error detected:", result);
+        }
+        
         setErrorMessage(`Failed to sync emails: ${errorMsg}`);
         toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Error syncing emails:", error);
-      setErrorMessage("An unexpected error occurred while syncing emails. Please check the console for more details and try again.");
-      toast.error("An error occurred while syncing emails");
+      
+      // Check for specific missing column errors
+      const errorString = String(error);
+      if (errorString.includes('gmail_thread_id')) {
+        setErrorMessage("Database schema error: The 'gmail_thread_id' column is missing from the newsletters table. Contact the developer for assistance.");
+        toast.error("Database schema error detected");
+      } else {
+        setErrorMessage("An unexpected error occurred while syncing emails. Please check the console for more details and try again.");
+        toast.error("An error occurred while syncing emails");
+      }
     } finally {
       setIsSyncing(false);
     }
