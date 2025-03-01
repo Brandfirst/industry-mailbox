@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -84,10 +83,20 @@ export async function getNewsletters(options: any = {}) {
   const from = (page - 1) * limit;
   const to = from + limit - 1;
   
-  const { data, error, count } = await supabase
+  let query = supabase
     .from("newsletters")
-    .select("*, categories(id, name, slug, color)")
-    .range(from, to);
+    .select("*, categories(id, name, slug, color)");
+    
+  // Apply filters if provided
+  if (options.searchQuery) {
+    query = query.or(`title.ilike.%${options.searchQuery}%,content.ilike.%${options.searchQuery}%`);
+  }
+  
+  if (options.industries && options.industries.length > 0) {
+    query = query.in('industry', options.industries);
+  }
+  
+  const { data, error, count } = await query.range(from, to);
   
   if (error) {
     console.error("Error fetching newsletters:", error);
@@ -102,19 +111,24 @@ export async function getNewslettersFromEmailAccount(accountId, page = 1, limit 
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
-  const { data, error, count } = await supabase
-    .from("newsletters")
-    .select("*, categories(id, name, slug, color)", { count: "exact" })
-    .eq("email_id", accountId)
-    .range(from, to)
-    .order("published_at", { ascending: false });
+  try {
+    const { data, error, count } = await supabase
+      .from("newsletters")
+      .select("*, categories(id, name, slug, color)", { count: "exact" })
+      .eq("email_id", accountId)
+      .range(from, to)
+      .order("published_at", { ascending: false });
 
-  if (error) {
-    console.error("Error fetching newsletters for email account:", error);
+    if (error) {
+      console.error("Error fetching newsletters for email account:", error);
+      throw error;
+    }
+
+    return { data: data || [], count };
+  } catch (error) {
+    console.error("Error in getNewslettersFromEmailAccount:", error);
     throw error;
   }
-
-  return { data: data || [], count };
 }
 
 export async function getNewsletterById(id) {
@@ -225,7 +239,6 @@ export async function getAllCategories(): Promise<NewsletterCategory[]> {
       return [];
     }
 
-    // Cast to the expected type after validation
     return data as NewsletterCategory[];
   } catch (error) {
     console.error("Exception in getAllCategories:", error);

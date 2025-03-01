@@ -44,16 +44,25 @@ export type Database = {
       }
       categories: {
         Row: {
+          color: string
           created_at: string
           id: number
+          name: string
+          slug: string
         }
         Insert: {
+          color?: string
           created_at?: string
           id?: number
+          name?: string
+          slug?: string
         }
         Update: {
+          color?: string
           created_at?: string
           id?: number
+          name?: string
+          slug?: string
         }
         Relationships: []
       }
@@ -95,36 +104,53 @@ export type Database = {
       }
       newsletters: {
         Row: {
+          category_id: number | null
           content: string | null
           created_at: string
+          email_id: string | null
           id: number
           industry: string | null
           preview: string | null
           published_at: string | null
           sender: string | null
+          sender_email: string | null
           title: string | null
         }
         Insert: {
+          category_id?: number | null
           content?: string | null
           created_at?: string
+          email_id?: string | null
           id?: number
           industry?: string | null
           preview?: string | null
           published_at?: string | null
           sender?: string | null
+          sender_email?: string | null
           title?: string | null
         }
         Update: {
+          category_id?: number | null
           content?: string | null
           created_at?: string
+          email_id?: string | null
           id?: number
           industry?: string | null
           preview?: string | null
           published_at?: string | null
           sender?: string | null
+          sender_email?: string | null
           title?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "newsletters_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

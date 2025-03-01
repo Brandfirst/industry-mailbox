@@ -45,7 +45,7 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
-import { RefreshCw, Filter, Check, Tag, Calendar, Mail, Eye } from "lucide-react";
+import { RefreshCw, Filter, Check, Tag, Calendar, Mail, Eye, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { 
@@ -68,6 +68,7 @@ export default function NewsletterSync() {
   const [categories, setCategories] = useState<NewsletterCategory[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedNewsletter, setSelectedNewsletter] = useState<Newsletter | null>(null);
@@ -78,6 +79,7 @@ export default function NewsletterSync() {
       if (!user) return;
       
       try {
+        setErrorMessage(null);
         const accounts = await getUserEmailAccounts(user.id);
         setEmailAccounts(accounts);
         
@@ -89,7 +91,8 @@ export default function NewsletterSync() {
         setCategories(allCategories);
       } catch (error) {
         console.error("Error loading initial data:", error);
-        toast.error("Failed to load email accounts");
+        setErrorMessage("Failed to load email accounts or categories.");
+        toast.error("Failed to load data");
       }
     };
     
@@ -101,6 +104,8 @@ export default function NewsletterSync() {
       if (!selectedAccount) return;
       
       setIsLoading(true);
+      setErrorMessage(null);
+      
       try {
         const { data, count } = await getNewslettersFromEmailAccount(
           selectedAccount, 
@@ -111,6 +116,7 @@ export default function NewsletterSync() {
         setTotalCount(count || 0);
       } catch (error) {
         console.error("Error loading newsletters:", error);
+        setErrorMessage("Failed to load newsletters. There may be a database issue or the account is not properly connected.");
         toast.error("Failed to load newsletters");
       } finally {
         setIsLoading(false);
@@ -124,6 +130,7 @@ export default function NewsletterSync() {
     if (!selectedAccount) return;
     
     setIsSyncing(true);
+    setErrorMessage(null);
     toast.info("Starting email sync...");
     
     try {
@@ -142,10 +149,12 @@ export default function NewsletterSync() {
         setNewsletters(data);
       } else {
         console.error("Sync error details:", result);
+        setErrorMessage(`Failed to sync emails: ${result.error || "Unknown error"}`);
         toast.error(result.error || "Failed to sync emails");
       }
     } catch (error) {
       console.error("Error syncing emails:", error);
+      setErrorMessage("An error occurred while syncing emails.");
       toast.error("An error occurred while syncing emails");
     } finally {
       setIsSyncing(false);
@@ -214,6 +223,13 @@ export default function NewsletterSync() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {errorMessage && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 mb-4 rounded-md flex items-center">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+        
         {emailAccounts.length === 0 ? (
           <div className="text-center py-8">
             <Mail className="mx-auto h-12 w-12 text-gray-400" />
