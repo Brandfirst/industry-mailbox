@@ -117,10 +117,14 @@ const FeaturedNewsletters = () => {
         ) : newsletters.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {newsletters.map((newsletter) => (
-              <div 
+              <a 
                 key={newsletter.id} 
-                className="shadow-sm overflow-hidden rounded-xl bg-white border w-full flex flex-col h-full group cursor-pointer"
-                onClick={() => navigate(`/newsletter/${newsletter.id}`)}
+                href={`/newsletter/${newsletter.id}`}
+                className="shadow-sm overflow-hidden rounded-xl bg-white border w-full flex flex-col h-full group cursor-pointer hover:shadow-md transition-shadow"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(`/newsletter/${newsletter.id}`);
+                }}
               >
                 {/* Header with sender info */}
                 <div className="flex items-center p-4 border-b">
@@ -150,34 +154,29 @@ const FeaturedNewsletters = () => {
                   )}
                 </div>
                 
-                {/* Content Preview - HTML content with fallback */}
-                <div className="w-full h-48 border-gray-200 group-hover:opacity-75">
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                    {newsletter.content ? (
-                      <div 
-                        className="w-full h-full object-cover" 
-                        dangerouslySetInnerHTML={{ 
-                          __html: newsletter.content.length > 500 
-                            ? newsletter.content.substring(0, 500) + '...' 
-                            : newsletter.content 
-                        }} 
-                      />
-                    ) : (
+                {/* Content Preview - Show only the rendered HTML content */}
+                <div className="w-full h-64 overflow-hidden">
+                  {newsletter.content ? (
+                    <iframe
+                      srcDoc={newsletter.content}
+                      title={newsletter.title || "Newsletter Content"}
+                      className="w-full h-full border-0"
+                      sandbox="allow-same-origin"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                       <span className="text-muted-foreground text-sm">Ingen innhold tilgjengelig</span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
                 
-                {/* Title and preview */}
-                <div className="flex flex-col gap-2 grow p-4 min-h-[80px]">
-                  <div className="text-base leading-6 line-clamp-2 font-medium text-gray-900">
+                {/* Title only - removed preview text */}
+                <div className="p-4 border-t min-h-[60px]">
+                  <h3 className="text-base font-medium text-gray-900 line-clamp-2">
                     {newsletter.title || 'Untitled Newsletter'}
-                  </div>
-                  <div className="text-sm font-light text-gray-500 line-clamp-2">
-                    {newsletter.preview || 'Ingen forhåndsvisning tilgjengelig.'}
-                  </div>
+                  </h3>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         ) : (

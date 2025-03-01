@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import AnnouncementBar, { HomeHeader } from "./components/AnnouncementBar";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
-import FeaturedNewsletters from "./components/FeaturedNewsletters";
 import FeaturesSection from "./components/FeaturesSection";
 import TestimonialsSection from "./components/TestimonialsSection";
 import PricingSection from "./components/PricingSection";
@@ -55,7 +54,6 @@ const HomePage = () => {
       
       {/* Main content sections */}
       <HeroSection />
-      <FeaturedNewsletters />
       <StatsSection />
       <FeaturesSection />
       <TestimonialsSection />
