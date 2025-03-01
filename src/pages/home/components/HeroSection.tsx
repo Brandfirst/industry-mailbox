@@ -57,13 +57,14 @@ const HeroSection = () => {
         
         <div className="animate-slide-down max-w-5xl mx-auto">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-ebgaramond tracking-tight mb-6 text-white">
-            Norges største database av nyhetsbrev
+            Norges største database<br />av nyhetsbrev
             <span className="block text-[#3a6ffb] mt-4 relative">
               <div className="absolute -bottom-2 w-full h-0.5 bg-gradient-to-r from-transparent via-[#3a6ffb] to-transparent"></div>
             </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 mb-6 max-w-3xl mx-auto">
-            Utforsk mer enn <CountUpAnimation endValue={100000} suffix=" nyhetsbrev" /> fra <CountUpAnimation endValue={2000} suffix=" varemerker" />.
+            Utforsk mer enn <CountUpAnimation endValue={100000} suffix=" nyhetsbrev" /> fra <CountUpAnimation endValue={2000} suffix=" varemerker" />. 
+            Laget for markedsførere og byråer som ønsker å skape effektive og engasjerende nyhetsbrev.
           </p>
           
           {/* Featured Newsletters Section - moved directly below the text */}

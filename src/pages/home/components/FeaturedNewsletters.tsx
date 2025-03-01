@@ -1,12 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NewsletterCategory } from '@/lib/supabase/types';
 import { format } from 'date-fns';
-import { ArrowRight, Filter } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getFeaturedNewsletters } from '@/lib/supabase/newsletters';
 import LogoSection from './LogoSection';
@@ -16,7 +15,6 @@ const FeaturedNewsletters = () => {
   const [newsletters, setNewsletters] = useState([]);
   const [categories, setCategories] = useState<NewsletterCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
   useEffect(() => {
@@ -24,7 +22,8 @@ const FeaturedNewsletters = () => {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .order('name');
+        .order('name')
+        .limit(4); // Limit to 4 categories
       
       if (error) {
         console.error('Error fetching categories:', error);
@@ -43,7 +42,6 @@ const FeaturedNewsletters = () => {
       
       try {
         const result = await getFeaturedNewsletters({
-          searchQuery, 
           categoryId: selectedCategory !== 'all' ? selectedCategory : undefined,
           limit: 4
         });
@@ -57,7 +55,7 @@ const FeaturedNewsletters = () => {
     };
     
     fetchNewsletters();
-  }, [searchQuery, selectedCategory]);
+  }, [selectedCategory]);
   
   const handleSeeMoreClick = () => {
     navigate('/search');
@@ -75,36 +73,25 @@ const FeaturedNewsletters = () => {
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <h2 className="text-2xl font-bold text-white">Utforskede nyhetsbrev</h2>
             
-            <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
-              <div className="relative">
-                <Input
-                  type="search"
-                  placeholder="Søk etter nyhetsbrev..."
-                  className="pr-8 w-full sm:w-[200px]"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                className={`${selectedCategory === 'all' ? 'bg-[#3a6ffb] text-white' : 'bg-black text-gray-300 border-gray-700 hover:bg-[#3a6ffb]/10'}`}
+                onClick={() => setSelectedCategory('all')}
+              >
+                Alle kategorier
+              </Button>
               
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select
-                  value={selectedCategory}
-                  onValueChange={(value) => setSelectedCategory(value)}
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant="outline"
+                  className={`${selectedCategory === String(category.id) ? 'bg-[#3a6ffb] text-white' : 'bg-black text-gray-300 border-gray-700 hover:bg-[#3a6ffb]/10'}`}
+                  onClick={() => setSelectedCategory(String(category.id))}
                 >
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Velg kategori" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Alle kategorier</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={String(category.id)}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  {category.name}
+                </Button>
+              ))}
             </div>
           </div>
           
@@ -171,7 +158,7 @@ const FeaturedNewsletters = () => {
           ) : (
             <div className="text-center py-12">
               <h3 className="text-xl font-medium mb-2 text-white">Ingen nyhetsbrev funnet</h3>
-              <p className="text-muted-foreground mb-6">Prøv å endre søk eller filtre for å se flere nyhetsbrev</p>
+              <p className="text-muted-foreground mb-6">Prøv å endre kategori for å se flere nyhetsbrev</p>
             </div>
           )}
           
