@@ -13,13 +13,14 @@ import { NewsletterCategory } from "@/lib/supabase/types";
 type SenderListProps = {
   senders: NewsletterSenderStats[];
   categories: NewsletterCategory[];
-  onCategoryChange: (senderEmail: string, categoryId: number) => Promise<void>;
+  loading?: boolean;
+  onCategoryChange?: (senderEmail: string, categoryId: number) => Promise<void>;
 };
 
 type SortField = 'name' | 'count' | 'last_sync';
 type SortDirection = 'asc' | 'desc';
 
-const SenderList = ({ senders, categories, onCategoryChange }: SenderListProps) => {
+const SenderList = ({ senders, categories, loading = false, onCategoryChange }: SenderListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>('count');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -37,16 +38,18 @@ const SenderList = ({ senders, categories, onCategoryChange }: SenderListProps) 
   // Filter and sort senders
   const filteredSenders = senders
     .filter(sender => 
-      sender.sender_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sender.sender_email.toLowerCase().includes(searchTerm.toLowerCase())
+      sender.sender_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sender.sender_email?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       let comparison = 0;
       
       if (sortField === 'name') {
-        comparison = a.sender_name.localeCompare(b.sender_name);
+        const nameA = a.sender_name?.toLowerCase() || a.sender_email?.toLowerCase() || "";
+        const nameB = b.sender_name?.toLowerCase() || b.sender_email?.toLowerCase() || "";
+        comparison = nameA.localeCompare(nameB);
       } else if (sortField === 'count') {
-        comparison = a.newsletter_count - b.newsletter_count;
+        comparison = (a.newsletter_count || 0) - (b.newsletter_count || 0);
       } else if (sortField === 'last_sync') {
         // Sort by last_sync_date, handling null values
         if (!a.last_sync_date) return 1;
@@ -81,6 +84,14 @@ const SenderList = ({ senders, categories, onCategoryChange }: SenderListProps) 
     if (sortField !== field) return null;
     return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 ml-1" /> : <ChevronDown className="h-4 w-4 ml-1" />;
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -161,24 +172,30 @@ const SenderList = ({ senders, categories, onCategoryChange }: SenderListProps) 
                         className="h-4 w-4 mr-2" 
                         style={{ color: getCategoryColorById(sender.category_id) }} 
                       />
-                      <Select
-                        value={sender.category_id?.toString() || ""}
-                        onValueChange={(value) => {
-                          onCategoryChange(sender.sender_email, parseInt(value));
-                        }}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">Uncategorized</SelectItem>
-                          {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id.toString()}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {onCategoryChange ? (
+                        <Select
+                          value={sender.category_id?.toString() || ""}
+                          onValueChange={(value) => {
+                            if (onCategoryChange) {
+                              onCategoryChange(sender.sender_email, parseInt(value) || null);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Uncategorized</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <span>{getCategoryNameById(sender.category_id)}</span>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

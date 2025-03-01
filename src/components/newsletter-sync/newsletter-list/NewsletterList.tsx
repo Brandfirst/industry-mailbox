@@ -1,12 +1,8 @@
-
-import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { useState } from "react";
-import { toast } from "sonner";
-import { useNewsletterSelection } from "../useNewsletterSelection";
-import { AnimatePresence } from "framer-motion";
-import { NewsletterListActions } from "./NewsletterListActions";
+import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { NewsletterListTable } from "./NewsletterListTable";
 import { DeleteConfirmationDialog } from "../DeleteConfirmationDialog";
+import { NewsletterListActions } from "./NewsletterListActions";
 
 type NewsletterListProps = {
   newsletters: Newsletter[];
@@ -15,105 +11,99 @@ type NewsletterListProps = {
   onDeleteNewsletters?: (ids: number[]) => Promise<void>;
 };
 
-export function NewsletterList({ 
-  newsletters, 
-  categories, 
+export function NewsletterList({
+  newsletters,
+  categories,
   onCategoryChange,
-  onDeleteNewsletters 
+  onDeleteNewsletters,
 }: NewsletterListProps) {
-  const {
-    selection,
-    toggleSelectAll,
-    toggleSelectNewsletter,
-    clearSelection,
-    isSelected
-  } = useNewsletterSelection();
-  
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleCategoryChange = (updatedNewsletter: Newsletter, applySenderWide: boolean) => {
-    // Find all newsletters with the same sender if applySenderWide is true
-    if (applySenderWide) {
-      const sender = updatedNewsletter.sender || updatedNewsletter.sender_email;
-      const updatedNewsletters = newsletters.map(newsletter => {
-        const newsletterSender = newsletter.sender || newsletter.sender_email;
-        // Apply the same category to all newsletters with the same sender
-        if (newsletterSender === sender) {
-          return {
-            ...newsletter,
-            category_id: updatedNewsletter.category_id
-          };
-        }
-        return newsletter;
-      });
-      
-      onCategoryChange(updatedNewsletters, true);
-    } else {
-      // Update just this newsletter for backward compatibility
-      const updatedNewsletters = newsletters.map(newsletter => 
-        newsletter.id === updatedNewsletter.id ? updatedNewsletter : newsletter
-      );
-      
-      onCategoryChange(updatedNewsletters, false);
+  // Group newsletters by sender for better display
+  const senderGroups: Record<string, Newsletter[]> = {};
+  newsletters.forEach(newsletter => {
+    const senderKey = newsletter.sender_email || newsletter.sender || "Unknown";
+    if (!senderGroups[senderKey]) {
+      senderGroups[senderKey] = [];
     }
+    senderGroups[senderKey].push(newsletter);
+  });
+
+  const handleCategoryChange = (newsletter: Newsletter, applySenderWide: boolean) => {
+    // We only need to pass the one newsletter - the onCategoryChange function will handle
+    // applying it to all newsletters from the same sender if applySenderWide is true
+    onCategoryChange([newsletter], applySenderWide);
   };
 
-  const handleDeleteSelected = async () => {
-    if (!onDeleteNewsletters || selection.selectedIds.length === 0) return;
+  const handleDeleteConfirm = async () => {
+    if (!onDeleteNewsletters) return;
     
+    setIsDeleting(true);
     try {
-      setIsDeleting(true);
-      await onDeleteNewsletters(selection.selectedIds);
-      toast.success(`Successfully deleted ${selection.selectedIds.length} newsletter(s)`);
-      clearSelection();
+      await onDeleteNewsletters(selectedIds);
+      setSelectedIds([]);
     } catch (error) {
       console.error("Error deleting newsletters:", error);
-      toast.error("Failed to delete newsletters");
     } finally {
       setIsDeleting(false);
-      setDeleteDialogOpen(false);
+      setShowDeleteDialog(false);
     }
   };
 
-  // Group newsletters by sender for visual clarity
-  const senderGroups = newsletters.reduce((groups, newsletter) => {
-    const sender = newsletter.sender || newsletter.sender_email || "Unknown";
-    if (!groups[sender]) {
-      groups[sender] = [];
+  const toggleSelectNewsletter = (id: number) => {
+    setSelectedIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(itemId => itemId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === newsletters.length) {
+      // If all selected, deselect all
+      setSelectedIds([]);
+    } else {
+      // Otherwise, select all
+      setSelectedIds(newsletters.map(n => n.id));
     }
-    groups[sender].push(newsletter);
-    return groups;
-  }, {} as Record<string, Newsletter[]>);
+  };
+
+  const isSelected = (id: number) => selectedIds.includes(id);
+
+  const allSelected = newsletters.length > 0 && selectedIds.length === newsletters.length;
 
   return (
     <div className="space-y-4">
-      <AnimatePresence>
-        <NewsletterListActions 
-          selectedCount={selection.selectedIds.length}
-          onDelete={() => setDeleteDialogOpen(true)} 
+      {onDeleteNewsletters && (
+        <NewsletterListActions
+          selectedCount={selectedIds.length}
+          onDelete={() => setShowDeleteDialog(true)}
           isDeleting={isDeleting}
         />
-      </AnimatePresence>
+      )}
       
-      <NewsletterListTable 
+      <NewsletterListTable
         newsletters={newsletters}
         categories={categories}
         senderGroups={senderGroups}
         onCategoryChange={handleCategoryChange}
         isSelected={isSelected}
-        onToggleSelectAll={() => toggleSelectAll(newsletters)}
+        onToggleSelectAll={toggleSelectAll}
         onToggleSelectNewsletter={toggleSelectNewsletter}
-        allSelected={selection.allSelected}
+        allSelected={allSelected}
       />
-
-      <DeleteConfirmationDialog
-        isOpen={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleDeleteSelected}
-        isDeleting={isDeleting}
-        count={selection.selectedIds.length}
-      />
+      
+      {onDeleteNewsletters && (
+        <DeleteConfirmationDialog
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onConfirm={handleDeleteConfirm}
+          isDeleting={isDeleting}
+          count={selectedIds.length}
+        />
+      )}
     </div>
   );
 }

@@ -1,8 +1,9 @@
-
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Info } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { motion } from "framer-motion";
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { SenderGroup } from "./SenderGroup";
 import { CategorySelector } from "../CategorySelector";
+import { NewsletterViewDialog } from "../NewsletterViewDialog";
 
 type NewsletterListTableProps = {
   newsletters: Newsletter[];

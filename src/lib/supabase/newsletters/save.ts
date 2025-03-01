@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter } from "../types";
 import { NewsletterFilterOptions } from "./types";
@@ -168,4 +167,28 @@ export function getNewsletters(options: NewsletterFilterOptions = {}) {
   }
 
   return query.range(startRow, endRow);
+}
+
+/**
+ * Updates the category for all newsletters from a specific sender
+ */
+export async function updateSenderCategory(senderEmail: string, categoryId: number): Promise<void> {
+  try {
+    console.log(`Updating category to ${categoryId} for all newsletters from sender: ${senderEmail}`);
+    
+    const { error } = await supabase
+      .from("newsletters")
+      .update({ category_id: categoryId })
+      .eq("sender_email", senderEmail);
+    
+    if (error) {
+      console.error("Error updating sender category:", error);
+      throw error;
+    }
+    
+    console.log(`Successfully updated category for sender: ${senderEmail}`);
+  } catch (error) {
+    console.error("Exception in updateSenderCategory:", error);
+    throw error;
+  }
 }

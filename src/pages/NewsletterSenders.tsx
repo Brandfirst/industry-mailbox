@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,8 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { getSenderStats } from "@/lib/supabase/newsletters/fetch";
 import { CategoryWithStats, NewsletterCategory } from "@/lib/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
-import { SenderList } from "@/components/newsletter-senders/SenderList";
-import { refreshLogo, searchLogo } from "@/lib/utils";
+import SenderList from "@/components/newsletter-senders/SenderList";
 import { ArrowUpDown, RefreshCw, Search } from "lucide-react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 import { toast } from "sonner";
@@ -24,7 +22,6 @@ export default function NewsletterSenders() {
   const [sortAsc, setSortAsc] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch sender stats and categories
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
@@ -32,7 +29,6 @@ export default function NewsletterSenders() {
       try {
         setLoading(true);
         
-        // Fetch categories
         const { data: categoriesData, error: categoriesError } = await supabase
           .from("categories")
           .select("*")
@@ -41,7 +37,6 @@ export default function NewsletterSenders() {
         if (categoriesError) throw categoriesError;
         setCategories(categoriesData || []);
         
-        // Fetch sender stats
         const senderStats = await getSenderStats(user.id);
         setSenders(senderStats);
       } catch (error) {
@@ -80,7 +75,6 @@ export default function NewsletterSenders() {
     }
   };
   
-  // Filter and sort the senders
   const filteredSenders = senders
     .filter(sender => {
       const senderName = sender.sender_name?.toLowerCase() || "";
