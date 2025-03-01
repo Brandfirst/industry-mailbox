@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -7,10 +6,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { NewsletterSelectionState } from "@/components/email-connection/types";
 import { CategorySelector } from "./CategorySelector";
 import { NewsletterViewDialog } from "./NewsletterViewDialog";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
+import { useState } from "react";
+import { useNewsletterSelection } from "./useNewsletterSelection";
 
 type NewsletterListProps = {
   newsletters: Newsletter[];
@@ -25,44 +25,16 @@ export function NewsletterList({
   onCategoryChange,
   onDeleteNewsletters 
 }: NewsletterListProps) {
-  const [selection, setSelection] = useState<NewsletterSelectionState>({
-    selectedIds: [],
-    allSelected: false
-  });
+  const {
+    selection,
+    toggleSelectAll,
+    toggleSelectNewsletter,
+    clearSelection,
+    isSelected
+  } = useNewsletterSelection();
+  
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const toggleSelectAll = () => {
-    if (selection.allSelected) {
-      // Deselect all
-      setSelection({ selectedIds: [], allSelected: false });
-    } else {
-      // Select all
-      const allIds = newsletters.map(newsletter => newsletter.id);
-      setSelection({ selectedIds: allIds, allSelected: true });
-    }
-  };
-
-  const toggleSelectNewsletter = (id: number) => {
-    const isSelected = selection.selectedIds.includes(id);
-    let newSelectedIds: number[];
-    
-    if (isSelected) {
-      // Remove from selection
-      newSelectedIds = selection.selectedIds.filter(selectedId => selectedId !== id);
-    } else {
-      // Add to selection
-      newSelectedIds = [...selection.selectedIds, id];
-    }
-    
-    // Check if all are now selected
-    const allSelected = newSelectedIds.length === newsletters.length;
-    
-    setSelection({ 
-      selectedIds: newSelectedIds, 
-      allSelected
-    });
-  };
 
   const handleCategoryChange = (updatedNewsletter: Newsletter) => {
     // Update the local state to reflect the change
@@ -80,7 +52,7 @@ export function NewsletterList({
       setIsDeleting(true);
       await onDeleteNewsletters(selection.selectedIds);
       toast.success(`Successfully deleted ${selection.selectedIds.length} newsletter(s)`);
-      setSelection({ selectedIds: [], allSelected: false });
+      clearSelection();
     } catch (error) {
       console.error("Error deleting newsletters:", error);
       toast.error("Failed to delete newsletters");
@@ -114,7 +86,7 @@ export function NewsletterList({
               <TableHead className="w-[50px]">
                 <Checkbox 
                   checked={selection.allSelected} 
-                  onCheckedChange={toggleSelectAll}
+                  onCheckedChange={() => toggleSelectAll(newsletters)}
                 />
               </TableHead>
               <TableHead>Title</TableHead>
@@ -129,7 +101,7 @@ export function NewsletterList({
               <TableRow key={newsletter.id}>
                 <TableCell>
                   <Checkbox 
-                    checked={selection.selectedIds.includes(newsletter.id)}
+                    checked={isSelected(newsletter.id)}
                     onCheckedChange={() => toggleSelectNewsletter(newsletter.id)}
                   />
                 </TableCell>
