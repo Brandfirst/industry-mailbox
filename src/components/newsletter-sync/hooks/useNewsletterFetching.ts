@@ -89,6 +89,7 @@ export function useNewsletterFetching(
     warningMessage,
     setWarningMessage,
     totalCount,
+    setTotalCount,
     itemsPerPage: ITEMS_PER_PAGE
   };
 }

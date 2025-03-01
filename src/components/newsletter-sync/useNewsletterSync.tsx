@@ -39,6 +39,7 @@ export function useNewsletterSync(userId: string | undefined) {
     warningMessage,
     setWarningMessage,
     totalCount,
+    setTotalCount,
     itemsPerPage
   } = useNewsletterFetching(selectedAccount, page, filters);
 
@@ -52,7 +53,7 @@ export function useNewsletterSync(userId: string | undefined) {
     selectedAccount,
     page,
     setNewsletters,
-    (count: number) => setTotalCount(count),
+    setTotalCount,
     setFetchErrorMessage,
     setWarningMessage
   );
