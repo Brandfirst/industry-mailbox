@@ -118,6 +118,14 @@ export const OAuthCallbackHandler = ({
       
       console.log("[OAUTH CALLBACK] Exchanging code for access token with redirectUri:", redirectUri);
       
+      // Add more debug information before making the request
+      console.log("[OAUTH CALLBACK] Making connectGoogleEmail request with params:", {
+        userId: user.id,
+        codeLength: code.length,
+        redirectUri,
+        timestamp: new Date().toISOString()
+      });
+      
       const result = await connectGoogleEmail(user.id, code, redirectUri);
       console.log("[OAUTH CALLBACK] Connection result received:", { 
         success: result.success, 

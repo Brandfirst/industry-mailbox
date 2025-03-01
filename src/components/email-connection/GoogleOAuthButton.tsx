@@ -44,9 +44,10 @@ export const GoogleOAuthButton = ({
       isConnecting, 
       localIsConnecting, 
       user: !!user,
-      userId: user?.id
+      userId: user?.id,
+      redirectUri
     });
-  }, [isConnecting, localIsConnecting, user]);
+  }, [isConnecting, localIsConnecting, user, redirectUri]);
 
   const initiateGoogleOAuth = () => {
     // Use the prop value if passed, otherwise use local state
@@ -70,7 +71,7 @@ export const GoogleOAuthButton = ({
       if (!clientId) {
         console.error("[OAUTH ERROR] Missing VITE_GOOGLE_CLIENT_ID environment variable");
         setDebugInfo({ error: "Missing VITE_GOOGLE_CLIENT_ID" });
-        toast.error("Google client ID not configured. Please add VITE_GOOGLE_CLIENT_ID to your environment.");
+        toast.error("Google client ID not configured properly. Check the console for more details.");
         setLocalIsConnecting(false);
         return;
       }
@@ -108,8 +109,11 @@ export const GoogleOAuthButton = ({
       authUrl.searchParams.append("prompt", "consent");
       authUrl.searchParams.append("state", "gmail_connect");
       
+      // Log the full URL
+      console.log("[OAUTH REDIRECT] Full Google OAuth URL:", authUrl.toString());
+      
       // Redirect to Google OAuth consent screen
-      console.log("[OAUTH REDIRECT] Redirecting to Google OAuth URL:", authUrl.toString());
+      console.log("[OAUTH REDIRECT] Redirecting to Google OAuth URL");
       toast.info("Redirecting to Google for authorization...");
       window.location.href = authUrl.toString();
     } catch (error) {

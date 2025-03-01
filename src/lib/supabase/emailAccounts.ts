@@ -31,7 +31,15 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
     console.log("Invoking connect-gmail with payload:", {
       code: code ? `${code.substring(0, 10)}...` : null, // Log first few chars of code for debugging
       userId,
-      redirectUri: actualRedirectUri
+      redirectUri: actualRedirectUri,
+      timestamp: new Date().toISOString()
+    });
+    
+    // More detailed debugging before the invoke call
+    console.log("Debug environment check:", {
+      hasWindow: typeof window !== 'undefined',
+      windowOrigin: typeof window !== 'undefined' ? window.location.origin : null,
+      envRedirectUri: import.meta.env.VITE_REDIRECT_URI || 'not-set'
     });
     
     const response = await supabase.functions.invoke("connect-gmail", {
@@ -39,7 +47,8 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
         code, 
         userId, 
         redirectUri: actualRedirectUri,
-        timestamp: new Date().toISOString() // Add timestamp to help with debugging
+        timestamp: new Date().toISOString(), // Add timestamp to help with debugging
+        clientVersion: '1.0.1' // Add version to track client requests
       },
     });
     
