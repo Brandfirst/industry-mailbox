@@ -76,7 +76,7 @@ const Index = () => {
       <Navbar />
 
       {/* Hero Section - More dense and mobile optimized */}
-      <section className="relative bg-gradient-to-b from-gray-900 to-black py-6 md:py-10 overflow-hidden min-h-[92vh] md:min-h-[85vh] flex items-center">
+      <section className="relative bg-gradient-to-b from-gray-900 to-black py-6 md:py-10 overflow-hidden min-h-[80vh] md:min-h-[85vh] flex items-center">
         {/* Background pattern/grid */}
         <div className="absolute inset-0 overflow-hidden opacity-20">
           <div className="absolute -top-20 -left-20 right-0 bottom-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiPjxwYXRoIGQ9Ik0tMTAgMzBoOTBNLTEwIC0zMGg5ME0zMCAtMTB2OTBNLTMwIC0xMHY5MCIvPjwvZz48L3N2Zz4=')] bg-center opacity-10"></div>
@@ -132,34 +132,30 @@ const Index = () => {
                 Få inspirasjonen og innsikten du trenger for bedre markedsføring.
               </p>
               
-              {/* Three-column layout for desktop, stacked for mobile */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-6">
-                {/* Left column: Stats and CTA */}
-                <div className="order-2 lg:order-1">
-                  {/* Stats section - More compact */}
-                  <div className="mb-4">
-                    <div className="stats-grid grid grid-cols-2 gap-3">
-                      {stats.map((stat, index) => {
-                        const Icon = stat.icon;
-                        return (
-                          <div 
-                            key={index} 
-                            className={`stat-card shine-effect animate-count-up animate-delay-${index * 100}`}
-                          >
-                            <div className="flex justify-between items-center">
-                              <div className="stat-value">{stat.value}</div>
-                              <Icon className="w-4 h-4 text-blue-400" />
-                            </div>
-                            <div className="stat-label">{stat.label}</div>
+              <div className="flex flex-col lg:flex-row justify-between items-center gap-8 mb-12">
+                {/* Left column: Stats */}
+                <div className="w-full lg:w-1/3">
+                  <div className="stats-grid grid grid-cols-2 gap-3">
+                    {stats.slice(0, 2).map((stat, index) => {
+                      const Icon = stat.icon;
+                      return (
+                        <div 
+                          key={index} 
+                          className={`stat-card shine-effect animate-count-up animate-delay-${index * 100}`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="stat-value">{stat.value}</div>
+                            <Icon className="w-4 h-4 text-blue-400" />
                           </div>
-                        );
-                      })}
-                    </div>
+                          <div className="stat-label">{stat.label}</div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
                 
-                {/* Middle column: Main hero content and CTA */}
-                <div className="order-1 lg:order-2 flex flex-col items-center justify-between">
+                {/* Middle column: CTA Buttons */}
+                <div className="w-full lg:w-1/3 flex flex-col items-center">
                   <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
                     <Link to="/search">
                       <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto px-6 py-6 text-lg">
@@ -176,69 +172,89 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Right column: Testimonials - Redesigned Carousel */}
-                <div className="order-3 lg:order-3">
-                  {/* Centered-card testimonials carousel with perspective */}
-                  <div className="relative carousel-container overflow-hidden w-full px-2">
-                    <div 
-                      className="overflow-hidden cursor-grab active:cursor-grabbing" 
-                      ref={testimonialViewportRef}
-                    >
-                      <div className="flex -mx-4">
-                        {testimonials.map((testimonial, index) => (
-                          <div 
-                            key={index}
-                            className={`testimonial-card shine-effect min-w-[100%] p-3 transition-all duration-300 px-4 flex-shrink-0 ${
-                              index === activeIndex 
-                                ? 'scale-100 opacity-100 z-10' 
-                                : 'scale-[0.85] opacity-70 z-0'
-                            }`}
-                          >
-                            <div className={`bg-gradient-to-b from-gray-800 to-gray-900 p-4 rounded-lg shadow-lg transform transition-transform duration-300 ${
-                              index === activeIndex ? 'translate-y-0' : 'translate-y-2'
-                            }`}>
-                              <div className="flex items-start mb-2">
-                                <div className="testimonial-avatar mr-2 bg-blue-900 flex items-center justify-center rounded-full w-8 h-8 text-blue-400 text-sm font-bold">
-                                  {testimonial.initial}
-                                </div>
-                                <div>
-                                  <div className="testimonial-name text-xs font-semibold text-white">{testimonial.author}</div>
-                                  <div className="testimonial-company text-xs text-gray-400">{testimonial.company}</div>
-                                  <div className="flex mt-1">
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star 
-                                        key={i} 
-                                        className={`w-3 h-3 ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-600'}`}
-                                        fill={i < testimonial.rating ? 'currentColor' : 'none'}
-                                      />
-                                    ))}
-                                  </div>
-                                </div>
+                {/* Right column: Stats */}
+                <div className="w-full lg:w-1/3">
+                  <div className="stats-grid grid grid-cols-2 gap-3">
+                    {stats.slice(2, 4).map((stat, index) => {
+                      const Icon = stat.icon;
+                      return (
+                        <div 
+                          key={index + 2} 
+                          className={`stat-card shine-effect animate-count-up animate-delay-${(index + 2) * 100}`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="stat-value">{stat.value}</div>
+                            <Icon className="w-4 h-4 text-blue-400" />
+                          </div>
+                          <div className="stat-label">{stat.label}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Testimonials Carousel - NOW BETWEEN BUTTONS AND STATS SECTION */}
+              <div className="mb-8 mt-6 max-w-5xl mx-auto">
+                <div className="relative carousel-container overflow-hidden w-full px-2">
+                  <div 
+                    className="overflow-hidden cursor-grab active:cursor-grabbing" 
+                    ref={testimonialViewportRef}
+                  >
+                    <div className="flex -mx-4">
+                      {testimonials.map((testimonial, index) => (
+                        <div 
+                          key={index}
+                          className={`testimonial-card shine-effect min-w-[100%] p-3 transition-all duration-300 px-4 flex-shrink-0 ${
+                            index === activeIndex 
+                              ? 'scale-100 opacity-100 z-10' 
+                              : 'scale-[0.85] opacity-70 z-0'
+                          }`}
+                        >
+                          <div className={`bg-gradient-to-b from-gray-800 to-gray-900 p-4 rounded-lg shadow-lg transform transition-transform duration-300 ${
+                            index === activeIndex ? 'translate-y-0' : 'translate-y-2'
+                          }`}>
+                            <div className="flex items-start mb-2">
+                              <div className="testimonial-avatar mr-2 bg-blue-900 flex items-center justify-center rounded-full w-8 h-8 text-blue-400 text-sm font-bold">
+                                {testimonial.initial}
                               </div>
-                              <div className="testimonial-text text-xs text-gray-300 leading-relaxed">
-                                "{testimonial.text}"
+                              <div>
+                                <div className="testimonial-name text-xs font-semibold text-white">{testimonial.author}</div>
+                                <div className="testimonial-company text-xs text-gray-400">{testimonial.company}</div>
+                                <div className="flex mt-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star 
+                                      key={i} 
+                                      className={`w-3 h-3 ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-600'}`}
+                                      fill={i < testimonial.rating ? 'currentColor' : 'none'}
+                                    />
+                                  ))}
+                                </div>
                               </div>
                             </div>
+                            <div className="testimonial-text text-xs text-gray-300 leading-relaxed">
+                              "{testimonial.text}"
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Simple indicator dots */}
-                    <div className="flex justify-center mt-3 space-x-1.5">
-                      {testimonials.map((_, index) => (
-                        <button
-                          key={index}
-                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            index === activeIndex 
-                              ? 'bg-blue-400 w-4' 
-                              : 'bg-gray-600 opacity-50'
-                          }`}
-                          onClick={() => emblaApi?.scrollTo(index)}
-                          aria-label={`Go to testimonial ${index + 1}`}
-                        />
+                        </div>
                       ))}
                     </div>
+                  </div>
+                  
+                  {/* Simple indicator dots */}
+                  <div className="flex justify-center mt-3 space-x-1.5">
+                    {testimonials.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          index === activeIndex 
+                            ? 'bg-blue-400 w-4' 
+                            : 'bg-gray-600 opacity-50'
+                        }`}
+                        onClick={() => emblaApi?.scrollTo(index)}
+                        aria-label={`Go to testimonial ${index + 1}`}
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
