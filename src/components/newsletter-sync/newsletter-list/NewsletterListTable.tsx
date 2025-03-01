@@ -27,14 +27,11 @@ type NewsletterListTableProps = {
 export function NewsletterListTable({
   newsletters,
   categories,
-  senderGroups,
   isSelected,
   onToggleSelectAll,
   onToggleSelectNewsletter,
   allSelected
 }: NewsletterListTableProps) {
-  // Get unique senders
-  const uniqueSenders = Object.keys(senderGroups);
   
   // Get category name by ID
   const getCategoryNameById = (categoryId: number | null) => {
@@ -77,70 +74,66 @@ export function NewsletterListTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {uniqueSenders.map((sender) => {
-            // Get all newsletters for this sender
-            const senderNewsletters = senderGroups[sender];
-            
-            // Take the first newsletter as representative for this sender group
-            const representativeNewsletter = senderNewsletters[0];
-            
-            return senderNewsletters.map((newsletter, index) => {
-              const isFirstInGroup = index === 0;
-              
-              return (
-                <TableRow 
-                  key={newsletter.id}
-                  isSelected={isSelected(newsletter.id)}
-                  className={`${isSelected(newsletter.id) ? "bg-primary/10 transition-colors duration-200" : "transition-colors duration-200"} ${isFirstInGroup ? "border-t-2 border-t-muted" : ""}`}
-                >
-                  <TableCell>
-                    <Checkbox 
-                      checked={isSelected(newsletter.id)}
-                      onCheckedChange={() => onToggleSelectNewsletter(newsletter.id)}
-                      className="transition-transform duration-200 data-[state=checked]:animate-scale-in"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center font-medium text-muted-foreground">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className={`font-medium ${isFirstInGroup ? "font-semibold" : ""}`}>
-                    {isFirstInGroup && (
-                      <div className="mb-1 text-sm px-2 py-1 rounded-md bg-muted/50 inline-block">
-                        {sender}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {isSelected(newsletter.id) && (
-                      <motion.span
-                        initial={{ opacity: 0, x: -5 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="inline-block mr-2 text-xs px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground font-medium"
-                      >
-                        Selected
-                      </motion.span>
-                    )}
-                    {newsletter.title || "Untitled"}
-                  </TableCell>
-                  <TableCell>
-                    {newsletter.published_at
-                      ? formatDistanceToNow(new Date(newsletter.published_at), { addSuffix: true })
-                      : "Unknown"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-primary/5">
-                      {getCategoryNameById(newsletter.category_id)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="transition-transform duration-200 hover:scale-105">
-                      <NewsletterViewDialog newsletter={newsletter} />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            });
-          })}
+          {newsletters.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                No newsletters found.
+              </TableCell>
+            </TableRow>
+          ) : (
+            newsletters.map((newsletter, index) => (
+              <TableRow 
+                key={newsletter.id}
+                className={isSelected(newsletter.id) ? "bg-primary/10 transition-colors duration-200" : "transition-colors duration-200"}
+              >
+                <TableCell>
+                  <Checkbox 
+                    checked={isSelected(newsletter.id)}
+                    onCheckedChange={() => onToggleSelectNewsletter(newsletter.id)}
+                    className="transition-transform duration-200 data-[state=checked]:animate-scale-in"
+                  />
+                </TableCell>
+                <TableCell className="text-center font-medium text-muted-foreground">
+                  {index + 1}
+                </TableCell>
+                <TableCell className="font-medium">
+                  <div className="text-sm px-2 py-1 rounded-md bg-muted/50 inline-block">
+                    {newsletter.sender || "Unknown Sender"}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {newsletter.sender_email || "No email"}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {isSelected(newsletter.id) && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -5 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="inline-block mr-2 text-xs px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground font-medium"
+                    >
+                      Selected
+                    </motion.span>
+                  )}
+                  {newsletter.title || "Untitled"}
+                </TableCell>
+                <TableCell>
+                  {newsletter.published_at
+                    ? formatDistanceToNow(new Date(newsletter.published_at), { addSuffix: true })
+                    : "Unknown"}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="bg-primary/5">
+                    {getCategoryNameById(newsletter.category_id)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="transition-transform duration-200 hover:scale-105">
+                    <NewsletterViewDialog newsletter={newsletter} />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>
