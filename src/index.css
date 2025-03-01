@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -189,4 +190,9 @@ h1, h2, h3, h4, h5, h6 {
 .mesh-gradient {
   background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 50%),
               radial-gradient(circle at 30% 80%, rgba(59, 130, 246, 0.05), transparent 40%);
+}
+
+/* Logo section styling */
+.brand-logo {
+  @apply text-gray-300 hover:text-white transition-colors duration-300;
 }
