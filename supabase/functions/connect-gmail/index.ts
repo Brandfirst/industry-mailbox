@@ -1,250 +1,264 @@
 
-// Connect-gmail edge function
-// This function handles the OAuth flow with Google and stores credentials in the database
-
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+// follow redirects
+import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
-// CORS headers for browser requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Interface for incoming request body
-interface ConnectGmailRequest {
-  code: string;
-  userId: string;
-  redirectUri: string;
-  timestamp?: string;
-}
+console.log("Loading connect-gmail function...");
 
-// Main handler function
-const handler = async (req: Request): Promise<Response> => {
-  // Create a Supabase client with the service role key
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  const supabase = createClient(supabaseUrl, supabaseKey);
+serve(async (req) => {
+  console.log("Request received:", req.method, req.url);
   
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
+    console.log("Handling OPTIONS request (CORS preflight)");
     return new Response(null, { headers: corsHeaders });
   }
   
   try {
-    // Parse request body
-    const { code, userId, redirectUri, timestamp } = await req.json() as ConnectGmailRequest;
+    // Get request body
+    const { code, userId, redirectUri, timestamp } = await req.json();
     
-    if (!code || !userId || !redirectUri) {
+    console.log("Request data received:", { 
+      code: code ? "REDACTED" : null, 
+      userId, 
+      redirectUri,
+      timestamp
+    });
+    
+    // Validate inputs
+    if (!code) {
+      console.error("Missing authorization code");
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Missing required parameters", 
-          details: "code, userId, and redirectUri are required" 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({ success: false, error: "Missing authorization code" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
     
-    console.log(`Processing OAuth code for user ${userId} at ${timestamp || "unknown time"}`);
-    console.log(`Using final redirect URI: ${redirectUri}`);
+    if (!userId) {
+      console.error("Missing user ID");
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing user ID" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
     
-    // Get Google OAuth credentials from environment variables
-    const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
-    const clientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET");
+    // Retrieve configuration from environment variables
+    const CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
+    const CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
+    const REDIRECT_URL = redirectUri || Deno.env.get("GOOGLE_REDIRECT_URL");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
-    if (!clientId || !clientSecret) {
+    // Validate environment variables
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+      console.error("Missing Google client configuration");
       return new Response(
         JSON.stringify({ 
           success: false, 
           error: "Server configuration error", 
-          details: "Google OAuth credentials are not configured" 
+          details: "Missing Google client configuration" 
         }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
     
-    // Exchange authorization code for tokens
-    const tokenParams = new URLSearchParams({
-      code,
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uri: redirectUri,
-      grant_type: "authorization_code"
-    });
+    // Create Supabase client with service role key
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("Missing Supabase configuration");
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Server configuration error", 
+          details: "Missing Supabase configuration" 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
     
+    console.log("Environment config checks passed");
+    console.log(`Using redirect URL: ${REDIRECT_URL}`);
+    
+    // Create Supabase client
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    
+    // Exchange authorization code for tokens
+    console.log("Exchanging authorization code for access token...");
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: tokenParams.toString()
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        code,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        redirect_uri: REDIRECT_URL,
+        grant_type: "authorization_code",
+      }),
     });
     
     const tokenData = await tokenResponse.json();
+    console.log("Token exchange response status:", tokenResponse.status);
     
-    // Check if token exchange was successful
     if (!tokenResponse.ok) {
-      console.error("Google OAuth error:", tokenData);
+      console.error("Error exchanging code for token:", tokenData);
+      
+      // Extract more detailed error information
+      const googleError = tokenData.error || null;
+      const googleErrorDescription = tokenData.error_description || null;
       
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: "Failed to exchange code for tokens",
-          googleError: tokenData.error,
-          googleErrorDescription: tokenData.error_description,
-          tokenInfo: { 
-            status: tokenResponse.status,
-            statusText: tokenResponse.statusText
-          }
+          error: "Failed to exchange authorization code for token", 
+          details: tokenData,
+          googleError,
+          googleErrorDescription,
+          statusCode: tokenResponse.status
         }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
     
-    // Get user info from Google to identify the email address
-    const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` }
-    });
+    // Get user info from Google
+    console.log("Getting user info from Google...");
+    const { access_token, refresh_token } = tokenData;
     
-    const userInfo = await userInfoResponse.json();
-    
-    if (!userInfoResponse.ok) {
-      console.error("Error fetching user info:", userInfo);
-      
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: "Failed to get user information from Google", 
-          details: userInfo 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
-      );
-    }
-    
-    // Check if email account already exists for this user
-    const { data: existingAccount, error: checkError } = await supabase
-      .from('email_accounts')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('email', userInfo.email)
-      .maybeSingle();
-    
-    if (checkError) {
-      console.error("Error checking for existing account:", checkError);
-    }
-    
-    let accountId;
-    
-    // If account exists, update it; otherwise, create a new one
-    if (existingAccount) {
-      console.log(`Updating existing account for ${userInfo.email}`);
-      
-      const { data, error } = await supabase
-        .from('email_accounts')
-        .update({
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token || existingAccount.refresh_token,
-          is_connected: true
-        })
-        .eq('id', existingAccount.id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error("Error updating email account:", error);
-        
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: "Failed to update email account", 
-            details: error 
-          }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, "Content-Type": "application/json" } 
-          }
-        );
-      }
-      
-      accountId = existingAccount.id;
-    } else {
-      console.log(`Creating new account for ${userInfo.email}`);
-      
-      // Create a new email account record
-      const { data, error } = await supabase
-        .from('email_accounts')
-        .insert({
-          user_id: userId,
-          email: userInfo.email,
-          provider: 'gmail',
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          is_connected: true
-        })
-        .select()
-        .single();
-      
-      if (error) {
-        console.error("Error creating email account:", error);
-        
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: "Failed to create email account", 
-            details: error 
-          }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, "Content-Type": "application/json" } 
-          }
-        );
-      }
-      
-      accountId = data.id;
-    }
-    
-    // Return success response
-    return new Response(
-      JSON.stringify({
-        success: true,
-        account: {
-          id: accountId,
-          email: userInfo.email,
-          provider: 'gmail'
-        }
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    const userInfoResponse = await fetch(
+      "https://www.googleapis.com/oauth2/v2/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
       }
     );
-  } catch (error) {
-    console.error("Error in connect-gmail handler:", error);
+    
+    const googleUser = await userInfoResponse.json();
+    console.log("Obtained user info from Google:", { email: googleUser.email });
+    
+    if (!googleUser.email) {
+      console.error("Email not available in Google user data:", googleUser);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Email not available from Google", 
+          details: googleUser 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+    
+    // Check if account already exists
+    console.log("Checking if email account already exists...");
+    const { data: existingAccounts, error: fetchError } = await supabase
+      .from("email_accounts")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("email", googleUser.email);
+    
+    if (fetchError) {
+      console.error("Error checking existing email accounts:", fetchError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Database error when checking existing accounts", 
+          details: fetchError 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+    
+    if (existingAccounts && existingAccounts.length > 0) {
+      console.log("Account already exists, updating tokens...");
+      const existingAccount = existingAccounts[0];
+      
+      // Update existing account with new tokens
+      const { data: updatedAccount, error: updateError } = await supabase
+        .from("email_accounts")
+        .update({
+          access_token,
+          refresh_token,
+          is_connected: true,
+        })
+        .eq("id", existingAccount.id)
+        .select()
+        .single();
+      
+      if (updateError) {
+        console.error("Error updating existing account:", updateError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Failed to update existing account", 
+            details: updateError 
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          account: updatedAccount,
+          message: "Existing account reconnected"
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Create new email account
+    console.log("Creating new email account...");
+    const { data: newAccount, error: insertError } = await supabase
+      .from("email_accounts")
+      .insert({
+        user_id: userId,
+        email: googleUser.email,
+        provider: "gmail",
+        access_token,
+        refresh_token,
+        is_connected: true,
+      })
+      .select()
+      .single();
+    
+    if (insertError) {
+      console.error("Error creating new email account:", insertError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Failed to create email account", 
+          details: insertError 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+    
+    console.log("Successfully created new email account:", { email: newAccount.email, id: newAccount.id });
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        account: newAccount,
+        message: "New account connected successfully"
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+    
+  } catch (err) {
+    console.error("Unhandled exception in connect-gmail function:", err);
     
     return new Response(
       JSON.stringify({
         success: false,
-        error: `Server error: ${error.message || "Unknown error"}`,
-        details: String(error)
+        error: "Server error processing request",
+        details: err.message,
       }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
-};
-
-// Start the Deno server
-serve(handler);
+});

@@ -54,7 +54,10 @@ export const OAuthCallbackHandler = ({
       }
       
       if (code && state === 'gmail_connect') {
+        console.log("Found valid code and state, processing OAuth callback");
         handleOAuthCallback(code);
+      } else {
+        console.warn("Invalid or missing code/state parameters", { code: !!code, state });
       }
     } else if (location.pathname === '/admin' && !location.search && !processed) {
       // Reset connecting state when we return to clean admin URL
@@ -69,6 +72,13 @@ export const OAuthCallbackHandler = ({
         sessionStorage.removeItem('oauth_nonce');
         setIsConnecting(false);
       }
+    } else if (!processed && !code && !error) {
+      console.log("No OAuth parameters found", { 
+        processed, 
+        user: !!user, 
+        pathname: location.pathname, 
+        search: location.search 
+      });
     }
   }, [location.search, location.pathname, user?.id, processed, onError, setIsConnecting, navigate]);
 
@@ -92,7 +102,9 @@ export const OAuthCallbackHandler = ({
       console.log("Connection result received:", { 
         success: result.success, 
         error: result.error,
-        statusCode: result.statusCode
+        statusCode: result.statusCode,
+        tokenInfo: !!result.tokenInfo,
+        account: result.account ? `${result.account.email} (ID: ${result.account.id})` : null
       });
       
       if (result.success) {

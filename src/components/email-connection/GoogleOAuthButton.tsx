@@ -94,6 +94,7 @@ export const GoogleOAuthButton = ({
       
       // Redirect to Google OAuth consent screen
       console.log("Redirecting to Google OAuth URL:", authUrl.toString());
+      toast.info("Redirecting to Google for authorization...");
       window.location.href = authUrl.toString();
     } catch (error) {
       console.error("Error initiating OAuth flow:", error);

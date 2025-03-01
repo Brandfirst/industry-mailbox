@@ -27,6 +27,13 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
     console.log("Using redirect URI for connectGoogleEmail:", actualRedirectUri);
     console.log("Connecting Google Email for user:", userId);
     
+    // Add more detailed logging for the request
+    console.log("Invoking connect-gmail with payload:", {
+      code: code ? `${code.substring(0, 10)}...` : null, // Log first few chars of code for debugging
+      userId,
+      redirectUri: actualRedirectUri
+    });
+    
     const response = await supabase.functions.invoke("connect-gmail", {
       body: { 
         code, 
@@ -34,6 +41,16 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
         redirectUri: actualRedirectUri,
         timestamp: new Date().toISOString() // Add timestamp to help with debugging
       },
+    });
+    
+    // Add more detailed logging for the response
+    console.log("connect-gmail response:", {
+      status: response.status,
+      error: response.error,
+      dataReceived: !!response.data,
+      dataSuccess: response.data?.success,
+      dataError: response.data?.error,
+      dataAccount: response.data?.account ? `${response.data.account.email} (ID: ${response.data.account.id})` : null,
     });
 
     // Check if there's an error with the function invocation itself
@@ -69,7 +86,7 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
         googleError: response.data.googleError || null,
         googleErrorDescription: response.data.googleErrorDescription || null,
         tokenInfo: response.data.tokenInfo || null,
-        statusCode: 400  // Use a default status code for business logic error
+        statusCode: response.data.statusCode || 400  // Use a default status code for business logic error
       };
     }
 

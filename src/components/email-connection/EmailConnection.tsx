@@ -40,7 +40,8 @@ export const EmailConnection = () => {
     isConnecting, 
     oauthError, 
     connectionProcessed,
-    accountsCount: emailAccounts.length
+    accountsCount: emailAccounts.length,
+    connectAttempted
   });
   
   // Fetch email accounts on mount and when connection is processed
@@ -60,13 +61,20 @@ export const EmailConnection = () => {
     const searchParams = new URLSearchParams(location.search);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
+    const error = searchParams.get('error');
     
     if (code && state === 'gmail_connect') {
       console.log("Found OAuth callback in URL, connection in progress");
       setIsConnecting(true);
       setConnectAttempted(true);
+      toast.loading("Processing Google authentication...");
+    } else if (error) {
+      console.error("OAuth error found in URL:", error);
+      setOAuthError(error);
+      setConnectAttempted(true);
+      toast.error(`Google authentication error: ${error}`);
     }
-  }, [location.search, setIsConnecting]);
+  }, [location.search, setIsConnecting, setOAuthError]);
 
   // Handle OAuth success
   const handleOAuthSuccess = async () => {
@@ -86,6 +94,9 @@ export const EmailConnection = () => {
     setConnectAttempted(true);
     toast.error(`Failed to connect Gmail: ${error}`);
   };
+
+  // Show a banner if trying to connect but still waiting
+  const showConnectionInProgressBanner = isConnecting && !oauthError && connectAttempted && !connectionProcessed;
 
   return (
     <Card className="w-full bg-card">
@@ -119,9 +130,10 @@ export const EmailConnection = () => {
           />
         )}
 
-        {isConnecting && !oauthError && connectAttempted && (
+        {showConnectionInProgressBanner && (
           <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 mb-4 rounded-md">
-            Connecting your Gmail account... This may take a moment.
+            <p className="font-medium">Connecting your Gmail account...</p>
+            <p className="text-sm mt-1">This may take a moment. If nothing happens after 15 seconds, please try again.</p>
           </div>
         )}
 
