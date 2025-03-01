@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { toast } from "sonner";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -40,7 +40,9 @@ const Admin = () => {
       timestamp: new Date().toISOString()
     });
     
-    setIsOAuthCallback(hasOAuthParams);
+    // Only set isOAuthCallback state to true if it's actually a Gmail OAuth callback
+    // This ensures we don't mishandle other code/error parameters
+    setIsOAuthCallback(hasOAuthParams && isGmailCallback);
     
     if (hasOAuthParams) {
       // Log more details about the OAuth parameters
@@ -63,7 +65,7 @@ const Admin = () => {
       }
     }
     
-    return hasOAuthParams;
+    return hasOAuthParams && isGmailCallback;
   }, [location.search, user?.id]);
   
   useEffect(() => {
@@ -86,16 +88,22 @@ const Admin = () => {
   
   // Handle tab changes based on URL
   useEffect(() => {
-    const path = location.pathname.split('/');
-    const tabFromPath = path.length > 2 ? path[2] : '';
-    
-    if (tabFromPath && ['dashboard', 'newsletters', 'categories', 'users', 'settings'].includes(tabFromPath)) {
-      setActiveTab(tabFromPath);
-    } else if (location.pathname === '/admin') {
-      setActiveTab('dashboard');
-      navigate('/admin/dashboard', { replace: true });
+    // Only handle tab changes if we're not in the middle of an OAuth flow
+    if (!isOAuthCallback) {
+      const path = location.pathname.split('/');
+      const tabFromPath = path.length > 2 ? path[2] : '';
+      
+      if (tabFromPath && ['dashboard', 'newsletters', 'categories', 'users', 'settings'].includes(tabFromPath)) {
+        setActiveTab(tabFromPath);
+      } else if (location.pathname === '/admin') {
+        setActiveTab('dashboard');
+        // Only navigate if we're not handling an OAuth callback
+        if (!checkForOAuthParams()) {
+          navigate('/admin/dashboard', { replace: true });
+        }
+      }
     }
-  }, [location.pathname, navigate]);
+  }, [location.pathname, navigate, isOAuthCallback, checkForOAuthParams]);
   
   // Update document title and handle OAuth flow
   useEffect(() => {
@@ -117,6 +125,7 @@ const Admin = () => {
     const startTime = sessionStorage.getItem('oauth_start_time');
     const timeElapsed = startTime ? `${((Date.now() - parseInt(startTime)) / 1000).toFixed(1)}s` : 'unknown';
     
+    // Only clear OAuth state if we're not in the middle of a callback
     if (oauthInProgress === 'true' && !location.search.includes('code=') && !location.search.includes('error=')) {
       console.log('[ADMIN PAGE] Detected refresh during OAuth flow, resetting state', { timeElapsed });
       
@@ -150,6 +159,8 @@ const Admin = () => {
     }
   }, [user, isAdmin, navigate, isOAuthCallback]);
   
+  // Create a unique key for the EmailConnection component
+  // This helps ensure it re-renders properly when the OAuth state changes
   const emailConnectionKey = `email-connection-${user?.id || 'no-user'}-${forceRerender}-${isOAuthCallback ? 'oauth' : 'regular'}`;
   
   return (

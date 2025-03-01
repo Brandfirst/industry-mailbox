@@ -1,9 +1,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { EmailAccount } from "@/lib/supabase/types";
 import { getUserEmailAccounts } from "@/lib/supabase/emailAccounts";
+import { EmailAccount } from "@/lib/supabase/types";
+import { toast } from "sonner";
 
 // Custom hook to manage email connection state
 export const useEmailConnectionState = () => {
@@ -37,12 +37,23 @@ export const useEmailConnectionState = () => {
         const timeElapsed = (Date.now() - parseInt(startTime)) / 1000;
         console.log(`EmailConnectionState: OAuth flow has been in progress for ${timeElapsed.toFixed(1)} seconds`);
         
-        // Only reset if it's been more than 5 seconds (allows for page transitions)
-        if (timeElapsed > 5) {
+        // Only reset if it's been more than 10 seconds (allows for page transitions)
+        if (timeElapsed > 10) {
+          console.log("EmailConnectionState: Clearing stale OAuth state after timeout");
           sessionStorage.removeItem('gmailOAuthInProgress');
           sessionStorage.removeItem('oauth_nonce');
           sessionStorage.removeItem('oauth_start_time');
+          setIsConnecting(false);
+          
+          // Show a toast to inform the user
+          toast.error("OAuth flow timed out. Please try connecting again.");
         }
+      } else {
+        // If we have an OAuth in progress but no start time, something is wrong
+        // Clear it to prevent getting stuck
+        console.log("EmailConnectionState: Clearing invalid OAuth state (no start time)");
+        sessionStorage.removeItem('gmailOAuthInProgress');
+        sessionStorage.removeItem('oauth_nonce');
       }
     }
   }, [user, isConnecting, oauthError, connectionProcessed]);
@@ -52,7 +63,7 @@ export const useEmailConnectionState = () => {
     if (!user) {
       console.log("No user, can't fetch email accounts");
       setEmailAccounts([]);
-      return;
+      return [];
     }
 
     setStatus({ loading: true, error: null });
@@ -65,6 +76,7 @@ export const useEmailConnectionState = () => {
       console.log("Fetched email accounts:", data);
       setEmailAccounts(data || []);
       setStatus({ loading: false, error: null });
+      return data || [];
     } catch (err) {
       console.error("Exception fetching email accounts:", err);
       setStatus({ 
@@ -72,6 +84,7 @@ export const useEmailConnectionState = () => {
         error: err instanceof Error ? err.message : "Unknown error" 
       });
       setEmailAccounts([]);
+      return [];
     }
   }, [user]);
 
@@ -94,12 +107,25 @@ export const useEmailConnectionState = () => {
           
           // Fetch accounts in case the connection was successful but the callback was interrupted
           await fetchEmailAccounts();
+          
+          // If we still have no accounts after trying to recover, clear the OAuth state
+          setTimeout(() => {
+            const stillInProgress = sessionStorage.getItem('gmailOAuthInProgress') === 'true';
+            if (stillInProgress) {
+              console.log("EmailConnectionState: Recovery attempt completed, clearing OAuth state");
+              sessionStorage.removeItem('gmailOAuthInProgress');
+              sessionStorage.removeItem('oauth_nonce');
+              sessionStorage.removeItem('oauth_start_time');
+              setIsConnecting(false);
+            }
+          }, 2000);
         } else {
           // Clear OAuth state if it's been too long
           console.log("EmailConnectionState: Clearing stale OAuth state");
           sessionStorage.removeItem('gmailOAuthInProgress');
           sessionStorage.removeItem('oauth_nonce');
           sessionStorage.removeItem('oauth_start_time');
+          setIsConnecting(false);
         }
       }
     };

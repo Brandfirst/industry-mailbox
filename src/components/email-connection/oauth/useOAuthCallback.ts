@@ -23,6 +23,7 @@ export const useOAuthCallback = (
   const clearUrlParams = () => {
     if (location.search && (location.search.includes('code=') || location.search.includes('error='))) {
       console.log("[OAUTH CALLBACK] Clearing URL parameters after processing");
+      // Use replace to avoid adding to browser history
       navigate(location.pathname, { replace: true });
     }
   };
