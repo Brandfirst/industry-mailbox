@@ -9,8 +9,16 @@ export interface EmailAccount {
 }
 
 export interface SyncResult {
-  count: number;
-  timestamp: number;
+  success: boolean;
+  count?: number;
+  timestamp?: number;
+  synced?: any[];
+  failed?: any[];
+  partial?: boolean;
+  warning?: string;
+  error?: string;
+  details?: any;
+  statusCode?: number;
 }
 
 // Add a selection state interface for newsletters

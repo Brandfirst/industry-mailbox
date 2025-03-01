@@ -167,7 +167,8 @@ export async function syncEmailAccount(accountId) {
       return { 
         success: false, 
         error: response.error.message || "Error connecting to sync service",
-        statusCode: response.error.status || 500
+        statusCode: response.error.status || 500,
+        timestamp: Date.now() // Add timestamp to match SyncResult type
       };
     }
 
@@ -177,7 +178,8 @@ export async function syncEmailAccount(accountId) {
       return { 
         success: false, 
         error: "Empty response from server", 
-        statusCode: 400 
+        statusCode: 400,
+        timestamp: Date.now() // Add timestamp to match SyncResult type
       };
     }
 
@@ -188,7 +190,8 @@ export async function syncEmailAccount(accountId) {
         success: false, 
         error: response.data.error || "Failed to sync emails",
         details: response.data.details || null,
-        statusCode: response.data.status || 400
+        statusCode: response.data.status || 400,
+        timestamp: Date.now() // Add timestamp to match SyncResult type
       };
     }
 
@@ -204,7 +207,8 @@ export async function syncEmailAccount(accountId) {
         failed: response.data.failed || [],
         warning: "Some newsletters failed to sync",
         details: response.data.details,
-        statusCode: 200
+        statusCode: 200,
+        timestamp: Date.now() // Add timestamp to match SyncResult type
       };
     }
 
@@ -215,10 +219,15 @@ export async function syncEmailAccount(accountId) {
       success: true, 
       synced: response.data.synced || [],
       count: response.data.count || 0,
-      statusCode: 200
+      statusCode: 200,
+      timestamp: Date.now() // Add timestamp to match SyncResult type
     };
   } catch (error) {
     console.error("Exception in syncEmailAccount:", error);
-    return { success: false, error: error.message || String(error) };
+    return { 
+      success: false, 
+      error: error.message || String(error),
+      timestamp: Date.now() // Add timestamp to match SyncResult type
+    };
   }
 }

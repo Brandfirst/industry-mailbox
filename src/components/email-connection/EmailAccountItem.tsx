@@ -29,9 +29,11 @@ export const EmailAccountItem = ({
   const handleSync = async () => {
     try {
       const result = await onSync(account.id);
-      if (result) {
-        setSyncCount(result.count);
-        setLastSyncTime(result.timestamp);
+      if (result && result.success) {
+        // Update syncCount with the count from the result, default to 0 if not present
+        setSyncCount(result.count || 0);
+        // Use the timestamp from the result, or get current time if not present
+        setLastSyncTime(result.timestamp || Date.now());
       }
     } catch (error) {
       console.error("Error syncing account:", error);
