@@ -91,15 +91,15 @@ export function CategorySelector({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[200px]">
-        <Command>
-          <CommandInput placeholder="Search categories..." />
-          <CommandEmpty>No category found.</CommandEmpty>
+      <PopoverContent className="p-0 w-[200px] bg-popover border border-border">
+        <Command className="bg-transparent">
+          <CommandInput placeholder="Search categories..." className="text-foreground" />
+          <CommandEmpty className="text-foreground">No category found.</CommandEmpty>
           <CommandGroup>
             <CommandItem
               value="uncategorized"
               onSelect={() => handleCategorySelect("uncategorized")}
-              className="text-muted-foreground"
+              className="text-foreground hover:bg-secondary"
             >
               <div className="flex items-center gap-2">
                 {!currentCategory && <Check className="h-4 w-4" />}
@@ -111,6 +111,7 @@ export function CategorySelector({
                 key={category.id}
                 value={category.name}
                 onSelect={() => handleCategorySelect(String(category.id))}
+                className="text-foreground hover:bg-secondary"
               >
                 <div className="flex items-center gap-2">
                   {currentCategoryId === category.id && (
