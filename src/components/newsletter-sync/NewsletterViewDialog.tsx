@@ -2,7 +2,7 @@
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Eye, X, Mail, Calendar, UserCircle, Tag } from "lucide-react";
+import { Eye, X, Mail, Calendar, UserCircle, Tag, MapPin, FileCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 
@@ -26,10 +26,10 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
           <Eye className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-        <DialogHeader className="pb-2 border-b space-y-2">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden border-gray-200 shadow-lg">
+        <DialogHeader className="pb-2 border-b border-gray-200 space-y-2">
           <div className="flex items-start justify-between">
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
               {newsletter.title || "Untitled Newsletter"}
             </DialogTitle>
             <DialogClose asChild>
@@ -43,21 +43,31 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
             </DialogClose>
           </div>
           
-          <div className="flex flex-col space-y-1.5">
-            <div className="flex items-center text-sm text-muted-foreground">
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
               <UserCircle className="h-4 w-4 mr-1" /> 
-              From: <span className="font-medium ml-1">{newsletter.sender || newsletter.sender_email || "Unknown sender"}</span>
+              <span className="font-medium">From:</span>
+              <span className="ml-1">{newsletter.sender || newsletter.sender_email || "Unknown sender"}</span>
             </div>
             
-            <div className="flex items-center text-sm text-muted-foreground">
+            <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
               <Calendar className="h-4 w-4 mr-1" /> 
-              <span>{formattedDate}</span>
+              <span className="font-medium">Date:</span>
+              <span className="ml-1">{formattedDate}</span>
             </div>
+            
+            {newsletter.industry && (
+              <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                <MapPin className="h-4 w-4 mr-1" /> 
+                <span className="font-medium">Industry:</span>
+                <span className="ml-1">{newsletter.industry}</span>
+              </div>
+            )}
             
             {(newsletter.industry || category) && (
               <div className="flex items-center gap-2 pt-1">
                 {newsletter.industry && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="outline" className="text-xs font-medium bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100">
                     {newsletter.industry}
                   </Badge>
                 )}
@@ -65,28 +75,36 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
                 {category && (
                   <Badge 
                     variant="outline" 
-                    className="text-xs"
+                    className="text-xs font-medium"
                     style={{ 
-                      borderColor: category.color || '#666666', 
-                      color: category.color || '#666666'
+                      backgroundColor: `${category.color}10` || '#f3f4f6',
+                      borderColor: category.color || '#9ca3af', 
+                      color: category.color || '#6b7280'
                     }}
                   >
                     <Tag className="h-3 w-3 mr-1" /> 
                     {category.name}
                   </Badge>
                 )}
+                
+                {newsletter.sender_email && (
+                  <Badge variant="secondary" className="text-xs font-medium">
+                    <Mail className="h-3 w-3 mr-1" />
+                    {newsletter.sender_email}
+                  </Badge>
+                )}
               </div>
             )}
             
             {newsletter.preview && (
-              <DialogDescription className="text-sm mt-2 line-clamp-2">
+              <DialogDescription className="text-sm mt-2 line-clamp-2 text-gray-700 dark:text-gray-300">
                 {newsletter.preview}
               </DialogDescription>
             )}
           </div>
         </DialogHeader>
 
-        <div className="overflow-auto flex-1 h-[calc(90vh-180px)]">
+        <div className="overflow-auto flex-1 h-[calc(90vh-220px)] bg-white dark:bg-gray-800 rounded-b-md">
           {newsletter.content ? (
             <iframe
               srcDoc={newsletter.content}
@@ -96,8 +114,8 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
             />
           ) : (
             <div className="text-center py-12">
-              <Mail className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p>No content available for this newsletter.</p>
+              <Mail className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-700 dark:text-gray-300 font-medium">No content available for this newsletter.</p>
             </div>
           )}
         </div>
