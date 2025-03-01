@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,8 +13,7 @@ import {
   getNewslettersFromEmailAccount,
   syncEmailAccount,
   getAllCategories,
-  deleteNewsletters,
-  getNewsletters
+  deleteNewsletters
 } from "@/lib/supabase";
 import { useAuth } from "@/contexts/auth";
 
