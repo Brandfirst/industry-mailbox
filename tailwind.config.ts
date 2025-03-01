@@ -19,6 +19,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'ebgaramond': ['EB Garamond', 'serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -26,7 +29,7 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: '#0FA0CE',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
@@ -42,7 +45,7 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
+					DEFAULT: '#0FA0CE',
 					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
@@ -66,9 +69,9 @@ export default {
 					'900': '#7E7E7E'
 				},
 				blue: {
-					DEFAULT: '#3b82f6',
-					light: '#93c5fd',
-					dark: '#1d4ed8'
+					DEFAULT: '#0FA0CE',
+					light: '#25C0F0',
+					dark: '#0A7A9E'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

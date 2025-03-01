@@ -23,9 +23,9 @@ const CountUpAnimation = ({
     const startValue = Math.floor(endValue * 0.7);
     setCount(startValue);
     
-    // Increment slightly faster - every 500ms with higher increment value
-    const incrementInterval = 500; // 0.5 second
-    const incrementValue = 3; // Increment by 3 each time
+    // Increment slightly faster - every second with higher increment value
+    const incrementInterval = 1000; // 1 second
+    const incrementValue = 2; // Increment by 2 each time
     
     const timer = setInterval(() => {
       setCount(prevCount => {
@@ -50,16 +50,16 @@ const CountUpAnimation = ({
 
 const HeroSection = () => {
   return (
-    <section className="py-16 lg:py-20 relative overflow-hidden bg-gradient-to-b from-blue-950 to-slate-900">
+    <section className="py-16 lg:py-20 relative overflow-hidden bg-black">
       <div className="container mx-auto max-w-6xl px-4 text-center relative z-10">
         {/* Provide space at the top for the announcement button */}
         <div className="pt-10"></div>
         
         <div className="animate-slide-down max-w-5xl mx-auto mb-16">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-ebgaramond tracking-tight mb-6 text-white">
             Norges største database av nyhetsbrev
-            <span className="block text-blue-400 mt-4 relative">
-              <div className="absolute -bottom-2 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
+            <span className="block text-[#0FA0CE] mt-4 relative">
+              <div className="absolute -bottom-2 w-full h-0.5 bg-gradient-to-r from-transparent via-[#0FA0CE] to-transparent"></div>
             </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-3xl mx-auto">
