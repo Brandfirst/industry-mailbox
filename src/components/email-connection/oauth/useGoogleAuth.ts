@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
-import { v4 as uuidv4 } from "@supabase/supabase-js/dist/module/lib/helpers";
+// Remove the problematic import and use a different approach for UUID generation
 
 export const useGoogleAuth = (isParentConnecting: boolean) => {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -45,6 +45,15 @@ export const useGoogleAuth = (isParentConnecting: boolean) => {
     setIsConnecting(isParentConnecting);
   }, [isParentConnecting]);
 
+  // Generate a simple UUID for nonce - replaces the need for the supabase v4 import
+  const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, 
+            v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
   const initiateGoogleOAuth = () => {
     if (!user) {
       console.error("[GOOGLE AUTH] Cannot initiate Google OAuth without a logged in user");
@@ -70,8 +79,8 @@ export const useGoogleAuth = (isParentConnecting: boolean) => {
       // Save the user ID in session storage in case the page refreshes
       sessionStorage.setItem('auth_user_id', user.id);
       
-      // Generate a nonce for security
-      const nonce = uuidv4();
+      // Generate a nonce for security using our custom function instead of supabase's v4
+      const nonce = generateUUID();
       sessionStorage.setItem('oauth_nonce', nonce);
       
       // Flag that OAuth is in progress
