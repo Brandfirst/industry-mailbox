@@ -6,7 +6,7 @@ export const AuthButtons = () => {
   return (
     <div className="flex items-center gap-2">
       <Link to="/auth?mode=signin">
-        <Button variant="ghost" className="btn-hover-effect text-gray-300 hover:text-white">Logg inn</Button>
+        <Button variant="ghost" className="btn-hover-effect text-gray-300 hover:text-white hover:bg-white/10">Logg inn</Button>
       </Link>
       <Link to="/auth?mode=signup">
         <Button className="bg-blue-500 text-white hover:bg-blue-600 transition-colors btn-hover-effect">

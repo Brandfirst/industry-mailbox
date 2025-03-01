@@ -74,7 +74,7 @@ const AdminSidebar = ({
               variant="ghost" 
               size="icon" 
               onClick={toggleMobileSidebar}
-              className="text-white hover:bg-white/10"
+              className="text-gray-300 hover:bg-white/10 hover:text-white"
             >
               <X className="h-5 w-5" />
             </Button>

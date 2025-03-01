@@ -33,7 +33,11 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
               {newsletter.title || "Untitled Newsletter"}
             </DialogTitle>
             <DialogClose asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+              >
                 <X className="h-4 w-4" />
               </Button>
             </DialogClose>
