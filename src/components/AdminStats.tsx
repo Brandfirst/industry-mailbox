@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Users, Mail, Database, TrendingUp, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAdminStats } from "@/lib/supabase";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/lib/supabase";
 
 interface StatsCardProps {

@@ -12,7 +12,7 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useNavigate } from "react-router-dom";
 import { saveNewsletter, unsaveNewsletter, isNewsletterSaved } from "@/lib/supabase";
 
