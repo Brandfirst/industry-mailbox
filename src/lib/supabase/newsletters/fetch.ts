@@ -129,6 +129,89 @@ export async function getSenderStats(userId: string): Promise<NewsletterSenderSt
 }
 
 /**
+ * Fetches featured newsletters with filtering capabilities.
+ */
+export async function getFeaturedNewsletters(
+  options: NewsletterFilterOptions = {}
+): Promise<NewsletterQueryResult> {
+  const { searchQuery, categoryId, limit = 3 } = options;
+  
+  try {
+    let query = supabase
+      .from("newsletters")
+      .select("*, categories(name, color)", { count: "exact" })
+      .order("published_at", { ascending: false })
+      .limit(limit);
+
+    if (searchQuery) {
+      query = query.ilike("title", `%${searchQuery}%`);
+    }
+
+    if (categoryId && categoryId !== "all") {
+      const categoryIdNum = typeof categoryId === 'string' ? parseInt(categoryId) : categoryId;
+      query = query.eq("category_id", categoryIdNum);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error("Error fetching featured newsletters:", error);
+      throw error;
+    }
+
+    return { data: data || [], count };
+  } catch (error) {
+    console.error("Exception in getFeaturedNewsletters:", error);
+    return { data: [], count: 0 };
+  }
+}
+
+/**
+ * Fetches newsletters for search page with pagination and filtering.
+ */
+export async function searchNewsletters(
+  options: NewsletterFilterOptions = {}
+): Promise<NewsletterQueryResult> {
+  const { 
+    searchQuery, 
+    categoryId, 
+    page = 1, 
+    limit = 12 
+  } = options;
+  
+  try {
+    const startIndex = (page - 1) * limit;
+    
+    let query = supabase
+      .from("newsletters")
+      .select("*, categories(name, color)", { count: "exact" })
+      .order("published_at", { ascending: false })
+      .range(startIndex, startIndex + limit - 1);
+
+    if (searchQuery) {
+      query = query.ilike("title", `%${searchQuery}%`);
+    }
+
+    if (categoryId && categoryId !== "all") {
+      const categoryIdNum = typeof categoryId === 'string' ? parseInt(categoryId) : categoryId;
+      query = query.eq("category_id", categoryIdNum);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error("Error searching newsletters:", error);
+      throw error;
+    }
+
+    return { data: data || [], count };
+  } catch (error) {
+    console.error("Exception in searchNewsletters:", error);
+    return { data: [], count: 0 };
+  }
+}
+
+/**
  * Gets newsletter frequency data for analytics
  */
 export async function getSenderFrequencyData(userId: string, days: number = 30) {

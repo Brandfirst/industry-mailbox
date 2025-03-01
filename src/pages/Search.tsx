@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
 import { Newsletter, NewsletterCategory } from '@/lib/supabase/types';
 import { format } from 'date-fns';
-import { Filter, ExternalLink } from 'lucide-react';
+import { Filter } from 'lucide-react';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -90,17 +90,10 @@ const SearchPage = () => {
     setPage(1); // Reset page when changing category
   };
 
-  // Get random time string for display
-  const getRandomTime = () => {
-    const hours = Math.floor(Math.random() * 12) + 1;
-    const minutes = Math.floor(Math.random() * 60);
-    return `${hours}:${minutes < 10 ? '0' + minutes : minutes}pm`;
-  };
-  
-  // Generate random country code (2 letters)
-  const getRandomCountry = () => {
-    const countries = ['US', 'GB', 'DE', 'AU', 'CA', 'NO', 'SE', 'DK', 'FR'];
-    return countries[Math.floor(Math.random() * countries.length)];
+  // Get formatted date
+  const getFormattedDate = (dateString: string) => {
+    if (!dateString) return '';
+    return format(new Date(dateString), 'MMM d');
   };
   
   return (
@@ -151,14 +144,8 @@ const SearchPage = () => {
       {loading && page === 1 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="bg-muted h-32"></CardHeader>
-              <CardContent className="pt-6">
-                <div className="h-4 bg-muted rounded mb-4 w-3/4"></div>
-                <div className="h-3 bg-muted rounded mb-2 w-full"></div>
-                <div className="h-3 bg-muted rounded mb-2 w-5/6"></div>
-                <div className="h-3 bg-muted rounded w-2/3"></div>
-              </CardContent>
+            <Card key={i} className="animate-pulse h-[400px]">
+              <div className="h-full bg-muted/20"></div>
             </Card>
           ))}
         </div>
@@ -166,9 +153,31 @@ const SearchPage = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {newsletters.map((newsletter) => (
-              <Card key={newsletter.id} className="overflow-hidden transition-shadow hover:shadow-md border rounded-lg">
+              <div 
+                key={newsletter.id} 
+                className="shadow-sm overflow-hidden rounded-xl bg-white border w-full flex flex-col h-full group cursor-pointer"
+                onClick={() => navigate(`/newsletter/${newsletter.id}`)}
+              >
+                {/* Image Section */}
+                <div className="w-full h-40 border-gray-200 group-hover:opacity-75 order-2">
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    {newsletter.content ? (
+                      <div 
+                        className="w-full h-full object-cover" 
+                        dangerouslySetInnerHTML={{ 
+                          __html: newsletter.content.length > 300 
+                            ? newsletter.content.substring(0, 300) + '...' 
+                            : newsletter.content 
+                        }} 
+                      />
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Nyhetsbrev innhold</span>
+                    )}
+                  </div>
+                </div>
+                
                 {/* Header with sender info */}
-                <div className="flex items-center p-4 border-b">
+                <div className="flex items-center p-4 border-b order-1">
                   <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-3">
                     {newsletter.sender && (
                       <span className="text-lg font-semibold text-gray-700">
@@ -176,15 +185,15 @@ const SearchPage = () => {
                       </span>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-sm">{newsletter.sender || 'Unknown Sender'}</h3>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      {getRandomCountry()} · {getRandomTime()}
-                    </div>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{newsletter.sender || 'Unknown Sender'}</span>
+                    <span className="text-gray-500 text-sm">
+                      NO • {getFormattedDate(newsletter.published_at || '')}
+                    </span>
                   </div>
                   {newsletter.category_id && (
                     <div 
-                      className="px-2 py-1 text-xs rounded-full font-medium ml-2"
+                      className="px-2 py-1 text-xs rounded-full font-medium ml-auto"
                       style={{ 
                         backgroundColor: newsletter.categories?.color ? `${newsletter.categories.color}20` : '#8B5CF620',
                         color: newsletter.categories?.color || '#8B5CF6' 
@@ -195,29 +204,16 @@ const SearchPage = () => {
                   )}
                 </div>
                 
-                {/* Email content preview */}
-                <div className="p-4">
-                  <h4 className="font-bold text-base mb-2">{newsletter.title}</h4>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                {/* Content Preview */}
+                <div className="flex flex-col gap-2 grow p-4 min-h-[80px] order-3">
+                  <div className="text-base leading-6 line-clamp-2 font-medium text-gray-900">
+                    {newsletter.title || 'Untitled Newsletter'}
+                  </div>
+                  <div className="text-sm font-light text-gray-500 line-clamp-2">
                     {newsletter.preview || 'Ingen forhåndsvisning tilgjengelig.'}
-                  </p>
-                  
-                  {/* Mock email content - image placeholder */}
-                  <div className="bg-gray-100 rounded-md h-28 mb-2 flex items-center justify-center">
-                    <span className="text-muted-foreground text-sm">Nyhetsbrev innhold</span>
                   </div>
                 </div>
-                
-                {/* Footer */}
-                <CardFooter className="flex justify-between border-t px-4 py-3">
-                  <p className="text-xs text-muted-foreground">
-                    {newsletter.published_at ? format(new Date(newsletter.published_at), 'dd.MM.yyyy') : 'Ukjent dato'}
-                  </p>
-                  <Button variant="ghost" size="sm" onClick={() => navigate(`/newsletter/${newsletter.id}`)} className="flex items-center gap-1 text-xs">
-                    Les mer <ExternalLink className="h-3 w-3 ml-1" />
-                  </Button>
-                </CardFooter>
-              </Card>
+              </div>
             ))}
           </div>
           
