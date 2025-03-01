@@ -91,12 +91,13 @@ export function CategorySelector({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[200px] bg-popover border border-border">
-        <Command className="bg-transparent">
+      <PopoverContent className="p-0 w-[200px] bg-popover border border-border" align="start">
+        <Command className="w-full">
           <CommandInput placeholder="Search categories..." className="text-foreground" />
           <CommandEmpty className="text-foreground">No category found.</CommandEmpty>
           <CommandGroup>
             <CommandItem
+              key="uncategorized"
               value="uncategorized"
               onSelect={() => handleCategorySelect("uncategorized")}
               className="text-foreground hover:bg-secondary"
