@@ -1,30 +1,272 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { google } from "https://esm.sh/googleapis@126.0.1";
-import { decode } from "https://deno.land/std@0.177.0/encoding/base64.ts";
+// Sync-emails edge function
+// This function fetches emails from Gmail and syncs them to the database
+// Note: Core application logic is included directly in this file
 
-// CORS headers
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+
+// CORS headers for browser requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Handles CORS preflight requests
-function handleCors(req: Request) {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+// Interface for incoming request body
+interface SyncEmailsRequest {
+  accountId: string;
+}
+
+// Function to refresh a Google token if needed
+async function refreshGoogleToken(supabase, accountId) {
+  console.log(`Checking if token refresh needed for account ${accountId}`);
+  
+  try {
+    // Get the email account data
+    const { data: account, error: accountError } = await supabase
+      .from('email_accounts')
+      .select('*')
+      .eq('id', accountId)
+      .single();
+    
+    if (accountError) {
+      console.error("Error retrieving account:", accountError);
+      throw new Error(`Account not found: ${accountError.message}`);
+    }
+    
+    if (!account || !account.refresh_token) {
+      console.error("Account has no refresh token");
+      throw new Error("Account is missing refresh token");
+    }
+    
+    // We'll always refresh the token to ensure it's valid
+    console.log("Refreshing Google token");
+    
+    const refreshParams = new URLSearchParams({
+      client_id: Deno.env.get("GOOGLE_CLIENT_ID") || "",
+      client_secret: Deno.env.get("GOOGLE_CLIENT_SECRET") || "",
+      refresh_token: account.refresh_token,
+      grant_type: "refresh_token"
+    });
+    
+    const response = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: refreshParams.toString()
+    });
+    
+    const tokenData = await response.json();
+    
+    if (!response.ok) {
+      console.error("Token refresh failed:", tokenData);
+      throw new Error(`Failed to refresh token: ${tokenData.error}`);
+    }
+    
+    // Update the account with the new access token
+    const { error: updateError } = await supabase
+      .from('email_accounts')
+      .update({ 
+        access_token: tokenData.access_token,
+        // Note: We don't update refresh_token as it doesn't change unless reauthorized
+      })
+      .eq('id', accountId);
+    
+    if (updateError) {
+      console.error("Error updating access token:", updateError);
+      throw new Error(`Failed to update token: ${updateError.message}`);
+    }
+    
+    return tokenData.access_token;
+  } catch (error) {
+    console.error("Error in refreshGoogleToken:", error);
+    throw error;
   }
 }
 
-// Main function to serve HTTP requests
-serve(async (req) => {
-  // Handle CORS
-  const corsResponse = handleCors(req);
-  if (corsResponse) return corsResponse;
-
+// Function to fetch emails from Gmail
+async function fetchGmailMessages(accessToken, account, maxResults = 10) {
+  console.log(`Fetching up to ${maxResults} Gmail messages`);
+  
   try {
-    const { accountId } = await req.json();
+    // Query for newsletters - look for common newsletter markers
+    const query = "category:promotions OR category:updates OR label:newsletters OR unsubscribe";
+    const encodedQuery = encodeURIComponent(query);
+    
+    // First get message IDs
+    const listResponse = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${maxResults}&q=${encodedQuery}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    
+    if (!listResponse.ok) {
+      const errorData = await listResponse.json();
+      console.error("Gmail API error:", errorData);
+      throw new Error(`Gmail API error: ${JSON.stringify(errorData)}`);
+    }
+    
+    const data = await listResponse.json();
+    
+    if (!data.messages || !Array.isArray(data.messages)) {
+      console.log("No messages found matching criteria");
+      return [];
+    }
+    
+    console.log(`Found ${data.messages.length} messages, fetching details...`);
+    
+    // Now fetch full message details for each ID
+    const messagePromises = data.messages.map(async (message) => {
+      const msgResponse = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
+      if (!msgResponse.ok) {
+        console.error(`Error fetching message ${message.id}:`, await msgResponse.text());
+        return null;
+      }
+      
+      return await msgResponse.json();
+    });
+    
+    // Wait for all message detail requests to complete
+    const messages = await Promise.all(messagePromises);
+    return messages.filter(msg => msg !== null); // Remove any failed fetches
+  } catch (error) {
+    console.error("Error fetching Gmail messages:", error);
+    throw error;
+  }
+}
+
+// Process Gmail message to extract newsletter data
+function extractNewsletterData(message, accountId) {
+  if (!message || !message.payload) {
+    console.log("Invalid message structure", message?.id);
+    return null;
+  }
+  
+  // Extract headers
+  const headers = message.payload.headers || [];
+  
+  // Find important headers
+  const subject = headers.find(h => h.name === "Subject")?.value || "No Subject";
+  const from = headers.find(h => h.name === "From")?.value || "";
+  const date = headers.find(h => h.name === "Date")?.value || "";
+  
+  // Parse sender name and email
+  let senderName = from;
+  let senderEmail = "";
+  
+  const emailMatch = from.match(/<([^>]+)>/) || from.match(/([^\s]+@[^\s]+)/);
+  if (emailMatch) {
+    senderEmail = emailMatch[1];
+    senderName = from.replace(emailMatch[0], "").trim();
+    // Remove quotes if present
+    senderName = senderName.replace(/^"(.*)"$/, "$1");
+  }
+  
+  // Simple industry detection based on domains and sender names
+  let industry = "Other";
+  const lowerSender = senderName.toLowerCase();
+  const lowerEmail = senderEmail.toLowerCase();
+  
+  if (lowerEmail.includes("tech") || lowerEmail.includes("software") || 
+      lowerSender.includes("tech") || lowerEmail.includes("google") || 
+      lowerEmail.includes("microsoft")) {
+    industry = "Technology";
+  } else if (lowerEmail.includes("finance") || lowerEmail.includes("bank") || 
+             lowerSender.includes("finance") || lowerSender.includes("bank")) {
+    industry = "Finance";
+  } else if (lowerEmail.includes("market") || lowerSender.includes("market")) {
+    industry = "Marketing";
+  }
+  
+  // Extract message body - simplified approach
+  let content = "";
+  let plainContent = "";
+  
+  // Helper function to recursively get content from parts
+  function getContent(part) {
+    if (!part) return;
+    
+    if (part.body && part.body.data) {
+      // Base64 decode the content
+      try {
+        const decoded = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+        
+        if (part.mimeType === "text/html") {
+          content = decoded;
+        } else if (part.mimeType === "text/plain") {
+          plainContent = decoded;
+        }
+      } catch (e) {
+        console.error("Error decoding content:", e);
+      }
+    }
+    
+    // Check for nested parts
+    if (part.parts && Array.isArray(part.parts)) {
+      part.parts.forEach(getContent);
+    }
+  }
+  
+  getContent(message.payload);
+  
+  // Use plain content as fallback if no HTML content
+  if (!content && plainContent) {
+    content = `<pre>${plainContent}</pre>`;
+  }
+  
+  // Create preview text (first 150 chars of plain content)
+  const preview = plainContent.substring(0, 150).trim() + (plainContent.length > 150 ? "..." : "");
+  
+  // Parse date
+  let publishedAt;
+  try {
+    publishedAt = new Date(date).toISOString();
+  } catch (e) {
+    publishedAt = new Date().toISOString();
+    console.error("Error parsing date:", e);
+  }
+  
+  return {
+    title: subject,
+    sender: senderName,
+    sender_email: senderEmail,
+    preview: preview,
+    content: content,
+    industry: industry,
+    published_at: publishedAt,
+    email_id: accountId,
+    gmail_message_id: message.id,
+    gmail_thread_id: message.threadId
+  };
+}
+
+// Main handler function
+const handler = async (req: Request): Promise<Response> => {
+  // Create a Supabase client with the service role key
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+  
+  try {
+    // Parse request body
+    const { accountId } = await req.json() as SyncEmailsRequest;
     
     if (!accountId) {
       return new Response(
@@ -35,29 +277,38 @@ serve(async (req) => {
         }
       );
     }
-
-    console.log(`Starting sync for email account: ${accountId}`);
     
-    // Initialize Supabase client with service role key
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
-    );
+    console.log(`Starting sync for account ID: ${accountId}`);
     
-    // Get the email account details including oauth tokens
-    const { data: account, error: accountError } = await supabaseAdmin
-      .from("email_accounts")
-      .select("*")
-      .eq("id", accountId)
-      .single();
-    
-    if (accountError || !account) {
-      console.error("Error fetching account:", accountError);
+    // Refresh the Google token
+    const accessToken = await refreshGoogleToken(supabase, accountId);
+    if (!accessToken) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: "Email account not found",
-          details: accountError
+          error: "Failed to obtain access token",
+          status: 401
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+    
+    // Get account details (for reference in processing)
+    const { data: account, error: accountError } = await supabase
+      .from('email_accounts')
+      .select('*')
+      .eq('id', accountId)
+      .single();
+    
+    if (accountError) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Account not found",
+          status: 404
         }),
         { 
           status: 404, 
@@ -66,202 +317,96 @@ serve(async (req) => {
       );
     }
     
-    // Configure OAuth2 client
-    const oauth2Client = new google.auth.OAuth2(
-      Deno.env.get("GOOGLE_CLIENT_ID"),
-      Deno.env.get("GOOGLE_CLIENT_SECRET"),
-      Deno.env.get("GOOGLE_REDIRECT_URL")
-    );
+    // Fetch messages from Gmail
+    const messages = await fetchGmailMessages(accessToken, account, 20);
+    console.log(`Retrieved ${messages.length} messages from Gmail`);
     
-    // Set credentials from database
-    oauth2Client.setCredentials({
-      access_token: account.access_token,
-      refresh_token: account.refresh_token
-    });
+    // Process messages into newsletter format
+    const newsletters = messages
+      .map(msg => extractNewsletterData(msg, accountId))
+      .filter(newsletter => newsletter !== null);
     
-    // Create Gmail client
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    console.log(`Extracted ${newsletters.length} newsletters from messages`);
     
-    // Fetch the list of messages (newsletters)
-    // Look for newsletters and promotional emails
-    const messageResponse = await gmail.users.messages.list({
-      userId: 'me',
-      q: 'category:promotions OR category:updates',
-      maxResults: 10 // Limit for testing, can be increased
-    });
+    // Track successful and failed inserts
+    const synced = [];
+    const failed = [];
     
-    if (!messageResponse.data.messages || messageResponse.data.messages.length === 0) {
-      // Update last_sync time even if no messages found
-      await supabaseAdmin
-        .from("email_accounts")
-        .update({ last_sync: new Date().toISOString() })
-        .eq("id", accountId);
-        
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          synced: [],
-          count: 0,
-          message: "No newsletter emails found"
-        }),
-        { 
-          status: 200, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
-      );
-    }
-    
-    // Array to collect processed newsletters
-    const processedNewsletters = [];
-    const failedNewsletters = [];
-    
-    // Process each message
-    for (const message of messageResponse.data.messages) {
+    // Insert each newsletter into the database
+    for (const newsletter of newsletters) {
       try {
-        // Get full message details
-        const fullMessage = await gmail.users.messages.get({
-          userId: 'me',
-          id: message.id,
-          format: 'full'
-        });
+        // Check if this message already exists
+        const { data: existing, error: checkError } = await supabase
+          .from('newsletters')
+          .select('id')
+          .eq('gmail_message_id', newsletter.gmail_message_id)
+          .maybeSingle();
         
-        // Extract headers
-        const headers = fullMessage.data.payload?.headers || [];
-        const subject = headers.find(h => h.name === 'Subject')?.value || 'No Subject';
-        const from = headers.find(h => h.name === 'From')?.value || '';
-        const date = headers.find(h => h.name === 'Date')?.value || new Date().toISOString();
-        
-        // Parse sender name and email
-        let senderName = from;
-        let senderEmail = '';
-        
-        const emailMatch = from.match(/<([^>]+)>/);
-        if (emailMatch) {
-          senderEmail = emailMatch[1];
-          senderName = from.replace(/<[^>]+>/, '').trim();
-        } else {
-          senderEmail = from;
+        if (checkError) {
+          console.error("Error checking for existing newsletter:", checkError);
         }
         
-        // Extract HTML content
-        let htmlContent = '';
-        
-        // Function to find HTML part in message parts
-        function findHtmlPart(parts) {
-          if (!parts) return null;
-          
-          for (const part of parts) {
-            if (part.mimeType === 'text/html' && part.body?.data) {
-              return part.body.data;
-            }
-            
-            if (part.parts) {
-              const nestedHtml = findHtmlPart(part.parts);
-              if (nestedHtml) return nestedHtml;
-            }
-          }
-          
-          return null;
-        }
-        
-        // Look for HTML content in parts
-        if (fullMessage.data.payload?.parts) {
-          const htmlData = findHtmlPart(fullMessage.data.payload.parts);
-          if (htmlData) {
-            htmlContent = new TextDecoder().decode(decode(htmlData));
-          }
-        } else if (fullMessage.data.payload?.body?.data) {
-          // If no parts, try to get content from body
-          htmlContent = new TextDecoder().decode(decode(fullMessage.data.payload.body.data));
-        }
-        
-        // Create preview text from HTML (simple strip of HTML tags)
-        const previewText = htmlContent
-          .replace(/<[^>]*>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .substring(0, 200) + '...';
-        
-        // Convert date string to ISO format for database
-        let publishedDate;
-        try {
-          publishedDate = new Date(date).toISOString();
-        } catch (e) {
-          publishedDate = new Date().toISOString();
-        }
-        
-        // Insert newsletter into database
-        const { data: insertedNewsletter, error: insertError } = await supabaseAdmin
-          .from("newsletters")
-          .insert({
-            title: subject,
-            sender: senderName,
-            sender_email: senderEmail,
-            preview: previewText,
-            content: htmlContent,
-            published_at: publishedDate,
-            email_id: accountId,
-            industry: 'Newsletter' // Default category
-          })
-          .select()
-          .single();
-        
-        if (insertError) {
-          console.error(`Error inserting newsletter "${subject}":`, insertError);
-          failedNewsletters.push({
-            title: subject,
-            error: insertError.message
-          });
+        if (existing) {
+          console.log(`Newsletter already exists for message ID ${newsletter.gmail_message_id}`);
           continue;
         }
         
-        processedNewsletters.push({
-          id: insertedNewsletter.id,
-          title: subject,
-          sender: senderName
-        });
+        // Insert the new newsletter
+        const { data, error } = await supabase
+          .from('newsletters')
+          .insert(newsletter)
+          .select('id')
+          .single();
         
-      } catch (messageError) {
-        console.error(`Error processing message ${message.id}:`, messageError);
-        failedNewsletters.push({
-          id: message.id,
-          error: messageError.message
-        });
+        if (error) {
+          console.error("Error inserting newsletter:", error);
+          failed.push({ title: newsletter.title, error: error.message });
+        } else {
+          synced.push({ id: data.id, title: newsletter.title });
+        }
+      } catch (error) {
+        console.error("Error processing newsletter:", error);
+        failed.push({ title: newsletter.title, error: String(error) });
       }
     }
     
-    // Update last_sync time
-    await supabaseAdmin
-      .from("email_accounts")
+    // Update the last_sync timestamp on the email account
+    const { error: syncUpdateError } = await supabase
+      .from('email_accounts')
       .update({ last_sync: new Date().toISOString() })
-      .eq("id", accountId);
+      .eq('id', accountId);
+    
+    if (syncUpdateError) {
+      console.error("Error updating last_sync timestamp:", syncUpdateError);
+    }
     
     // Determine if this was a partial success
-    const isPartialSuccess = failedNewsletters.length > 0 && processedNewsletters.length > 0;
+    const partial = failed.length > 0;
     
     return new Response(
       JSON.stringify({
         success: true,
-        partial: isPartialSuccess,
-        synced: processedNewsletters,
-        failed: failedNewsletters,
-        count: processedNewsletters.length,
-        details: isPartialSuccess ? `Failed to sync ${failedNewsletters.length} newsletters` : null
+        partial,
+        count: synced.length,
+        synced,
+        failed,
+        warning: partial ? "Some newsletters failed to sync" : null,
+        details: partial ? "Check the failed array for details on newsletters that could not be synced" : null
       }),
       { 
         status: 200, 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
       }
     );
-    
   } catch (error) {
-    console.error("Error in sync-emails function:", error);
+    console.error("Error in sync-emails handler:", error);
     
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "Unknown error occurred",
-        details: String(error)
+        error: `Error syncing emails: ${error.message || "Unknown error"}`,
+        details: String(error),
+        status: 500
       }),
       { 
         status: 500, 
@@ -269,4 +414,7 @@ serve(async (req) => {
       }
     );
   }
-});
+};
+
+// Start the Deno server
+serve(handler);

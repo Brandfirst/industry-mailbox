@@ -65,6 +65,9 @@ export async function getNewslettersFromEmailAccount(
   const to = from + limit - 1;
 
   try {
+    console.log(`Fetching newsletters for account ${accountId} (page ${page}, limit ${limit})`);
+    console.log("Filters:", JSON.stringify(filters, null, 2));
+    
     let query = supabase
       .from("newsletters")
       .select("*, categories(id, name, slug, color)", { count: "exact" })
@@ -79,7 +82,7 @@ export async function getNewslettersFromEmailAccount(
       query = query.ilike('sender', `%${filters.sender}%`);
     }
 
-    if (filters.categoryId) {
+    if (filters.categoryId && filters.categoryId !== "all") {
       const categoryId = typeof filters.categoryId === 'string' ? parseInt(filters.categoryId) : filters.categoryId;
       query = query.eq('category_id', categoryId);
     }
@@ -104,10 +107,12 @@ export async function getNewslettersFromEmailAccount(
       throw error;
     }
 
+    console.log(`Successfully fetched ${data?.length || 0} newsletters (total count: ${count})`);
     return { data: data || [], count };
   } catch (error) {
     console.error("Error in getNewslettersFromEmailAccount:", error);
-    throw error;
+    // Return empty data instead of throwing to handle errors gracefully in the UI
+    return { data: [], count: 0 };
   }
 }
 

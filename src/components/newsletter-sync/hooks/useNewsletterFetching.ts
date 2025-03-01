@@ -31,6 +31,8 @@ export function useNewsletterFetching(
       setWarningMessage(null);
       
       try {
+        console.log(`Loading newsletters for account ${selectedAccount}`, { page, filters });
+        
         // Prepare filter options
         const filterOptions: { 
           searchQuery?: string;
@@ -67,10 +69,14 @@ export function useNewsletterFetching(
         }
 
         const { data, count } = await getNewslettersFromEmailAccount(selectedAccount, page, ITEMS_PER_PAGE, filterOptions);
+        console.log(`Newsletter data loaded: ${data.length} items, total count: ${count}`);
+        
         setNewsletters(data);
         setTotalCount(count || 0);
       } catch (error) {
         console.error("Error loading newsletters:", error);
+        setNewsletters([]);
+        setTotalCount(0);
         setErrorMessage("Failed to load newsletters. There may be a database issue or the account is not properly connected.");
         toast.error("Failed to load newsletters");
       } finally {
