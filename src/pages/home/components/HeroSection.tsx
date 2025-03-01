@@ -47,19 +47,6 @@ const HeroSection = () => {
 const AppScreenshot = () => {
   return (
     <div className="relative mx-auto max-w-5xl overflow-hidden rounded-lg border border-gray-800">
-      <div className="bg-gray-900 h-8 flex items-center px-3 border-b border-gray-800">
-        <div className="flex space-x-2">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-        </div>
-        <div className="mx-auto flex items-center bg-gray-800 rounded-md px-2 py-1">
-          <svg className="w-3 h-3 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M12 16L7 11L8.4 9.55L12 13.15L15.6 9.55L17 11L12 16Z" fill="currentColor"></path>
-          </svg>
-          <span className="text-xs text-gray-400">app.newsletterhub.no/sok</span>
-        </div>
-      </div>
       <div className="flex">
         {/* Sidebar - hidden on mobile */}
         <div className="bg-[#0f1729] w-52 border-r border-gray-800 py-4 hidden md:block min-h-[480px]">
