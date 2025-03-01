@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -39,6 +38,9 @@ const Admin = () => {
   // Create a unique key for the components
   const componentKey = `${activeTab}-${Date.now()}`;
   
+  // Create a unique key for email connection component
+  const emailConnectionKey = `email-connection-${Date.now()}`;
+  
   return (
     <AdminLayout activeTab={activeTab} setActiveTab={setActiveTab}>
       <AdminHeader activeTab={activeTab} />
@@ -48,6 +50,7 @@ const Admin = () => {
           <DashboardContent 
             setActiveTab={setActiveTab}
             key={componentKey}
+            emailConnectionKey={emailConnectionKey}
           />
           <DebugEdgeFunction />
         </>
