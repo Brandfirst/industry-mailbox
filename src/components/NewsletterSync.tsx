@@ -20,6 +20,7 @@ export default function NewsletterSync() {
     page,
     setPage,
     totalPages,
+    displayRange,
     filters,
     handleSync,
     handleCategoryChange,
@@ -41,6 +42,9 @@ export default function NewsletterSync() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 text-sm text-muted-foreground font-medium">
+          {displayRange}
+        </div>
         <NewsletterContent 
           errorMessage={errorMessage}
           warningMessage={warningMessage}

@@ -107,6 +107,15 @@ export function useNewsletterSync(userId: string | undefined) {
   }, []);
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
+  
+  // Calculate displayed range (e.g., "Showing 1-10 of 50")
+  const startItem = (page - 1) * itemsPerPage + 1;
+  const endItem = Math.min(page * itemsPerPage, totalCount);
+  const displayRange = isLoading 
+    ? "Loading..."
+    : totalCount > 0 
+      ? `Showing ${startItem}-${endItem} of ${totalCount}`
+      : "No newsletters found";
 
   return {
     emailAccounts,
@@ -123,6 +132,8 @@ export function useNewsletterSync(userId: string | undefined) {
     totalCount,
     filters,
     totalPages,
+    displayRange,
+    itemsPerPage,
     handleSync,
     handleCategoryChange,
     handleDeleteNewsletters,
