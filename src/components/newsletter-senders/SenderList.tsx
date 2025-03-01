@@ -89,7 +89,7 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
     setUpdatingCategory(senderEmail);
     try {
       // Convert empty string to null, otherwise parse as number
-      const parsedCategoryId = categoryId === "" ? null : parseInt(categoryId);
+      const parsedCategoryId = categoryId === "null" ? null : parseInt(categoryId);
       await onCategoryChange(senderEmail, parsedCategoryId);
       toast.success(`Category updated for all newsletters from ${senderEmail}`);
     } catch (error) {
@@ -194,7 +194,7 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
                       />
                       {onCategoryChange ? (
                         <Select
-                          value={sender.category_id?.toString() || ""}
+                          value={sender.category_id?.toString() || "null"}
                           onValueChange={(value) => handleCategoryChange(sender.sender_email, value)}
                           disabled={updatingCategory === sender.sender_email}
                         >
@@ -202,7 +202,7 @@ const SenderList = ({ senders, categories, loading = false, onCategoryChange }: 
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Uncategorized</SelectItem>
+                            <SelectItem value="null">Uncategorized</SelectItem>
                             {categories.map((category) => (
                               <SelectItem key={category.id} value={category.id.toString()}>
                                 {category.name}
