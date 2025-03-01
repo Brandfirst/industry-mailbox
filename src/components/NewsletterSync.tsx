@@ -154,9 +154,12 @@ export default function NewsletterSync() {
         
         // More descriptive error messages for common failures
         if (errorMsg.includes("Edge Function") || result.statusCode === 500) {
-          errorMsg = "Server error during sync. Please try again later or contact support.";
+          errorMsg = "Server error during sync. The edge function may have encountered an issue. Please check the logs or try again later.";
         } else if (result.statusCode === 401 || result.statusCode === 403) {
           errorMsg = "Authentication error. Your email account connection may need to be refreshed.";
+        } else if (result.details) {
+          // If we have more specific details, include them
+          errorMsg += `: ${result.details}`;
         }
         
         setErrorMessage(`Failed to sync emails: ${errorMsg}`);
@@ -164,7 +167,7 @@ export default function NewsletterSync() {
       }
     } catch (error) {
       console.error("Error syncing emails:", error);
-      setErrorMessage("An unexpected error occurred while syncing emails. Please try again.");
+      setErrorMessage("An unexpected error occurred while syncing emails. Please check the console for more details and try again.");
       toast.error("An error occurred while syncing emails");
     } finally {
       setIsSyncing(false);

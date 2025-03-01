@@ -416,17 +416,19 @@ export async function syncEmailAccount(accountId) {
       body: { accountId },
     });
 
-    console.log("Sync-emails response:", response);
+    console.log("Sync-emails raw response:", response);
     
     if (response.error) {
       console.error("Error invoking sync-emails function:", response.error);
       return { 
         success: false, 
         error: response.error.message || "Error connecting to sync service",
-        statusCode: 500
+        statusCode: response.error.status || 500
       };
     }
 
+    // Check if we have data and if it indicates an error
+    // The edge function now always returns 200 but may include error details in the data
     if (!response.data) {
       console.error("Empty response from sync-emails function");
       return { 
@@ -436,21 +438,19 @@ export async function syncEmailAccount(accountId) {
       };
     }
 
+    // Check the success flag directly from the response data
     if (!response.data.success) {
-      console.error("Error in sync-emails function:", response.data?.error || "Unknown error");
+      console.error("Error in sync-emails function:", response.data.error || "Unknown error");
       return { 
         success: false, 
-        error: response.data?.error || "Failed to sync emails",
-        details: response.data?.details || null,
-        statusCode: 400
+        error: response.data.error || "Failed to sync emails",
+        details: response.data.details || null,
+        statusCode: response.data.status || 400
       };
     }
 
-    // Update the last_sync timestamp for the email account
-    await supabase
-      .from("email_accounts")
-      .update({ last_sync: new Date().toISOString() })
-      .eq("id", accountId);
+    // If we reach here, the sync was successful
+    console.log("Sync completed successfully:", response.data);
 
     return { 
       success: true, 
