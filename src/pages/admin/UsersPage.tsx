@@ -14,6 +14,7 @@ import { getUserProfiles } from "@/lib/supabase/userProfile";
 import { toast } from "sonner";
 import UsersTab from "@/components/admin/stats/UsersTab";
 import { useAuth } from "@/contexts/auth";
+import { AdminStatsType } from "@/components/admin/stats/types";
 
 // Define the user profile structure
 interface UserProfile {
@@ -94,6 +95,30 @@ const UsersPage = () => {
     premiumUsers: userProfiles.filter(user => user.premium === true).length,
     regularUsers: userProfiles.filter(user => user.role === "user" && user.premium !== true).length
   };
+
+  // Calculate new users in past week
+  const newUsersInPastWeek = userProfiles.filter(user => {
+    const createdDate = new Date(user.created_at);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return createdDate > weekAgo;
+  }).length;
+  
+  // Create a proper AdminStatsType object
+  const adminStats: AdminStatsType = {
+    totalUsers: userStats.totalUsers,
+    premiumUsers: userStats.premiumUsers,
+    totalNewsletters: 0, // We don't have this data in this component
+    storageUsed: "0 MB", // We don't have this data in this component
+    newUsers: newUsersInPastWeek,
+    activeUsers: userStats.totalUsers,
+    premiumConversion: userStats.premiumUsers > 0 
+      ? `${Math.round((userStats.premiumUsers / userStats.totalUsers) * 100)}%` 
+      : "0%",
+    newNewslettersPastWeek: 0, // We don't have this data in this component
+    categories: 0, // We don't have this data in this component
+    uncategorized: 0 // We don't have this data in this component
+  };
   
   return (
     <AdminLayout activeTab="users" setActiveTab={setActiveTab}>
@@ -169,18 +194,7 @@ const UsersPage = () => {
           </CardHeader>
           <CardContent>
             <UsersTab 
-              stats={{
-                newUsers: userProfiles.filter(user => {
-                  const createdDate = new Date(user.created_at);
-                  const weekAgo = new Date();
-                  weekAgo.setDate(weekAgo.getDate() - 7);
-                  return createdDate > weekAgo;
-                }).length,
-                activeUsers: userProfiles.length,
-                premiumConversion: userStats.premiumUsers > 0 
-                  ? `${Math.round((userStats.premiumUsers / userStats.totalUsers) * 100)}%` 
-                  : "0%"
-              }}
+              stats={adminStats}
               isLoading={isLoading}
             />
           </CardContent>
