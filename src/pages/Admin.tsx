@@ -9,6 +9,7 @@ import DashboardContent from "@/components/admin/DashboardContent";
 import UnderConstructionTab from "@/components/admin/UnderConstructionTab";
 import NewsletterSync from "@/components/NewsletterSync";
 import { DebugEdgeFunction } from "@/components/DebugEdgeFunction";
+import CategoriesManagement from "@/components/admin/CategoriesManagement";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -183,7 +184,13 @@ const Admin = () => {
         </div>
       )}
       
-      {(activeTab === "categories" || activeTab === "users" || activeTab === "settings") && (
+      {activeTab === "categories" && (
+        <div className="space-y-6">
+          <CategoriesManagement />
+        </div>
+      )}
+      
+      {(activeTab === "users" || activeTab === "settings") && (
         <UnderConstructionTab setActiveTab={setActiveTab} />
       )}
     </AdminLayout>
