@@ -12,8 +12,8 @@ type CategorySelectorProps = {
 export function CategorySelector({ newsletter, categories, onCategoryChange }: CategorySelectorProps) {
   const handleCategoryChange = async (categoryId: string) => {
     try {
-      // Convert categoryId to number or null if empty string
-      const numericCategoryId = categoryId ? parseInt(categoryId) : null;
+      // Convert categoryId to number or null if "uncategorized"
+      const numericCategoryId = categoryId !== "uncategorized" ? parseInt(categoryId) : null;
       
       await updateNewsletterCategory(newsletter.id, numericCategoryId);
       toast.success("Category updated successfully");

@@ -53,7 +53,8 @@ export function useNewsletterFetching(
           filterOptions.sender = filters.sender;
         }
 
-        if (filters.categoryId) {
+        // Only include categoryId filter if it's not "all"
+        if (filters.categoryId && filters.categoryId !== "all") {
           filterOptions.categoryId = filters.categoryId;
         }
 
