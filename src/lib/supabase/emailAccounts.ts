@@ -93,7 +93,22 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
 
 export async function disconnectEmailAccount(accountId) {
   try {
-    // First delete the account from the database
+    console.log(`Disconnecting email account with ID: ${accountId}`);
+    
+    // First get the account details before deletion (for logging purposes)
+    const { data: accountData, error: fetchError } = await supabase
+      .from("email_accounts")
+      .select("email, user_id")
+      .eq("id", accountId)
+      .single();
+      
+    if (fetchError) {
+      console.error("Error fetching email account details before disconnection:", fetchError);
+    } else {
+      console.log(`Preparing to disconnect email ${accountData?.email} for user ${accountData?.user_id}`);
+    }
+    
+    // Delete the account from the database
     const { error } = await supabase
       .from("email_accounts")
       .delete()
@@ -102,6 +117,29 @@ export async function disconnectEmailAccount(accountId) {
     if (error) {
       console.error("Error disconnecting email account:", error);
       return { success: false, error: error.message };
+    }
+    
+    // Log successful deletion
+    console.log(`Successfully disconnected email account ${accountId} (${accountData?.email || "unknown email"})`);
+    
+    // Optionally, we could call a function to notify the edge function about the deletion
+    try {
+      const notifyResponse = await supabase.functions.invoke("disconnect-notification", {
+        body: { 
+          accountId, 
+          email: accountData?.email, 
+          userId: accountData?.user_id,
+          timestamp: new Date().toISOString()
+        },
+      });
+      
+      if (notifyResponse.error) {
+        console.warn("Error notifying edge function about disconnection:", notifyResponse.error);
+        // Continue anyway since the account was successfully deleted
+      }
+    } catch (notifyError) {
+      // Just log the error but don't fail the whole operation
+      console.warn("Exception when notifying edge function:", notifyError);
     }
 
     return { success: true };
