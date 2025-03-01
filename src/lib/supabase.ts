@@ -86,7 +86,7 @@ export async function getNewsletters(options: any = {}) {
   
   const { data, error, count } = await supabase
     .from("newsletters")
-    .select("*, categories(name, slug, color)")
+    .select("*, categories(id, name, slug, color)")
     .range(from, to);
   
   if (error) {
@@ -104,7 +104,7 @@ export async function getNewslettersFromEmailAccount(accountId, page = 1, limit 
 
   const { data, error, count } = await supabase
     .from("newsletters")
-    .select("*, categories(name, slug, color)", { count: "exact" })
+    .select("*, categories(id, name, slug, color)", { count: "exact" })
     .eq("email_id", accountId)
     .range(from, to)
     .order("published_at", { ascending: false });
@@ -120,7 +120,7 @@ export async function getNewslettersFromEmailAccount(accountId, page = 1, limit 
 export async function getNewsletterById(id) {
   const { data, error } = await supabase
     .from("newsletters")
-    .select("*, categories(name, slug, color)")
+    .select("*, categories(id, name, slug, color)")
     .eq("id", id)
     .single();
 
@@ -173,7 +173,7 @@ export async function getUserSavedNewsletters(userId, page = 1, limit = 10) {
 
   const { data, error, count } = await supabase
     .from("saved_newsletters")
-    .select("newsletter_id, newsletters!inner(*, categories(name, slug, color))", {
+    .select("newsletter_id, newsletters!inner(*, categories(id, name, slug, color))", {
       count: "exact",
     })
     .eq("user_id", userId)
@@ -212,8 +212,7 @@ export async function getAllCategories(): Promise<NewsletterCategory[]> {
   try {
     const { data, error } = await supabase
       .from("categories")
-      .select("id, name, slug, color, created_at")
-      .order("name");
+      .select("id, name, slug, color, created_at");
 
     if (error) {
       console.error("Error fetching categories:", error);

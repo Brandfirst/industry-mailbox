@@ -1,7 +1,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Button, ButtonProps } from "./button"
+import { Button, type ButtonProps } from "./button"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
 const Pagination = React.forwardRef<
@@ -36,29 +36,36 @@ const PaginationItem = React.forwardRef<
 ))
 PaginationItem.displayName = "PaginationItem"
 
-type PaginationLinkProps = ButtonProps & {
+type PaginationLinkProps = {
   isActive?: boolean;
+  disabled?: boolean;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  children?: React.ReactNode;
+  className?: string;
 }
 
 const PaginationLink = ({
   className,
   isActive,
-  size = "icon",
+  disabled,
+  children,
+  onClick,
   ...props
 }: PaginationLinkProps) => (
   <Button
     aria-current={isActive ? "page" : undefined}
     variant={isActive ? "default" : "outline"}
-    size={size}
-    {...props}
+    size="icon"
+    disabled={disabled || isActive}
+    onClick={onClick}
     className={cn(
       "h-8 w-8 p-0",
-      {
-        "pointer-events-none": props.disabled || isActive,
-      },
       className
     )}
-  />
+    {...props}
+  >
+    {children}
+  </Button>
 )
 PaginationLink.displayName = "PaginationLink"
 
@@ -66,14 +73,15 @@ const PaginationPrevious = ({
   className,
   ...props
 }: ButtonProps) => (
-  <PaginationLink
+  <Button
     aria-label="Go to previous page"
     size="icon"
+    variant="outline"
     className={cn("h-8 w-8 p-0", className)}
     {...props}
   >
     <ChevronLeft className="h-4 w-4" />
-  </PaginationLink>
+  </Button>
 )
 PaginationPrevious.displayName = "PaginationPrevious"
 
@@ -81,14 +89,15 @@ const PaginationNext = ({
   className,
   ...props
 }: ButtonProps) => (
-  <PaginationLink
+  <Button
     aria-label="Go to next page"
     size="icon"
+    variant="outline"
     className={cn("h-8 w-8 p-0", className)}
     {...props}
   >
     <ChevronRight className="h-4 w-4" />
-  </PaginationLink>
+  </Button>
 )
 PaginationNext.displayName = "PaginationNext"
 
