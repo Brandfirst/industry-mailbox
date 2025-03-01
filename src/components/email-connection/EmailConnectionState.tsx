@@ -1,15 +1,8 @@
-
 import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserEmailAccounts } from "@/lib/supabase";
 import { toast } from "sonner";
-
-interface EmailAccount {
-  id: string;
-  email: string;
-  created_at: string;
-  last_sync: string | null;
-}
+import { EmailAccount } from "./types";
 
 interface EmailConnectionState {
   emailAccounts: EmailAccount[];
