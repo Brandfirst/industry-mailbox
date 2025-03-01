@@ -58,8 +58,8 @@ const HeroSection = () => {
         <div className="animate-slide-down max-w-5xl mx-auto">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-ebgaramond tracking-tight mb-6 text-white">
             Norges største database av nyhetsbrev
-            <span className="block text-[#0FA0CE] mt-4 relative">
-              <div className="absolute -bottom-2 w-full h-0.5 bg-gradient-to-r from-transparent via-[#0FA0CE] to-transparent"></div>
+            <span className="block text-[#3a6ffb] mt-4 relative">
+              <div className="absolute -bottom-2 w-full h-0.5 bg-gradient-to-r from-transparent via-[#3a6ffb] to-transparent"></div>
             </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 mb-6 max-w-3xl mx-auto">

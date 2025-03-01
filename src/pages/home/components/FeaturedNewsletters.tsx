@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -68,7 +69,7 @@ const FeaturedNewsletters = () => {
   };
   
   return (
-    <section className="py-12 bg-gradient-to-b from-slate-900 to-slate-950">
+    <section className="py-12 bg-black">
       <div className="container px-4 md:px-6 mx-auto">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <h2 className="text-2xl font-bold text-white">Utforskede nyhetsbrev</h2>
@@ -174,7 +175,7 @@ const FeaturedNewsletters = () => {
         )}
         
         <div className="flex justify-center mt-12">
-          <Button onClick={handleSeeMoreClick} className="gap-2">
+          <Button onClick={handleSeeMoreClick} className="gap-2 bg-[#3a6ffb] hover:bg-[#3a6ffb]/90">
             Se flere nyhetsbrev <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
