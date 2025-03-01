@@ -84,7 +84,7 @@ const Index = () => {
 
         {/* Hero Content */}
         <div className="relative z-10 w-full">
-          <div className="container mx-auto max-w-5xl text-center px-4 md:px-8 relative z-10">
+          <div className="container mx-auto max-w-7xl text-center px-4 md:px-8 relative z-10">
             <div className="animate-slide-down">
               {/* New version badge with collapsible features */}
               <div className="mb-4">
@@ -121,24 +121,24 @@ const Index = () => {
                 </Collapsible>
               </div>
               
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-3 text-white">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
                 For <span className="smaller-text">byråer</span> og markedsførere
-                <span className="block text-blue-400 mt-2 relative">
+                <span className="block text-blue-400 mt-3 relative">
                   Norges største database av nyhetsbrev
                   <div className="absolute -bottom-2 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animated-border"></div>
                 </span>
               </h1>
-              <p className="text-md md:text-lg text-gray-300 mb-4 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
                 Få inspirasjonen og innsikten du trenger for bedre markedsføring.
               </p>
               
               {/* Three-column layout for desktop, stacked for mobile */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-6">
                 {/* Left column: Stats and CTA */}
                 <div className="order-2 lg:order-1">
                   {/* Stats section - More compact */}
                   <div className="mb-4">
-                    <div className="stats-grid grid grid-cols-2 gap-2">
+                    <div className="stats-grid grid grid-cols-2 gap-3">
                       {stats.map((stat, index) => {
                         const Icon = stat.icon;
                         return (
@@ -160,15 +160,15 @@ const Index = () => {
                 
                 {/* Middle column: Main hero content and CTA */}
                 <div className="order-1 lg:order-2 flex flex-col items-center justify-between">
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
                     <Link to="/search">
-                      <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto">
+                      <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto px-6 py-6 text-lg">
                         Start Søket
                         <Search className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
                     <Link to="/auth?mode=signup">
-                      <Button size="lg" variant="outline" className="border-blue-400/30 text-blue-400 hover:bg-blue-900/20 w-full sm:w-auto">
+                      <Button size="lg" variant="outline" className="border-blue-400/30 text-blue-400 hover:bg-blue-900/20 w-full sm:w-auto px-6 py-6 text-lg">
                         Opprett Konto
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
@@ -248,10 +248,10 @@ const Index = () => {
       </section>
 
       {/* UI Showcase */}
-      <section className="relative py-12 lg:py-20 overflow-hidden mesh-gradient">
-        <div className="container mx-auto px-4">
+      <section className="relative py-16 lg:py-24 overflow-hidden mesh-gradient">
+        <div className="container mx-auto px-4 max-w-7xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-white">
               Finn inspirasjon og forstå markedet bedre
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -260,7 +260,7 @@ const Index = () => {
           </div>
           
           <div className="relative">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-6xl mx-auto">
               <Card className="rounded-xl border-0 shadow-2xl overflow-hidden bg-dark-800 border-0">
                 <CardContent className="p-0">
                   <div className="bg-black/20 backdrop-blur rounded-t-xl">
@@ -313,8 +313,8 @@ const Index = () => {
                         </div>
                       </div>
                       
-                      {/* Newsletter Grid - Fixed gradient issue for mobile */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Newsletter Grid - Updated for better desktop display */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* Newsletter Card 1 */}
                         <div className="bg-white rounded-md overflow-hidden">
                           <div className="relative">
@@ -377,9 +377,9 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-black py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+      <section className="bg-black py-16 md:py-24">
+        <div className="container mx-auto px-4 text-center max-w-6xl">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-white">
             Klar til å finne din inspirasjon?
           </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -387,9 +387,9 @@ const Index = () => {
             Spar tid, finn inspirasjon og hold deg oppdatert.
           </p>
           <Link to="/auth?mode=signup">
-            <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-6 text-lg">
+            <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-7 text-xl">
               Kom i gang - Gratis!
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-6 w-6" />
             </Button>
           </Link>
         </div>
@@ -397,9 +397,16 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="bg-gray-900 py-8 border-t border-gray-800">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-gray-400 text-sm">
-            <p>© 2023 NewsletterHub. Alle rettigheter reservert.</p>
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="text-gray-400 text-sm mb-4 md:mb-0">
+              <p>© 2023 NewsletterHub. Alle rettigheter reservert.</p>
+            </div>
+            <div className="flex space-x-6">
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">Vilkår</a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">Personvern</a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">Kontakt</a>
+            </div>
           </div>
         </div>
       </footer>
