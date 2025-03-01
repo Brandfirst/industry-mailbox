@@ -166,8 +166,8 @@ export function NewsletterList({
               const senderNewsletters = senderGroups[sender];
               
               // Check if all newsletters have the same category
-              const categories = new Set(senderNewsletters.map(n => n.category_id));
-              const hasConsistentCategory = categories.size === 1;
+              const categoryIds = new Set(senderNewsletters.map(n => n.category_id));
+              const hasConsistentCategory = categoryIds.size === 1;
               
               // Take the first newsletter as representative for this sender group
               const representativeNewsletter = senderNewsletters[0];

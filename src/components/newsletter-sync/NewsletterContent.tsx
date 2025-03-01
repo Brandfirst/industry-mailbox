@@ -1,5 +1,5 @@
 
-import { Newsletter, NewsletterCategory } from "@/lib/supabase";
+import { Newsletter, NewsletterCategory, EmailAccount } from "@/lib/supabase";
 import { AlertMessages } from "./AlertMessages";
 import { AccountSelector } from "./AccountSelector";
 import { LoadingState } from "./LoadingState";
@@ -11,7 +11,7 @@ import { NewsletterPagination } from "./NewsletterPagination";
 type NewsletterContentProps = {
   errorMessage: string | null;
   warningMessage: string | null;
-  emailAccounts: { id: string; email: string; provider: string }[];
+  emailAccounts: EmailAccount[];
   selectedAccount: string | null;
   onSelectAccount: (accountId: string) => void;
   isLoading: boolean;

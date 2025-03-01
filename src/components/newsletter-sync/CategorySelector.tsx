@@ -71,6 +71,9 @@ export function CategorySelector({
     }
   };
 
+  // Ensure categories is an array before trying to map over it
+  const categoriesArray = Array.isArray(categories) ? categories : [];
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -114,7 +117,7 @@ export function CategorySelector({
                   <span>Uncategorized</span>
                 </div>
               </CommandItem>
-              {categories.map((category) => (
+              {categoriesArray.map((category) => (
                 <CommandItem
                   key={String(category.id)}
                   value={category.name}

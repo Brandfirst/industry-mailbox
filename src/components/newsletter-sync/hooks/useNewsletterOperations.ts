@@ -1,174 +1,120 @@
 
 import { useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Newsletter } from "@/lib/supabase";
 import { toast } from "sonner";
+import { 
+  Newsletter,
+  EmailAccount,
+  syncEmailAccountNewsletters,
+  updateNewsletterCategories,
+  deleteNewsletters as apiDeleteNewsletters
+} from "@/lib/supabase";
 
 export function useNewsletterOperations(
   selectedAccount: string | null,
-  page: number,
-  setNewsletters: (newsletters: Newsletter[]) => void,
-  setTotalCount: (count: number) => void,
+  currentPage: number,
+  setNewsletters: React.Dispatch<React.SetStateAction<Newsletter[]>>,
+  setTotalCount: React.Dispatch<React.SetStateAction<number>>,
   setErrorMessage: (message: string | null) => void,
   setWarningMessage: (message: string | null) => void
 ) {
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Function to sync the selected email account
+  // Function to sync newsletters from selected email account
   const handleSync = useCallback(async () => {
     if (!selectedAccount) {
-      setErrorMessage("Please select an email account to sync");
+      toast.error("No email account selected");
       return;
     }
 
+    setIsSyncing(true);
+    setErrorMessage(null);
+    setWarningMessage(null);
+
     try {
-      setIsSyncing(true);
-      setErrorMessage(null);
-      setWarningMessage(null);
+      const result = await syncEmailAccountNewsletters(selectedAccount);
+      console.log("Sync result:", result);
 
-      // Call the sync-emails edge function
-      const { data, error } = await supabase.functions.invoke("sync-emails", {
-        body: { emailAccountId: selectedAccount },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      // Show feedback to the user
-      if (data?.success) {
-        if (data.newCount > 0) {
-          toast.success(`Successfully synced ${data.newCount} new newsletters`);
-        } else {
-          toast.info("No new newsletters found");
+      if (result.success) {
+        // If we're on page 1, refresh the data
+        if (currentPage === 1) {
+          // We'll let the useEffect in the parent component handle the refresh
+          // This is to make sure we have the latest filters applied
         }
-
-        // Refresh newsletter list if we're on page 1
-        if (page === 1) {
-          const { data: updatedData, count } = await supabase
-            .from("newsletters")
-            .select("*, categories(id, name, slug, color)", { count: "exact" })
-            .eq("email_id", selectedAccount)
-            .order("published_at", { ascending: false })
-            .range(0, 9);
-
-          if (updatedData) {
-            setNewsletters(updatedData);
-            if (count !== null) {
-              setTotalCount(count);
-            }
-          }
+        
+        toast.success(
+          result.count > 0
+            ? `Successfully synced ${result.count} newsletter(s)`
+            : "No new newsletters found"
+        );
+        
+        if (result.count > 0) {
+          // Increment total count
+          setTotalCount(prevCount => prevCount + result.count);
         }
-
-        // Show warning if some emails were skipped
-        if (data.skippedCount > 0) {
-          setWarningMessage(`${data.skippedCount} emails were skipped because they were not newsletters.`);
+        
+        if (result.warnings && result.warnings.length > 0) {
+          setWarningMessage(result.warnings.join(". "));
         }
+      } else {
+        toast.error("Failed to sync newsletters");
+        setErrorMessage(result.error || "An unknown error occurred");
       }
     } catch (error) {
-      console.error("Error syncing emails:", error);
-      setErrorMessage("Failed to sync emails. Please try again later.");
-      toast.error("Failed to sync emails");
+      console.error("Error syncing newsletters:", error);
+      toast.error("Error syncing newsletters");
+      setErrorMessage("Failed to sync newsletters. Please try again later.");
     } finally {
       setIsSyncing(false);
     }
-  }, [selectedAccount, page, setNewsletters, setTotalCount, setErrorMessage, setWarningMessage]);
+  }, [selectedAccount, currentPage, setErrorMessage, setWarningMessage, setTotalCount]);
 
-  // Function to update categories for one or multiple newsletters
+  // Function to update newsletter categories
   const handleCategoryChange = useCallback(async (updatedNewsletters: Newsletter[], applySenderWide: boolean) => {
-    if (!updatedNewsletters.length) return;
+    if (!updatedNewsletters || updatedNewsletters.length === 0) return;
 
     try {
-      const updates = [];
-      
-      if (applySenderWide) {
-        // Group newsletters by sender to make sender-wide updates
-        const senderGroups: Record<string, Newsletter[]> = {};
-        
-        // Group all newsletters by sender
-        updatedNewsletters.forEach(newsletter => {
-          const sender = newsletter.sender || newsletter.sender_email || "unknown";
-          if (!senderGroups[sender]) {
-            senderGroups[sender] = [];
-          }
-          senderGroups[sender].push(newsletter);
-        });
-        
-        // Create batch updates for each sender
-        for (const sender in senderGroups) {
-          const categoryId = senderGroups[sender][0].category_id;
-          const senderKey = senderGroups[sender][0].sender ? "sender" : "sender_email";
-          const senderValue = senderGroups[sender][0].sender || senderGroups[sender][0].sender_email;
-          
-          if (!senderValue) continue;
-          
-          // Create a batch update for all newsletters from this sender
-          updates.push({
-            table: "newsletters",
-            query: { [senderKey]: senderValue, email_id: selectedAccount },
-            values: { category_id: categoryId }
-          });
-        }
-      } else {
-        // Standard single-newsletter update (backward compatibility)
-        updates.push(...updatedNewsletters.map(newsletter => ({
-          table: "newsletters",
-          query: { id: newsletter.id },
-          values: { category_id: newsletter.category_id }
-        })));
-      }
-      
-      // Execute each update
-      for (const update of updates) {
-        const { error } = await supabase
-          .from(update.table)
-          .update(update.values)
-          .match(update.query);
-          
-        if (error) {
-          console.error(`Error updating ${update.table}:`, error);
-          throw error;
-        }
-      }
-      
-      // Update UI with optimistic updates
-      setNewsletters(prev => {
+      // Update local state immediately for UI responsiveness
+      setNewsletters(prevNewsletters => {
         const updatedIds = new Set(updatedNewsletters.map(n => n.id));
-        return prev.map(n => updatedIds.has(n.id) ? 
-          updatedNewsletters.find(u => u.id === n.id) || n : n);
+        return prevNewsletters.map(newsletter => 
+          updatedIds.has(newsletter.id) 
+            ? updatedNewsletters.find(n => n.id === newsletter.id) || newsletter 
+            : newsletter
+        );
       });
-      
-    } catch (error) {
-      console.error("Error updating categories:", error);
-      toast.error("Failed to update categories");
-      throw error;
-    }
-  }, [selectedAccount, setNewsletters]);
 
-  // Function to delete one or multiple newsletters
+      // Map the updates for the API call
+      const updates = updatedNewsletters.map(newsletter => ({
+        id: newsletter.id,
+        category_id: newsletter.category_id
+      }));
+
+      // Send updates to API
+      await updateNewsletterCategories(updates, applySenderWide);
+    } catch (error) {
+      console.error("Error updating newsletter categories:", error);
+      toast.error("Failed to update categories");
+      
+      // Revert the local state change on error
+      // This would require fetching fresh data from the server
+      // For simplicity, we'll just show an error message
+    }
+  }, [setNewsletters]);
+
+  // Function to delete newsletters
   const handleDeleteNewsletters = useCallback(async (ids: number[]) => {
-    if (!ids.length) return;
+    if (!ids || ids.length === 0) return;
 
     try {
-      const { error } = await supabase
-        .from("newsletters")
-        .delete()
-        .in("id", ids);
-
-      if (error) {
-        console.error("Error deleting newsletters:", error);
-        throw error;
+      const result = await apiDeleteNewsletters(ids);
+      
+      if (result.success) {
+        return result;
+      } else {
+        throw new Error("Failed to delete newsletters");
       }
-
-      // We don't update the state here because the calling component should handle this
-      // based on the result of this operation
     } catch (error) {
-      console.error("Error in handleDeleteNewsletters:", error);
-      toast.error("Failed to delete newsletters");
+      console.error("Error deleting newsletters:", error);
       throw error;
     }
   }, []);

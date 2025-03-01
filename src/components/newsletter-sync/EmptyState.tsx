@@ -1,30 +1,29 @@
 
-import { Mail, Tag } from "lucide-react";
+import { FileX, RefreshCw } from "lucide-react";
 
-type EmptyStateProps = {
-  type: "noAccounts" | "noNewsletters";
+export type EmptyStateProps = {
+  selectedAccount: string | null;
+  isSyncing: boolean;
 };
 
-export function EmptyState({ type }: EmptyStateProps) {
-  if (type === "noAccounts") {
-    return (
-      <div className="text-center py-8">
-        <Mail className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-semibold">No email accounts connected</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Connect an email account to start importing newsletters
-        </p>
-      </div>
-    );
-  }
-  
+export function EmptyState({ selectedAccount, isSyncing }: EmptyStateProps) {
   return (
-    <div className="text-center py-12">
-      <Tag className="mx-auto h-12 w-12 text-gray-400" />
-      <h3 className="mt-2 text-sm font-semibold">No newsletters found</h3>
-      <p className="mt-1 text-sm text-gray-500">
-        Try syncing your account or select a different email account
+    <div className="text-center py-10 space-y-3">
+      <div className="flex justify-center">
+        <FileX className="h-12 w-12 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-medium">No newsletters found</h3>
+      <p className="text-muted-foreground max-w-md mx-auto">
+        {selectedAccount
+          ? "No newsletters have been synced from this email account yet. Click the sync button to import newsletters."
+          : "Select an email account to view and manage newsletters."}
       </p>
+      {isSyncing && (
+        <div className="flex justify-center items-center mt-4 text-primary">
+          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+          <span>Syncing newsletters...</span>
+        </div>
+      )}
     </div>
   );
 }
