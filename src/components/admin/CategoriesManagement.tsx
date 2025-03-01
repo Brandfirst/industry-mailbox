@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -288,7 +289,7 @@ export default function CategoriesManagement() {
                 Create a new category to organize your newsletters
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-4 py-4 text-black">
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium">
                   Category Name
@@ -365,7 +366,7 @@ export default function CategoriesManagement() {
               </DialogDescription>
             </DialogHeader>
             {editingCategory && (
-              <div className="space-y-4 py-4">
+              <div className="space-y-4 py-4 text-black">
                 <div className="space-y-2">
                   <label htmlFor="edit-name" className="text-sm font-medium">
                     Category Name
@@ -443,7 +444,7 @@ export default function CategoriesManagement() {
               </DialogDescription>
             </DialogHeader>
             {deletingCategory && (
-              <div className="py-4">
+              <div className="py-4 text-black">
                 <div className="flex items-center gap-2 p-4 border rounded-md bg-muted/30">
                   <span 
                     className="inline-block w-4 h-4 rounded-full"
