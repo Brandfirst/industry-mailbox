@@ -1,15 +1,8 @@
 
 import { useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Newsletter } from "@/lib/supabase";
 import { toast } from "sonner";
-import { 
-  Newsletter,
-  syncEmailAccount,
-  deleteNewsletters,
-  getNewslettersFromEmailAccount
-} from "@/lib/supabase";
-
-// Constants
-const ITEMS_PER_PAGE = 10;
 
 export function useNewsletterOperations(
   selectedAccount: string | null,
@@ -21,167 +14,162 @@ export function useNewsletterOperations(
 ) {
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // Function to sync the selected email account
   const handleSync = useCallback(async () => {
-    if (!selectedAccount) return;
-    
-    if (isSyncing) {
-      // Prevent multiple sync attempts
-      toast.info("Sync already in progress");
+    if (!selectedAccount) {
+      setErrorMessage("Please select an email account to sync");
       return;
     }
-    
-    setIsSyncing(true);
-    setErrorMessage(null);
-    setWarningMessage(null);
-    toast.info("Starting email sync...");
-    
+
     try {
-      console.log("Syncing account:", selectedAccount);
-      const result = await syncEmailAccount(selectedAccount);
-      console.log("Sync result:", result);
-      
-      if (result.success) {
-        // Check if it was a partial success
-        if (result.partial) {
-          // Check if there are failed items to display
-          if (result.failed && result.failed.length > 0) {
-            // Check for database schema errors
-            const schemaErrors = result.failed.filter(item => 
-              item.error?.includes('gmail_message_id') || 
-              item.details?.includes('gmail_message_id') ||
-              item.error?.includes('gmail_thread_id') || 
-              item.details?.includes('gmail_thread_id')
-            );
-            
-            if (schemaErrors.length > 0) {
-              // This is definitely a database schema issue
-              const errorDetails = "Newsletter sync failed due to missing database column.";
-              let dbError = "";
-              
-              if (schemaErrors.some(e => e.error?.includes('gmail_message_id') || e.details?.includes('gmail_message_id'))) {
-                dbError += "The database is missing the 'gmail_message_id' column in the newsletters table. ";
-              }
-              
-              if (schemaErrors.some(e => e.error?.includes('gmail_thread_id') || e.details?.includes('gmail_thread_id'))) {
-                dbError += "The database is missing the 'gmail_thread_id' column in the newsletters table. ";
-              }
-              
-              dbError += "Please contact the developer for assistance.";
-              setErrorMessage(`${errorDetails} ${dbError}`);
-              
-              // Log detailed info for debugging
-              console.error("Database schema errors:", schemaErrors);
-              toast.error("Database schema issue detected. See console for details.");
-              
-              // Show a more specific error in the UI
-              setWarningMessage("To fix this issue, check the database schema for required columns. Contact developer for assistance.");
-            } else {
-              // Format the failed items for display
-              const failedDetails = result.failed.slice(0, 3).map(item => {
-                return item.error || item.details || "Unknown error";
-              }).join("; ");
-              
-              const remainingCount = Math.max(0, result.failed.length - 3);
-              const additionalText = remainingCount > 0 ? ` and ${remainingCount} more` : '';
-              
-              const warningMsg = `Sync issues: ${failedDetails}${additionalText}. Check logs for details.`;
-              setWarningMessage(warningMsg);
-              
-              // Log all failures for debugging
-              console.error("Failed newsletter syncs:", result.failed);
-              toast.warning(warningMsg);
-            }
-          } else if (result.count > 0 || result.synced?.length > 0) {
-            const warningMsg = `Synced ${result.count || 0} newsletters with some errors: ${result.warning || 'Some items failed'}`;
-            setWarningMessage(warningMsg);
-            toast.warning(warningMsg);
-          } else {
-            // No newsletters synced at all, so it's more of an error
-            const errorDetails = result.details || 
-                              "Failed to sync newsletters. There may be a database schema issue.";
-            const dbError = "The database might be missing required columns. Check the logs for column errors.";
-            setErrorMessage(`${errorDetails} ${dbError}`);
-            toast.error(errorDetails);
-          }
-        } else if (result.count === 0) {
-          // Success but no newsletters found
-          toast.info("No new newsletters found to sync");
+      setIsSyncing(true);
+      setErrorMessage(null);
+      setWarningMessage(null);
+
+      // Call the sync-emails edge function
+      const { data, error } = await supabase.functions.invoke("sync-emails", {
+        body: { emailAccountId: selectedAccount },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      // Show feedback to the user
+      if (data?.success) {
+        if (data.newCount > 0) {
+          toast.success(`Successfully synced ${data.newCount} new newsletters`);
         } else {
-          // Complete success!
-          toast.success(`Successfully synced ${result.count || 0} newsletters`);
+          toast.info("No new newsletters found");
         }
-        
-        // Refresh the newsletter list regardless of the outcome
-        try {
-          const { data, count } = await getNewslettersFromEmailAccount(
-            selectedAccount, 
-            page, 
-            ITEMS_PER_PAGE
-          );
-          setNewsletters(data);
-          setTotalCount(count || 0);
-        } catch (refreshError) {
-          console.error("Error refreshing newsletters after sync:", refreshError);
-          // Don't set error message here, as we want to keep the sync result message
+
+        // Refresh newsletter list if we're on page 1
+        if (page === 1) {
+          const { data: updatedData, count } = await supabase
+            .from("newsletters")
+            .select("*, categories(id, name, slug, color)", { count: "exact" })
+            .eq("email_id", selectedAccount)
+            .order("published_at", { ascending: false })
+            .range(0, 9);
+
+          if (updatedData) {
+            setNewsletters(updatedData);
+            if (count !== null) {
+              setTotalCount(count);
+            }
+          }
         }
-      } else {
-        console.error("Sync error details:", result);
-        let errorMsg = result.error || "Unknown error occurred during sync";
-        
-        // More descriptive error messages for common failures
-        if (errorMsg.includes("Edge Function") || result.statusCode === 500) {
-          errorMsg = "Server error during sync. The edge function may have encountered an issue. Please check the logs or try again later.";
-        } else if (result.statusCode === 401 || result.statusCode === 403) {
-          errorMsg = "Authentication error. Your email account connection may need to be refreshed.";
-        } else if (result.details) {
-          // If we have more specific details, include them
-          errorMsg += `: ${result.details}`;
+
+        // Show warning if some emails were skipped
+        if (data.skippedCount > 0) {
+          setWarningMessage(`${data.skippedCount} emails were skipped because they were not newsletters.`);
         }
-        
-        // Check for specific missing column errors in the result
-        if (
-          (result.error && result.error.includes('gmail_thread_id')) ||
-          (result.details && result.details.includes('gmail_thread_id'))
-        ) {
-          errorMsg = "Database schema error: The 'gmail_thread_id' column is missing from the newsletters table.";
-          console.error("Database schema error detected:", result);
-        }
-        
-        setErrorMessage(`Failed to sync emails: ${errorMsg}`);
-        toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Error syncing emails:", error);
-      
-      // Check for specific missing column errors
-      const errorString = String(error);
-      if (errorString.includes('gmail_thread_id')) {
-        setErrorMessage("Database schema error: The 'gmail_thread_id' column is missing from the newsletters table. Contact the developer for assistance.");
-        toast.error("Database schema error detected");
-      } else {
-        setErrorMessage("An unexpected error occurred while syncing emails. Please check the console for more details and try again.");
-        toast.error("An error occurred while syncing emails");
-      }
+      setErrorMessage("Failed to sync emails. Please try again later.");
+      toast.error("Failed to sync emails");
     } finally {
       setIsSyncing(false);
     }
-  }, [selectedAccount, page, setNewsletters, setTotalCount, setErrorMessage, setWarningMessage, isSyncing]);
+  }, [selectedAccount, page, setNewsletters, setTotalCount, setErrorMessage, setWarningMessage]);
 
-  const handleCategoryChange = useCallback((updatedNewsletters: Newsletter[]) => {
-    setNewsletters(updatedNewsletters);
-  }, [setNewsletters]);
+  // Function to update categories for one or multiple newsletters
+  const handleCategoryChange = useCallback(async (updatedNewsletters: Newsletter[], applySenderWide: boolean) => {
+    if (!updatedNewsletters.length) return;
 
+    try {
+      const updates = [];
+      
+      if (applySenderWide) {
+        // Group newsletters by sender to make sender-wide updates
+        const senderGroups: Record<string, Newsletter[]> = {};
+        
+        // Group all newsletters by sender
+        updatedNewsletters.forEach(newsletter => {
+          const sender = newsletter.sender || newsletter.sender_email || "unknown";
+          if (!senderGroups[sender]) {
+            senderGroups[sender] = [];
+          }
+          senderGroups[sender].push(newsletter);
+        });
+        
+        // Create batch updates for each sender
+        for (const sender in senderGroups) {
+          const categoryId = senderGroups[sender][0].category_id;
+          const senderKey = senderGroups[sender][0].sender ? "sender" : "sender_email";
+          const senderValue = senderGroups[sender][0].sender || senderGroups[sender][0].sender_email;
+          
+          if (!senderValue) continue;
+          
+          // Create a batch update for all newsletters from this sender
+          updates.push({
+            table: "newsletters",
+            query: { [senderKey]: senderValue, email_id: selectedAccount },
+            values: { category_id: categoryId }
+          });
+        }
+      } else {
+        // Standard single-newsletter update (backward compatibility)
+        updates.push(...updatedNewsletters.map(newsletter => ({
+          table: "newsletters",
+          query: { id: newsletter.id },
+          values: { category_id: newsletter.category_id }
+        })));
+      }
+      
+      // Execute each update
+      for (const update of updates) {
+        const { error } = await supabase
+          .from(update.table)
+          .update(update.values)
+          .match(update.query);
+          
+        if (error) {
+          console.error(`Error updating ${update.table}:`, error);
+          throw error;
+        }
+      }
+      
+      // Update UI with optimistic updates
+      setNewsletters(prev => {
+        const updatedIds = new Set(updatedNewsletters.map(n => n.id));
+        return prev.map(n => updatedIds.has(n.id) ? 
+          updatedNewsletters.find(u => u.id === n.id) || n : n);
+      });
+      
+    } catch (error) {
+      console.error("Error updating categories:", error);
+      toast.error("Failed to update categories");
+      throw error;
+    }
+  }, [selectedAccount, setNewsletters]);
+
+  // Function to delete one or multiple newsletters
   const handleDeleteNewsletters = useCallback(async (ids: number[]) => {
     if (!ids.length) return;
-    
+
     try {
-      await deleteNewsletters(ids);
-      
-      // Update local state handled in the main hook
-      return true;
+      const { error } = await supabase
+        .from("newsletters")
+        .delete()
+        .in("id", ids);
+
+      if (error) {
+        console.error("Error deleting newsletters:", error);
+        throw error;
+      }
+
+      // We don't update the state here because the calling component should handle this
+      // based on the result of this operation
     } catch (error) {
-      console.error("Error deleting newsletters:", error);
-      throw error; // Re-throw to let the component handle the error display
+      console.error("Error in handleDeleteNewsletters:", error);
+      toast.error("Failed to delete newsletters");
+      throw error;
     }
   }, []);
 

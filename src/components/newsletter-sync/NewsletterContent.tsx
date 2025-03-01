@@ -1,25 +1,25 @@
 
-import { Newsletter, NewsletterCategory, EmailAccount } from "@/lib/supabase";
-import { EmptyState } from "./EmptyState";
+import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { AlertMessages } from "./AlertMessages";
 import { AccountSelector } from "./AccountSelector";
+import { LoadingState } from "./LoadingState";
+import { EmptyState } from "./EmptyState";
+import { FilterToolbar, FiltersState } from "./FilterToolbar";
 import { NewsletterList } from "./NewsletterList";
 import { NewsletterPagination } from "./NewsletterPagination";
-import { LoadingState } from "./LoadingState";
-import { FilterToolbar, FiltersState } from "./FilterToolbar";
 
 type NewsletterContentProps = {
   errorMessage: string | null;
   warningMessage: string | null;
-  emailAccounts: EmailAccount[];
+  emailAccounts: { id: string; email: string; provider: string }[];
   selectedAccount: string | null;
   onSelectAccount: (accountId: string) => void;
   isLoading: boolean;
   isSyncing: boolean;
   newsletters: Newsletter[];
   categories: NewsletterCategory[];
-  onCategoryChange: (updatedNewsletters: Newsletter[]) => void;
-  onDeleteNewsletters: (ids: number[]) => Promise<void>;
+  onCategoryChange: (newsletters: Newsletter[], applySenderWide: boolean) => void;
+  onDeleteNewsletters?: (ids: number[]) => Promise<void>;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -45,51 +45,54 @@ export function NewsletterContent({
   filters,
   onFiltersChange
 }: NewsletterContentProps) {
+  
   return (
-    <>
+    <div className="space-y-6">
       <AlertMessages 
         errorMessage={errorMessage} 
-        warningMessage={warningMessage} 
+        warningMessage={warningMessage}
       />
       
-      {emailAccounts.length === 0 ? (
-        <EmptyState type="noAccounts" />
+      <AccountSelector 
+        accounts={emailAccounts}
+        selectedAccount={selectedAccount}
+        onSelectAccount={onSelectAccount}
+        isLoading={isLoading || isSyncing}
+      />
+      
+      {isLoading ? (
+        <LoadingState />
+      ) : newsletters.length === 0 ? (
+        <EmptyState 
+          selectedAccount={selectedAccount} 
+          isSyncing={isSyncing} 
+        />
       ) : (
         <>
-          <AccountSelector 
-            accounts={emailAccounts}
-            selectedAccount={selectedAccount}
-            onSelectAccount={onSelectAccount}
-            isDisabled={isLoading || isSyncing}
-          />
-          
           <FilterToolbar 
-            categories={categories}
+            filters={filters}
             onFiltersChange={onFiltersChange}
+            categories={categories}
           />
           
-          {isLoading ? (
-            <LoadingState />
-          ) : newsletters.length === 0 ? (
-            <EmptyState type="noNewsletters" />
-          ) : (
-            <>
-              <NewsletterList 
-                newsletters={newsletters}
-                categories={categories}
-                onCategoryChange={onCategoryChange}
-                onDeleteNewsletters={onDeleteNewsletters}
-              />
-              
+          <NewsletterList 
+            newsletters={newsletters}
+            categories={categories}
+            onCategoryChange={onCategoryChange}
+            onDeleteNewsletters={onDeleteNewsletters}
+          />
+          
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6">
               <NewsletterPagination 
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={onPageChange}
               />
-            </>
+            </div>
           )}
         </>
       )}
-    </>
+    </div>
   );
 }

@@ -22,7 +22,7 @@ import { toast } from "sonner";
 type CategorySelectorProps = {
   newsletter: Newsletter;
   categories: NewsletterCategory[];
-  onCategoryChange: (newsletter: Newsletter) => void;
+  onCategoryChange: (newsletter: Newsletter, applySenderWide: boolean) => void;
 };
 
 export function CategorySelector({
@@ -59,12 +59,10 @@ export function CategorySelector({
         category_id: categoryIdToSave,
       };
       
-      // Call the DB update function (not shown here)
-      // Implement API call to update category
-      
-      onCategoryChange(updatedNewsletter);
+      // Call the parent handler, passing true to indicate this should apply to all newsletters with the same sender
+      onCategoryChange(updatedNewsletter, true);
       setOpen(false);
-      toast.success("Category updated");
+      toast.success(`Category updated for all newsletters from ${newsletter.sender || newsletter.sender_email}`);
     } catch (error) {
       console.error("Error updating category:", error);
       toast.error("Failed to update category");
@@ -81,7 +79,7 @@ export function CategorySelector({
           size="sm"
           role="combobox"
           aria-expanded={open}
-          className="justify-between w-[180px]"
+          className="justify-between w-[180px] text-foreground"
           disabled={isSaving}
         >
           {currentCategory ? (
@@ -97,7 +95,7 @@ export function CategorySelector({
         align="start"
         sideOffset={5}
       >
-        <Command className="bg-popover">
+        <Command className="bg-popover text-black">
           <CommandInput 
             placeholder="Search categories..." 
             className="text-black"

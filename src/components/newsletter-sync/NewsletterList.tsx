@@ -3,7 +3,7 @@ import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2 } from "lucide-react";
+import { Trash2, Info } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { CategorySelector } from "./CategorySelector";
@@ -12,11 +12,17 @@ import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 import { useState } from "react";
 import { useNewsletterSelection } from "./useNewsletterSelection";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type NewsletterListProps = {
   newsletters: Newsletter[];
   categories: NewsletterCategory[];
-  onCategoryChange: (newsletters: Newsletter[]) => void;
+  onCategoryChange: (newsletters: Newsletter[], applySenderWide: boolean) => void;
   onDeleteNewsletters?: (ids: number[]) => Promise<void>;
 };
 
@@ -37,13 +43,31 @@ export function NewsletterList({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleCategoryChange = (updatedNewsletter: Newsletter) => {
-    // Update the local state to reflect the change
-    const updatedNewsletters = newsletters.map(newsletter => 
-      newsletter.id === updatedNewsletter.id ? updatedNewsletter : newsletter
-    );
-    
-    onCategoryChange(updatedNewsletters);
+  const handleCategoryChange = (updatedNewsletter: Newsletter, applySenderWide: boolean) => {
+    // Find all newsletters with the same sender if applySenderWide is true
+    if (applySenderWide) {
+      const sender = updatedNewsletter.sender || updatedNewsletter.sender_email;
+      const updatedNewsletters = newsletters.map(newsletter => {
+        const newsletterSender = newsletter.sender || newsletter.sender_email;
+        // Apply the same category to all newsletters with the same sender
+        if (newsletterSender === sender) {
+          return {
+            ...newsletter,
+            category_id: updatedNewsletter.category_id
+          };
+        }
+        return newsletter;
+      });
+      
+      onCategoryChange(updatedNewsletters, true);
+    } else {
+      // Update just this newsletter for backward compatibility
+      const updatedNewsletters = newsletters.map(newsletter => 
+        newsletter.id === updatedNewsletter.id ? updatedNewsletter : newsletter
+      );
+      
+      onCategoryChange(updatedNewsletters, false);
+    }
   };
 
   const handleDeleteSelected = async () => {
@@ -62,6 +86,19 @@ export function NewsletterList({
       setDeleteDialogOpen(false);
     }
   };
+
+  // Group newsletters by sender for visual clarity
+  const senderGroups = newsletters.reduce((groups, newsletter) => {
+    const sender = newsletter.sender || newsletter.sender_email || "Unknown";
+    if (!groups[sender]) {
+      groups[sender] = [];
+    }
+    groups[sender].push(newsletter);
+    return groups;
+  }, {} as Record<string, Newsletter[]>);
+
+  // Get unique senders
+  const uniqueSenders = Object.keys(senderGroups);
 
   return (
     <div className="space-y-4">
@@ -102,67 +139,104 @@ export function NewsletterList({
                 />
               </TableHead>
               <TableHead className="w-[60px] text-center">#</TableHead>
-              <TableHead>Title</TableHead>
               <TableHead>Sender</TableHead>
+              <TableHead>Title</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead>
+                <div className="flex items-center gap-1">
+                  Category
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Categories are applied to all newsletters from the same sender</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {newsletters.map((newsletter, index) => {
-              const isRowSelected = isSelected(newsletter.id);
+            {uniqueSenders.map((sender) => {
+              // Get all newsletters for this sender
+              const senderNewsletters = senderGroups[sender];
               
-              return (
-                <TableRow 
-                  key={newsletter.id}
-                  isSelected={isRowSelected}
-                  className={isRowSelected ? "bg-primary/10 transition-colors duration-200" : "transition-colors duration-200"}
-                >
-                  <TableCell>
-                    <Checkbox 
-                      checked={isRowSelected}
-                      onCheckedChange={() => toggleSelectNewsletter(newsletter.id)}
-                      className="transition-transform duration-200 data-[state=checked]:animate-scale-in"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center font-medium text-muted-foreground">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {isRowSelected && (
-                      <motion.span
-                        initial={{ opacity: 0, x: -5 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="inline-block mr-2 text-xs px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground font-medium"
-                      >
-                        Selected
-                      </motion.span>
-                    )}
-                    {newsletter.title || "Untitled"}
-                  </TableCell>
-                  <TableCell>
-                    {newsletter.sender || newsletter.sender_email || "Unknown"}
-                  </TableCell>
-                  <TableCell>
-                    {newsletter.published_at
-                      ? formatDistanceToNow(new Date(newsletter.published_at), { addSuffix: true })
-                      : "Unknown"}
-                  </TableCell>
-                  <TableCell>
-                    <CategorySelector 
-                      newsletter={newsletter}
-                      categories={categories}
-                      onCategoryChange={handleCategoryChange}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="transition-transform duration-200 hover:scale-105">
-                      <NewsletterViewDialog newsletter={newsletter} />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
+              // Check if all newsletters have the same category
+              const categories = new Set(senderNewsletters.map(n => n.category_id));
+              const hasConsistentCategory = categories.size === 1;
+              
+              // Take the first newsletter as representative for this sender group
+              const representativeNewsletter = senderNewsletters[0];
+              
+              return senderNewsletters.map((newsletter, index) => {
+                const isFirstInGroup = index === 0;
+                const isRowSelected = isSelected(newsletter.id);
+                
+                return (
+                  <TableRow 
+                    key={newsletter.id}
+                    isSelected={isRowSelected}
+                    className={`${isRowSelected ? "bg-primary/10 transition-colors duration-200" : "transition-colors duration-200"} ${isFirstInGroup ? "border-t-2 border-t-muted" : ""}`}
+                  >
+                    <TableCell>
+                      <Checkbox 
+                        checked={isRowSelected}
+                        onCheckedChange={() => toggleSelectNewsletter(newsletter.id)}
+                        className="transition-transform duration-200 data-[state=checked]:animate-scale-in"
+                      />
+                    </TableCell>
+                    <TableCell className="text-center font-medium text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className={`font-medium ${isFirstInGroup ? "font-semibold" : ""}`}>
+                      {isFirstInGroup && (
+                        <div className="mb-1 text-sm px-2 py-1 rounded-md bg-muted/50 inline-block">
+                          {sender}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {isRowSelected && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -5 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="inline-block mr-2 text-xs px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground font-medium"
+                        >
+                          Selected
+                        </motion.span>
+                      )}
+                      {newsletter.title || "Untitled"}
+                    </TableCell>
+                    <TableCell>
+                      {newsletter.published_at
+                        ? formatDistanceToNow(new Date(newsletter.published_at), { addSuffix: true })
+                        : "Unknown"}
+                    </TableCell>
+                    <TableCell>
+                      {isFirstInGroup ? (
+                        <CategorySelector 
+                          newsletter={representativeNewsletter}
+                          categories={categories}
+                          onCategoryChange={handleCategoryChange}
+                        />
+                      ) : (
+                        <div className="text-sm text-muted-foreground italic">
+                          ↑ Same as sender
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="transition-transform duration-200 hover:scale-105">
+                        <NewsletterViewDialog newsletter={newsletter} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              });
             })}
           </TableBody>
         </Table>

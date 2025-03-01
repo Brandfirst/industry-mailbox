@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/auth";
 import { SyncHeader } from "./newsletter-sync/SyncHeader";
 import { NewsletterContent } from "./newsletter-sync/NewsletterContent";
 import { useNewsletterSync } from "./newsletter-sync/useNewsletterSync";
+import { Alert, AlertDescription } from "./ui/alert";
+import { InfoIcon } from "lucide-react";
 
 export default function NewsletterSync() {
   const { user } = useAuth();
@@ -40,6 +42,12 @@ export default function NewsletterSync() {
         <CardDescription>
           Import and categorize newsletters from your connected email accounts
         </CardDescription>
+        <Alert variant="outline" className="mt-4 bg-blue-50/10 border-blue-200">
+          <InfoIcon className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-sm text-blue-700">
+            Categories are now applied to all newsletters from the same sender automatically
+          </AlertDescription>
+        </Alert>
       </CardHeader>
       <CardContent>
         <div className="mb-4 text-sm text-muted-foreground font-medium">
