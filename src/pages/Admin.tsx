@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -17,7 +18,8 @@ const Admin = () => {
   const [forceRerender, setForceRerender] = useState(0);
   const [isOAuthCallback, setIsOAuthCallback] = useState(false);
   
-  useEffect(() => {
+  // Detect OAuth callback parameters in the URL and set appropriate state
+  const checkForOAuthParams = useCallback(() => {
     const searchParams = new URLSearchParams(location.search);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
@@ -28,9 +30,14 @@ const Admin = () => {
     
     console.log("[ADMIN PAGE] Checking for OAuth params:", { 
       hasCode: !!code, 
+      codeLength: code ? code.length : 0,
       state,
       hasError: !!error,
-      isGmailCallback
+      error,
+      isGmailCallback,
+      pathname: location.pathname,
+      search: location.search,
+      timestamp: new Date().toISOString()
     });
     
     setIsOAuthCallback(hasOAuthParams);
@@ -46,7 +53,8 @@ const Admin = () => {
         search: location.search,
         oauthInProgress: sessionStorage.getItem('gmailOAuthInProgress'),
         savedUserId: sessionStorage.getItem('auth_user_id'),
-        currentUser: user?.id
+        currentUser: user?.id,
+        timestamp: new Date().toISOString()
       });
       
       // If there's an error in the URL, show it to the user
@@ -54,20 +62,29 @@ const Admin = () => {
         toast.error(`OAuth error: ${error}`);
       }
     }
+    
+    return hasOAuthParams;
   }, [location.search, user?.id]);
+  
+  useEffect(() => {
+    checkForOAuthParams();
+  }, [checkForOAuthParams]);
   
   useEffect(() => {
     console.log("[ADMIN PAGE] Admin location changed", { 
       pathname: location.pathname, 
       search: location.search,
       user: !!user,
+      userId: user?.id,
       session: !!session,
-      isOAuthCallback
+      isOAuthCallback,
+      timestamp: new Date().toISOString()
     });
     
     setForceRerender(prev => prev + 1);
   }, [location.pathname, location.search, user, session, isOAuthCallback]);
   
+  // Handle tab changes based on URL
   useEffect(() => {
     const path = location.pathname.split('/');
     const tabFromPath = path.length > 2 ? path[2] : '';
@@ -80,15 +97,12 @@ const Admin = () => {
     }
   }, [location.pathname, navigate]);
   
+  // Update document title and handle OAuth flow
   useEffect(() => {
     document.title = `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} | Admin Dashboard`;
     
     // Process OAuth parameters if present
-    const searchParams = new URLSearchParams(location.search);
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
-    
-    if (code && state === 'gmail_connect') {
+    if (checkForOAuthParams()) {
       console.log('[ADMIN PAGE] Found OAuth callback parameters in Admin page URL');
       if (!user) {
         const savedUserId = sessionStorage.getItem('auth_user_id');
@@ -100,14 +114,24 @@ const Admin = () => {
     
     // Handle OAuth flow interruption (e.g., page refresh during flow)
     const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
+    const startTime = sessionStorage.getItem('oauth_start_time');
+    const timeElapsed = startTime ? `${((Date.now() - parseInt(startTime)) / 1000).toFixed(1)}s` : 'unknown';
+    
     if (oauthInProgress === 'true' && !location.search.includes('code=') && !location.search.includes('error=')) {
-      console.log('[ADMIN PAGE] Detected refresh during OAuth flow, resetting state');
-      toast.error("OAuth flow interrupted. Please try connecting again.");
+      console.log('[ADMIN PAGE] Detected refresh during OAuth flow, resetting state', { timeElapsed });
+      
+      // Only show toast if it's been more than 5 seconds since OAuth start
+      if (!startTime || Date.now() - parseInt(startTime) > 5000) {
+        toast.error("OAuth flow interrupted. Please try connecting again.");
+      }
+      
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
+      sessionStorage.removeItem('oauth_start_time');
     }
-  }, [location, user, activeTab]);
+  }, [location, user, activeTab, checkForOAuthParams]);
   
+  // Protect admin routes
   useEffect(() => {
     if (isOAuthCallback) {
       console.log("[ADMIN PAGE] Skipping auth check during OAuth callback");

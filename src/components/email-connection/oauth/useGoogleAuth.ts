@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLocation } from "react-router-dom";
@@ -9,6 +9,7 @@ export function useGoogleAuth(isConnecting: boolean) {
   const location = useLocation();
   const [localIsConnecting, setLocalIsConnecting] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const timerRef = useRef<number | null>(null);
   
   // Use the redirect URI from environment variables or fall back to a default
   const redirectUri = import.meta.env.VITE_REDIRECT_URI || 
@@ -33,8 +34,31 @@ export function useGoogleAuth(isConnecting: boolean) {
       userId: user?.id,
       redirectUri,
       location: location.pathname + location.search,
-      oauthInProgress: sessionStorage.getItem('gmailOAuthInProgress')
+      oauthInProgress: sessionStorage.getItem('gmailOAuthInProgress'),
+      timestamp: new Date().toISOString()
     });
+
+    // Set a timeout to clear any hanging OAuth state
+    timerRef.current = window.setTimeout(() => {
+      const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
+      if (oauthInProgress === 'true') {
+        const startTime = sessionStorage.getItem('oauth_start_time');
+        const timeElapsed = startTime ? (Date.now() - parseInt(startTime)) / 1000 : 0;
+        
+        if (timeElapsed > 300) { // 5 minutes timeout
+          console.log(`[OAUTH CLEANUP] Clearing stale OAuth state after ${timeElapsed.toFixed(0)} seconds`);
+          sessionStorage.removeItem('gmailOAuthInProgress');
+          sessionStorage.removeItem('oauth_nonce');
+          sessionStorage.removeItem('oauth_start_time');
+        }
+      }
+    }, 10000); // Check after 10 seconds
+
+    return () => {
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+      }
+    };
   }, [isConnecting, localIsConnecting, user, redirectUri, location]);
 
   const initiateGoogleOAuth = () => {
@@ -45,7 +69,8 @@ export function useGoogleAuth(isConnecting: boolean) {
         connecting,
         isConnecting,
         localIsConnecting,
-        userExists: !!user
+        userExists: !!user,
+        timestamp: new Date().toISOString()
       });
       return; // Prevent multiple clicks or if user not logged in
     }
@@ -71,6 +96,9 @@ export function useGoogleAuth(isConnecting: boolean) {
       
       // Save a flag in sessionStorage to detect if we're in the middle of an OAuth flow
       sessionStorage.setItem('gmailOAuthInProgress', 'true');
+      
+      // Record the start time of the OAuth flow
+      sessionStorage.setItem('oauth_start_time', Date.now().toString());
       
       // Store current auth state and user ID to help with recovery after OAuth flow
       if (session) {
@@ -116,6 +144,7 @@ export function useGoogleAuth(isConnecting: boolean) {
       setLocalIsConnecting(false);
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
+      sessionStorage.removeItem('oauth_start_time');
     }
   };
 
