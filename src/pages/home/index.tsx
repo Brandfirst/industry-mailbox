@@ -52,7 +52,7 @@ const HomePage = () => {
         </div>
       )}
       
-      {/* Main content sections */}
+      {/* Main content sections - HeroSection now includes FeaturedNewsletters */}
       <HeroSection />
       <StatsSection />
       <FeaturesSection />

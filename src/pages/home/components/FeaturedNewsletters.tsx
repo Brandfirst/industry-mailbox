@@ -45,7 +45,7 @@ const FeaturedNewsletters = () => {
         const result = await getFeaturedNewsletters({
           searchQuery, 
           categoryId: selectedCategory !== 'all' ? selectedCategory : undefined,
-          limit: 3
+          limit: 4
         });
         
         setNewsletters(result.data || []);
@@ -70,9 +70,11 @@ const FeaturedNewsletters = () => {
   };
   
   return (
-    <section className="py-16 bg-white">
-      <div className="container px-4 md:px-6">
+    <section className="py-12 bg-gradient-to-b from-slate-900 to-slate-950">
+      <div className="container px-4 md:px-6 mx-auto">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <h2 className="text-2xl font-bold text-white">Utforskede nyhetsbrev</h2>
+          
           <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
             <div className="relative">
               <Input
@@ -107,55 +109,44 @@ const FeaturedNewsletters = () => {
         </div>
         
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
               <Card key={i} className="animate-pulse h-[400px]">
                 <div className="h-full bg-muted/20"></div>
               </Card>
             ))}
           </div>
         ) : newsletters.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {newsletters.map((newsletter) => (
               <a 
                 key={newsletter.id} 
                 href={`/newsletter/${newsletter.id}`}
-                className="shadow-sm overflow-hidden rounded-xl bg-white border w-full flex flex-col h-full group cursor-pointer hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg overflow-hidden shadow-sm border flex flex-col h-[450px] hover:shadow-md transition-shadow"
                 onClick={(e) => {
                   e.preventDefault();
                   navigate(`/newsletter/${newsletter.id}`);
                 }}
               >
-                {/* Header with sender info */}
-                <div className="flex items-center p-4 border-b">
-                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-3">
+                {/* Header with sender logo and info */}
+                <div className="flex items-center p-3 border-b">
+                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0">
                     {newsletter.sender && (
-                      <span className="text-lg font-semibold text-gray-700">
+                      <span className="text-sm font-semibold text-gray-700">
                         {newsletter.sender.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{newsletter.sender || 'Unknown Sender'}</span>
-                    <span className="text-gray-500 text-sm">
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="font-medium text-sm truncate">{newsletter.sender || 'Unknown Sender'}</span>
+                    <span className="text-gray-500 text-xs">
                       NO • {getFormattedDate(newsletter.published_at || '')}
                     </span>
                   </div>
-                  {newsletter.category_id && (
-                    <div 
-                      className="px-2 py-1 text-xs rounded-full font-medium ml-auto"
-                      style={{ 
-                        backgroundColor: newsletter.categories?.color ? `${newsletter.categories.color}20` : '#8B5CF620',
-                        color: newsletter.categories?.color || '#8B5CF6' 
-                      }}
-                    >
-                      {newsletter.categories?.name || 'Ukategorisert'}
-                    </div>
-                  )}
                 </div>
                 
-                {/* Content Preview - Show only the rendered HTML content */}
-                <div className="w-full h-64 overflow-hidden">
+                {/* Content Preview using iframe */}
+                <div className="w-full h-[350px] overflow-hidden relative">
                   {newsletter.content ? (
                     <iframe
                       srcDoc={newsletter.content}
@@ -170,9 +161,9 @@ const FeaturedNewsletters = () => {
                   )}
                 </div>
                 
-                {/* Title only - removed preview text */}
-                <div className="p-4 border-t min-h-[60px]">
-                  <h3 className="text-base font-medium text-gray-900 line-clamp-2">
+                {/* Title at bottom */}
+                <div className="p-3 border-t min-h-[60px] flex items-center">
+                  <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
                     {newsletter.title || 'Untitled Newsletter'}
                   </h3>
                 </div>
@@ -181,7 +172,7 @@ const FeaturedNewsletters = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <h3 className="text-xl font-medium mb-2">Ingen nyhetsbrev funnet</h3>
+            <h3 className="text-xl font-medium mb-2 text-white">Ingen nyhetsbrev funnet</h3>
             <p className="text-muted-foreground mb-6">Prøv å endre søk eller filtre for å se flere nyhetsbrev</p>
           </div>
         )}
