@@ -23,9 +23,9 @@ const CountUpAnimation = ({
     const startValue = Math.floor(endValue * 0.7);
     setCount(startValue);
     
-    // Increment more slowly - once per second
-    const incrementInterval = 1000; // 1 second
-    const incrementValue = 1; // Increment by 1 each time
+    // Increment slightly faster - every 500ms with higher increment value
+    const incrementInterval = 500; // 0.5 second
+    const incrementValue = 3; // Increment by 3 each time
     
     const timer = setInterval(() => {
       setCount(prevCount => {
@@ -62,22 +62,6 @@ const HeroSection = () => {
           <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-3xl mx-auto">
             Utforsk mer enn <CountUpAnimation endValue={100000} suffix=" nyhetsbrev" /> fra <CountUpAnimation endValue={2000} suffix=" varemerker" />.
           </p>
-          
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to="/search">
-              <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-6">
-                Start Søket
-                <Search className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-blue-900/20 px-8 py-6">
-                Opprett Konto
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
         </div>
       </div>
       

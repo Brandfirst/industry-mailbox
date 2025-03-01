@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -63,7 +62,6 @@ const FeaturedNewsletters = () => {
     navigate('/search');
   };
   
-  // Get formatted date
   const getFormattedDate = (dateString) => {
     if (!dateString) return '';
     return format(new Date(dateString), 'MMM d');
@@ -128,7 +126,6 @@ const FeaturedNewsletters = () => {
                   navigate(`/newsletter/${newsletter.id}`);
                 }}
               >
-                {/* Header with sender logo and info */}
                 <div className="flex items-center p-3 border-b">
                   <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0">
                     {newsletter.sender && (
@@ -145,7 +142,6 @@ const FeaturedNewsletters = () => {
                   </div>
                 </div>
                 
-                {/* Content Preview using iframe - Improved to fit the entire container */}
                 <div className="flex-1 w-full overflow-hidden relative">
                   {newsletter.content ? (
                     <iframe
@@ -153,16 +149,15 @@ const FeaturedNewsletters = () => {
                       title={newsletter.title || "Newsletter Content"}
                       className="w-full h-full border-0"
                       sandbox="allow-same-origin"
-                      style={{ transform: "scale(0.97)", transformOrigin: "top center" }}
+                      style={{ transform: "scale(0.99)", transformOrigin: "top center", height: "400px" }}
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                      <span className="text-muted-foreground text-sm">Ingen innhold tilgjengelig</span>
+                      <p className="text-gray-500">No content available</p>
                     </div>
                   )}
                 </div>
                 
-                {/* Title at bottom */}
                 <div className="p-3 border-t min-h-[60px] flex items-center">
                   <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
                     {newsletter.title || 'Untitled Newsletter'}
