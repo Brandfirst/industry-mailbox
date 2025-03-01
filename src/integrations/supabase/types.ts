@@ -104,6 +104,7 @@ export type Database = {
       }
       newsletters: {
         Row: {
+          brand_name: string | null
           category_id: number | null
           content: string | null
           created_at: string
@@ -119,6 +120,7 @@ export type Database = {
           title: string | null
         }
         Insert: {
+          brand_name?: string | null
           category_id?: number | null
           content?: string | null
           created_at?: string
@@ -134,6 +136,7 @@ export type Database = {
           title?: string | null
         }
         Update: {
+          brand_name?: string | null
           category_id?: number | null
           content?: string | null
           created_at?: string
@@ -240,6 +243,13 @@ export type Database = {
       update_admin_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      update_sender_brand: {
+        Args: {
+          p_sender_email: string
+          p_brand_name: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

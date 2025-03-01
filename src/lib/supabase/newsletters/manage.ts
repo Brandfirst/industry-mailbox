@@ -47,12 +47,11 @@ export const updateSenderBrand = async (
       return false;
     }
     
-    // Update the brand_name for all newsletters with this sender_email
-    // Here we need to update all newsletters with this sender_email directly
-    const { error } = await supabase
-      .from('newsletters')
-      .update({ brand_name: brandName })
-      .eq('sender_email', senderEmail);
+    // Use the RPC function we created to update the brand_name for all newsletters from this sender
+    const { error } = await supabase.rpc('update_sender_brand', {
+      p_sender_email: senderEmail,
+      p_brand_name: brandName
+    });
     
     if (error) throw error;
     
