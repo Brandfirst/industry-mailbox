@@ -93,20 +93,23 @@ export function CategorySelector({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="p-0 w-[200px] text-foreground" 
+        className="p-0 w-[200px]" 
         align="start"
         sideOffset={5}
       >
-        <Command className="text-foreground">
-          <CommandInput placeholder="Search categories..." className="text-foreground" />
+        <Command className="bg-popover">
+          <CommandInput 
+            placeholder="Search categories..." 
+            className="text-black"
+          />
           <CommandList>
-            <CommandEmpty className="text-foreground">No category found.</CommandEmpty>
-            <CommandGroup className="text-foreground">
+            <CommandEmpty className="text-black">No category found.</CommandEmpty>
+            <CommandGroup>
               <CommandItem
                 key="uncategorized"
                 value="uncategorized"
                 onSelect={() => handleCategorySelect("uncategorized")}
-                className="text-foreground"
+                className="text-black"
               >
                 <div className="flex items-center gap-2">
                   {!currentCategory && <Check className="h-4 w-4" />}
@@ -118,7 +121,7 @@ export function CategorySelector({
                   key={String(category.id)}
                   value={category.name}
                   onSelect={() => handleCategorySelect(String(category.id))}
-                  className="text-foreground"
+                  className="text-black"
                 >
                   <div className="flex items-center gap-2">
                     {currentCategoryId === category.id && (
