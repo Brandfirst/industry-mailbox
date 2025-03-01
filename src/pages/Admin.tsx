@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -29,6 +30,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobileSidebarOpen, toggleMobileSid
 }) => {
   const { signOut } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "newsletters", label: "Newsletters", icon: Mail },
@@ -85,6 +87,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobileSidebarOpen, toggleMobileSid
               key={tab.id}
               onClick={() => {
                 setActiveTab(tab.id);
+                navigate(`/admin/${tab.id}`);
                 if (isMobile) toggleMobileSidebar();
               }}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -159,8 +162,24 @@ const Admin = () => {
     setForceRerender(prev => prev + 1);
   }, [location.pathname, location.search, user, session, isOAuthCallback]);
   
+  // Set active tab based on URL path
   useEffect(() => {
-    document.title = "Admin Dashboard | NewsletterHub";
+    // Extract the tab from the URL path, e.g., /admin/newsletters -> newsletters
+    const path = location.pathname.split('/');
+    const tabFromPath = path.length > 2 ? path[2] : '';
+    
+    if (tabFromPath && ['dashboard', 'newsletters', 'categories', 'users', 'settings'].includes(tabFromPath)) {
+      setActiveTab(tabFromPath);
+    } else if (location.pathname === '/admin') {
+      // Default to dashboard if just /admin
+      setActiveTab('dashboard');
+      // Update URL to include the tab
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [location.pathname, navigate]);
+  
+  useEffect(() => {
+    document.title = `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} | Admin Dashboard`;
     
     // Check for Google OAuth callback
     const searchParams = new URLSearchParams(location.search);
@@ -187,7 +206,7 @@ const Admin = () => {
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
     }
-  }, [location, user]);
+  }, [location, user, activeTab]);
   
   // Handle auth permission check separately from regular checks to avoid redirect during OAuth callback
   useEffect(() => {
@@ -285,7 +304,10 @@ const Admin = () => {
                   variant="outline" 
                   size="sm" 
                   className="text-xs" 
-                  onClick={() => setActiveTab("newsletters")}
+                  onClick={() => {
+                    setActiveTab("newsletters");
+                    navigate('/admin/newsletters');
+                  }}
                 >
                   <Inbox className="mr-1 h-3 w-3" />
                   View All
@@ -331,7 +353,10 @@ const Admin = () => {
                   <Button 
                     variant="outline" 
                     className="w-full justify-start text-foreground"
-                    onClick={() => setActiveTab("categories")}
+                    onClick={() => {
+                      setActiveTab("categories");
+                      navigate('/admin/categories');
+                    }}
                   >
                     <Layers className="mr-2 h-4 w-4" />
                     Create New Category
@@ -356,7 +381,10 @@ const Admin = () => {
             <p className="text-muted-foreground mb-4">
               We're working on bringing you a complete admin experience.
             </p>
-            <Button onClick={() => setActiveTab("dashboard")}>
+            <Button onClick={() => {
+              setActiveTab("dashboard");
+              navigate('/admin/dashboard');
+            }}>
               Return to Dashboard
             </Button>
           </div>

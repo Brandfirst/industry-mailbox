@@ -141,20 +141,30 @@ export default function NewsletterSync() {
       if (result.success) {
         toast.success(`Successfully synced ${result.count || 0} newsletters`);
         // Refresh the newsletter list
-        const { data } = await getNewslettersFromEmailAccount(
+        const { data, count } = await getNewslettersFromEmailAccount(
           selectedAccount, 
           page, 
           ITEMS_PER_PAGE
         );
         setNewsletters(data);
+        setTotalCount(count || 0);
       } else {
         console.error("Sync error details:", result);
-        setErrorMessage(`Failed to sync emails: ${result.error || "Unknown error"}`);
-        toast.error(result.error || "Failed to sync emails");
+        let errorMsg = result.error || "Unknown error occurred during sync";
+        
+        // More descriptive error messages for common failures
+        if (errorMsg.includes("Edge Function") || result.statusCode === 500) {
+          errorMsg = "Server error during sync. Please try again later or contact support.";
+        } else if (result.statusCode === 401 || result.statusCode === 403) {
+          errorMsg = "Authentication error. Your email account connection may need to be refreshed.";
+        }
+        
+        setErrorMessage(`Failed to sync emails: ${errorMsg}`);
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error("Error syncing emails:", error);
-      setErrorMessage("An error occurred while syncing emails.");
+      setErrorMessage("An unexpected error occurred while syncing emails. Please try again.");
       toast.error("An error occurred while syncing emails");
     } finally {
       setIsSyncing(false);
