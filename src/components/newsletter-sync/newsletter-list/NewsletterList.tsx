@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { NewsletterListTable } from "./NewsletterListTable";
@@ -98,7 +99,7 @@ export function NewsletterList({
       {onDeleteNewsletters && (
         <DeleteConfirmationDialog
           isOpen={showDeleteDialog}
-          onClose={() => setShowDeleteDialog(false)}
+          onOpenChange={setShowDeleteDialog}
           onConfirm={handleDeleteConfirm}
           isDeleting={isDeleting}
           count={selectedIds.length}

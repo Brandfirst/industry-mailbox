@@ -147,7 +147,13 @@ export function getNewsletters(options: NewsletterFilterOptions = {}) {
 
   // Apply filters
   if (categoryId && categoryId !== 'all') {
-    query = query.eq('category_id', categoryId);
+    // Convert string to number if needed before using in the query
+    const categoryIdNum = typeof categoryId === 'string' ? parseInt(categoryId, 10) : categoryId;
+    
+    // Only apply the filter if we have a valid number
+    if (!isNaN(categoryIdNum)) {
+      query = query.eq('category_id', categoryIdNum);
+    }
   }
 
   if (searchQuery) {
