@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { 
   Newsletter,
   getNewslettersFromEmailAccount
@@ -62,7 +62,7 @@ export function useNewsletterSync(userId: string | undefined) {
   const errorMessage = dataErrorMessage || fetchErrorMessage;
 
   // Handle deleting newsletters and update UI accordingly
-  const handleDeleteNewsletters = async (ids: number[]) => {
+  const handleDeleteNewsletters = useCallback(async (ids: number[]) => {
     if (!ids.length) return;
     
     try {
@@ -87,13 +87,13 @@ export function useNewsletterSync(userId: string | undefined) {
       console.error("Error deleting newsletters:", error);
       throw error; // Re-throw to let the component handle the error display
     }
-  };
+  }, [deleteNewslettersBase, newsletters, page, setNewsletters, setTotalCount]);
 
-  const handleFiltersChange = (newFilters: FiltersState) => {
+  const handleFiltersChange = useCallback((newFilters: FiltersState) => {
     setFilters(newFilters);
     // Reset to first page when filters change
     setPage(1);
-  };
+  }, []);
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 

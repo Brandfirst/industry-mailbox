@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { 
   Newsletter,
@@ -20,12 +20,40 @@ export function useNewsletterFetching(
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
+  
+  // Use refs to track previous values to prevent unnecessary re-renders
+  const prevSelectedAccountRef = useRef<string | null>(null);
+  const prevPageRef = useRef<number>(page);
+  const prevFiltersRef = useRef<FiltersState>(filters);
+  
+  // Stringify filters to compare in a stable way
+  const filtersKey = JSON.stringify(filters);
 
   // Load newsletters when account, page, or filters change
   useEffect(() => {
+    // Skip effect if nothing relevant has changed to prevent loops
+    const hasAccountChanged = prevSelectedAccountRef.current !== selectedAccount;
+    const hasPageChanged = prevPageRef.current !== page;
+    const hasFiltersChanged = JSON.stringify(prevFiltersRef.current) !== filtersKey;
+    
+    if (!hasAccountChanged && !hasPageChanged && !hasFiltersChanged) {
+      return;
+    }
+    
+    // Update refs to current values
+    prevSelectedAccountRef.current = selectedAccount;
+    prevPageRef.current = page;
+    prevFiltersRef.current = filters;
+    
+    // Skip if no account is selected
+    if (!selectedAccount) {
+      setIsLoading(false);
+      setNewsletters([]);
+      setTotalCount(0);
+      return;
+    }
+    
     const loadNewsletters = async () => {
-      if (!selectedAccount) return;
-      
       setIsLoading(true);
       setErrorMessage(null);
       setWarningMessage(null);
@@ -90,7 +118,7 @@ export function useNewsletterFetching(
     };
     
     loadNewsletters();
-  }, [selectedAccount, page, filters]);
+  }, [selectedAccount, page, filtersKey]); // Use filtersKey instead of filters object for stable dependency
 
   return {
     newsletters,

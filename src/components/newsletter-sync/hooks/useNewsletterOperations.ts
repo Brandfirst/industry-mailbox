@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { 
   Newsletter,
@@ -21,8 +21,13 @@ export function useNewsletterOperations(
 ) {
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleSync = async () => {
+  const handleSync = useCallback(async () => {
     if (!selectedAccount) return;
+    
+    if (isSyncing) {
+      // Prevent multiple sync attempts
+      return;
+    }
     
     setIsSyncing(true);
     setErrorMessage(null);
@@ -76,13 +81,13 @@ export function useNewsletterOperations(
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [selectedAccount, page, setNewsletters, setTotalCount, setErrorMessage, setWarningMessage, isSyncing]);
 
-  const handleCategoryChange = (updatedNewsletters: Newsletter[]) => {
+  const handleCategoryChange = useCallback((updatedNewsletters: Newsletter[]) => {
     setNewsletters(updatedNewsletters);
-  };
+  }, [setNewsletters]);
 
-  const handleDeleteNewsletters = async (ids: number[]) => {
+  const handleDeleteNewsletters = useCallback(async (ids: number[]) => {
     if (!ids.length) return;
     
     try {
@@ -94,7 +99,7 @@ export function useNewsletterOperations(
       console.error("Error deleting newsletters:", error);
       throw error; // Re-throw to let the component handle the error display
     }
-  };
+  }, []);
 
   return {
     isSyncing,
