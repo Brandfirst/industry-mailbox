@@ -45,7 +45,7 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
-import { RefreshCw, Filter, Check, Tag, Calendar, Mail, Eye, AlertCircle } from "lucide-react";
+import { RefreshCw, Filter, Check, Tag, Calendar, Mail, Eye, AlertCircle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { 
@@ -69,6 +69,7 @@ export default function NewsletterSync() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedNewsletter, setSelectedNewsletter] = useState<Newsletter | null>(null);
@@ -80,6 +81,7 @@ export default function NewsletterSync() {
       
       try {
         setErrorMessage(null);
+        setWarningMessage(null);
         const accounts = await getUserEmailAccounts(user.id);
         setEmailAccounts(accounts);
         
@@ -105,6 +107,7 @@ export default function NewsletterSync() {
       
       setIsLoading(true);
       setErrorMessage(null);
+      setWarningMessage(null);
       
       try {
         const { data, count } = await getNewslettersFromEmailAccount(
@@ -131,6 +134,7 @@ export default function NewsletterSync() {
     
     setIsSyncing(true);
     setErrorMessage(null);
+    setWarningMessage(null);
     toast.info("Starting email sync...");
     
     try {
@@ -139,7 +143,15 @@ export default function NewsletterSync() {
       console.log("Sync result:", result);
       
       if (result.success) {
-        toast.success(`Successfully synced ${result.count || 0} newsletters`);
+        // Check if it was a partial success
+        if (result.partial) {
+          const warningMsg = `Synced ${result.count || 0} newsletters with some errors: ${result.warning || 'Some items failed'}`;
+          setWarningMessage(warningMsg);
+          toast.warning(warningMsg);
+        } else {
+          toast.success(`Successfully synced ${result.count || 0} newsletters`);
+        }
+        
         // Refresh the newsletter list
         const { data, count } = await getNewslettersFromEmailAccount(
           selectedAccount, 
@@ -240,6 +252,13 @@ export default function NewsletterSync() {
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 mb-4 rounded-md flex items-center">
             <AlertCircle className="h-5 w-5 mr-2" />
             <span>{errorMessage}</span>
+          </div>
+        )}
+        
+        {warningMessage && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 mb-4 rounded-md flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-2" />
+            <span>{warningMessage}</span>
           </div>
         )}
         

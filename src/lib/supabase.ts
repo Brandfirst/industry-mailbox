@@ -428,7 +428,6 @@ export async function syncEmailAccount(accountId) {
     }
 
     // Check if we have data and if it indicates an error
-    // The edge function now always returns 200 but may include error details in the data
     if (!response.data) {
       console.error("Empty response from sync-emails function");
       return { 
@@ -449,6 +448,21 @@ export async function syncEmailAccount(accountId) {
       };
     }
 
+    // Handle partial success case
+    if (response.data.partial) {
+      console.warn("Partial sync completed with some errors:", response.data);
+      
+      return {
+        success: true,
+        partial: true,
+        count: response.data.count || 0,
+        synced: response.data.synced || [],
+        warning: "Some newsletters failed to sync",
+        details: response.data.details,
+        statusCode: 200
+      };
+    }
+
     // If we reach here, the sync was successful
     console.log("Sync completed successfully:", response.data);
 
@@ -460,7 +474,7 @@ export async function syncEmailAccount(accountId) {
     };
   } catch (error) {
     console.error("Exception in syncEmailAccount:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || String(error) };
   }
 }
 
