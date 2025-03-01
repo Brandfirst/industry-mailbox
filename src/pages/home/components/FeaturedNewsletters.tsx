@@ -139,11 +139,11 @@ const FeaturedNewsletters = () => {
                         className="w-full h-full border-0"
                         sandbox="allow-same-origin"
                         style={{ 
-                          transform: "scale(0.85)", 
+                          transform: "scale(0.70)", 
                           transformOrigin: "top center", 
-                          height: "450px",
-                          width: "117.5%", // Compensate for the 0.85 scale to make it fill the width
-                          marginLeft: "-8.75%" // Center the wider iframe
+                          height: "600px",
+                          width: "143%", // Compensate for the 0.7 scale to make it fill the width
+                          marginLeft: "-21.5%" // Center the wider iframe
                         }}
                       />
                     ) : (
