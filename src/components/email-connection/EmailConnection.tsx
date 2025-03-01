@@ -56,6 +56,8 @@ export const EmailConnection = () => {
   // Handle OAuth callback in URL
   useEffect(() => {
     // Check for OAuth callback
+    if (!user) return; // Protect against attempting to process without a user
+    
     const searchParams = new URLSearchParams(location.search);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
@@ -81,8 +83,18 @@ export const EmailConnection = () => {
       
       if (code && state === 'gmail_connect') {
         console.log("Handling OAuth callback with code for user:", user.id);
-        handleOAuthCallback(code);
-        setConnectionProcessed(true);
+        try {
+          // Wrap this in try/catch to ensure we clean up even if there's an error
+          handleOAuthCallback(code);
+          setConnectionProcessed(true);
+        } catch (err) {
+          console.error("Error in OAuth callback handler:", err);
+          toast.error("An error occurred while connecting your Gmail account");
+          setConnectionProcessed(true);
+          setIsConnecting(false);
+          sessionStorage.removeItem('gmailOAuthInProgress');
+          sessionStorage.removeItem('oauth_nonce');
+        }
         
         // We'll remove the query parameters after processing
         navigate('/admin', { replace: true });
@@ -140,9 +152,19 @@ export const EmailConnection = () => {
       const toastId = toast.loading("Connecting Gmail account...");
       
       console.log("Exchanging code for access token with redirectUri:", redirectUri);
-      const result = await import("@/lib/supabase").then(module => 
-        module.connectGoogleEmail(user.id, code, redirectUri)
-      );
+      
+      // Use dynamic import to prevent issues at load time
+      const supabaseModule = await import("@/lib/supabase");
+      
+      if (!supabaseModule || !supabaseModule.connectGoogleEmail) {
+        console.error("Failed to import connectGoogleEmail function");
+        toast.dismiss(toastId);
+        toast.error("Connection failed: Could not load required modules");
+        setIsConnecting(false);
+        return;
+      }
+      
+      const result = await supabaseModule.connectGoogleEmail(user.id, code, redirectUri);
       
       if (result.success) {
         toast.dismiss(toastId);
@@ -194,10 +216,6 @@ export const EmailConnection = () => {
     }
   };
 
-  // Check if we should show URI setup guidance
-  const hasRedirectUriMismatch = oauthError === 'redirect_uri_mismatch';
-  const showDebugInfo = !!errorDetails || !!debugInfo;
-
   // Always render the connect button section even if loading
   // This ensures it's available after returning from OAuth flow
   return (
@@ -216,11 +234,11 @@ export const EmailConnection = () => {
         {oauthError && (
           <OAuthErrorAlert 
             oauthError={oauthError}
-            hasRedirectUriMismatch={hasRedirectUriMismatch}
+            hasRedirectUriMismatch={oauthError === 'redirect_uri_mismatch'}
             redirectUri={redirectUri}
             errorDetails={errorDetails}
             debugInfo={debugInfo}
-            showDebugInfo={showDebugInfo}
+            showDebugInfo={!!errorDetails || !!debugInfo}
           />
         )}
 

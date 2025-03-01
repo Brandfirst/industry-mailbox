@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -22,10 +22,24 @@ export const GoogleOAuthButton = ({
   const { user, session } = useAuth();
   const location = useLocation();
   const [localIsConnecting, setLocalIsConnecting] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   
   // Use the redirect URI from environment variables or fall back to a default
   const redirectUri = import.meta.env.VITE_REDIRECT_URI || 
     window.location.origin + "/admin";
+
+  // Reset error state when component mounts
+  useEffect(() => {
+    // Clean up any stale OAuth state on component mount
+    if (!isConnecting && !localIsConnecting) {
+      const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
+      if (oauthInProgress === 'true' && !window.location.search.includes('code=')) {
+        console.log("Found stale OAuth state, clearing");
+        sessionStorage.removeItem('gmailOAuthInProgress');
+        sessionStorage.removeItem('oauth_nonce');
+      }
+    }
+  }, [isConnecting, localIsConnecting]);
 
   const initiateGoogleOAuth = () => {
     // Use the prop value if passed, otherwise use local state
@@ -35,15 +49,17 @@ export const GoogleOAuthButton = ({
     console.log("Starting Google OAuth flow for user:", user.id);
     setLocalIsConnecting(true);
     
-    // Get the OAuth client ID from environment variables
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      toast.error("Google client ID not configured. Please add VITE_GOOGLE_CLIENT_ID to your environment.");
-      setLocalIsConnecting(false);
-      return;
-    }
-    
     try {
+      // Get the OAuth client ID from environment variables
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        console.error("Missing VITE_GOOGLE_CLIENT_ID environment variable");
+        setDebugInfo({ error: "Missing VITE_GOOGLE_CLIENT_ID" });
+        toast.error("Google client ID not configured. Please add VITE_GOOGLE_CLIENT_ID to your environment.");
+        setLocalIsConnecting(false);
+        return;
+      }
+      
       // Generate and store a nonce for state validation
       const nonce = Math.random().toString(36).substring(2, 15);
       sessionStorage.setItem('oauth_nonce', nonce);
@@ -81,12 +97,18 @@ export const GoogleOAuthButton = ({
       window.location.href = authUrl.toString();
     } catch (error) {
       console.error("Error initiating OAuth flow:", error);
+      setDebugInfo({ error: String(error) });
       toast.error("Failed to start Google authentication");
       setLocalIsConnecting(false);
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
     }
   };
+
+  // If we encounter an error during the OAuth process, log it
+  if (debugInfo) {
+    console.error("OAuth Debug Info:", debugInfo);
+  }
 
   return (
     <Button 
