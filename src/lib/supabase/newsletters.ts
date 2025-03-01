@@ -1,10 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter } from "./types";
 
+// Define interface for the filter options
+interface NewsletterFilterOptions {
+  searchQuery?: string;
+  sender?: string;
+  categoryId?: number | string;
+  fromDate?: Date | string;
+  toDate?: Date | string;
+  page?: number;
+  limit?: number;
+  industries?: string[];
+  accountId?: string;
+}
+
 // Simple function to get newsletters with pagination
-export async function getNewsletters(options: any = {}) {
+export async function getNewsletters(options: NewsletterFilterOptions = {}) {
   // Use simple implementation to avoid TypeScript errors
-  const page = typeof options === 'number' ? options : (options.page || 1);
+  const page = options.page || 1;
   const limit = options.limit || 10;
   const from = (page - 1) * limit;
   const to = from + limit - 1;
@@ -32,7 +45,7 @@ export async function getNewsletters(options: any = {}) {
 
   if (options.toDate) {
     // Add a day to include the entire "to" day
-    const nextDay = new Date(options.toDate);
+    const nextDay = new Date(options.toDate instanceof Date ? options.toDate : new Date(options.toDate));
     nextDay.setDate(nextDay.getDate() + 1);
     query = query.lt('published_at', nextDay.toISOString());
   }
@@ -52,7 +65,7 @@ export async function getNewsletters(options: any = {}) {
 }
 
 // Get newsletters from a specific email account
-export async function getNewslettersFromEmailAccount(accountId, page = 1, limit = 50, filters = {}) {
+export async function getNewslettersFromEmailAccount(accountId: string, page = 1, limit = 50, filters: NewsletterFilterOptions = {}) {
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
@@ -81,7 +94,7 @@ export async function getNewslettersFromEmailAccount(accountId, page = 1, limit 
 
     if (filters.toDate) {
       // Add a day to include the entire "to" day
-      const nextDay = new Date(filters.toDate);
+      const nextDay = new Date(filters.toDate instanceof Date ? filters.toDate : new Date(filters.toDate));
       nextDay.setDate(nextDay.getDate() + 1);
       query = query.lt('published_at', nextDay.toISOString());
     }

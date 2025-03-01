@@ -83,27 +83,37 @@ export default function NewsletterSync() {
       
       try {
         // Prepare filter options
-        const filterOptions = {
-          searchQuery: filters.searchQuery,
+        const filterOptions: { 
+          searchQuery?: string;
+          sender?: string;
+          categoryId?: number | string;
+          fromDate?: string;
+          toDate?: string;
+          page?: number;
+          limit?: number;
+        } = {
           page,
-          limit: ITEMS_PER_PAGE,
-          accountId: selectedAccount
+          limit: ITEMS_PER_PAGE
         };
 
+        if (filters.searchQuery) {
+          filterOptions.searchQuery = filters.searchQuery;
+        }
+
         if (filters.sender) {
-          filterOptions['sender'] = filters.sender;
+          filterOptions.sender = filters.sender;
         }
 
         if (filters.categoryId) {
-          filterOptions['categoryId'] = parseInt(filters.categoryId);
+          filterOptions.categoryId = filters.categoryId;
         }
 
         if (filters.fromDate) {
-          filterOptions['fromDate'] = filters.fromDate.toISOString();
+          filterOptions.fromDate = filters.fromDate.toISOString();
         }
 
         if (filters.toDate) {
-          filterOptions['toDate'] = filters.toDate.toISOString();
+          filterOptions.toDate = filters.toDate.toISOString();
         }
 
         const { data, count } = await getNewslettersFromEmailAccount(selectedAccount, page, ITEMS_PER_PAGE, filterOptions);
