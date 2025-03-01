@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,16 +10,15 @@ import Auth from "./pages/Auth";
 import Saved from "./pages/Saved";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
+import NewsletterSenders from "./pages/NewsletterSenders";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
 
-// Wrapper component to conditionally render the Navbar
 const AppLayout = () => {
   const location = useLocation();
-  // Fix the condition to properly detect all admin routes
   const isAdminRoute = location.pathname.startsWith('/admin');
   
   return (
@@ -65,6 +63,11 @@ const AppLayout = () => {
             </ProtectedRoute>
           } 
         />
+        <Route path="/admin/newsletter-senders" element={
+          <ProtectedRoute requireAdmin>
+            <NewsletterSenders />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

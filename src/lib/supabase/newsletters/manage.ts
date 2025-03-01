@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteNewslettersResponse } from "./types";
 
@@ -47,4 +46,66 @@ export async function updateNewsletterCategory(newsletterId: number, categoryId:
     console.error("Error in updateNewsletterCategory:", error);
     throw error;
   }
+}
+
+/**
+ * Updates the category for all newsletters from a specific sender
+ */
+export async function updateSenderCategory(senderEmail: string, categoryId: number): Promise<void> {
+  try {
+    console.log(`Updating category to ${categoryId} for all newsletters from sender: ${senderEmail}`);
+    
+    const { error } = await supabase
+      .from("newsletters")
+      .update({ category_id: categoryId })
+      .eq("sender_email", senderEmail);
+    
+    if (error) {
+      console.error("Error updating sender category:", error);
+      throw error;
+    }
+    
+    console.log(`Successfully updated category for sender: ${senderEmail}`);
+  } catch (error) {
+    console.error("Exception in updateSenderCategory:", error);
+    throw error;
+  }
+}
+
+export function saveNewsletter(newsletterId: number, userId: string) {
+  return supabase
+    .from('saved_newsletters')
+    .insert({
+      newsletter_id: newsletterId,
+      user_id: userId
+    });
+}
+
+export function unsaveNewsletter(newsletterId: number, userId: string) {
+  return supabase
+    .from('saved_newsletters')
+    .delete()
+    .match({
+      newsletter_id: newsletterId,
+      user_id: userId
+    });
+}
+
+export async function isNewsletterSaved(newsletterId: number, userId: string): Promise<boolean> {
+  if (!userId) return false;
+  
+  const { data, error } = await supabase
+    .from('saved_newsletters')
+    .select('id')
+    .match({
+      newsletter_id: newsletterId,
+      user_id: userId
+    })
+    .single();
+  
+  if (error && error.code !== 'PGSQL_ERROR_NO_DATA_FOUND') {
+    console.error('Error checking if newsletter is saved:', error);
+  }
+  
+  return !!data;
 }

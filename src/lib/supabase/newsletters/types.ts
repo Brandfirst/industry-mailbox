@@ -1,4 +1,3 @@
-
 import { Newsletter, NewsletterCategory } from "../types";
 
 // Define interface for the filter options
@@ -22,4 +21,12 @@ export interface DeleteNewslettersResponse {
 export interface NewsletterQueryResult {
   data: Newsletter[];
   count: number | null;
+}
+
+export interface NewsletterSenderStats {
+  sender_email: string;
+  sender_name: string;
+  newsletter_count: number;
+  last_sync_date: string | null;
+  category_id: number | null;
 }

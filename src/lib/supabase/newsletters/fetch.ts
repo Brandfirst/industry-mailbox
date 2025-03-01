@@ -1,132 +1,92 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { Newsletter } from "../types";
-import { NewsletterFilterOptions, NewsletterQueryResult } from "./types";
+import { Newsletter, NewsletterFilters } from "../types";
+import { NewsletterSenderStats } from "./types";
 
-// Simple function to get newsletters with pagination
-export async function getNewsletters(options: NewsletterFilterOptions = {}): Promise<NewsletterQueryResult> {
-  // Use simple implementation to avoid TypeScript errors
-  const page = options.page || 1;
-  const limit = options.limit || 10;
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-  
+const ITEMS_PER_PAGE = 10;
+
+/**
+ * Fetches newsletters with pagination and filtering.
+ */
+export async function getNewslettersFromEmailAccount(
+  accountId: string | null,
+  page: number,
+  filters: NewsletterFilters
+): Promise<{ data: Newsletter[]; error: any; total: number }> {
+  if (!accountId) {
+    return { data: [], error: null, total: 0 };
+  }
+
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
   let query = supabase
     .from("newsletters")
-    .select("*, categories(id, name, slug, color)");
-    
-  // Apply filters if provided
-  if (options.searchQuery) {
-    query = query.or(`title.ilike.%${options.searchQuery}%,content.ilike.%${options.searchQuery}%`);
-  }
-  
-  if (options.sender) {
-    query = query.ilike('sender', `%${options.sender}%`);
+    .select("*", { count: "exact" })
+    .eq("email_id", accountId)
+    .order("published_at", { ascending: false });
+
+  if (filters.searchQuery) {
+    query = query.ilike("title", `%${filters.searchQuery}%`);
   }
 
-  if (options.categoryId) {
-    const categoryId = typeof options.categoryId === 'string' ? parseInt(options.categoryId) : options.categoryId;
-    query = query.eq('category_id', categoryId);
+  if (filters.sender) {
+    query = query.ilike("sender", `%${filters.sender}%`);
   }
 
-  if (options.fromDate) {
-    query = query.gte('published_at', options.fromDate);
+  if (filters.category && filters.category !== "all") {
+    query = query.eq("category_id", filters.category);
   }
 
-  if (options.toDate) {
-    // Add a day to include the entire "to" day
-    const nextDay = new Date(options.toDate instanceof Date ? options.toDate : new Date(options.toDate));
-    nextDay.setDate(nextDay.getDate() + 1);
-    query = query.lt('published_at', nextDay.toISOString());
+  if (filters.fromDate) {
+    query = query.gte("published_at", filters.fromDate);
   }
-  
-  if (options.industries && options.industries.length > 0) {
-    query = query.in('industry', options.industries);
+
+  if (filters.toDate) {
+    query = query.lte("published_at", filters.toDate);
   }
-  
-  const { data, error, count } = await query.range(from, to);
-  
-  if (error) {
-    console.error("Error fetching newsletters:", error);
-    throw error;
-  }
-  
-  return { data: data || [], count };
+
+  query = query.range(startIndex, startIndex + ITEMS_PER_PAGE - 1);
+
+  const { data, error, count } = await query;
+
+  return { data: data || [], error, total: count || 0 };
 }
 
-// Get newsletters from a specific email account
-export async function getNewslettersFromEmailAccount(
-  accountId: string, 
-  page = 1, 
-  limit = 50, 
-  filters: NewsletterFilterOptions = {}
-): Promise<NewsletterQueryResult> {
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-
+/**
+ * Gets statistics for all newsletter senders
+ */
+export async function getSenderStats(userId: string): Promise<NewsletterSenderStats[]> {
   try {
-    console.log(`Fetching newsletters for account ${accountId} (page ${page}, limit ${limit})`);
-    console.log("Filters:", JSON.stringify(filters, null, 2));
+    console.log(`Fetching sender stats for user: ${userId}`);
     
-    let query = supabase
-      .from("newsletters")
-      .select("*, categories(id, name, slug, color)", { count: "exact" })
-      .eq("email_id", accountId);
-
-    // Apply additional filters
-    if (filters.searchQuery) {
-      query = query.or(`title.ilike.%${filters.searchQuery}%,content.ilike.%${filters.searchQuery}%`);
+    // First, get all of the user's email accounts
+    const { data: accounts, error: accountsError } = await supabase
+      .from("email_accounts")
+      .select("id")
+      .eq("user_id", userId);
+      
+    if (accountsError) {
+      console.error("Error fetching email accounts:", accountsError);
+      throw accountsError;
     }
     
-    if (filters.sender) {
-      query = query.ilike('sender', `%${filters.sender}%`);
+    if (!accounts || accounts.length === 0) {
+      console.log("No email accounts found for user");
+      return [];
     }
-
-    if (filters.categoryId && filters.categoryId !== "all") {
-      const categoryId = typeof filters.categoryId === 'string' ? parseInt(filters.categoryId) : filters.categoryId;
-      query = query.eq('category_id', categoryId);
-    }
-
-    if (filters.fromDate) {
-      query = query.gte('published_at', filters.fromDate);
-    }
-
-    if (filters.toDate) {
-      // Add a day to include the entire "to" day
-      const nextDay = new Date(filters.toDate instanceof Date ? filters.toDate : new Date(filters.toDate));
-      nextDay.setDate(nextDay.getDate() + 1);
-      query = query.lt('published_at', nextDay.toISOString());
-    }
-
-    const { data, error, count } = await query
-      .range(from, to)
-      .order("published_at", { ascending: false });
-
+    
+    const accountIds = accounts.map(account => account.id);
+    
+    // Query to get sender statistics
+    const { data, error } = await supabase
+      .rpc('get_sender_statistics', { account_ids: accountIds });
+    
     if (error) {
-      console.error("Error fetching newsletters for email account:", error);
+      console.error("Error fetching sender statistics:", error);
       throw error;
     }
-
-    console.log(`Successfully fetched ${data?.length || 0} newsletters (total count: ${count})`);
-    return { data: data || [], count };
+    
+    return data || [];
   } catch (error) {
-    console.error("Error in getNewslettersFromEmailAccount:", error);
-    // Return empty data instead of throwing to handle errors gracefully in the UI
-    return { data: [], count: 0 };
-  }
-}
-
-export async function getNewsletterById(id: number): Promise<Newsletter> {
-  const { data, error } = await supabase
-    .from("newsletters")
-    .select("*, categories(id, name, slug, color)")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    console.error("Error fetching newsletter:", error);
+    console.error("Exception in getSenderStats:", error);
     throw error;
   }
-
-  return data;
 }
