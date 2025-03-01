@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, ArrowRight, Database, Users, BarChart, Calendar, Mail, Star, Award, ChevronDown, ChevronUp } from "lucide-react";
@@ -75,165 +74,239 @@ const Index = () => {
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
 
-      {/* Hero Section - Optimized for desktop */}
-      <section className="relative bg-gradient-to-b from-gray-900 to-black py-8 md:py-16 lg:py-24 overflow-hidden min-h-[70vh] lg:min-h-[80vh] flex items-center">
-        {/* Background pattern/grid */}
-        <div className="absolute inset-0 overflow-hidden opacity-20">
-          <div className="absolute -top-20 -left-20 right-0 bottom-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiPjxwYXRoIGQ9Ik0tMTAgMzBoOTBNLTEwIC0zMGg5ME0zMCAtMTB2OTBNLTMwIC0xMHY5MCIvPjwvZz48L3N2Zz4=')] bg-center opacity-10"></div>
+      {/* Hero Section with mesh-gradient background and detailed app UI */}
+      <section className="py-16 px-4 relative overflow-hidden mesh-gradient">
+        {/* Background elements */}
+        <div className="absolute inset-0 z-0 opacity-20">
+          <div className="absolute top-20 right-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 left-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        {/* Hero Content */}
-        <div className="relative z-10 w-full">
-          <div className="container mx-auto max-w-7xl px-4 md:px-8 lg:px-12 relative z-10">
-            <div className="animate-slide-down">
-              {/* New version badge with collapsible features */}
-              <div className="mb-6 md:mb-8">
-                <Collapsible 
-                  open={isNewFeaturesOpen} 
-                  onOpenChange={setIsNewFeaturesOpen}
-                  className="w-fit mx-auto"
-                >
-                  <CollapsibleTrigger asChild>
-                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-900/50 border border-blue-700/40 text-blue-400 text-xs pulse-glow cursor-pointer hover:bg-blue-900/70 transition-colors">
-                      <Star className="w-3 h-3 mr-1" />
-                      <span>Version 2.0 lansert</span>
-                      {isNewFeaturesOpen ? (
-                        <ChevronUp className="w-3 h-3 ml-1" />
-                      ) : (
-                        <ChevronDown className="w-3 h-3 ml-1" />
-                      )}
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-2 p-4 bg-blue-800/20 border border-blue-800/30 rounded-lg shadow-lg animate-slide-down">
-                    <div className="flex items-center mb-2">
-                      <Award className="h-4 w-4 text-blue-400 mr-2" />
-                      <h3 className="text-sm font-semibold text-white">Nytt i versjon 2.0</h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {newFeatures.map((feature, index) => (
-                        <div key={index} className="flex items-center text-xs text-gray-300">
-                          <div className="h-1.5 w-1.5 rounded-full bg-blue-500 mr-1.5"></div>
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
-              
-              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight mb-6 md:mb-8 text-white max-w-5xl mx-auto">
-                For <span className="smaller-text">byråer</span> og markedsførere
-                <span className="block text-blue-400 mt-3 relative">
-                  Norges største database av nyhetsbrev
-                  <div className="absolute -bottom-2 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animated-border"></div>
-                </span>
-              </h1>
-              <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto">
-                Få inspirasjonen og innsikten du trenger for bedre markedsføring.
-              </p>
-              
-              <div className="flex flex-col lg:flex-row justify-between items-center gap-8 mb-12 max-w-6xl mx-auto">
-                {/* Left column: CTA Buttons to center in desktop */}
-                <div className="w-full lg:w-1/2 flex flex-col items-center justify-center mb-8 lg:mb-0">
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to="/search">
-                      <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto px-6 py-6 text-lg">
-                        Start Søket
-                        <Search className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
-                    <Link to="/auth?mode=signup">
-                      <Button size="lg" variant="outline" className="border-blue-400/30 text-blue-400 hover:bg-blue-900/20 w-full sm:w-auto px-6 py-6 text-lg">
-                        Opprett Konto
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
+        {/* Main content container */}
+        <div className="container mx-auto max-w-5xl text-center relative z-10">
+          <div className="animate-slide-down">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
+              For <span className="smaller-text">byråer</span> og markedsførere
+              <span className="block text-blue-400 mt-2 relative">
+                Norges største database av nyhetsbrev
+                <div className="absolute -bottom-2 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
+              </span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+              Få tilgang til markedsføringsintelligens fra tusenvis av norske nyhetsbrev. 
+              Ideelt for markedsførere, byråer og bransjefolk.
+            </p>
+            
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
+              <Link to="/search">
+                <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-6 text-lg">
+                  Start Søket
+                  <Search className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/auth?mode=signup">
+                <Button size="lg" variant="outline" className="border-blue-400/30 text-blue-400 hover:bg-blue-900/20 px-6 py-6 text-lg">
+                  Opprett Konto
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+            
+            {/* Detailed app UI preview */}
+            <div className="relative mx-auto max-w-4xl">
+              <div className="bg-dark-300 rounded-lg overflow-hidden shadow-2xl border border-white/10">
+                {/* Browser-like header */}
+                <div className="bg-dark-400 h-8 flex items-center px-3 border-b border-white/10">
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="mx-auto flex items-center bg-dark-500 rounded-md px-2 py-1">
+                    <svg className="w-3 h-3 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path d="M12 16L7 11L8.4 9.55L12 13.15L15.6 9.55L17 11L12 16Z" fill="currentColor"></path>
+                    </svg>
+                    <span className="text-xs text-gray-400">app.newsletterhub.no/sok</span>
                   </div>
                 </div>
-              </div>
-              
-              {/* Testimonials Carousel - Optimized spacing */}
-              <div className="mb-16 mt-6 max-w-5xl mx-auto">
-                <div className="relative carousel-container overflow-hidden w-full max-w-4xl mx-auto px-2">
-                  <div 
-                    className="overflow-hidden cursor-grab active:cursor-grabbing" 
-                    ref={testimonialViewportRef}
-                  >
-                    <div className="flex -mx-4">
-                      {testimonials.map((testimonial, index) => (
-                        <div 
-                          key={index}
-                          className={`testimonial-card shine-effect min-w-[100%] p-3 transition-all duration-300 px-4 flex-shrink-0 ${
-                            index === activeIndex 
-                              ? 'scale-100 opacity-100 z-10' 
-                              : 'scale-[0.85] opacity-70 z-0'
-                          }`}
-                        >
-                          <div className={`bg-gradient-to-b from-gray-800 to-gray-900 p-4 rounded-lg shadow-lg transform transition-transform duration-300 ${
-                            index === activeIndex ? 'translate-y-0' : 'translate-y-2'
-                          }`}>
-                            <div className="flex items-start mb-2">
-                              <div className="testimonial-avatar mr-2 bg-blue-900 flex items-center justify-center rounded-full w-8 h-8 text-blue-400 text-sm font-bold">
-                                {testimonial.initial}
-                              </div>
-                              <div>
-                                <div className="testimonial-name text-sm md:text-base font-semibold text-white">{testimonial.author}</div>
-                                <div className="testimonial-company text-xs md:text-sm text-gray-400">{testimonial.company}</div>
-                                <div className="flex mt-1">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star 
-                                      key={i} 
-                                      className={`w-3 h-3 ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-600'}`}
-                                      fill={i < testimonial.rating ? 'currentColor' : 'none'}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="testimonial-text text-sm md:text-base text-gray-300 leading-relaxed">
-                              "{testimonial.text}"
+
+                {/* App UI with sidebar and content */}
+                <div className="bg-dark-300 flex">
+                  {/* Sidebar - hidden on mobile */}
+                  <div className="bg-[#0a1227] w-48 border-r border-white/10 py-4 hidden md:block">
+                    <div className="px-4 mb-6">
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 text-blue-400 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M19 5V19H5V5H19ZM19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3Z" fill="currentColor"></path>
+                        </svg>
+                        <span className="text-white font-medium">NewsletterHub</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1 px-2">
+                      <div className="bg-blue-500/20 text-blue-400 rounded-md py-1.5 px-3 flex items-center">
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M19 5V19H5V5H19ZM19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3Z" fill="currentColor"></path>
+                        </svg>
+                        <span className="text-sm">Nyhetsbrev</span>
+                      </div>
+                      <div className="text-gray-400 rounded-md py-1.5 px-3 flex items-center">
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2L4 5V11.09C4 16.14 7.41 20.85 12 22C16.59 20.85 20 16.14 20 11.09V5L12 2Z" fill="currentColor"></path>
+                        </svg>
+                        <span className="text-sm">Merker</span>
+                      </div>
+                      <div className="text-gray-400 rounded-md py-1.5 px-3 flex items-center">
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"></path>
+                        </svg>
+                        <span className="text-sm">Statistikk</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main content area */}
+                  <div className="flex-1 px-4 py-4">
+                    {/* Top bar */}
+                    <div className="flex justify-between items-center mb-4">
+                      <div>
+                        <h3 className="text-white text-sm font-medium">Søk i Nyhetsbrev</h3>
+                        <p className="text-gray-400 text-xs">Finn og analyser norske nyhetsbrev</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Mine Favoritter</div>
+                        <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Merker</div>
+                        <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Hjelp</div>
+                        <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-primary/90 h-9 px-3 bg-blue-500 text-white text-xs rounded-md">
+                          Lagre Søk
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Search bar and filters */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center bg-dark-400 rounded-md px-3 py-1.5 w-64">
+                        <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <span className="text-xs text-gray-400">Søk i nyhetsbrev...</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-dark-400 rounded-md px-3 py-1.5">
+                          <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                          </svg>
+                          <span className="text-xs text-gray-400">Filtrer</span>
+                        </div>
+                        <div className="flex items-center bg-dark-400 rounded-md px-3 py-1.5">
+                          <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path>
+                          </svg>
+                          <span className="text-xs text-gray-400">Sorter</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Newsletter grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {/* Newsletter 1 */}
+                      <div className="bg-white rounded-md overflow-hidden">
+                        <div className="relative">
+                          <div className="w-full h-40 bg-blue-100 flex items-center justify-center">
+                            <div className="text-center px-4">
+                              <h3 className="text-blue-800 font-bold">Ukens Tilbud</h3>
+                              <p className="text-blue-600 text-sm">Opptil 50% rabatt!</p>
                             </div>
                           </div>
+                          <div className="absolute top-2 left-2 bg-white rounded-full p-1">
+                            <div className="bg-blue-500 rounded-full w-5 h-5 flex items-center justify-center text-white text-xs font-bold">E</div>
+                          </div>
                         </div>
-                      ))}
+                        <div className="p-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-xs font-medium">Elkjøp</div>
+                            <div className="text-xs text-gray-500">1 dag siden</div>
+                          </div>
+                          <div className="bg-blue-100 rounded px-2 py-1 text-center">
+                            <span className="text-xs font-bold text-blue-800">Forbrukerelektronikk</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Newsletter 2 */}
+                      <div className="bg-white rounded-md overflow-hidden">
+                        <div className="relative">
+                          <div className="w-full h-40 bg-green-100 flex items-center justify-center">
+                            <div className="text-center px-4">
+                              <h3 className="text-green-800 font-bold">Sommertilbud</h3>
+                              <p className="text-green-600 text-sm">Nye kolleksjoner</p>
+                            </div>
+                          </div>
+                          <div className="absolute top-2 left-2 bg-white rounded-full p-1">
+                            <div className="bg-green-500 rounded-full w-5 h-5 flex items-center justify-center text-white text-xs font-bold">H</div>
+                          </div>
+                        </div>
+                        <div className="p-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-xs font-medium">H&M</div>
+                            <div className="text-xs text-gray-500">2 dager siden</div>
+                          </div>
+                          <div className="bg-green-100 rounded px-2 py-1 text-center">
+                            <span className="text-xs font-bold text-green-800">Mote</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Newsletter 3 */}
+                      <div className="bg-white rounded-md overflow-hidden">
+                        <div className="relative">
+                          <div className="w-full h-40 bg-orange-100 flex items-center justify-center">
+                            <div className="text-center px-4">
+                              <h3 className="text-orange-800 font-bold">Helgetilbud</h3>
+                              <p className="text-orange-600 text-sm">Gratis frakt!</p>
+                            </div>
+                          </div>
+                          <div className="absolute top-2 left-2 bg-white rounded-full p-1">
+                            <div className="bg-orange-500 rounded-full w-5 h-5 flex items-center justify-center text-white text-xs font-bold">C</div>
+                          </div>
+                        </div>
+                        <div className="p-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-xs font-medium">COOP</div>
+                            <div className="text-xs text-gray-500">3 dager siden</div>
+                          </div>
+                          <div className="bg-orange-100 rounded px-2 py-1 text-center">
+                            <span className="text-xs font-bold text-orange-800">Dagligvarer</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Newsletter 4 */}
+                      <div className="bg-white rounded-md overflow-hidden">
+                        <div className="relative">
+                          <div className="w-full h-40 bg-purple-100 flex items-center justify-center">
+                            <div className="text-center px-4">
+                              <h3 className="text-purple-800 font-bold">Månedens Nytt</h3>
+                              <p className="text-purple-600 text-sm">Tips og trender</p>
+                            </div>
+                          </div>
+                          <div className="absolute top-2 left-2 bg-white rounded-full p-1">
+                            <div className="bg-purple-500 rounded-full w-5 h-5 flex items-center justify-center text-white text-xs font-bold">D</div>
+                          </div>
+                        </div>
+                        <div className="p-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-xs font-medium">DNB</div>
+                            <div className="text-xs text-gray-500">4 dager siden</div>
+                          </div>
+                          <div className="bg-purple-100 rounded px-2 py-1 text-center">
+                            <span className="text-xs font-bold text-purple-800">Finans</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Simple indicator dots */}
-                  <div className="flex justify-center mt-3 space-x-1.5">
-                    {testimonials.map((_, index) => (
-                      <button
-                        key={index}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          index === activeIndex 
-                            ? 'bg-blue-400 w-4' 
-                            : 'bg-gray-600 opacity-50'
-                        }`}
-                        onClick={() => emblaApi?.scrollTo(index)}
-                        aria-label={`Go to testimonial ${index + 1}`}
-                      />
-                    ))}
                   </div>
                 </div>
-              </div>
-
-              {/* Stats Grid - Optimized for desktop */}
-              <div className="stats-grid grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto mb-8">
-                {stats.map((stat, index) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div 
-                      key={index} 
-                      className={`stat-card shine-effect animate-count-up animate-delay-${index * 100}`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="stat-value text-2xl md:text-3xl">{stat.value}</div>
-                        <Icon className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />
-                      </div>
-                      <div className="stat-label text-sm md:text-base">{stat.label}</div>
-                    </div>
-                  );
-                })}
               </div>
             </div>
           </div>
