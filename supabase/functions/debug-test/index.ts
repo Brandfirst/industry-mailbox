@@ -1,4 +1,5 @@
 
+// @ts-ignore
 import { serve } from "https://deno.land/std@0.132.0/http/server.ts";
 
 const corsHeaders = {
@@ -13,12 +14,14 @@ serve(async (req) => {
   }
 
   try {
-    // Log that we received a request
-    console.log("Debug test function called!");
+    // Log that we received a request with multiple console logs to make it very visible
+    console.log("==================================================");
+    console.log("DEBUG TEST FUNCTION CALLED! THIS SHOULD BE VISIBLE IN LOGS!");
+    console.log("==================================================");
     
     // Parse the request body
     const requestData = await req.json();
-    console.log("Request data:", requestData);
+    console.log("Request data received:", JSON.stringify(requestData));
     
     // Generate some debug info
     const debugInfo = {
@@ -28,9 +31,17 @@ serve(async (req) => {
       hasSupabaseUrl: !!Deno.env.get("SUPABASE_URL"),
       hasSupabaseKey: !!Deno.env.get("SUPABASE_ANON_KEY"),
       hasServiceRoleKey: !!Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+      requestHeaders: Object.fromEntries(
+        [...req.headers.entries()].filter(([key]) => 
+          !['authorization', 'apikey'].includes(key.toLowerCase())
+        )
+      ),
+      denoVersion: Deno.version.deno,
+      typescriptVersion: Deno.version.typescript,
+      v8Version: Deno.version.v8,
     };
     
-    console.log("Debug info:", debugInfo);
+    console.log("Debug info generated:", JSON.stringify(debugInfo, null, 2));
     
     // Return a successful response
     return new Response(
@@ -49,7 +60,7 @@ serve(async (req) => {
     );
   } catch (error) {
     // Log the error
-    console.error("Error in debug test function:", error);
+    console.error("ERROR in debug test function:", error);
     
     // Return an error response
     return new Response(
