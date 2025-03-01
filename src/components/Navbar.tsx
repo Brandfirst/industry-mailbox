@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,7 +35,6 @@ const Navbar = () => {
   const activeLink = "text-blue-400 font-medium";
   const inactiveLink = "text-gray-300 hover:text-white transition-colors";
   
-  // Fix corrupted localStorage and sign out
   const forceCleanSignOut = async (e) => {
     e.preventDefault();
     
@@ -46,9 +44,7 @@ const Navbar = () => {
         description: "Du blir logget ut av systemet",
       });
       
-      // Forcefully clean localStorage first
       try {
-        // Specific cleanup for the problematic 'professional' item
         try {
           localStorage.removeItem('professional');
           console.log("Removed 'professional' item");
@@ -56,7 +52,6 @@ const Navbar = () => {
           console.warn("Failed to remove 'professional' directly", localErr);
         }
         
-        // Attempt to forcefully overwrite the corrupted item
         try {
           localStorage.setItem('professional', 'null');
           localStorage.removeItem('professional');
@@ -65,31 +60,36 @@ const Navbar = () => {
           console.warn("Failed to overwrite 'professional'", overwriteErr);
         }
         
-        // Try clearing all supabase-related items
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (key.startsWith('supabase.') || key === 'professional')) {
-            keysToRemove.push(key);
-          }
-        }
-        
-        console.log("Will attempt to remove these keys:", keysToRemove);
-        
-        // Remove each item
-        for (const key of keysToRemove) {
+        const safeRemoveItem = (key) => {
           try {
             localStorage.removeItem(key);
             console.log(`Removed ${key} from localStorage`);
           } catch (e) {
             console.warn(`Failed to remove ${key}:`, e);
           }
+        };
+        
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          try {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('supabase.') || key === 'professional')) {
+              keysToRemove.push(key);
+            }
+          } catch (e) {
+            console.warn(`Error accessing localStorage key at index ${i}:`, e);
+          }
+        }
+        
+        console.log("Will attempt to remove these keys:", keysToRemove);
+        
+        for (const key of keysToRemove) {
+          safeRemoveItem(key);
         }
       } catch (storageErr) {
         console.error("Error cleaning localStorage:", storageErr);
       }
       
-      // Now try direct Supabase signout
       try {
         await supabase.auth.signOut();
         console.log("Supabase signOut successful");
@@ -97,12 +97,10 @@ const Navbar = () => {
         console.error("Error in direct supabase.auth.signOut():", signOutErr);
       }
       
-      // Call the main signOut function provided by the context
       await signOut().catch(err => {
         console.error("Error in AuthContext signOut:", err);
       });
       
-      // As a backup, forcefully clear the session
       setTimeout(() => {
         console.log("Forcefully redirecting to homepage");
         window.location.href = '/';
@@ -115,7 +113,6 @@ const Navbar = () => {
         variant: "destructive",
       });
       
-      // Last resort: redirect anyway
       window.location.href = '/';
     }
   };
@@ -130,7 +127,6 @@ const Navbar = () => {
           </Link>
         </div>
         
-        {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
           <Link 
             to="/" 
@@ -217,7 +213,6 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile menu button */}
         <div className="flex md:hidden">
           <Button 
             variant="ghost" 
@@ -231,7 +226,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       {isMenuOpen && (
         <div className="md:hidden animate-slide-down">
           <div className="flex flex-col px-4 pt-2 pb-4 space-y-4 border-t border-white/10 bg-dark-300">

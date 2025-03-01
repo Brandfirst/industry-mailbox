@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -34,7 +33,6 @@ const Search = () => {
     setSelectedIndustries(industries);
   };
 
-  // Extract the newsletter data for easier rendering
   const newsletters = newsletterData?.data || [];
 
   return (
@@ -87,7 +85,6 @@ const Search = () => {
             </div>
           ) : newsletters.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Explicitly type each newsletter as a Newsletter */}
               {(newsletters as Newsletter[]).map((newsletter: Newsletter) => (
                 <NewsletterCard
                   key={newsletter.id}
