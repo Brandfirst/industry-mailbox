@@ -40,20 +40,22 @@ export const GoogleOAuthButton = ({
       }
     }
     
-    console.log("GoogleOAuthButton mounted with state:", { 
+    console.log("[OAUTH BUTTON MOUNT] GoogleOAuthButton mounted with state:", { 
       isConnecting, 
       localIsConnecting, 
       user: !!user,
       userId: user?.id,
-      redirectUri
+      redirectUri,
+      location: location.pathname + location.search,
+      oauthInProgress: sessionStorage.getItem('gmailOAuthInProgress')
     });
-  }, [isConnecting, localIsConnecting, user, redirectUri]);
+  }, [isConnecting, localIsConnecting, user, redirectUri, location]);
 
   const initiateGoogleOAuth = () => {
     // Use the prop value if passed, otherwise use local state
     const connecting = isConnecting || localIsConnecting;
     if (connecting || !user) {
-      console.log("OAuth initiation blocked:", { 
+      console.log("[OAUTH INITIATE BLOCKED] OAuth initiation blocked:", { 
         connecting,
         isConnecting,
         localIsConnecting,
@@ -89,6 +91,7 @@ export const GoogleOAuthButton = ({
         try {
           sessionStorage.setItem('auth_session_token', session.access_token);
           sessionStorage.setItem('auth_user_id', user.id);
+          console.log("[OAUTH] Stored auth session in sessionStorage");
         } catch (e) {
           console.warn("[OAUTH] Could not save auth session to sessionStorage:", e);
         }
@@ -115,7 +118,11 @@ export const GoogleOAuthButton = ({
       // Redirect to Google OAuth consent screen
       console.log("[OAUTH REDIRECT] Redirecting to Google OAuth URL");
       toast.info("Redirecting to Google for authorization...");
-      window.location.href = authUrl.toString();
+      
+      // Add slight delay to ensure logs are sent
+      setTimeout(() => {
+        window.location.href = authUrl.toString();
+      }, 200);
     } catch (error) {
       console.error("[OAUTH ERROR] Error initiating OAuth flow:", error);
       setDebugInfo({ error: String(error) });

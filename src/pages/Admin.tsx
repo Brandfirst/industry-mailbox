@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,12 +24,16 @@ const Admin = () => {
     setIsOAuthCallback(hasOAuthParams);
     
     if (hasOAuthParams) {
-      console.log("Admin page detected OAuth callback parameters");
+      console.log("[ADMIN PAGE] Detected OAuth callback parameters:", {
+        hasCode: searchParams.has('code'),
+        hasError: searchParams.has('error'),
+        state: searchParams.get('state')
+      });
     }
   }, [location.search]);
   
   useEffect(() => {
-    console.log("Admin location changed", { 
+    console.log("[ADMIN PAGE] Admin location changed", { 
       pathname: location.pathname, 
       search: location.search,
       user: !!user,
@@ -54,23 +59,26 @@ const Admin = () => {
   useEffect(() => {
     document.title = `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} | Admin Dashboard`;
     
+    // Process OAuth parameters if present
     const searchParams = new URLSearchParams(location.search);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     
     if (code && state === 'gmail_connect') {
-      console.log('Found OAuth callback parameters in Admin page URL');
+      console.log('[ADMIN PAGE] Found OAuth callback parameters in Admin page URL');
       if (!user) {
         const savedUserId = sessionStorage.getItem('auth_user_id');
         if (savedUserId) {
-          console.log("Found saved user ID during OAuth callback:", savedUserId);
+          console.log("[ADMIN PAGE] Found saved user ID during OAuth callback:", savedUserId);
         }
       }
     }
     
+    // Handle OAuth flow interruption (e.g., page refresh during flow)
     const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
     if (oauthInProgress === 'true' && !location.search.includes('code=') && !location.search.includes('error=')) {
-      console.log('Detected refresh during OAuth flow, resetting state');
+      console.log('[ADMIN PAGE] Detected refresh during OAuth flow, resetting state');
+      toast.error("OAuth flow interrupted. Please try connecting again.");
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
     }
@@ -78,18 +86,18 @@ const Admin = () => {
   
   useEffect(() => {
     if (isOAuthCallback) {
-      console.log("Skipping auth check during OAuth callback");
+      console.log("[ADMIN PAGE] Skipping auth check during OAuth callback");
       return;
     }
     
     if (isAdmin === false) {
-      console.log("Not an admin, redirecting to home");
+      console.log("[ADMIN PAGE] Not an admin, redirecting to home");
       toast.error("You don't have permission to access the admin area");
       navigate('/');
     }
     
     if (!user && !isAdmin && !isOAuthCallback) {
-      console.log("No user and not in OAuth flow, redirecting to auth");
+      console.log("[ADMIN PAGE] No user and not in OAuth flow, redirecting to auth");
       navigate('/auth?mode=signin');
     }
   }, [user, isAdmin, navigate, isOAuthCallback]);
