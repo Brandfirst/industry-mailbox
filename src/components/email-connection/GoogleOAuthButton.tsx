@@ -39,21 +39,36 @@ export const GoogleOAuthButton = ({
         sessionStorage.removeItem('oauth_nonce');
       }
     }
-  }, [isConnecting, localIsConnecting]);
+    
+    console.log("GoogleOAuthButton mounted with state:", { 
+      isConnecting, 
+      localIsConnecting, 
+      user: !!user,
+      userId: user?.id
+    });
+  }, [isConnecting, localIsConnecting, user]);
 
   const initiateGoogleOAuth = () => {
     // Use the prop value if passed, otherwise use local state
     const connecting = isConnecting || localIsConnecting;
-    if (connecting || !user) return; // Prevent multiple clicks
+    if (connecting || !user) {
+      console.log("OAuth initiation blocked:", { 
+        connecting,
+        isConnecting,
+        localIsConnecting,
+        userExists: !!user
+      });
+      return; // Prevent multiple clicks or if user not logged in
+    }
     
-    console.log("Starting Google OAuth flow for user:", user.id);
+    console.log("[OAUTH START] Starting Google OAuth flow for user:", user.id);
     setLocalIsConnecting(true);
     
     try {
       // Get the OAuth client ID from environment variables
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
       if (!clientId) {
-        console.error("Missing VITE_GOOGLE_CLIENT_ID environment variable");
+        console.error("[OAUTH ERROR] Missing VITE_GOOGLE_CLIENT_ID environment variable");
         setDebugInfo({ error: "Missing VITE_GOOGLE_CLIENT_ID" });
         toast.error("Google client ID not configured. Please add VITE_GOOGLE_CLIENT_ID to your environment.");
         setLocalIsConnecting(false);
@@ -62,6 +77,7 @@ export const GoogleOAuthButton = ({
       
       // Generate and store a nonce for state validation
       const nonce = Math.random().toString(36).substring(2, 15);
+      console.log(`[OAUTH] Generated nonce: ${nonce}`);
       sessionStorage.setItem('oauth_nonce', nonce);
       
       // Save a flag in sessionStorage to detect if we're in the middle of an OAuth flow
@@ -73,14 +89,14 @@ export const GoogleOAuthButton = ({
           sessionStorage.setItem('auth_session_token', session.access_token);
           sessionStorage.setItem('auth_user_id', user.id);
         } catch (e) {
-          console.warn("Could not save auth session to sessionStorage:", e);
+          console.warn("[OAUTH] Could not save auth session to sessionStorage:", e);
         }
       }
       
       // Store the current path to return to after auth
       sessionStorage.setItem('auth_return_path', location.pathname);
       
-      console.log("Using redirect URI for OAuth flow:", redirectUri);
+      console.log("[OAUTH] Using redirect URI for OAuth flow:", redirectUri);
       
       // Properly construct the Google OAuth URL
       const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -93,11 +109,11 @@ export const GoogleOAuthButton = ({
       authUrl.searchParams.append("state", "gmail_connect");
       
       // Redirect to Google OAuth consent screen
-      console.log("Redirecting to Google OAuth URL:", authUrl.toString());
+      console.log("[OAUTH REDIRECT] Redirecting to Google OAuth URL:", authUrl.toString());
       toast.info("Redirecting to Google for authorization...");
       window.location.href = authUrl.toString();
     } catch (error) {
-      console.error("Error initiating OAuth flow:", error);
+      console.error("[OAUTH ERROR] Error initiating OAuth flow:", error);
       setDebugInfo({ error: String(error) });
       toast.error("Failed to start Google authentication");
       setLocalIsConnecting(false);
@@ -108,7 +124,7 @@ export const GoogleOAuthButton = ({
 
   // If we encounter an error during the OAuth process, log it
   if (debugInfo) {
-    console.error("OAuth Debug Info:", debugInfo);
+    console.error("[OAUTH DEBUG] OAuth Debug Info:", debugInfo);
   }
 
   return (

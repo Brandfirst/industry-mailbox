@@ -30,9 +30,20 @@ export const OAuthCallbackHandler = ({
     const state = searchParams.get('state');
     const error = searchParams.get('error');
 
+    // Log the current state for debugging
+    console.log("[OAUTH CALLBACK] Component state:", { 
+      processed, 
+      hasUser: !!user, 
+      userId: user?.id,
+      location: location.pathname + location.search,
+      hasCode: !!code,
+      state,
+      error
+    });
+
     // Only process if not already processed and we have valid user
     if (!processed && user && (code || error)) {
-      console.log("URL parameters detected:", { 
+      console.log("[OAUTH CALLBACK] URL parameters detected:", { 
         code: !!code, 
         state, 
         error, 
@@ -41,7 +52,7 @@ export const OAuthCallbackHandler = ({
       });
       
       if (error) {
-        console.error("OAuth error returned:", error);
+        console.error("[OAUTH CALLBACK] OAuth error returned:", error);
         onError(error);
         sessionStorage.removeItem('gmailOAuthInProgress');
         sessionStorage.removeItem('oauth_nonce');
@@ -54,10 +65,19 @@ export const OAuthCallbackHandler = ({
       }
       
       if (code && state === 'gmail_connect') {
-        console.log("Found valid code and state, processing OAuth callback");
+        console.log("[OAUTH CALLBACK] Found valid code and state, processing OAuth callback");
         handleOAuthCallback(code);
       } else {
-        console.warn("Invalid or missing code/state parameters", { code: !!code, state });
+        console.warn("[OAUTH CALLBACK] Invalid or missing code/state parameters", { code: !!code, state });
+        if (code) {
+          console.log("[OAUTH CALLBACK] Code found but state mismatch", { 
+            expected: 'gmail_connect', 
+            received: state 
+          });
+          onError("Invalid state parameter", { expected: 'gmail_connect', received: state });
+        }
+        setProcessed(true);
+        setIsConnecting(false);
       }
     } else if (location.pathname === '/admin' && !location.search && !processed) {
       // Reset connecting state when we return to clean admin URL
@@ -66,14 +86,14 @@ export const OAuthCallbackHandler = ({
       // Check if we returned from a failed OAuth flow
       const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
       if (oauthInProgress === 'true') {
-        console.log("Detected return from OAuth flow without code");
+        console.log("[OAUTH CALLBACK] Detected return from OAuth flow without code");
         toast.error("Gmail connection was cancelled or failed");
         sessionStorage.removeItem('gmailOAuthInProgress');
         sessionStorage.removeItem('oauth_nonce');
         setIsConnecting(false);
       }
     } else if (!processed && !code && !error) {
-      console.log("No OAuth parameters found", { 
+      console.log("[OAUTH CALLBACK] No OAuth parameters found", { 
         processed, 
         user: !!user, 
         pathname: location.pathname, 
@@ -84,22 +104,22 @@ export const OAuthCallbackHandler = ({
 
   const handleOAuthCallback = async (code: string) => {
     if (!user) {
-      console.error("No user found when handling OAuth callback");
+      console.error("[OAUTH CALLBACK] No user found when handling OAuth callback");
       toast.error("Authentication error. Please try again after logging in.");
       return;
     }
     
-    console.log("Processing OAuth callback for user:", user.id);
-    console.log("OAuth code received, length:", code.length);
+    console.log("[OAUTH CALLBACK] Processing OAuth callback for user:", user.id);
+    console.log("[OAUTH CALLBACK] OAuth code received, length:", code.length);
     
     try {
       setIsConnecting(true);
       const toastId = toast.loading("Connecting Gmail account...");
       
-      console.log("Exchanging code for access token with redirectUri:", redirectUri);
+      console.log("[OAUTH CALLBACK] Exchanging code for access token with redirectUri:", redirectUri);
       
       const result = await connectGoogleEmail(user.id, code, redirectUri);
-      console.log("Connection result received:", { 
+      console.log("[OAUTH CALLBACK] Connection result received:", { 
         success: result.success, 
         error: result.error,
         statusCode: result.statusCode,
@@ -113,7 +133,7 @@ export const OAuthCallbackHandler = ({
         // Refresh the email accounts list
         await onSuccess();
       } else {
-        console.error("Connection error details:", result);
+        console.error("[OAUTH CALLBACK] Connection error details:", result);
         
         // Capture debug info
         const debugInfo = {
@@ -144,7 +164,7 @@ export const OAuthCallbackHandler = ({
         onError(result.error || "Unknown error", result.details, debugInfo);
       }
     } catch (error) {
-      console.error("Error handling OAuth callback:", error);
+      console.error("[OAUTH CALLBACK] Error handling OAuth callback:", error);
       onError("Exception during callback", error instanceof Error ? error.message : String(error));
       toast.error("Failed to complete Gmail connection");
     } finally {

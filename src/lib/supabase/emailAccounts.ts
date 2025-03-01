@@ -45,7 +45,7 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
     
     // Add more detailed logging for the response
     console.log("connect-gmail response:", {
-      status: response.status,
+      statusCode: response.error ? 500 : 200,
       error: response.error,
       dataReceived: !!response.data,
       dataSuccess: response.data?.success,
@@ -184,7 +184,7 @@ export async function syncEmailAccount(accountId) {
       return { 
         success: false, 
         error: response.error.message || "Error connecting to sync service",
-        statusCode: response.error.status || 500,
+        statusCode: response.error ? 500 : 400,
         timestamp: Date.now() // Add timestamp to match SyncResult type
       };
     }
@@ -207,7 +207,7 @@ export async function syncEmailAccount(accountId) {
         success: false, 
         error: response.data.error || "Failed to sync emails",
         details: response.data.details || null,
-        statusCode: response.data.status || 400,
+        statusCode: response.data.statusCode || 400,
         timestamp: Date.now() // Add timestamp to match SyncResult type
       };
     }

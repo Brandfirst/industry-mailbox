@@ -14,6 +14,7 @@ import { toast } from "sonner";
 export const EmailConnection = () => {
   const location = useLocation();
   const [connectAttempted, setConnectAttempted] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   
   const { 
     emailAccounts,
@@ -35,21 +36,35 @@ export const EmailConnection = () => {
   const redirectUri = import.meta.env.VITE_REDIRECT_URI || 
     window.location.origin + "/admin";
   
-  console.log("Current redirect URI being used:", redirectUri);
-  console.log("OAuth Connection state:", { 
+  // Enable debug mode if debug parameter is present
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const debug = searchParams.get('debug');
+    setShowDebug(debug === 'true');
+    
+    if (debug === 'true') {
+      console.log("[DEBUG MODE] Email connection debugging enabled");
+      console.log("[DEBUG INFO] Current redirect URI:", redirectUri);
+      console.log("[DEBUG INFO] VITE_GOOGLE_CLIENT_ID exists:", !!import.meta.env.VITE_GOOGLE_CLIENT_ID);
+      console.log("[DEBUG INFO] Email accounts count:", emailAccounts.length);
+    }
+  }, [location.search, redirectUri, emailAccounts.length]);
+  
+  console.log("[EMAIL CONNECTION] Current state:", { 
     isConnecting, 
     oauthError, 
     connectionProcessed,
     accountsCount: emailAccounts.length,
-    connectAttempted
+    connectAttempted,
+    showDebug
   });
   
   // Fetch email accounts on mount and when connection is processed
   useEffect(() => {
     const fetchData = async () => {
-      console.log("Fetching email accounts...");
+      console.log("[EMAIL CONNECTION] Fetching email accounts...");
       await fetchEmailAccounts();
-      console.log("Email accounts fetched, count:", emailAccounts.length);
+      console.log("[EMAIL CONNECTION] Email accounts fetched, count:", emailAccounts.length);
     };
     
     fetchData();
@@ -64,12 +79,12 @@ export const EmailConnection = () => {
     const error = searchParams.get('error');
     
     if (code && state === 'gmail_connect') {
-      console.log("Found OAuth callback in URL, connection in progress");
+      console.log("[EMAIL CONNECTION] Found OAuth callback in URL, connection in progress");
       setIsConnecting(true);
       setConnectAttempted(true);
       toast.loading("Processing Google authentication...");
     } else if (error) {
-      console.error("OAuth error found in URL:", error);
+      console.error("[EMAIL CONNECTION] OAuth error found in URL:", error);
       setOAuthError(error);
       setConnectAttempted(true);
       toast.error(`Google authentication error: ${error}`);
@@ -78,7 +93,7 @@ export const EmailConnection = () => {
 
   // Handle OAuth success
   const handleOAuthSuccess = async () => {
-    console.log("OAuth successful, refreshing accounts");
+    console.log("[EMAIL CONNECTION] OAuth successful, refreshing accounts");
     setConnectAttempted(true);
     toast.success("Gmail account connected successfully!");
     await fetchEmailAccounts();
@@ -86,7 +101,7 @@ export const EmailConnection = () => {
 
   // Handle OAuth error callback
   const handleOAuthError = (error: string, details?: any, info?: any) => {
-    console.error("OAuth error occurred:", error);
+    console.error("[EMAIL CONNECTION] OAuth error occurred:", error);
     setOAuthError(error);
     if (details) setErrorDetails(details);
     if (info) setDebugInfo(info);
@@ -97,6 +112,33 @@ export const EmailConnection = () => {
 
   // Show a banner if trying to connect but still waiting
   const showConnectionInProgressBanner = isConnecting && !oauthError && connectAttempted && !connectionProcessed;
+  
+  // Show debug information if enabled
+  const renderDebugInfo = () => {
+    if (!showDebug) return null;
+    
+    return (
+      <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs font-mono overflow-auto max-h-60">
+        <h4 className="font-bold text-yellow-800 mb-1">Debug Information:</h4>
+        <pre>
+          {JSON.stringify({
+            redirectUri,
+            isConnecting,
+            oauthError,
+            hasGoogleClientId: !!import.meta.env.VITE_GOOGLE_CLIENT_ID,
+            connectAttempted,
+            connectionProcessed,
+            accountsCount: emailAccounts.length,
+            statusLoading: status.loading,
+            statusError: status.error,
+            currentPath: location.pathname + location.search,
+            hasDebugInfo: !!debugInfo,
+            hasErrorDetails: !!errorDetails
+          }, null, 2)}
+        </pre>
+      </div>
+    );
+  };
 
   return (
     <Card className="w-full bg-card">
@@ -111,6 +153,9 @@ export const EmailConnection = () => {
       </CardHeader>
 
       <CardContent>
+        {/* Debug Information (only shown with ?debug=true) */}
+        {renderDebugInfo()}
+
         {/* OAuth Callback Handler (invisible component) */}
         <OAuthCallbackHandler 
           redirectUri={redirectUri}
@@ -122,11 +167,11 @@ export const EmailConnection = () => {
         {oauthError && (
           <OAuthErrorAlert 
             oauthError={oauthError}
-            hasRedirectUriMismatch={oauthError === 'redirect_uri_mismatch'}
+            hasRedirectUriMismatch={oauthError.includes('redirect_uri_mismatch')}
             redirectUri={redirectUri}
             errorDetails={errorDetails}
             debugInfo={debugInfo}
-            showDebugInfo={!!errorDetails || !!debugInfo}
+            showDebugInfo={showDebug || !!debugInfo || !!errorDetails}
           />
         )}
 

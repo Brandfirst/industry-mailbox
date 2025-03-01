@@ -27,8 +27,11 @@ export const OAuthErrorAlert = ({
         
         {hasRedirectUriMismatch && (
           <>
-            <p className="text-sm mt-2">
-              This is due to a redirect URI mismatch. You need to add the following URI to your 
+            <p className="text-sm mt-2 font-medium">
+              Redirect URI Mismatch Error Detected
+            </p>
+            <p className="text-sm mt-1">
+              You need to add the following URI to your 
               Google Cloud Console under "Authorized redirect URIs":
             </p>
             <div className="mt-2 p-2 bg-red-100 rounded-md text-sm font-mono overflow-auto">
@@ -68,7 +71,17 @@ export const OAuthErrorAlert = ({
             <li>Verify GOOGLE_REDIRECT_URL in Supabase matches exactly: {redirectUri}</li>
             <li>Confirm OAuth consent screen is properly configured with necessary scopes</li>
             <li>Try clearing browser cookies and cache, then attempt again</li>
+            <li>Use <span className="font-mono">?debug=true</span> parameter to see more detailed information</li>
           </ol>
+        </div>
+
+        <div className="mt-4 p-2 bg-blue-50 border border-blue-200 rounded-md text-blue-700">
+          <p className="text-sm font-medium">Edge Function Checklist:</p>
+          <ul className="list-disc list-inside text-sm pl-2 mt-1">
+            <li>Check the Supabase Edge Function logs for "connect-gmail"</li>
+            <li>Ensure the GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are correctly set in Supabase</li>
+            <li>Make sure GOOGLE_REDIRECT_URL matches your app's URL in Supabase secrets</li>
+          </ul>
         </div>
       </div>
     </div>
