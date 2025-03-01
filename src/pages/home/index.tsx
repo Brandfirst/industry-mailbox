@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import AnnouncementBar, { HomeHeader } from "./components/AnnouncementBar";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
+import FeaturedNewsletters from "./components/FeaturedNewsletters";
 import FeaturesSection from "./components/FeaturesSection";
 import TestimonialsSection from "./components/TestimonialsSection";
 import PricingSection from "./components/PricingSection";
@@ -27,7 +28,7 @@ const HomePage = () => {
   }, []);
   
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Only render AnnouncementBar, HomeHeader is a null component */}
       <HomeHeader />
       <AnnouncementBar />
@@ -54,6 +55,7 @@ const HomePage = () => {
       
       {/* Main content sections */}
       <HeroSection />
+      <FeaturedNewsletters />
       <StatsSection />
       <FeaturesSection />
       <TestimonialsSection />
