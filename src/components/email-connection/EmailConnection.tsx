@@ -56,8 +56,36 @@ export const EmailConnection = () => {
     connectionProcessed,
     accountsCount: emailAccounts.length,
     connectAttempted,
-    showDebug
+    showDebug,
+    pathname: location.pathname,
+    search: location.search,
+    timestamp: new Date().toISOString()
   });
+  
+  // Check for interrupted OAuth flow on mount or when URL changes
+  useEffect(() => {
+    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress') === 'true';
+    const startTime = sessionStorage.getItem('oauth_start_time');
+    const hasCallbackParams = location.search.includes('code=') || location.search.includes('error=');
+    
+    if (oauthInProgress && !hasCallbackParams) {
+      const timeElapsed = startTime ? (Date.now() - parseInt(startTime)) / 1000 : 0;
+      console.log(`[EMAIL CONNECTION] Detected OAuth in progress (${timeElapsed.toFixed(1)}s elapsed) but no callback parameters`);
+      
+      // If it's been more than 30 seconds, assume the flow was interrupted
+      if (timeElapsed > 30) {
+        console.warn("[EMAIL CONNECTION] OAuth flow appears to be interrupted, clearing state");
+        toast.error("OAuth flow was interrupted. Please try connecting again.");
+        
+        // Clean up OAuth state
+        sessionStorage.removeItem('gmailOAuthInProgress');
+        sessionStorage.removeItem('oauth_nonce');
+        sessionStorage.removeItem('oauth_start_time');
+        
+        setIsConnecting(false);
+      }
+    }
+  }, [location.search, setIsConnecting]);
   
   // Fetch email accounts on mount and when connection is processed
   useEffect(() => {
@@ -133,7 +161,9 @@ export const EmailConnection = () => {
             statusError: status.error,
             currentPath: location.pathname + location.search,
             hasDebugInfo: !!debugInfo,
-            hasErrorDetails: !!errorDetails
+            hasErrorDetails: !!errorDetails,
+            oauthInProgress: sessionStorage.getItem('gmailOAuthInProgress'),
+            timestamp: new Date().toISOString()
           }, null, 2)}
         </pre>
       </div>

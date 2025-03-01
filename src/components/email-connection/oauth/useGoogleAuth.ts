@@ -1,156 +1,108 @@
 
-import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/auth";
+import { v4 as uuidv4 } from "@supabase/supabase-js/dist/module/lib/helpers";
 
-export function useGoogleAuth(isConnecting: boolean) {
-  const { user, session } = useAuth();
+export const useGoogleAuth = (isParentConnecting: boolean) => {
+  const [isConnecting, setIsConnecting] = useState(false);
+  const { user } = useAuth();
   const location = useLocation();
-  const [localIsConnecting, setLocalIsConnecting] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
-  const timerRef = useRef<number | null>(null);
   
-  // Use the redirect URI from environment variables or fall back to a default
-  const redirectUri = import.meta.env.VITE_REDIRECT_URI || 
-    window.location.origin + "/admin";
-
-  // Reset error state when component mounts
+  // Clear any stale OAuth state on mount
   useEffect(() => {
-    // Clean up any stale OAuth state on component mount
-    if (!isConnecting && !localIsConnecting) {
-      const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
-      if (oauthInProgress === 'true' && !window.location.search.includes('code=')) {
-        console.log("Found stale OAuth state, clearing");
+    // Check if there's an OAuth flow in progress but it's been too long
+    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress') === 'true';
+    const startTime = sessionStorage.getItem('oauth_start_time');
+    
+    if (oauthInProgress && startTime) {
+      const timeElapsed = (Date.now() - parseInt(startTime)) / 1000;
+      
+      // If it's been more than 5 minutes, clear the OAuth state
+      if (timeElapsed > 300) {
+        console.log(`[GOOGLE AUTH] Clearing stale OAuth state (${timeElapsed.toFixed(1)}s elapsed)`);
         sessionStorage.removeItem('gmailOAuthInProgress');
         sessionStorage.removeItem('oauth_nonce');
+        sessionStorage.removeItem('oauth_start_time');
       }
     }
     
-    console.log("[OAUTH BUTTON MOUNT] GoogleOAuthButton mounted with state:", { 
-      isConnecting, 
-      localIsConnecting, 
+    // Log the initial state for debugging
+    console.log("[OAUTH BUTTON MOUNT] GoogleOAuthButton mounted with state:", {
+      isConnecting: isParentConnecting,
+      localIsConnecting: isConnecting,
       user: !!user,
       userId: user?.id,
-      redirectUri,
+      redirectUri: import.meta.env.VITE_REDIRECT_URI || window.location.origin + "/admin",
       location: location.pathname + location.search,
       oauthInProgress: sessionStorage.getItem('gmailOAuthInProgress'),
       timestamp: new Date().toISOString()
     });
-
-    // Set a timeout to clear any hanging OAuth state
-    timerRef.current = window.setTimeout(() => {
-      const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
-      if (oauthInProgress === 'true') {
-        const startTime = sessionStorage.getItem('oauth_start_time');
-        const timeElapsed = startTime ? (Date.now() - parseInt(startTime)) / 1000 : 0;
-        
-        if (timeElapsed > 300) { // 5 minutes timeout
-          console.log(`[OAUTH CLEANUP] Clearing stale OAuth state after ${timeElapsed.toFixed(0)} seconds`);
-          sessionStorage.removeItem('gmailOAuthInProgress');
-          sessionStorage.removeItem('oauth_nonce');
-          sessionStorage.removeItem('oauth_start_time');
-        }
-      }
-    }, 10000); // Check after 10 seconds
-
-    return () => {
-      if (timerRef.current) {
-        window.clearTimeout(timerRef.current);
-      }
-    };
-  }, [isConnecting, localIsConnecting, user, redirectUri, location]);
+  }, [isParentConnecting, isConnecting, user, location]);
+  
+  // Update local state when parent state changes
+  useEffect(() => {
+    setIsConnecting(isParentConnecting);
+  }, [isParentConnecting]);
 
   const initiateGoogleOAuth = () => {
-    // Use the prop value if passed, otherwise use local state
-    const connecting = isConnecting || localIsConnecting;
-    if (connecting || !user) {
-      console.log("[OAUTH INITIATE BLOCKED] OAuth initiation blocked:", { 
-        connecting,
-        isConnecting,
-        localIsConnecting,
-        userExists: !!user,
-        timestamp: new Date().toISOString()
-      });
-      return; // Prevent multiple clicks or if user not logged in
+    if (!user) {
+      console.error("[GOOGLE AUTH] Cannot initiate Google OAuth without a logged in user");
+      return;
     }
     
-    console.log("[OAUTH START] Starting Google OAuth flow for user:", user.id);
-    setLocalIsConnecting(true);
-    
     try {
-      // Get the OAuth client ID from environment variables
+      const redirectUri = import.meta.env.VITE_REDIRECT_URI || window.location.origin + "/admin";
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      
       if (!clientId) {
-        console.error("[OAUTH ERROR] Missing VITE_GOOGLE_CLIENT_ID environment variable");
-        setDebugInfo({ error: "Missing VITE_GOOGLE_CLIENT_ID" });
-        toast.error("Google client ID not configured properly. Check the console for more details.");
-        setLocalIsConnecting(false);
+        console.error("[GOOGLE AUTH] Google Client ID not found in environment variables");
         return;
       }
       
-      // Generate and store a nonce for state validation
-      const nonce = Math.random().toString(36).substring(2, 15);
-      console.log(`[OAUTH] Generated nonce: ${nonce}`);
+      console.log("[GOOGLE AUTH] Initiating Google OAuth flow with:", { 
+        redirectUri,
+        userId: user.id,
+        clientIdExists: !!clientId,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Save the user ID in session storage in case the page refreshes
+      sessionStorage.setItem('auth_user_id', user.id);
+      
+      // Generate a nonce for security
+      const nonce = uuidv4();
       sessionStorage.setItem('oauth_nonce', nonce);
       
-      // Save a flag in sessionStorage to detect if we're in the middle of an OAuth flow
+      // Flag that OAuth is in progress
       sessionStorage.setItem('gmailOAuthInProgress', 'true');
       
       // Record the start time of the OAuth flow
       sessionStorage.setItem('oauth_start_time', Date.now().toString());
       
-      // Store current auth state and user ID to help with recovery after OAuth flow
-      if (session) {
-        try {
-          sessionStorage.setItem('auth_session_token', session.access_token);
-          sessionStorage.setItem('auth_user_id', user.id);
-          console.log("[OAUTH] Stored auth session in sessionStorage");
-        } catch (e) {
-          console.warn("[OAUTH] Could not save auth session to sessionStorage:", e);
-        }
-      }
+      // Set connecting state
+      setIsConnecting(true);
+
+      // Set up OAuth parameters
+      const googleAuthEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
+      const scope = encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify');
       
-      // Store the current path to return to after auth
-      sessionStorage.setItem('auth_return_path', location.pathname);
+      // Build the full authorization URL
+      const authUrl = `${googleAuthEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent&state=gmail_connect`;
       
-      console.log("[OAUTH] Using redirect URI for OAuth flow:", redirectUri);
+      console.log("[GOOGLE AUTH] Redirecting to Google authorization URL");
       
-      // Properly construct the Google OAuth URL
-      const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-      authUrl.searchParams.append("client_id", clientId);
-      authUrl.searchParams.append("redirect_uri", redirectUri);
-      authUrl.searchParams.append("scope", "https://www.googleapis.com/auth/gmail.readonly");
-      authUrl.searchParams.append("response_type", "code");
-      authUrl.searchParams.append("access_type", "offline");
-      authUrl.searchParams.append("prompt", "consent");
-      authUrl.searchParams.append("state", "gmail_connect");
-      
-      // Log the full URL
-      console.log("[OAUTH REDIRECT] Full Google OAuth URL:", authUrl.toString());
-      
-      // Redirect to Google OAuth consent screen
-      console.log("[OAUTH REDIRECT] Redirecting to Google OAuth URL");
-      toast.info("Redirecting to Google for authorization...");
-      
-      // Add slight delay to ensure logs are sent
-      setTimeout(() => {
-        window.location.href = authUrl.toString();
-      }, 200);
+      // Redirect to Google's authorization server
+      window.location.href = authUrl;
     } catch (error) {
-      console.error("[OAUTH ERROR] Error initiating OAuth flow:", error);
-      setDebugInfo({ error: String(error) });
-      toast.error("Failed to start Google authentication");
-      setLocalIsConnecting(false);
+      console.error("[GOOGLE AUTH] Error initiating Google OAuth:", error);
+      setIsConnecting(false);
+      // Clear OAuth state
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
       sessionStorage.removeItem('oauth_start_time');
     }
   };
 
-  return {
-    isConnecting: isConnecting || localIsConnecting,
-    initiateGoogleOAuth,
-    debugInfo
-  };
-}
+  return { isConnecting, initiateGoogleOAuth };
+};

@@ -44,6 +44,7 @@ export const useOAuthCallback = (
       const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress') === 'true';
       const startTime = sessionStorage.getItem('oauth_start_time');
       const timeElapsed = startTime ? `${((Date.now() - parseInt(startTime)) / 1000).toFixed(1)}s` : 'unknown';
+      const savedNonce = sessionStorage.getItem('oauth_nonce');
       
       // Debug logging for callback state
       console.log("[OAUTH CALLBACK] Component state:", {
@@ -55,11 +56,31 @@ export const useOAuthCallback = (
         hasCode: !!code,
         codeLength: code ? code.length : 0,
         state,
+        savedNonce,
         error,
         oauthInProgress,
         timeElapsed,
+        redirectUri,
         timestamp: new Date().toISOString()
       });
+      
+      // Check if we were redirected from Google auth without any parameters
+      // This happens sometimes when Google auth fails silently
+      if (oauthInProgress && !code && !error && !attemptedRef.current) {
+        console.warn("[OAUTH CALLBACK] Possible failed silent redirect without parameters");
+        const message = "OAuth flow was interrupted or failed silently. Please try again.";
+        toast.error(message);
+        
+        // Clean up OAuth state
+        sessionStorage.removeItem('gmailOAuthInProgress');
+        sessionStorage.removeItem('oauth_nonce');
+        sessionStorage.removeItem('oauth_start_time');
+        
+        setIsConnecting(false);
+        onError(message, { silentFailure: true }, { timeElapsed });
+        attemptedRef.current = true;
+        return;
+      }
       
       // Only process if we have a code and state is 'gmail_connect'
       if (code && state === 'gmail_connect') {
@@ -107,6 +128,7 @@ export const useOAuthCallback = (
               code, 
               redirectUri,
               userId: user.id,
+              nonce: savedNonce,
               timestamp: new Date().toISOString()
             }
           });
