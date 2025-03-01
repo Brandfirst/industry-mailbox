@@ -67,12 +67,57 @@ const HeroSection = () => {
             Laget for markedsførere og byråer som ønsker å skape effektive og engasjerende nyhetsbrev.
           </p>
           
+          {/* Data visualization elements */}
+          <div className="hidden md:flex justify-center my-8 w-full">
+            <div className="w-full max-w-2xl h-12 relative">
+              {/* Animated data flow background */}
+              <div className="absolute inset-0 bg-[#0A0A0A] rounded-xl border border-[#3a6ffb]/20 overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full grid grid-cols-12 gap-0.5">
+                  {Array(24).fill(null).map((_, i) => (
+                    <div 
+                      key={i} 
+                      className="bg-[#3a6ffb]/10 h-3 opacity-30 animate-pulse" 
+                      style={{ 
+                        animationDelay: `${i * 0.1}s`,
+                        height: `${Math.floor(Math.random() * 20) + 5}px` 
+                      }}
+                    ></div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Data points */}
+              <div className="absolute top-1/2 left-0 w-full flex justify-between px-4 transform -translate-y-1/2">
+                {[1, 2, 3, 4, 5].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="h-3 w-3 rounded-full bg-[#3a6ffb] z-10 shadow-glow animate-pulse"
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                  ></div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
           {/* Featured Newsletters Section - moved directly below the text */}
           <div className="mt-8">
             <FeaturedNewsletters />
           </div>
         </div>
       </div>
+      
+      {/* Background grid pattern */}
+      <div className="absolute inset-0 z-0 opacity-10">
+        <div className="absolute inset-0 grid grid-cols-12 grid-rows-6">
+          {Array(72).fill(null).map((_, i) => (
+            <div key={i} className="border-t border-l border-[#3a6ffb]/20"></div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Glowing accent */}
+      <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-1/2 h-40 bg-[#3a6ffb]/10 rounded-full blur-3xl"></div>
+      <div className="absolute -top-20 right-0 w-40 h-40 bg-[#3a6ffb]/5 rounded-full blur-3xl"></div>
     </section>
   );
 };
