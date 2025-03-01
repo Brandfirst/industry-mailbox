@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { 
@@ -42,17 +43,33 @@ export function useNewsletterOperations(
       if (result.success) {
         // Check if it was a partial success
         if (result.partial) {
-          // Only show warning if we have actual failures
-          if (result.count > 0 || result.synced?.length > 0) {
+          // Check if there are failed items to display
+          if (result.failed && result.failed.length > 0) {
+            // Format the failed items for display
+            const failedDetails = result.failed.slice(0, 3).map(item => {
+              return item.error || item.details || "Unknown error";
+            }).join("; ");
+            
+            const remainingCount = Math.max(0, result.failed.length - 3);
+            const additionalText = remainingCount > 0 ? ` and ${remainingCount} more` : '';
+            
+            const warningMsg = `Sync issues: ${failedDetails}${additionalText}. Check logs for details.`;
+            setWarningMessage(warningMsg);
+            
+            // Log all failures for debugging
+            console.error("Failed newsletter syncs:", result.failed);
+            toast.warning(warningMsg);
+          } else if (result.count > 0 || result.synced?.length > 0) {
             const warningMsg = `Synced ${result.count || 0} newsletters with some errors: ${result.warning || 'Some items failed'}`;
             setWarningMessage(warningMsg);
             toast.warning(warningMsg);
           } else {
             // No newsletters synced at all, so it's more of an error
-            const errorMsg = result.details || 
-                           "Failed to sync newsletters. The Gmail API returned an error.";
-            setErrorMessage(errorMsg);
-            toast.error(errorMsg);
+            const errorDetails = result.details || 
+                              "Failed to sync newsletters. There may be a database schema issue.";
+            const dbError = "The database might be missing required columns. Check the logs for 'gmail_message_id' errors.";
+            setErrorMessage(`${errorDetails} ${dbError}`);
+            toast.error(errorDetails);
           }
         } else if (result.count === 0) {
           // Success but no newsletters found
