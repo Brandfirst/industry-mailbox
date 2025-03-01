@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter, NewsletterFilters } from "../types";
-import { NewsletterFilterOptions, NewsletterSenderStats } from "./types";
+import { NewsletterFilterOptions, NewsletterSenderStats, NewsletterQueryResult } from "./types";
 
 const ITEMS_PER_PAGE = 10;
 
