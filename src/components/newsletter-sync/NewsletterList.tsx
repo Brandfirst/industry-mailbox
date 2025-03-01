@@ -68,14 +68,14 @@ export function NewsletterList({ newsletters, categories, onCategoryChange }: Ne
               </TableCell>
               <TableCell>
                 <Select
-                  value={newsletter.category_id?.toString() || ""}
+                  value={newsletter.category_id?.toString() || "uncategorized"}
                   onValueChange={(value) => handleCategoryChange(newsletter.id, value)}
                 >
                   <SelectTrigger className="w-full max-w-[180px]">
                     <SelectValue placeholder="Categorize" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Uncategorized</SelectItem>
+                    <SelectItem value="uncategorized">Uncategorized</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}

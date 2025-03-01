@@ -24,7 +24,7 @@ export function AccountSelector({ accounts, selectedAccount, onSelectAccount, is
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
       <Select
-        value={selectedAccount || ""}
+        value={selectedAccount || "no-account"}
         onValueChange={onSelectAccount}
         disabled={isDisabled}
       >
