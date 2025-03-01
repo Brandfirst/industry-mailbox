@@ -75,8 +75,8 @@ const Index = () => {
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
 
-      {/* Hero Section - More dense and mobile optimized */}
-      <section className="relative bg-gradient-to-b from-gray-900 to-black py-6 md:py-10 overflow-hidden min-h-[80vh] md:min-h-[85vh] flex items-center">
+      {/* Hero Section - Optimized for desktop */}
+      <section className="relative bg-gradient-to-b from-gray-900 to-black py-8 md:py-16 lg:py-24 overflow-hidden min-h-[70vh] lg:min-h-[80vh] flex items-center">
         {/* Background pattern/grid */}
         <div className="absolute inset-0 overflow-hidden opacity-20">
           <div className="absolute -top-20 -left-20 right-0 bottom-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiPjxwYXRoIGQ9Ik0tMTAgMzBoOTBNLTEwIC0zMGg5ME0zMCAtMTB2OTBNLTMwIC0xMHY5MCIvPjwvZz48L3N2Zz4=')] bg-center opacity-10"></div>
@@ -84,10 +84,10 @@ const Index = () => {
 
         {/* Hero Content */}
         <div className="relative z-10 w-full">
-          <div className="container mx-auto max-w-7xl text-center px-4 md:px-8 relative z-10">
+          <div className="container mx-auto max-w-7xl px-4 md:px-8 lg:px-12 relative z-10">
             <div className="animate-slide-down">
               {/* New version badge with collapsible features */}
-              <div className="mb-4">
+              <div className="mb-6 md:mb-8">
                 <Collapsible 
                   open={isNewFeaturesOpen} 
                   onOpenChange={setIsNewFeaturesOpen}
@@ -121,42 +121,21 @@ const Index = () => {
                 </Collapsible>
               </div>
               
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight mb-6 md:mb-8 text-white max-w-5xl mx-auto">
                 For <span className="smaller-text">byråer</span> og markedsførere
                 <span className="block text-blue-400 mt-3 relative">
                   Norges største database av nyhetsbrev
                   <div className="absolute -bottom-2 w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animated-border"></div>
                 </span>
               </h1>
-              <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto">
                 Få inspirasjonen og innsikten du trenger for bedre markedsføring.
               </p>
               
-              <div className="flex flex-col lg:flex-row justify-between items-center gap-8 mb-12">
-                {/* Left column: Stats */}
-                <div className="w-full lg:w-1/3">
-                  <div className="stats-grid grid grid-cols-2 gap-3">
-                    {stats.slice(0, 2).map((stat, index) => {
-                      const Icon = stat.icon;
-                      return (
-                        <div 
-                          key={index} 
-                          className={`stat-card shine-effect animate-count-up animate-delay-${index * 100}`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="stat-value">{stat.value}</div>
-                            <Icon className="w-4 h-4 text-blue-400" />
-                          </div>
-                          <div className="stat-label">{stat.label}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                
-                {/* Middle column: CTA Buttons */}
-                <div className="w-full lg:w-1/3 flex flex-col items-center">
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
+              <div className="flex flex-col lg:flex-row justify-between items-center gap-8 mb-12 max-w-6xl mx-auto">
+                {/* Left column: CTA Buttons to center in desktop */}
+                <div className="w-full lg:w-1/2 flex flex-col items-center justify-center mb-8 lg:mb-0">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link to="/search">
                       <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto px-6 py-6 text-lg">
                         Start Søket
@@ -171,32 +150,11 @@ const Index = () => {
                     </Link>
                   </div>
                 </div>
-                
-                {/* Right column: Stats */}
-                <div className="w-full lg:w-1/3">
-                  <div className="stats-grid grid grid-cols-2 gap-3">
-                    {stats.slice(2, 4).map((stat, index) => {
-                      const Icon = stat.icon;
-                      return (
-                        <div 
-                          key={index + 2} 
-                          className={`stat-card shine-effect animate-count-up animate-delay-${(index + 2) * 100}`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="stat-value">{stat.value}</div>
-                            <Icon className="w-4 h-4 text-blue-400" />
-                          </div>
-                          <div className="stat-label">{stat.label}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
               
-              {/* Testimonials Carousel - NOW BETWEEN BUTTONS AND STATS SECTION */}
-              <div className="mb-8 mt-6 max-w-5xl mx-auto">
-                <div className="relative carousel-container overflow-hidden w-full px-2">
+              {/* Testimonials Carousel - Optimized spacing */}
+              <div className="mb-16 mt-6 max-w-5xl mx-auto">
+                <div className="relative carousel-container overflow-hidden w-full max-w-4xl mx-auto px-2">
                   <div 
                     className="overflow-hidden cursor-grab active:cursor-grabbing" 
                     ref={testimonialViewportRef}
@@ -219,8 +177,8 @@ const Index = () => {
                                 {testimonial.initial}
                               </div>
                               <div>
-                                <div className="testimonial-name text-xs font-semibold text-white">{testimonial.author}</div>
-                                <div className="testimonial-company text-xs text-gray-400">{testimonial.company}</div>
+                                <div className="testimonial-name text-sm md:text-base font-semibold text-white">{testimonial.author}</div>
+                                <div className="testimonial-company text-xs md:text-sm text-gray-400">{testimonial.company}</div>
                                 <div className="flex mt-1">
                                   {[...Array(5)].map((_, i) => (
                                     <Star 
@@ -232,7 +190,7 @@ const Index = () => {
                                 </div>
                               </div>
                             </div>
-                            <div className="testimonial-text text-xs text-gray-300 leading-relaxed">
+                            <div className="testimonial-text text-sm md:text-base text-gray-300 leading-relaxed">
                               "{testimonial.text}"
                             </div>
                           </div>
@@ -257,6 +215,25 @@ const Index = () => {
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Stats Grid - Optimized for desktop */}
+              <div className="stats-grid grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto mb-8">
+                {stats.map((stat, index) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div 
+                      key={index} 
+                      className={`stat-card shine-effect animate-count-up animate-delay-${index * 100}`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="stat-value text-2xl md:text-3xl">{stat.value}</div>
+                        <Icon className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />
+                      </div>
+                      <div className="stat-label text-sm md:text-base">{stat.label}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -290,46 +267,46 @@ const Index = () => {
                   </div>
                   
                   {/* App UI */}
-                  <div className="bg-dark-900 p-4 md:p-6">
+                  <div className="bg-dark-900 p-4 md:p-8">
                     {/* App Header */}
-                    <div className="mb-6">
-                      <div className="flex justify-between items-center mb-4">
+                    <div className="mb-8">
+                      <div className="flex justify-between items-center mb-6">
                         <div>
-                          <h3 className="text-white text-sm font-medium">Søk i Nyhetsbrev</h3>
-                          <p className="text-gray-400 text-xs">Finn og analyser norske nyhetsbrev</p>
+                          <h3 className="text-white text-base md:text-lg font-medium">Søk i Nyhetsbrev</h3>
+                          <p className="text-gray-400 text-sm">Finn og analyser norske nyhetsbrev</p>
                         </div>
-                        <div className="hidden md:flex items-center gap-2">
-                          <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Mine Favoritter</div>
-                          <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Merker</div>
-                          <div className="bg-dark-400 rounded-md px-3 py-1 text-gray-300 text-xs">Hjelp</div>
+                        <div className="hidden md:flex items-center gap-3">
+                          <div className="bg-dark-400 rounded-md px-3 py-1.5 text-gray-300 text-sm">Mine Favoritter</div>
+                          <div className="bg-dark-400 rounded-md px-3 py-1.5 text-gray-300 text-sm">Merker</div>
+                          <div className="bg-dark-400 rounded-md px-3 py-1.5 text-gray-300 text-sm">Hjelp</div>
                         </div>
                       </div>
                       
                       {/* Search Bar */}
-                      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                        <div className="flex items-center bg-dark-400 rounded-md px-3 py-1.5 w-full sm:w-64">
+                      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                        <div className="flex items-center bg-dark-400 rounded-md px-4 py-2.5 w-full sm:w-96">
                           <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
                           <span className="text-gray-400 text-sm">Søk på merkevare eller bransje...</span>
                         </div>
                         
-                        <div className="flex space-x-2">
-                          <div className="bg-dark-400 rounded-md px-3 py-1.5 text-sm text-gray-300">
+                        <div className="flex space-x-3">
+                          <div className="bg-dark-400 rounded-md px-4 py-2.5 text-sm text-gray-300">
                             <div className="flex items-center">
                               <span>Filter</span>
-                              <svg className="w-4 h-4 text-gray-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg className="w-4 h-4 text-gray-400 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                               </svg>
                             </div>
                           </div>
-                          <div className="bg-blue-500 rounded-md px-3 py-1.5 text-sm text-white">
+                          <div className="bg-blue-500 rounded-md px-4 py-2.5 text-sm text-white">
                             <span>Søk</span>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Newsletter Grid - Updated for better desktop display */}
+                      {/* Newsletter Grid - Enhanced for desktop display */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* Newsletter Card 1 */}
                         <div className="bg-white rounded-md overflow-hidden">
@@ -392,18 +369,18 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-black py-16 md:py-24">
+      {/* CTA Section - Enhanced spacing */}
+      <section className="bg-black py-16 md:py-24 lg:py-32">
         <div className="container mx-auto px-4 text-center max-w-6xl">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-white">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 md:mb-8 text-white">
             Klar til å finne din inspirasjon?
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-gray-300 mb-8 md:mb-12 max-w-3xl mx-auto">
             Få tilgang til Norges største nyhetsbrevdatabase i dag. 
             Spar tid, finn inspirasjon og hold deg oppdatert.
           </p>
           <Link to="/auth?mode=signup">
-            <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-7 text-xl">
+            <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 py-7 text-xl shadow-lg">
               Kom i gang - Gratis!
               <ArrowRight className="ml-2 h-6 w-6" />
             </Button>
@@ -411,14 +388,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 py-8 border-t border-gray-800">
-        <div className="container mx-auto px-4 max-w-7xl">
+      {/* Footer - Better spacing */}
+      <footer className="bg-gray-900 py-10 md:py-12 border-t border-gray-800">
+        <div className="container mx-auto px-6 md:px-8 max-w-7xl">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 text-sm mb-4 md:mb-0">
               <p>© 2023 NewsletterHub. Alle rettigheter reservert.</p>
             </div>
-            <div className="flex space-x-6">
+            <div className="flex space-x-8 md:space-x-12">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Vilkår</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Personvern</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Kontakt</a>

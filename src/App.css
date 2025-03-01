@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -133,12 +134,19 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 @media (min-width: 768px) {
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    gap: 2rem;
   }
 }
 
@@ -146,7 +154,7 @@
   background-color: rgba(17, 24, 39, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
-  padding: 1rem;
+  padding: 1.25rem;
   transition: all 0.3s ease;
 }
 
@@ -302,6 +310,7 @@
   .container {
     padding-left: 2rem;
     padding-right: 2rem;
+    max-width: 1400px;
   }
   
   h1 {
@@ -320,15 +329,48 @@
   }
   
   .testimonial-card {
-    padding: 1.25rem;
+    padding: 1.5rem;
   }
   
   .testimonial-text {
-    font-size: 0.9375rem;
+    font-size: 1rem;
+    line-height: 1.6;
   }
   
   .stat-card {
-    padding: 1.25rem;
+    padding: 1.5rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+  
+  .stat-label {
+    font-size: 1rem;
+    margin-top: 0.75rem;
+  }
+}
+
+/* XL Desktop optimizations */
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1600px;
+  }
+  
+  h1 {
+    font-size: 5rem;
+  }
+  
+  .testimonial-card {
+    padding: 2rem;
+  }
+  
+  .stat-card {
+    padding: 2rem;
+  }
+  
+  .stat-value {
+    font-size: 2.25rem;
   }
 }
 
@@ -371,7 +413,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 80px;
+  width: 60px;
   z-index: 5;
   pointer-events: none;
 }
@@ -390,51 +432,13 @@
 @media (min-width: 1024px) {
   .carousel-container {
     max-width: 90%;
-    padding: 1rem 0;
+    padding: 1.5rem 0;
+    margin: 2rem auto;
   }
   
   .testimonial-card {
-    max-width: 90%;
+    max-width: 85%;
     margin: 0 auto;
-  }
-  
-  .testimonial-text {
-    font-size: 0.9375rem;
-    line-height: 1.6;
-  }
-}
-
-/* Desktop layout improvements */
-@media (min-width: 1280px) {
-  .max-w-7xl {
-    max-width: 80rem;
-  }
-  
-  .grid-cols-3 > * {
-    padding: 0 1.5rem;
-  }
-}
-
-/* Better spacing for larger screens */
-@media (min-width: 1536px) {
-  .py-6 {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-  }
-  
-  .py-10 {
-    padding-top: 3rem;
-    padding-bottom: 3rem;
-  }
-  
-  .py-16 {
-    padding-top: 5rem;
-    padding-bottom: 5rem;
-  }
-  
-  .py-24 {
-    padding-top: 7rem;
-    padding-bottom: 7rem;
   }
 }
 
@@ -443,8 +447,64 @@
   .lg\:min-h-\[85vh\] {
     min-height: 85vh;
   }
-  
-  .grid-cols-3 {
-    column-gap: 2.5rem;
+}
+
+/* Better section spacing for desktop */
+@media (min-width: 1024px) {
+  section {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
   }
+  
+  .py-6 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  .py-10 {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+  
+  .py-16 {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+  
+  .py-24 {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+  
+  .mb-6 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .mb-8 {
+    margin-bottom: 2rem;
+  }
+  
+  .mb-12 {
+    margin-bottom: 3rem;
+  }
+  
+  .mb-16 {
+    margin-bottom: 4rem;
+  }
+}
+
+/* Animation for hero content */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.8s ease-out forwards;
 }
