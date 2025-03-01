@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,17 +19,42 @@ const Admin = () => {
   
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const hasOAuthParams = searchParams.has('code') || searchParams.has('error');
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    const error = searchParams.get('error');
+    
+    const hasOAuthParams = !!code || !!error;
+    const isGmailCallback = state === 'gmail_connect';
+    
+    console.log("[ADMIN PAGE] Checking for OAuth params:", { 
+      hasCode: !!code, 
+      state,
+      hasError: !!error,
+      isGmailCallback
+    });
+    
     setIsOAuthCallback(hasOAuthParams);
     
     if (hasOAuthParams) {
-      console.log("[ADMIN PAGE] Detected OAuth callback parameters:", {
-        hasCode: searchParams.has('code'),
-        hasError: searchParams.has('error'),
-        state: searchParams.get('state')
+      // Log more details about the OAuth parameters
+      console.log("[ADMIN PAGE] Detected OAuth parameters:", {
+        hasCode: !!code,
+        codeLength: code ? code.length : 0,
+        state,
+        hasError: !!error,
+        error,
+        search: location.search,
+        oauthInProgress: sessionStorage.getItem('gmailOAuthInProgress'),
+        savedUserId: sessionStorage.getItem('auth_user_id'),
+        currentUser: user?.id
       });
+      
+      // If there's an error in the URL, show it to the user
+      if (error) {
+        toast.error(`OAuth error: ${error}`);
+      }
     }
-  }, [location.search]);
+  }, [location.search, user?.id]);
   
   useEffect(() => {
     console.log("[ADMIN PAGE] Admin location changed", { 

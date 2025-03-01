@@ -1,155 +1,123 @@
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.13.0'
-
-// CORS headers for browser access
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
-
-// Safely mask sensitive values in headers or env vars
-const maskSensitiveValue = (value: string): string => {
-  if (!value) return '(empty)';
-  if (value.length > 20) {
-    return `${value.substring(0, 4)}...${value.substring(value.length - 4)}`;
-  }
-  return '(value present but masked)';
-}
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    })
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
-  // Start our debug data collection
-  console.log('Debug test function called');
-  
-  const debugData: Record<string, any> = {
-    timestamp: new Date().toISOString(),
-    function: 'debug-test',
-    environment: Deno.env.get('ENVIRONMENT') || 'unknown',
-    requestInfo: {
-      method: req.method,
-      url: req.url,
-    },
-    supabaseInfo: {
-      supabaseUrlSet: !!Deno.env.get('SUPABASE_URL'),
-      supabaseKeySet: !!Deno.env.get('SUPABASE_KEY'),
-      serviceRoleKeySet: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
-      dbUrlSet: !!Deno.env.get('SUPABASE_DB_URL')
-    },
-    otherEnvVars: {},
-    denoVersion: Deno.version.deno,
-    v8Version: Deno.version.v8,
-    typescriptVersion: Deno.version.typescript,
-  };
-
-  // Get filtered request headers (excluding sensitive values)
-  const requestHeaders: Record<string, string> = {};
-  req.headers.forEach((value, key) => {
-    // Mask authorization headers, api keys, etc.
-    if (key.toLowerCase().includes('auth') || 
-        key.toLowerCase().includes('key') || 
-        key.toLowerCase().includes('token') || 
-        key.toLowerCase().includes('secret')) {
-      requestHeaders[key] = maskSensitiveValue(value);
-    } else {
-      requestHeaders[key] = value;
-    }
-  });
-  debugData.requestHeaders = requestHeaders;
-
-  // Add other relevant environment variables (masked if needed)
-  for (const envVar of Deno.env.keys()) {
-    if (!envVar.includes('KEY') && 
-        !envVar.includes('SECRET') && 
-        !envVar.includes('TOKEN') && 
-        !envVar.includes('PASSWORD')) {
-      debugData.otherEnvVars[envVar] = Deno.env.get(envVar);
-    } else {
-      debugData.otherEnvVars[envVar] = maskSensitiveValue(Deno.env.get(envVar) || '');
-    }
-  }
-
-  // Check if we need to attempt a database test
-  let dbResult = null;
-  const url = new URL(req.url);
-  const testDatabase = url.searchParams.get('testDatabase') === 'true';
-  
-  if (testDatabase) {
+  try {
+    // Get the request body and log it
+    let body;
     try {
-      console.log('Testing database connection...');
-      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-      
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+      body = await req.json();
+      console.log("Debug request body:", body);
+    } catch (parseError) {
+      console.error("Error parsing request body:", parseError);
+      body = { error: "Invalid JSON in request body" };
+    }
+
+    // Get request information
+    const url = new URL(req.url);
+    const requestInfo = {
+      method: req.method,
+      url: url.toString(),
+      pathname: url.pathname,
+      headers: Object.fromEntries(req.headers.entries()),
+    };
+    
+    console.log("Request information:", requestInfo);
+
+    // Check Supabase environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const projectRef = Deno.env.get("SUPABASE_PROJECT_REF") || url.hostname.split('.')[0];
+
+    // Log detailed environment information
+    console.log("Function environment:", {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasSupabaseKey: !!supabaseKey,
+      hasServiceRoleKey: !!supabaseServiceRoleKey,
+      projectRef,
+      denoVersion: Deno.version.deno,
+      tsVersion: Deno.version.typescript,
+      v8Version: Deno.version.v8,
+    });
+
+    // Check for any JWT token and log info about it (without sensitive parts)
+    const authHeader = req.headers.get("authorization");
+    let authInfo = { present: false };
+    
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      try {
+        // Just log that we have a token and its length, not the actual token
+        authInfo = {
+          present: true,
+          length: token.length,
+          format: token.split(".").length === 3 ? "valid JWT format" : "invalid JWT format",
+        };
+      } catch (e) {
+        authInfo = { present: true, error: e.message };
       }
-      
-      // Create Supabase client
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      
-      // Start timer for query
-      const startTime = Date.now();
-      
-      // Perform a simple query to test database connection
-      const { data, error, status } = await supabase
-        .from('profiles')
-        .select('count(*)', { count: 'exact', head: true });
-      
-      const duration = Date.now() - startTime;
-      
-      dbResult = {
-        success: !error,
-        duration: `${duration}ms`,
-        status,
-        error: error ? { 
-          message: error.message, 
-          code: error.code,
-          details: error.details
-        } : null,
-        data: '(data masked for privacy)'
-      };
-      
-      console.log('Database test completed:', dbResult.success ? 'SUCCESS' : 'FAILED');
-    } catch (e) {
-      console.error('Error testing database:', e);
-      dbResult = {
-        success: false,
-        error: {
-          message: e instanceof Error ? e.message : String(e),
-          stack: e instanceof Error ? e.stack : undefined
-        }
-      };
     }
     
-    debugData.databaseTest = dbResult;
-  }
+    console.log("Authorization info:", authInfo);
 
-  // Get project reference 
-  try {
-    const project = Deno.env.get('SUPABASE_PROJECT_REF') || '(unknown)';
-    debugData.projectRef = project;
+    // Return a successful response with debug information
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Debug function executed successfully",
+        timestamp: new Date().toISOString(),
+        debug: {
+          environment: Deno.env.get("ENVIRONMENT") || "development",
+          requestTimestamp: body?.timestamp || "not provided",
+          timestamp: new Date().toISOString(),
+          hasSupabaseUrl: !!supabaseUrl,
+          hasSupabaseKey: !!supabaseKey,
+          hasServiceRoleKey: !!supabaseServiceRoleKey,
+          projectRef,
+          requestDetails: {
+            method: req.method,
+            path: url.pathname,
+            host: url.host,
+            search: url.search,
+          },
+          authStatus: authInfo,
+          clientInfo: body?.clientInfo || "none provided",
+        },
+        requestBody: body,
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+        status: 200,
+      }
+    );
   } catch (error) {
-    debugData.projectRefError = String(error);
+    // Log and return any errors
+    console.error("Debug function error:", error);
+    
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+        status: 500,
+      }
+    );
   }
-
-  // Add test result message
-  debugData.message = testDatabase 
-    ? `Debug test completed with database test: ${dbResult?.success ? 'SUCCESS' : 'FAILED'}`
-    : 'Debug test completed without database test';
-
-  // Return the debug data as JSON
-  return new Response(JSON.stringify(debugData, null, 2), {
-    headers: { 
-      ...corsHeaders,
-      'Content-Type': 'application/json' 
-    },
-  })
-})
+});
