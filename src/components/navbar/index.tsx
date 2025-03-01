@@ -26,19 +26,19 @@ const Navbar = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const activeLink = "text-blue-400 font-medium";
-  const inactiveLink = "text-gray-300 hover:text-white transition-colors";
+  const inactiveLink = "text-gray-400 hover:text-white transition-colors";
 
   // Don't show navbar on admin pages
   const isAdminRoute = location.pathname.startsWith('/admin');
   if (isAdminRoute) return null;
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-dark-200/80 backdrop-blur-sm border-b border-white/10">
+    <nav className="sticky top-0 z-50 w-full bg-black backdrop-blur-sm">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2">
             <Mail className="w-6 h-6 text-blue-400" />
-            <span className="text-xl font-medium tracking-tight text-white">NewsletterHub</span>
+            <span className="text-xl font-medium tracking-tight text-white">Nyhetsbrevo</span>
           </Link>
         </div>
         
@@ -63,7 +63,7 @@ const Navbar = () => {
             size="icon" 
             onClick={toggleMenu}
             aria-label="Toggle menu"
-            className="text-gray-300"
+            className="text-gray-400"
           >
             {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
