@@ -1,16 +1,16 @@
 
 import { useState } from "react";
-import { Newsletter, NewsletterCategory, updateNewsletterCategory } from "@/lib/supabase";
+import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { NewsletterSelectionState } from "@/components/email-connection/types";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { CategorySelector } from "./CategorySelector";
+import { NewsletterViewDialog } from "./NewsletterViewDialog";
+import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
 type NewsletterListProps = {
   newsletters: Newsletter[];
@@ -25,35 +25,12 @@ export function NewsletterList({
   onCategoryChange,
   onDeleteNewsletters 
 }: NewsletterListProps) {
-  const [selectedNewsletter, setSelectedNewsletter] = useState<Newsletter | null>(null);
   const [selection, setSelection] = useState<NewsletterSelectionState>({
     selectedIds: [],
     allSelected: false
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleCategoryChange = async (newsletterId: number, categoryId: string) => {
-    try {
-      // Convert categoryId to number or null if empty string
-      const numericCategoryId = categoryId ? parseInt(categoryId) : null;
-      
-      await updateNewsletterCategory(newsletterId, numericCategoryId);
-      toast.success("Category updated successfully");
-      
-      // Update the local state to reflect the change
-      const updatedNewsletters = newsletters.map(newsletter => 
-        newsletter.id === newsletterId 
-          ? { ...newsletter, category_id: numericCategoryId } 
-          : newsletter
-      );
-      
-      onCategoryChange(updatedNewsletters);
-    } catch (error) {
-      console.error("Error updating category:", error);
-      toast.error("Failed to update category");
-    }
-  };
 
   const toggleSelectAll = () => {
     if (selection.allSelected) {
@@ -85,6 +62,15 @@ export function NewsletterList({
       selectedIds: newSelectedIds, 
       allSelected
     });
+  };
+
+  const handleCategoryChange = (updatedNewsletter: Newsletter) => {
+    // Update the local state to reflect the change
+    const updatedNewsletters = newsletters.map(newsletter => 
+      newsletter.id === updatedNewsletter.id ? updatedNewsletter : newsletter
+    );
+    
+    onCategoryChange(updatedNewsletters);
   };
 
   const handleDeleteSelected = async () => {
@@ -159,54 +145,14 @@ export function NewsletterList({
                     : "Unknown"}
                 </TableCell>
                 <TableCell>
-                  <Select
-                    value={newsletter.category_id?.toString() || "uncategorized"}
-                    onValueChange={(value) => handleCategoryChange(newsletter.id, value)}
-                  >
-                    <SelectTrigger className="w-full max-w-[180px]">
-                      <SelectValue placeholder="Categorize" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="uncategorized">Uncategorized</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CategorySelector 
+                    newsletter={newsletter}
+                    categories={categories}
+                    onCategoryChange={handleCategoryChange}
+                  />
                 </TableCell>
                 <TableCell>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => setSelectedNewsletter(newsletter)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl h-[80vh] overflow-hidden">
-                      <DialogHeader>
-                        <DialogTitle>{newsletter.title || "Untitled Newsletter"}</DialogTitle>
-                      </DialogHeader>
-                      <div className="mt-4 overflow-auto h-full pb-6">
-                        {newsletter.content ? (
-                          <iframe
-                            srcDoc={newsletter.content}
-                            title={newsletter.title || "Newsletter Content"}
-                            className="w-full h-full border-0"
-                            sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-                          />
-                        ) : (
-                          <div className="text-center py-12">
-                            <p>No content available for this newsletter.</p>
-                          </div>
-                        )}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <NewsletterViewDialog newsletter={newsletter} />
                 </TableCell>
               </TableRow>
             ))}
@@ -214,28 +160,13 @@ export function NewsletterList({
         </Table>
       </div>
 
-      {/* Confirmation dialog for delete */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the selected {selection.selectedIds.length} newsletter(s).
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteSelected} 
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteSelected}
+        isDeleting={isDeleting}
+        count={selection.selectedIds.length}
+      />
     </div>
   );
 }
