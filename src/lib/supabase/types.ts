@@ -37,6 +37,12 @@ export interface NewsletterCategory {
   created_at?: string;
 }
 
+// Extended interface for categories with newsletter count
+export interface CategoryWithStats extends NewsletterCategory {
+  count?: number;
+  newsletterCount?: number;
+}
+
 // Simple interface to avoid deep type instantiation
 export interface NewsletterFilters {
   category?: string;

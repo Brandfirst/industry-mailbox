@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -7,8 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { getAllCategories, createCategory, updateCategory, deleteCategory, getCategoryStats } from "@/lib/supabase/categories";
-import { NewsletterCategory } from "@/lib/supabase/types";
+import { 
+  getAllCategories, 
+  createCategory, 
+  updateCategory, 
+  deleteCategory, 
+  getCategoryStats,
+  getCategoriesWithStats
+} from "@/lib/supabase/categories";
+import { NewsletterCategory, CategoryWithStats } from "@/lib/supabase/types";
 import { motion, AnimatePresence } from "framer-motion";
 
 const COLOR_OPTIONS = [
@@ -23,10 +29,6 @@ const COLOR_OPTIONS = [
   { value: "#6B7280", label: "Gray" },
 ];
 
-type CategoryWithStats = NewsletterCategory & {
-  newsletterCount?: number;
-};
-
 export default function CategoriesManagement() {
   const [categories, setCategories] = useState<CategoryWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +36,7 @@ export default function CategoriesManagement() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editingCategory, setEditingCategory] = useState<NewsletterCategory | null>(null);
-  const [deletingCategory, setDeletingCategory] = useState<NewsletterCategory | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<CategoryWithStats | null>(null);
   const [newCategory, setNewCategory] = useState({
     name: "",
     slug: "",
@@ -46,13 +48,7 @@ export default function CategoriesManagement() {
   const loadCategories = async () => {
     setIsLoading(true);
     try {
-      const categoriesData = await getAllCategories();
-      const statsPromises = categoriesData.map(category => 
-        getCategoryStats(category.id)
-          .then(count => ({ ...category, newsletterCount: count }))
-      );
-      
-      const categoriesWithStats = await Promise.all(statsPromises);
+      const categoriesWithStats = await getCategoriesWithStats();
       setCategories(categoriesWithStats);
       setError(null);
     } catch (err) {
@@ -247,7 +243,7 @@ export default function CategoriesManagement() {
                     </TableCell>
                     <TableCell className="text-right">
                       <span className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs font-medium">
-                        {category.newsletterCount || 0}
+                        {category.count || 0}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -454,15 +450,15 @@ export default function CategoriesManagement() {
                     style={{ backgroundColor: deletingCategory.color }}
                   ></span>
                   <span className="font-medium">{deletingCategory.name}</span>
-                  {deletingCategory.newsletterCount && deletingCategory.newsletterCount > 0 && (
+                  {deletingCategory.count && deletingCategory.count > 0 && (
                     <span className="ml-auto px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
-                      {deletingCategory.newsletterCount} newsletter{deletingCategory.newsletterCount > 1 ? 's' : ''}
+                      {deletingCategory.count} newsletter{deletingCategory.count > 1 ? 's' : ''}
                     </span>
                   )}
                 </div>
-                {deletingCategory.newsletterCount && deletingCategory.newsletterCount > 0 && (
+                {deletingCategory.count && deletingCategory.count > 0 && (
                   <p className="text-sm text-amber-600 mt-2">
-                    <span className="font-medium">Warning:</span> This will remove the category from {deletingCategory.newsletterCount} newsletter{deletingCategory.newsletterCount > 1 ? 's' : ''}.
+                    <span className="font-medium">Warning:</span> This will remove the category from {deletingCategory.count} newsletter{deletingCategory.count > 1 ? 's' : ''}.
                   </p>
                 )}
               </div>

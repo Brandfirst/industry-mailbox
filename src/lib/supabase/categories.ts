@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { NewsletterCategory } from "./types";
+import { NewsletterCategory, CategoryWithStats } from "./types";
 
 // Get all categories
 export async function getAllCategories(): Promise<NewsletterCategory[]> {
@@ -108,7 +108,7 @@ export async function getCategoryStats(categoryId: number): Promise<number> {
 }
 
 // Get all categories with newsletter counts
-export async function getCategoriesWithStats(): Promise<(NewsletterCategory & { count: number })[]> {
+export async function getCategoriesWithStats(): Promise<CategoryWithStats[]> {
   // First get all categories
   const categories = await getAllCategories();
   
@@ -116,7 +116,7 @@ export async function getCategoriesWithStats(): Promise<(NewsletterCategory & { 
   const categoriesWithCounts = await Promise.all(
     categories.map(async (category) => {
       const count = await getCategoryStats(category.id);
-      return { ...category, count };
+      return { ...category, count, newsletterCount: count };
     })
   );
   
