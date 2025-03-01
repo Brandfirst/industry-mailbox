@@ -123,11 +123,23 @@ const Sidebar = ({ activeTab, setActiveTab, isMobileSidebarOpen, toggleMobileSid
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { signOut, isAdmin, user } = useAuth();
+  const { signOut, isAdmin, user, session } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [forceRerender, setForceRerender] = useState(0);
   const isMobile = useIsMobile();
+  const [isOAuthCallback, setIsOAuthCallback] = useState(false);
+  
+  // Check if the URL contains OAuth callback parameters
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const hasOAuthParams = searchParams.has('code') || searchParams.has('error');
+    setIsOAuthCallback(hasOAuthParams);
+    
+    if (hasOAuthParams) {
+      console.log("Admin page detected OAuth callback parameters");
+    }
+  }, [location.search]);
   
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
@@ -135,9 +147,17 @@ const Admin = () => {
   
   // Force rerender when returning to the admin page (important for OAuth flow)
   useEffect(() => {
+    console.log("Admin location changed", { 
+      pathname: location.pathname, 
+      search: location.search,
+      user: !!user,
+      session: !!session,
+      isOAuthCallback
+    });
+    
     // This will trigger a rerender whenever the location changes
     setForceRerender(prev => prev + 1);
-  }, [location.pathname, location.search]);
+  }, [location.pathname, location.search, user, session, isOAuthCallback]);
   
   useEffect(() => {
     document.title = "Admin Dashboard | NewsletterHub";
@@ -150,6 +170,14 @@ const Admin = () => {
     if (code && state === 'gmail_connect') {
       console.log('Found OAuth callback parameters in Admin page URL');
       // The EmailConnection component will handle this
+      
+      // If we don't have a user but have a saved session token, try to use it
+      if (!user) {
+        const savedUserId = sessionStorage.getItem('auth_user_id');
+        if (savedUserId) {
+          console.log("Found saved user ID during OAuth callback:", savedUserId);
+        }
+      }
     }
     
     // Clean up any OAuth flags if user refreshes admin page without completing OAuth
@@ -159,23 +187,29 @@ const Admin = () => {
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
     }
-  }, [location]);
+  }, [location, user]);
   
+  // Handle auth permission check separately from regular checks to avoid redirect during OAuth callback
   useEffect(() => {
+    // Skip auth check if we're in the middle of an OAuth callback
+    if (isOAuthCallback) {
+      console.log("Skipping auth check during OAuth callback");
+      return;
+    }
+    
     // If we notice we're not an admin at any point, redirect to home
     if (isAdmin === false) {
       console.log("Not an admin, redirecting to home");
       toast.error("You don't have permission to access the admin area");
       navigate('/');
     }
-  }, [isAdmin, navigate]);
-  
-  // Make sure user is authenticated
-  useEffect(() => {
-    if (!user && !isAdmin) {
+    
+    // Make sure user is authenticated
+    if (!user && !isAdmin && !isOAuthCallback) {
+      console.log("No user and not in OAuth flow, redirecting to auth");
       navigate('/auth?mode=signin');
     }
-  }, [user, isAdmin, navigate]);
+  }, [user, isAdmin, navigate, isOAuthCallback]);
   
   // Mock newsletter data for admin view
   const recentNewsletters = [
@@ -192,7 +226,7 @@ const Admin = () => {
   
   // Force re-render of EmailConnection component with a key that changes
   // whenever the location or forceRerender state changes
-  const emailConnectionKey = `email-connection-${user?.id || 'no-user'}-${forceRerender}`;
+  const emailConnectionKey = `email-connection-${user?.id || 'no-user'}-${forceRerender}-${isOAuthCallback ? 'oauth' : 'regular'}`;
   
   // Only show mobile menu button on mobile
   const renderMobileMenuButton = () => {

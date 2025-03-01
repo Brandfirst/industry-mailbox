@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -223,12 +222,18 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
   try {
     // Get the redirect URI from env or use the provided one
     const actualRedirectUri = redirectUri || import.meta.env.VITE_REDIRECT_URI || 
-      "https://preview--industry-mailbox.lovable.app/admin";
+      window.location.origin + "/admin";
     
     console.log("Using redirect URI for connectGoogleEmail:", actualRedirectUri);
+    console.log("Connecting Google Email for user:", userId);
     
     const response = await supabase.functions.invoke("connect-gmail", {
-      body: { code, userId, redirectUri: actualRedirectUri },
+      body: { 
+        code, 
+        userId, 
+        redirectUri: actualRedirectUri,
+        timestamp: new Date().toISOString() // Add timestamp to help with debugging
+      },
     });
 
     // Check if there's an error with the function invocation itself
@@ -268,6 +273,8 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
       };
     }
 
+    console.log("Successfully connected Google account:", response.data.account?.email || "Unknown email");
+    
     return { 
       success: true, 
       account: response.data.account,

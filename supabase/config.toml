@@ -26,6 +26,7 @@ file_size_limit = "50MiB"
 [auth]
 site_url = "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com"
 additional_redirect_urls = [
+  "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com", 
   "https://feb48f71-47d1-4ebf-85de-76618e7c453a.lovableproject.com/admin", 
   "https://preview--industry-mailbox.lovable.app",
   "https://preview--industry-mailbox.lovable.app/admin",
@@ -38,3 +39,4 @@ verify_jwt = false
 
 [functions.sync-emails]
 verify_jwt = false
+

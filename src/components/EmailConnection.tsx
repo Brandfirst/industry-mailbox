@@ -10,7 +10,7 @@ import { getUserEmailAccounts, connectGoogleEmail, disconnectEmailAccount, syncE
 import { useLocation, useNavigate } from "react-router-dom";
 
 const EmailConnection = () => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [emailAccounts, setEmailAccounts] = useState([]);
@@ -24,16 +24,18 @@ const EmailConnection = () => {
   const [oauthError, setOauthError] = useState(null);
   const [errorDetails, setErrorDetails] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
+  const [connectionProcessed, setConnectionProcessed] = useState(false);
   
   // Use the redirect URI from environment variables or fall back to a default
   const redirectUri = import.meta.env.VITE_REDIRECT_URI || 
-    "https://preview--industry-mailbox.lovable.app/admin";
+    window.location.origin + "/admin";
   
   console.log("Current redirect URI being used:", redirectUri);
+  console.log("Current session in EmailConnection:", !!session);
   
   // Reset state on mount
   useEffect(() => {
-    console.log("EmailConnection component mounted");
+    console.log("EmailConnection component mounted", { userId: user?.id });
     
     // Reset states
     setIsConnecting(false);
@@ -41,10 +43,7 @@ const EmailConnection = () => {
     setOauthError(null);
     setErrorDetails(null);
     setDebugInfo(null);
-    
-    // Clear any OAuth flags that might be leftover
-    sessionStorage.removeItem('gmailOAuthInProgress');
-    sessionStorage.removeItem('oauth_nonce');
+    setConnectionProcessed(false);
     
     // Initial fetch if user exists
     if (user) {
@@ -62,42 +61,49 @@ const EmailConnection = () => {
     const state = searchParams.get('state');
     const error = searchParams.get('error');
     
-    console.log("URL parameters detected:", { code: !!code, state, error });
-    
-    if (error) {
-      console.error("OAuth error returned:", error);
-      setOauthError(error);
-      toast.error("Failed to connect Gmail account");
-      sessionStorage.removeItem('gmailOAuthInProgress');
-      sessionStorage.removeItem('oauth_nonce');
-      setIsConnecting(false);
-      // Remove the query parameters to prevent reprocessing
-      navigate('/admin', { replace: true });
-      return;
-    }
-    
-    if (code && state === 'gmail_connect' && user) {
-      console.log("Handling OAuth callback with code");
-      handleOAuthCallback(code);
-      // Remove the query parameters to prevent reprocessing
-      navigate('/admin', { replace: true });
-    } else if (location.pathname === '/admin' && !location.search) {
+    // Only process if not already processed and we have valid user
+    if (!connectionProcessed && user && (code || error)) {
+      console.log("URL parameters detected:", { code: !!code, state, error, userId: user.id });
+      
+      if (error) {
+        console.error("OAuth error returned:", error);
+        setOauthError(error);
+        toast.error("Failed to connect Gmail account");
+        sessionStorage.removeItem('gmailOAuthInProgress');
+        sessionStorage.removeItem('oauth_nonce');
+        setIsConnecting(false);
+        setConnectionProcessed(true);
+        
+        // Remove the query parameters but stay on admin page
+        navigate('/admin', { replace: true });
+        return;
+      }
+      
+      if (code && state === 'gmail_connect') {
+        console.log("Handling OAuth callback with code for user:", user.id);
+        handleOAuthCallback(code);
+        setConnectionProcessed(true);
+        
+        // We'll remove the query parameters after processing
+        navigate('/admin', { replace: true });
+      }
+    } else if (location.pathname === '/admin' && !location.search && !connectionProcessed) {
       // Reset connecting state when we return to clean admin URL
       setIsConnecting(false);
-    }
-    
-    // Check if we returned from a failed OAuth flow
-    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
-    if (oauthInProgress === 'true' && !location.search.includes('code=')) {
-      console.log("Detected return from OAuth flow without code");
-      toast.error("Gmail connection was cancelled or failed");
-      sessionStorage.removeItem('gmailOAuthInProgress');
-      sessionStorage.removeItem('oauth_nonce');
-      setIsConnecting(false);
+      
+      // Check if we returned from a failed OAuth flow
+      const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
+      if (oauthInProgress === 'true') {
+        console.log("Detected return from OAuth flow without code");
+        toast.error("Gmail connection was cancelled or failed");
+        sessionStorage.removeItem('gmailOAuthInProgress');
+        sessionStorage.removeItem('oauth_nonce');
+        setIsConnecting(false);
+      }
     }
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.search, location.pathname, user?.id]);
+  }, [location.search, location.pathname, user?.id, connectionProcessed]);
 
   const fetchEmailAccounts = useCallback(async () => {
     if (!user) return;
@@ -121,7 +127,13 @@ const EmailConnection = () => {
   }, [user]);
 
   const handleOAuthCallback = async (code) => {
-    if (!user) return;
+    if (!user) {
+      console.error("No user found when handling OAuth callback");
+      toast.error("Authentication error. Please try again after logging in.");
+      return;
+    }
+    
+    console.log("Processing OAuth callback for user:", user.id);
     
     try {
       setIsConnecting(true);
@@ -134,7 +146,7 @@ const EmailConnection = () => {
         toast.dismiss(toastId);
         toast.success("Gmail account connected successfully!");
         // Refresh the email accounts list
-        fetchEmailAccounts();
+        await fetchEmailAccounts();
       } else {
         console.error("Connection error details:", result);
         setOauthError(result.error);
@@ -147,7 +159,8 @@ const EmailConnection = () => {
           tokenInfo: result.tokenInfo || null,
           edgeFunctionError: result.edgeFunctionError || null,
           statusCode: result.statusCode || null,
-          redirectUriUsed: redirectUri
+          redirectUriUsed: redirectUri,
+          userId: user.id
         });
         
         // Format a more descriptive error message
@@ -182,7 +195,7 @@ const EmailConnection = () => {
   const initiateGoogleOAuth = () => {
     if (isConnecting || !user) return; // Prevent multiple clicks
     
-    console.log("Starting Google OAuth flow...");
+    console.log("Starting Google OAuth flow for user:", user.id);
     setIsConnecting(true);
     
     // Get the OAuth client ID from environment variables
@@ -201,6 +214,16 @@ const EmailConnection = () => {
       // Save a flag in sessionStorage to detect if we're in the middle of an OAuth flow
       sessionStorage.setItem('gmailOAuthInProgress', 'true');
       
+      // Store current auth state and user ID to help with recovery after OAuth flow
+      if (session) {
+        try {
+          sessionStorage.setItem('auth_session_token', session.access_token);
+          sessionStorage.setItem('auth_user_id', user.id);
+        } catch (e) {
+          console.warn("Could not save auth session to sessionStorage:", e);
+        }
+      }
+      
       // Store the current path to return to after auth
       sessionStorage.setItem('auth_return_path', location.pathname);
       
@@ -215,6 +238,9 @@ const EmailConnection = () => {
       authUrl.searchParams.append("access_type", "offline");
       authUrl.searchParams.append("prompt", "consent");
       authUrl.searchParams.append("state", "gmail_connect");
+      
+      // Include user ID in state to help recover from lost session
+      // authUrl.searchParams.append("state", `gmail_connect.${user.id}.${nonce}`);
 
       // Redirect to Google OAuth consent screen
       console.log("Redirecting to Google OAuth URL:", authUrl.toString());
