@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Newsletter, NewsletterCategory } from '@/lib/supabase/types';
 import { format } from 'date-fns';
 import { Filter } from 'lucide-react';
+import { searchNewsletters } from '@/lib/supabase/newsletters';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -45,32 +46,21 @@ const SearchPage = () => {
     const fetchNewsletters = async () => {
       setLoading(true);
       
-      let query = supabase
-        .from('newsletters')
-        .select('*, categories(name, color)', { count: 'exact' })
-        .order('published_at', { ascending: false })
-        .range((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE - 1);
-      
-      if (searchQuery) {
-        query = query.ilike('title', `%${searchQuery}%`);
-      }
-      
-      if (selectedCategory && selectedCategory !== 'all') {
-        // Convert the string to a number for the category_id comparison
-        query = query.eq('category_id', parseInt(selectedCategory));
-      }
-      
-      const { data, error, count } = await query;
-      
-      if (error) {
+      try {
+        const result = await searchNewsletters({
+          searchQuery,
+          categoryId: selectedCategory !== 'all' ? selectedCategory : undefined,
+          page,
+          limit: ITEMS_PER_PAGE
+        });
+        
+        setNewsletters(result.data || []);
+        setHasMore(result.count ? result.count > page * ITEMS_PER_PAGE : false);
+      } catch (error) {
         console.error('Error fetching newsletters:', error);
+      } finally {
         setLoading(false);
-        return;
       }
-      
-      setNewsletters(data || []);
-      setHasMore(count ? count > page * ITEMS_PER_PAGE : false);
-      setLoading(false);
     };
     
     fetchNewsletters();
@@ -158,26 +148,8 @@ const SearchPage = () => {
                 className="shadow-sm overflow-hidden rounded-xl bg-white border w-full flex flex-col h-full group cursor-pointer"
                 onClick={() => navigate(`/newsletter/${newsletter.id}`)}
               >
-                {/* Image Section */}
-                <div className="w-full h-40 border-gray-200 group-hover:opacity-75 order-2">
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                    {newsletter.content ? (
-                      <div 
-                        className="w-full h-full object-cover" 
-                        dangerouslySetInnerHTML={{ 
-                          __html: newsletter.content.length > 300 
-                            ? newsletter.content.substring(0, 300) + '...' 
-                            : newsletter.content 
-                        }} 
-                      />
-                    ) : (
-                      <span className="text-muted-foreground text-sm">Nyhetsbrev innhold</span>
-                    )}
-                  </div>
-                </div>
-                
                 {/* Header with sender info */}
-                <div className="flex items-center p-4 border-b order-1">
+                <div className="flex items-center p-4 border-b">
                   <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-3">
                     {newsletter.sender && (
                       <span className="text-lg font-semibold text-gray-700">
@@ -204,8 +176,26 @@ const SearchPage = () => {
                   )}
                 </div>
                 
-                {/* Content Preview */}
-                <div className="flex flex-col gap-2 grow p-4 min-h-[80px] order-3">
+                {/* Content Preview - HTML content with fallback */}
+                <div className="w-full h-48 border-gray-200 group-hover:opacity-75">
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                    {newsletter.content ? (
+                      <div 
+                        className="w-full h-full object-cover" 
+                        dangerouslySetInnerHTML={{ 
+                          __html: newsletter.content.length > 500 
+                            ? newsletter.content.substring(0, 500) + '...' 
+                            : newsletter.content 
+                        }} 
+                      />
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Ingen innhold tilgjengelig</span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Title and preview */}
+                <div className="flex flex-col gap-2 grow p-4 min-h-[80px]">
                   <div className="text-base leading-6 line-clamp-2 font-medium text-gray-900">
                     {newsletter.title || 'Untitled Newsletter'}
                   </div>

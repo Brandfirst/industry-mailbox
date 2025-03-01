@@ -5,14 +5,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from '@/integrations/supabase/client';
-import { Newsletter, NewsletterCategory } from '@/lib/supabase/types';
+import { NewsletterCategory } from '@/lib/supabase/types';
 import { format } from 'date-fns';
 import { ArrowRight, Filter } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { getFeaturedNewsletters } from '@/lib/supabase/newsletters';
 
 const FeaturedNewsletters = () => {
   const navigate = useNavigate();
-  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
+  const [newsletters, setNewsletters] = useState([]);
   const [categories, setCategories] = useState<NewsletterCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,31 +41,19 @@ const FeaturedNewsletters = () => {
     const fetchNewsletters = async () => {
       setLoading(true);
       
-      let query = supabase
-        .from('newsletters')
-        .select('*, categories(name, color)')
-        .order('published_at', { ascending: false })
-        .limit(3); // Only fetch 3 newsletters for the feature section
-      
-      if (searchQuery) {
-        query = query.ilike('title', `%${searchQuery}%`);
-      }
-      
-      if (selectedCategory && selectedCategory !== 'all') {
-        // Convert the string to a number for the category_id comparison
-        query = query.eq('category_id', parseInt(selectedCategory));
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
+      try {
+        const result = await getFeaturedNewsletters({
+          searchQuery, 
+          categoryId: selectedCategory !== 'all' ? selectedCategory : undefined,
+          limit: 3
+        });
+        
+        setNewsletters(result.data || []);
+      } catch (error) {
         console.error('Error fetching newsletters:', error);
+      } finally {
         setLoading(false);
-        return;
       }
-      
-      setNewsletters(data || []);
-      setLoading(false);
     };
     
     fetchNewsletters();
@@ -75,7 +64,7 @@ const FeaturedNewsletters = () => {
   };
   
   // Get formatted date
-  const getFormattedDate = (dateString: string) => {
+  const getFormattedDate = (dateString) => {
     if (!dateString) return '';
     return format(new Date(dateString), 'MMM d');
   };
@@ -130,29 +119,11 @@ const FeaturedNewsletters = () => {
             {newsletters.map((newsletter) => (
               <div 
                 key={newsletter.id} 
-                className="shadow-sm overflow-hidden rounded-xl bg-white border w-full flex flex-col h-full group"
+                className="shadow-sm overflow-hidden rounded-xl bg-white border w-full flex flex-col h-full group cursor-pointer"
                 onClick={() => navigate(`/newsletter/${newsletter.id}`)}
               >
-                {/* Image Section */}
-                <div className="w-full h-48 border-gray-200 group-hover:opacity-75 order-2">
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                    {newsletter.content ? (
-                      <div 
-                        className="w-full h-full object-cover" 
-                        dangerouslySetInnerHTML={{ 
-                          __html: newsletter.content.length > 500 
-                            ? newsletter.content.substring(0, 500) + '...' 
-                            : newsletter.content 
-                        }} 
-                      />
-                    ) : (
-                      <span className="text-muted-foreground text-sm">Nyhetsbrev innhold</span>
-                    )}
-                  </div>
-                </div>
-                
                 {/* Header with sender info */}
-                <div className="flex items-center p-4 border-b order-1">
+                <div className="flex items-center p-4 border-b">
                   <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-3">
                     {newsletter.sender && (
                       <span className="text-lg font-semibold text-gray-700">
@@ -179,12 +150,30 @@ const FeaturedNewsletters = () => {
                   )}
                 </div>
                 
-                {/* Content Preview */}
-                <div className="flex flex-col gap-2 grow p-4 min-h-[80px] order-3">
+                {/* Content Preview - HTML content with fallback */}
+                <div className="w-full h-48 border-gray-200 group-hover:opacity-75">
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                    {newsletter.content ? (
+                      <div 
+                        className="w-full h-full object-cover" 
+                        dangerouslySetInnerHTML={{ 
+                          __html: newsletter.content.length > 500 
+                            ? newsletter.content.substring(0, 500) + '...' 
+                            : newsletter.content 
+                        }} 
+                      />
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Ingen innhold tilgjengelig</span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Title and preview */}
+                <div className="flex flex-col gap-2 grow p-4 min-h-[80px]">
                   <div className="text-base leading-6 line-clamp-2 font-medium text-gray-900">
                     {newsletter.title || 'Untitled Newsletter'}
                   </div>
-                  <div className="text-sm font-light text-gray-500 line-clamp-3">
+                  <div className="text-sm font-light text-gray-500 line-clamp-2">
                     {newsletter.preview || 'Ingen forhåndsvisning tilgjengelig.'}
                   </div>
                 </div>

@@ -84,7 +84,7 @@ export function NewsletterListTable({
             newsletters.map((newsletter, index) => (
               <TableRow 
                 key={newsletter.id}
-                className={isSelected(newsletter.id) ? "bg-primary/10 transition-colors duration-200" : "transition-colors duration-200"}
+                isSelected={isSelected(newsletter.id)}
               >
                 <TableCell>
                   <Checkbox 
@@ -97,11 +97,16 @@ export function NewsletterListTable({
                   {index + 1}
                 </TableCell>
                 <TableCell className="font-medium">
-                  <div className="text-sm px-2 py-1 rounded-md bg-muted/50 inline-block">
-                    {newsletter.sender || "Unknown Sender"}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {newsletter.sender_email || "No email"}
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      {newsletter.sender ? newsletter.sender.charAt(0).toUpperCase() : "?"}
+                    </div>
+                    <div className="flex flex-col">
+                      <span>{newsletter.sender || "Unknown Sender"}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {newsletter.sender_email || "No email"}
+                      </span>
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -114,7 +119,7 @@ export function NewsletterListTable({
                       Selected
                     </motion.span>
                   )}
-                  {newsletter.title || "Untitled"}
+                  <div className="line-clamp-2">{newsletter.title || "Untitled"}</div>
                 </TableCell>
                 <TableCell>
                   {newsletter.published_at
