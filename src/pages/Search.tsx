@@ -54,7 +54,8 @@ const SearchPage = () => {
       }
       
       if (selectedCategory && selectedCategory !== 'all') {
-        query = query.eq('category_id', selectedCategory);
+        // Convert the string to a number for the category_id comparison
+        query = query.eq('category_id', parseInt(selectedCategory));
       }
       
       const { data, error, count } = await query;
