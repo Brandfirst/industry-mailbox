@@ -1,18 +1,30 @@
+
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, Mail, Users, Tags, UserCircle, Settings } from "lucide-react";
 
-type AdminSidebarProps = {
+export type AdminSidebarProps = {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  isMobileSidebarOpen?: boolean;
+  toggleMobileSidebar?: () => void;
 };
 
-const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
+const AdminSidebar = ({ 
+  activeTab, 
+  setActiveTab,
+  isMobileSidebarOpen = false,
+  toggleMobileSidebar = () => {}
+}: AdminSidebarProps) => {
   const location = useLocation();
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
+    // Close mobile sidebar when a tab is clicked
+    if (isMobileSidebarOpen) {
+      toggleMobileSidebar();
+    }
   };
 
   const AdminSidebarLink = ({ label, icon, isActive, onClick }) => (
@@ -30,7 +42,10 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   );
 
   return (
-    <aside className="bg-card min-h-screen w-64 border-r shadow-sm hidden md:block">
+    <aside className={cn(
+      "bg-card min-h-screen w-64 border-r shadow-sm fixed top-0 bottom-0 left-0 z-30 transition-transform duration-300 md:translate-x-0",
+      isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+    )}>
       <div className="p-6">
         <h2 className="text-xl font-semibold mb-6">Admin Panel</h2>
         <nav>

@@ -1,6 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter, NewsletterFilters } from "../types";
-import { NewsletterSenderStats } from "./types";
+import { NewsletterFilterOptions, NewsletterSenderStats } from "./types";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -32,7 +33,7 @@ export async function getNewslettersFromEmailAccount(
   }
 
   if (filters.category && filters.category !== "all") {
-    query = query.eq("category_id", filters.category);
+    query = query.eq("category_id", Number(filters.category));
   }
 
   if (filters.fromDate) {

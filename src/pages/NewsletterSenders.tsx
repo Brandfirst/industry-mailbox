@@ -2,18 +2,35 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSenderStats, updateSenderCategory, NewsletterSenderStats } from "@/lib/supabase/newsletters";
+import { getSenderStats, updateSenderCategory } from "@/lib/supabase/newsletters";
+import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 import { NewsletterCategory } from "@/lib/supabase/types";
-import { getNewsletterCategories } from "@/lib/supabase/categories";
 import SenderList from "@/components/newsletter-senders/SenderList";
 import { LoadingState } from "@/components/newsletter-sync/LoadingState";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const NewsletterSenders = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [senders, setSenders] = useState<NewsletterSenderStats[]>([]);
   const [categories, setCategories] = useState<NewsletterCategory[]>([]);
+
+  // Function to get newsletter categories
+  const getNewsletterCategories = async (): Promise<NewsletterCategory[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('newsletter_categories')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching newsletter categories:', error);
+      throw error;
+    }
+  };
 
   // Load senders and categories data
   useEffect(() => {

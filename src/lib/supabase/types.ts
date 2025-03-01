@@ -48,6 +48,8 @@ export interface NewsletterFilters {
   category?: string;
   fromDate?: string;
   toDate?: string;
+  searchQuery?: string;
+  sender?: string;
 }
 
 export interface GoogleOAuthResult {

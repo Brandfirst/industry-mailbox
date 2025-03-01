@@ -70,51 +70,25 @@ export function useNewsletterFetching(
       try {
         console.log(`Loading newsletters for account ${selectedAccount}`, { page, filters });
         
-        // Prepare filter options
-        const filterOptions: { 
-          searchQuery?: string;
-          sender?: string;
-          categoryId?: number | string;
-          fromDate?: string;
-          toDate?: string;
-          page?: number;
-          limit?: number;
-        } = {
-          page,
-          limit: ITEMS_PER_PAGE
+        // Convert filters from FiltersState to NewsletterFilters
+        const newsLetterFilters = {
+          category: filters.categoryId !== "all" ? filters.categoryId : undefined,
+          fromDate: filters.fromDate ? filters.fromDate.toISOString() : undefined,
+          toDate: filters.toDate ? filters.toDate.toISOString() : undefined,
+          searchQuery: filters.searchQuery,
+          sender: filters.sender
         };
 
-        if (filters.searchQuery) {
-          filterOptions.searchQuery = filters.searchQuery;
-        }
-
-        if (filters.sender) {
-          filterOptions.sender = filters.sender;
-        }
-
-        // Only include categoryId filter if it's not "all"
-        if (filters.categoryId && filters.categoryId !== "all") {
-          // Handle "uncategorized" as a special case for null or empty category_id
-          if (filters.categoryId === "uncategorized") {
-            filterOptions.categoryId = "null"; // Special value to be handled by the backend
-          } else {
-            filterOptions.categoryId = filters.categoryId;
-          }
-        }
-
-        if (filters.fromDate) {
-          filterOptions.fromDate = filters.fromDate.toISOString();
-        }
-
-        if (filters.toDate) {
-          filterOptions.toDate = filters.toDate.toISOString();
-        }
-
-        const { data, count } = await getNewslettersFromEmailAccount(selectedAccount, page, ITEMS_PER_PAGE, filterOptions);
-        console.log(`Newsletter data loaded: ${data.length} items, total count: ${count}`);
+        const { data, error, total } = await getNewslettersFromEmailAccount(
+          selectedAccount, 
+          page,
+          newsLetterFilters
+        );
+        
+        console.log(`Newsletter data loaded: ${data.length} items, total count: ${total}`);
         
         setNewsletters(data);
-        setTotalCount(count || 0);
+        setTotalCount(total || 0);
       } catch (error) {
         console.error("Error loading newsletters:", error);
         setNewsletters([]);

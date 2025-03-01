@@ -43,7 +43,7 @@ const NewsletterCard = ({
     const checkSavedStatus = async () => {
       if (user) {
         try {
-          const isSaved = await isNewsletterSaved(user.id, id);
+          const isSaved = await isNewsletterSaved(id, user.id);
           setSaved(isSaved);
         } catch (error) {
           console.error("Error checking saved status:", error);
@@ -80,10 +80,10 @@ const NewsletterCard = ({
       setIsSaving(true);
       
       if (!saved) {
-        await saveNewsletter(user.id, id);
+        await saveNewsletter(id, user.id);
         toast.success("Newsletter saved to your collection");
       } else {
-        await unsaveNewsletter(user.id, id);
+        await unsaveNewsletter(id, user.id);
         toast.info("Newsletter removed from your collection");
       }
       
