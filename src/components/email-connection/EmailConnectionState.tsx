@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserEmailAccounts } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -35,10 +36,32 @@ export const useEmailConnectionState = (): EmailConnectionState => {
   const [errorDetails, setErrorDetails] = useState<any>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [connectionProcessed, setConnectionProcessed] = useState(false);
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  
+  // Debug when auth or connection state changes
+  useEffect(() => {
+    console.log("EmailConnectionState: Auth state changed", { 
+      userId: user?.id,
+      isConnecting,
+      oauthError,
+      connectionProcessed
+    });
+  }, [user, isConnecting, oauthError, connectionProcessed]);
 
   const fetchEmailAccounts = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      console.log("Cannot fetch email accounts: No user logged in");
+      return;
+    }
     
+    const now = Date.now();
+    // Prevent excessive fetching (limit to once per second)
+    if (now - lastFetchTime < 1000) {
+      console.log("Skipping fetch, last fetch was too recent");
+      return;
+    }
+    
+    setLastFetchTime(now);
     console.log("Fetching email accounts for user", user.id);
     setStatus({ loading: true, error: null });
     
@@ -55,7 +78,7 @@ export const useEmailConnectionState = (): EmailConnectionState => {
       setEmailAccounts([]);
       setStatus({ loading: false, error: error instanceof Error ? error.message : String(error) });
     }
-  }, [user]);
+  }, [user, lastFetchTime]);
 
   return {
     emailAccounts,

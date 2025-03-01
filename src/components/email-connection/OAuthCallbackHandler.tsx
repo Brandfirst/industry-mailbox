@@ -32,7 +32,13 @@ export const OAuthCallbackHandler = ({
 
     // Only process if not already processed and we have valid user
     if (!processed && user && (code || error)) {
-      console.log("URL parameters detected:", { code: !!code, state, error, userId: user.id });
+      console.log("URL parameters detected:", { 
+        code: !!code, 
+        state, 
+        error, 
+        userId: user.id,
+        location: location.pathname + location.search
+      });
       
       if (error) {
         console.error("OAuth error returned:", error);
@@ -64,7 +70,7 @@ export const OAuthCallbackHandler = ({
         setIsConnecting(false);
       }
     }
-  }, [location.search, location.pathname, user?.id, processed]);
+  }, [location.search, location.pathname, user?.id, processed, onError, setIsConnecting, navigate]);
 
   const handleOAuthCallback = async (code: string) => {
     if (!user) {
@@ -74,6 +80,7 @@ export const OAuthCallbackHandler = ({
     }
     
     console.log("Processing OAuth callback for user:", user.id);
+    console.log("OAuth code received, length:", code.length);
     
     try {
       setIsConnecting(true);
@@ -82,6 +89,11 @@ export const OAuthCallbackHandler = ({
       console.log("Exchanging code for access token with redirectUri:", redirectUri);
       
       const result = await connectGoogleEmail(user.id, code, redirectUri);
+      console.log("Connection result received:", { 
+        success: result.success, 
+        error: result.error,
+        statusCode: result.statusCode
+      });
       
       if (result.success) {
         toast.dismiss(toastId);
