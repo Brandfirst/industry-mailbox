@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getEmailAccounts, EmailAccount } from "@/lib/supabase";
+import { supabase, EmailAccount } from "@/lib/supabase";
+import { getUserEmailAccounts } from "@/lib/supabase/emailAccounts";
 
 interface StatusState {
   loading: boolean;
@@ -54,7 +56,7 @@ export const useEmailConnectionState = () => {
       setStatus({ loading: true, error: null });
       console.log(`Fetching email accounts for user ${user.id}`);
       
-      const accounts = await getEmailAccounts(user.id);
+      const accounts = await getUserEmailAccounts(user.id);
       console.log("Fetched email accounts:", accounts);
       
       setEmailAccounts(accounts);
