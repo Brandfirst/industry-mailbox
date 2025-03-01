@@ -95,6 +95,7 @@ export function useNewsletterOperations(
           // Success but no newsletters found
           toast.info("No new newsletters found to sync");
         } else {
+          // Complete success!
           toast.success(`Successfully synced ${result.count || 0} newsletters`);
         }
         

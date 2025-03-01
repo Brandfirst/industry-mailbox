@@ -108,6 +108,7 @@ export type Database = {
           content: string | null
           created_at: string
           email_id: string | null
+          gmail_message_id: string | null
           id: number
           industry: string | null
           preview: string | null
@@ -121,6 +122,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           email_id?: string | null
+          gmail_message_id?: string | null
           id?: number
           industry?: string | null
           preview?: string | null
@@ -134,6 +136,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           email_id?: string | null
+          gmail_message_id?: string | null
           id?: number
           industry?: string | null
           preview?: string | null
