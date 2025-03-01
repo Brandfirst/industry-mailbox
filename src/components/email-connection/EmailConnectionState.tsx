@@ -9,7 +9,10 @@ import { toast } from "sonner";
 export const useEmailConnectionState = () => {
   const { user } = useAuth();
   const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([]);
-  const [status, setStatus] = useState({ loading: false, error: null });
+  const [status, setStatus] = useState<{ loading: boolean; error: string | null }>({ 
+    loading: false, 
+    error: null 
+  });
   const [isConnecting, setIsConnecting] = useState(false);
   const [oauthError, setOAuthError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<any>(null);

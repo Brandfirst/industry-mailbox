@@ -119,6 +119,9 @@ export const useOAuthCallback = (
         try {
           console.log(`[OAUTH CALLBACK] Sending code to connect-gmail function, redirectUri: ${redirectUri}`);
           
+          // Store user ID in session storage as a fallback
+          sessionStorage.setItem('auth_user_id', user.id);
+          
           // Show a toast to indicate processing
           toast.loading("Processing Gmail connection...");
           
