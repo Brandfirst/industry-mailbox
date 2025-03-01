@@ -5,7 +5,7 @@ import {
   Newsletter,
   syncEmailAccountNewsletters,
   updateNewsletterCategories,
-  deleteNewsletters as apiDeleteNewsletters
+  deleteNewsletters
 } from "@/lib/supabase";
 
 export function useNewsletterOperations(
@@ -105,7 +105,7 @@ export function useNewsletterOperations(
     if (!ids || ids.length === 0) return;
 
     try {
-      const result = await apiDeleteNewsletters(ids);
+      const result = await deleteNewsletters(ids);
       
       if (result.success) {
         return result;

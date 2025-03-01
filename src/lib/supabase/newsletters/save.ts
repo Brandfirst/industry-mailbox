@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter } from "../types";
 import { NewsletterFilterOptions } from "./types";
@@ -91,6 +92,85 @@ export async function updateNewsletterCategories(
     };
   } catch (error) {
     console.error("Error in updateNewsletterCategories:", error);
+    throw error;
+  }
+}
+
+// Delete newsletters by IDs
+export async function deleteNewsletters(ids: number[]): Promise<{ success: boolean; count: number }> {
+  try {
+    if (!ids || ids.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    console.log(`Deleting ${ids.length} newsletters`);
+    
+    const { error, count } = await supabase
+      .from("newsletters")
+      .delete()
+      .in("id", ids)
+      .select("count");
+    
+    if (error) {
+      console.error("Error deleting newsletters:", error);
+      throw error;
+    }
+    
+    return { 
+      success: true, 
+      count: count || ids.length
+    };
+  } catch (error) {
+    console.error("Error in deleteNewsletters:", error);
+    throw error;
+  }
+}
+
+// Functions for saved newsletters
+export async function saveNewsletter(newsletterId: number, userId: string) {
+  try {
+    const { error } = await supabase
+      .from("saved_newsletters")
+      .insert({ newsletter_id: newsletterId, user_id: userId });
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("Error saving newsletter:", error);
+    throw error;
+  }
+}
+
+export async function unsaveNewsletter(newsletterId: number, userId: string) {
+  try {
+    const { error } = await supabase
+      .from("saved_newsletters")
+      .delete()
+      .eq("newsletter_id", newsletterId)
+      .eq("user_id", userId);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("Error unsaving newsletter:", error);
+    throw error;
+  }
+}
+
+export async function isNewsletterSaved(newsletterId: number, userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("saved_newsletters")
+      .select("id")
+      .eq("newsletter_id", newsletterId)
+      .eq("user_id", userId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
+    
+    return !!data; // Returns true if data exists, false otherwise
+  } catch (error) {
+    console.error("Error checking if newsletter is saved:", error);
     throw error;
   }
 }
