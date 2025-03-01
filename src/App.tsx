@@ -24,7 +24,7 @@ const AppLayout = () => {
   
   return (
     <>
-      {!isAdminRoute && <Navbar />}
+      <Navbar />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<Search />} />
@@ -82,7 +82,9 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <AppLayout />
+          <div className={`min-h-screen bg-background`}>
+            <AppLayout />
+          </div>
         </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>

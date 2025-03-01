@@ -28,6 +28,10 @@ const Navbar = () => {
   const activeLink = "text-blue-400 font-medium";
   const inactiveLink = "text-gray-300 hover:text-white transition-colors";
 
+  // Don't show navbar on admin pages
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  if (isAdminRoute) return null;
+
   return (
     <nav className="sticky top-0 z-50 w-full bg-dark-200/80 backdrop-blur-sm border-b border-white/10">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
