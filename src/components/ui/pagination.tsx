@@ -59,7 +59,7 @@ const PaginationLink = ({
     disabled={disabled || isActive}
     onClick={onClick}
     className={cn(
-      "h-8 w-8 p-0",
+      "h-8 w-8 p-0 text-foreground",
       className
     )}
     {...props}
@@ -77,7 +77,7 @@ const PaginationPrevious = ({
     aria-label="Go to previous page"
     size="icon"
     variant="outline"
-    className={cn("h-8 w-8 p-0", className)}
+    className={cn("h-8 w-8 p-0 text-foreground", className)}
     {...props}
   >
     <ChevronLeft className="h-4 w-4" />
@@ -93,7 +93,7 @@ const PaginationNext = ({
     aria-label="Go to next page"
     size="icon"
     variant="outline"
-    className={cn("h-8 w-8 p-0", className)}
+    className={cn("h-8 w-8 p-0 text-foreground", className)}
     {...props}
   >
     <ChevronRight className="h-4 w-4" />

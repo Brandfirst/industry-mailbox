@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -45,7 +44,6 @@ export default function CategoriesManagement() {
   });
   const [error, setError] = useState<string | null>(null);
 
-  // Load categories with statistics
   const loadCategories = async () => {
     setIsLoading(true);
     try {
@@ -65,12 +63,10 @@ export default function CategoriesManagement() {
     loadCategories();
   }, []);
 
-  // Generate slug from name
   const generateSlug = (name: string) => {
     return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   };
 
-  // Handle input change for new category
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
@@ -88,7 +84,6 @@ export default function CategoriesManagement() {
     }
   };
 
-  // Handle edit input change
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
@@ -108,7 +103,6 @@ export default function CategoriesManagement() {
     }
   };
 
-  // Create a new category
   const handleCreateCategory = async () => {
     if (!newCategory.name) {
       toast.error("Category name is required");
@@ -131,7 +125,6 @@ export default function CategoriesManagement() {
     }
   };
 
-  // Update category
   const handleUpdateCategory = async () => {
     if (!editingCategory || !editingCategory.name) {
       toast.error("Category name is required");
@@ -150,7 +143,6 @@ export default function CategoriesManagement() {
     }
   };
 
-  // Delete category
   const handleDeleteCategory = async () => {
     if (!deletingCategory) return;
 
@@ -280,7 +272,6 @@ export default function CategoriesManagement() {
           </Table>
         )}
 
-        {/* Add Category Dialog */}
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -345,7 +336,7 @@ export default function CategoriesManagement() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              <Button variant="outline" onClick={() => setShowAddDialog(false)} className="text-foreground">
                 Cancel
               </Button>
               <Button onClick={handleCreateCategory}>
@@ -356,7 +347,6 @@ export default function CategoriesManagement() {
           </DialogContent>
         </Dialog>
 
-        {/* Edit Category Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -423,7 +413,7 @@ export default function CategoriesManagement() {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              <Button variant="outline" onClick={() => setShowEditDialog(false)} className="text-foreground">
                 Cancel
               </Button>
               <Button onClick={handleUpdateCategory}>
@@ -434,7 +424,6 @@ export default function CategoriesManagement() {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -465,7 +454,7 @@ export default function CategoriesManagement() {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="text-foreground">
                 Cancel
               </Button>
               <Button 
