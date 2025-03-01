@@ -1,18 +1,19 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { getSenderStats } from "@/lib/supabase/newsletters/fetch";
+import { getSenderStats, getSenderFrequencyData } from "@/lib/supabase/newsletters/fetch";
 import { CategoryWithStats, NewsletterCategory } from "@/lib/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import SenderList from "@/components/newsletter-senders/SenderList";
+import SenderAnalytics from "@/components/newsletter-senders/components/SenderAnalytics";
 import { ArrowUpDown, RefreshCw, Search } from "lucide-react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 import { toast } from "sonner";
 import { updateSenderCategory, updateSenderBrand } from "@/lib/supabase/newsletters";
+import { SenderFrequencyData } from "@/components/newsletter-senders/components/SenderAnalytics";
 
 export default function NewsletterSenders() {
   const { user } = useAuth();
@@ -25,6 +26,8 @@ export default function NewsletterSenders() {
   const [refreshing, setRefreshing] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState(false);
   const [updatingBrand, setUpdatingBrand] = useState(false);
+  const [frequencyData, setFrequencyData] = useState<SenderFrequencyData[] | null>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,6 +35,7 @@ export default function NewsletterSenders() {
       
       try {
         setLoading(true);
+        setLoadingAnalytics(true);
         
         const { data: categoriesData, error: categoriesError } = await supabase
           .from("categories")
@@ -43,11 +47,15 @@ export default function NewsletterSenders() {
         
         const senderStats = await getSenderStats(user.id);
         setSenders(senderStats);
+        
+        const frequencyData = await getSenderFrequencyData(user.id, 30);
+        setFrequencyData(frequencyData);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to load sender data");
       } finally {
         setLoading(false);
+        setLoadingAnalytics(false);
       }
     };
     
@@ -59,14 +67,21 @@ export default function NewsletterSenders() {
     
     try {
       setRefreshing(true);
+      setLoadingAnalytics(true);
+      
       const refreshedStats = await getSenderStats(user.id);
       setSenders(refreshedStats);
+      
+      const freshFrequencyData = await getSenderFrequencyData(user.id, 30);
+      setFrequencyData(freshFrequencyData);
+      
       toast.success("Sender statistics refreshed");
     } catch (error) {
       console.error("Error refreshing data:", error);
       toast.error("Failed to refresh sender data");
     } finally {
       setRefreshing(false);
+      setLoadingAnalytics(false);
     }
   };
   
@@ -77,7 +92,6 @@ export default function NewsletterSenders() {
       setUpdatingCategory(true);
       await updateSenderCategory(senderEmail, categoryId, user.id);
       
-      // Update the category for this sender in the local state
       setSenders(prevSenders => 
         prevSenders.map(sender => 
           sender.sender_email === senderEmail
@@ -87,7 +101,7 @@ export default function NewsletterSenders() {
       );
     } catch (error) {
       console.error("Error updating category:", error);
-      throw error; // Re-throw to let the component handle the error message
+      throw error;
     } finally {
       setUpdatingCategory(false);
     }
@@ -100,7 +114,6 @@ export default function NewsletterSenders() {
       setUpdatingBrand(true);
       await updateSenderBrand(senderEmail, brandName, user.id);
       
-      // Update the brand name for this sender in the local state
       setSenders(prevSenders => 
         prevSenders.map(sender => 
           sender.sender_email === senderEmail
@@ -214,6 +227,12 @@ export default function NewsletterSenders() {
           loading={loading}
           onCategoryChange={handleCategoryChange}
           onBrandChange={handleBrandChange}
+        />
+        
+        <SenderAnalytics 
+          senders={senders}
+          loading={loadingAnalytics}
+          frequencyData={frequencyData}
         />
       </CardContent>
     </Card>

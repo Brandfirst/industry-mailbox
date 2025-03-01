@@ -1,3 +1,4 @@
+
 import { Newsletter, NewsletterCategory } from "../types";
 
 // Define interface for the filter options
@@ -33,4 +34,15 @@ export interface NewsletterSenderStats {
   last_sync_date: string | null;
   category_id: number | null;
   brand_name?: string | null;
+  // We're not adding new fields to avoid breaking existing functionality
+  // Analytics data will be stored separately
+}
+
+/**
+ * Newsletter sender frequency data for analytics
+ */
+export interface SenderFrequencyAnalytics {
+  sender_email: string;
+  date: string;
+  count: number;
 }
