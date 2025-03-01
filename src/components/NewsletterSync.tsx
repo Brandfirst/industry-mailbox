@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +12,8 @@ import {
   getNewslettersFromEmailAccount,
   syncEmailAccount,
   getAllCategories,
-  deleteNewsletters
+  deleteNewsletters,
+  getNewsletters
 } from "@/lib/supabase";
 import { useAuth } from "@/contexts/auth";
 
@@ -24,6 +24,7 @@ import { AccountSelector } from "./newsletter-sync/AccountSelector";
 import { NewsletterList } from "./newsletter-sync/NewsletterList";
 import { NewsletterPagination } from "./newsletter-sync/NewsletterPagination";
 import { LoadingState } from "./newsletter-sync/LoadingState";
+import { FilterToolbar, FiltersState } from "./newsletter-sync/FilterToolbar";
 
 export default function NewsletterSync() {
   const { user } = useAuth();
@@ -37,6 +38,13 @@ export default function NewsletterSync() {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [filters, setFilters] = useState<FiltersState>({
+    searchQuery: "",
+    sender: "",
+    categoryId: "",
+    fromDate: undefined,
+    toDate: undefined
+  });
   const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -74,11 +82,31 @@ export default function NewsletterSync() {
       setWarningMessage(null);
       
       try {
-        const { data, count } = await getNewslettersFromEmailAccount(
-          selectedAccount, 
-          page, 
-          ITEMS_PER_PAGE
-        );
+        // Prepare filter options
+        const filterOptions = {
+          searchQuery: filters.searchQuery,
+          page,
+          limit: ITEMS_PER_PAGE,
+          accountId: selectedAccount
+        };
+
+        if (filters.sender) {
+          filterOptions['sender'] = filters.sender;
+        }
+
+        if (filters.categoryId) {
+          filterOptions['categoryId'] = parseInt(filters.categoryId);
+        }
+
+        if (filters.fromDate) {
+          filterOptions['fromDate'] = filters.fromDate.toISOString();
+        }
+
+        if (filters.toDate) {
+          filterOptions['toDate'] = filters.toDate.toISOString();
+        }
+
+        const { data, count } = await getNewslettersFromEmailAccount(selectedAccount, page, ITEMS_PER_PAGE, filterOptions);
         setNewsletters(data);
         setTotalCount(count || 0);
       } catch (error) {
@@ -91,7 +119,7 @@ export default function NewsletterSync() {
     };
     
     loadNewsletters();
-  }, [selectedAccount, page]);
+  }, [selectedAccount, page, filters]);
 
   const handleSync = async () => {
     if (!selectedAccount) return;
@@ -181,6 +209,12 @@ export default function NewsletterSync() {
     }
   };
 
+  const handleFiltersChange = (newFilters: FiltersState) => {
+    setFilters(newFilters);
+    // Reset to first page when filters change
+    setPage(1);
+  };
+
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   
   const getLastSyncTime = () => {
@@ -235,6 +269,11 @@ export default function NewsletterSync() {
               selectedAccount={selectedAccount}
               onSelectAccount={setSelectedAccount}
               isDisabled={isLoading || isSyncing}
+            />
+            
+            <FilterToolbar 
+              categories={categories}
+              onFiltersChange={handleFiltersChange}
             />
             
             {isLoading ? (

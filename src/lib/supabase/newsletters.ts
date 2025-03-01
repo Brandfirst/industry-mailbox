@@ -4,8 +4,8 @@ import { Newsletter } from "./types";
 // Simple function to get newsletters with pagination
 export async function getNewsletters(options: any = {}) {
   // Use simple implementation to avoid TypeScript errors
-  const page = typeof options === 'number' ? options : 1;
-  const limit = 10;
+  const page = typeof options === 'number' ? options : (options.page || 1);
+  const limit = options.limit || 10;
   const from = (page - 1) * limit;
   const to = from + limit - 1;
   
@@ -16,6 +16,25 @@ export async function getNewsletters(options: any = {}) {
   // Apply filters if provided
   if (options.searchQuery) {
     query = query.or(`title.ilike.%${options.searchQuery}%,content.ilike.%${options.searchQuery}%`);
+  }
+  
+  if (options.sender) {
+    query = query.ilike('sender', `%${options.sender}%`);
+  }
+
+  if (options.categoryId) {
+    query = query.eq('category_id', options.categoryId);
+  }
+
+  if (options.fromDate) {
+    query = query.gte('published_at', options.fromDate);
+  }
+
+  if (options.toDate) {
+    // Add a day to include the entire "to" day
+    const nextDay = new Date(options.toDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    query = query.lt('published_at', nextDay.toISOString());
   }
   
   if (options.industries && options.industries.length > 0) {
@@ -33,15 +52,41 @@ export async function getNewsletters(options: any = {}) {
 }
 
 // Get newsletters from a specific email account
-export async function getNewslettersFromEmailAccount(accountId, page = 1, limit = 50) {
+export async function getNewslettersFromEmailAccount(accountId, page = 1, limit = 50, filters = {}) {
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
   try {
-    const { data, error, count } = await supabase
+    let query = supabase
       .from("newsletters")
       .select("*, categories(id, name, slug, color)", { count: "exact" })
-      .eq("email_id", accountId)
+      .eq("email_id", accountId);
+
+    // Apply additional filters
+    if (filters.searchQuery) {
+      query = query.or(`title.ilike.%${filters.searchQuery}%,content.ilike.%${filters.searchQuery}%`);
+    }
+    
+    if (filters.sender) {
+      query = query.ilike('sender', `%${filters.sender}%`);
+    }
+
+    if (filters.categoryId) {
+      query = query.eq('category_id', filters.categoryId);
+    }
+
+    if (filters.fromDate) {
+      query = query.gte('published_at', filters.fromDate);
+    }
+
+    if (filters.toDate) {
+      // Add a day to include the entire "to" day
+      const nextDay = new Date(filters.toDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      query = query.lt('published_at', nextDay.toISOString());
+    }
+
+    const { data, error, count } = await query
       .range(from, to)
       .order("published_at", { ascending: false });
 
