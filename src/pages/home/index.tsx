@@ -27,10 +27,9 @@ const HomePage = () => {
   }, []);
   
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Only render AnnouncementBar, HomeHeader is a null component */}
+    <div className="min-h-screen bg-background text-foreground relative">
+      {/* Only render HomeHeader (null component) */}
       <HomeHeader />
-      <AnnouncementBar />
       
       {/* Debug dialog (only visible in debug mode or with keyboard shortcut) */}
       {isDebugMode && (
@@ -52,8 +51,11 @@ const HomePage = () => {
         </div>
       )}
       
-      {/* Main content sections - HeroSection already includes FeaturedNewsletters */}
-      <HeroSection />
+      {/* Main content sections - HeroSection contains the AnnouncementBar now */}
+      <div className="relative">
+        <AnnouncementBar />
+        <HeroSection />
+      </div>
       <StatsSection />
       <FeaturesSection />
       <TestimonialsSection />

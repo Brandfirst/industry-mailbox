@@ -52,6 +52,9 @@ const HeroSection = () => {
   return (
     <section className="py-16 lg:py-20 relative overflow-hidden bg-gradient-to-b from-blue-950 to-slate-900">
       <div className="container mx-auto max-w-6xl px-4 text-center relative z-10">
+        {/* Provide space at the top for the announcement button */}
+        <div className="pt-10"></div>
+        
         <div className="animate-slide-down max-w-5xl mx-auto mb-16">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
             Norges største database av nyhetsbrev
