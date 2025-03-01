@@ -3,7 +3,13 @@
 // https://supabase.com/docs/guides/functions/getting-started
 
 import { serve } from "https://deno.land/std@0.170.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+
+// Define CORS headers for browser access
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
 
 console.log("Debug Test Function started");
 
