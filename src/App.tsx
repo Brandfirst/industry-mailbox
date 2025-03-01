@@ -13,6 +13,7 @@ import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <Navbar />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<Search />} />
