@@ -1,5 +1,6 @@
 
 import { useEffect } from "react";
+import Navbar from "@/components/navbar";
 import AnnouncementBar, { HomeHeader } from "./components/AnnouncementBar";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
@@ -18,6 +19,9 @@ const HomePage = () => {
   
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Global navigation */}
+      <Navbar />
+      
       {/* Header and Announcement */}
       <HomeHeader />
       <AnnouncementBar />
