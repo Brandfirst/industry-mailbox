@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { 
@@ -26,6 +25,7 @@ export function useNewsletterOperations(
     
     if (isSyncing) {
       // Prevent multiple sync attempts
+      toast.info("Sync already in progress");
       return;
     }
     
@@ -42,21 +42,38 @@ export function useNewsletterOperations(
       if (result.success) {
         // Check if it was a partial success
         if (result.partial) {
-          const warningMsg = `Synced ${result.count || 0} newsletters with some errors: ${result.warning || 'Some items failed'}`;
-          setWarningMessage(warningMsg);
-          toast.warning(warningMsg);
+          // Only show warning if we have actual failures
+          if (result.count > 0 || result.synced?.length > 0) {
+            const warningMsg = `Synced ${result.count || 0} newsletters with some errors: ${result.warning || 'Some items failed'}`;
+            setWarningMessage(warningMsg);
+            toast.warning(warningMsg);
+          } else {
+            // No newsletters synced at all, so it's more of an error
+            const errorMsg = result.details || 
+                           "Failed to sync newsletters. The Gmail API returned an error.";
+            setErrorMessage(errorMsg);
+            toast.error(errorMsg);
+          }
+        } else if (result.count === 0) {
+          // Success but no newsletters found
+          toast.info("No new newsletters found to sync");
         } else {
           toast.success(`Successfully synced ${result.count || 0} newsletters`);
         }
         
-        // Refresh the newsletter list
-        const { data, count } = await getNewslettersFromEmailAccount(
-          selectedAccount, 
-          page, 
-          ITEMS_PER_PAGE
-        );
-        setNewsletters(data);
-        setTotalCount(count || 0);
+        // Refresh the newsletter list regardless of the outcome
+        try {
+          const { data, count } = await getNewslettersFromEmailAccount(
+            selectedAccount, 
+            page, 
+            ITEMS_PER_PAGE
+          );
+          setNewsletters(data);
+          setTotalCount(count || 0);
+        } catch (refreshError) {
+          console.error("Error refreshing newsletters after sync:", refreshError);
+          // Don't set error message here, as we want to keep the sync result message
+        }
       } else {
         console.error("Sync error details:", result);
         let errorMsg = result.error || "Unknown error occurred during sync";

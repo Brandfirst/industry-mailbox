@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { 
   Newsletter,
   getNewslettersFromEmailAccount
@@ -28,6 +28,17 @@ export function useNewsletterSync(userId: string | undefined) {
     errorMessage: dataErrorMessage,
     setErrorMessage: setDataErrorMessage
   } = useNewsletterData(userId);
+
+  // Track account changes to prevent page reset issues
+  const prevSelectedAccountRef = useRef<string | null>(null);
+  
+  // Reset page when account changes
+  useEffect(() => {
+    if (prevSelectedAccountRef.current !== selectedAccount) {
+      prevSelectedAccountRef.current = selectedAccount;
+      setPage(1); // Reset to first page when account changes
+    }
+  }, [selectedAccount]);
 
   // Get newsletters based on current filters
   const {

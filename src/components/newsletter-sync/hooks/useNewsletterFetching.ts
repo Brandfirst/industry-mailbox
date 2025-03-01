@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { 
   Newsletter,
-  getNewslettersFromEmailAccount,
+  getNewslettersFromEmailAccount
 } from "@/lib/supabase";
 import { FiltersState } from "../FilterToolbar";
 
@@ -25,6 +25,9 @@ export function useNewsletterFetching(
   const prevSelectedAccountRef = useRef<string | null>(null);
   const prevPageRef = useRef<number>(page);
   const prevFiltersRef = useRef<FiltersState>(filters);
+  
+  // Use a loading ref to prevent concurrent loads
+  const isLoadingRef = useRef<boolean>(false);
   
   // Stringify filters to compare in a stable way
   const filtersKey = JSON.stringify(filters);
@@ -53,8 +56,14 @@ export function useNewsletterFetching(
       return;
     }
     
+    // Skip if already loading (prevent concurrent loads)
+    if (isLoadingRef.current) {
+      return;
+    }
+    
     const loadNewsletters = async () => {
       setIsLoading(true);
+      isLoadingRef.current = true;
       setErrorMessage(null);
       setWarningMessage(null);
       
@@ -114,6 +123,7 @@ export function useNewsletterFetching(
         toast.error("Failed to load newsletters");
       } finally {
         setIsLoading(false);
+        isLoadingRef.current = false;
       }
     };
     
