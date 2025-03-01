@@ -1,103 +1,175 @@
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSenderStats, updateSenderCategory } from "@/lib/supabase/newsletters";
-import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
-import { NewsletterCategory } from "@/lib/supabase/types";
-import SenderList from "@/components/newsletter-senders/SenderList";
-import { LoadingState } from "@/components/newsletter-sync/LoadingState";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { getSenderStats } from "@/lib/supabase/newsletters/fetch";
+import { CategoryWithStats, NewsletterCategory } from "@/lib/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
+import { SenderList } from "@/components/newsletter-senders/SenderList";
+import { refreshLogo, searchLogo } from "@/lib/utils";
+import { ArrowUpDown, RefreshCw, Search } from "lucide-react";
+import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
+import { toast } from "sonner";
 
-const NewsletterSenders = () => {
+export default function NewsletterSenders() {
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [senders, setSenders] = useState<NewsletterSenderStats[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState<NewsletterCategory[]>([]);
+  const [sortKey, setSortKey] = useState<"name" | "count" | "date">("name");
+  const [sortAsc, setSortAsc] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Function to get newsletter categories
-  const getNewsletterCategories = async (): Promise<NewsletterCategory[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('newsletter_categories')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching newsletter categories:', error);
-      throw error;
-    }
-  };
-
-  // Load senders and categories data
+  // Fetch sender stats and categories
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
+    const fetchData = async () => {
+      if (!user) return;
+      
       try {
-        if (user?.id) {
-          // Fetch senders stats 
-          const sendersData = await getSenderStats(user.id);
-          setSenders(sendersData);
-
-          // Fetch categories
-          const categoriesData = await getNewsletterCategories();
-          setCategories(categoriesData);
-        }
+        setLoading(true);
+        
+        // Fetch categories
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from("categories")
+          .select("*")
+          .order("name");
+          
+        if (categoriesError) throw categoriesError;
+        setCategories(categoriesData || []);
+        
+        // Fetch sender stats
+        const senderStats = await getSenderStats(user.id);
+        setSenders(senderStats);
       } catch (error) {
-        console.error("Error loading senders data:", error);
-        toast.error("Failed to load senders data");
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load sender data");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-
-    loadData();
+    
+    fetchData();
   }, [user]);
-
-  const handleCategoryChange = async (senderEmail: string, categoryId: number) => {
+  
+  const handleRefresh = async () => {
+    if (!user) return;
+    
     try {
-      // Update the sender's category in the database
-      await updateSenderCategory(senderEmail, categoryId);
-      
-      // Update local state
-      setSenders(prevSenders => 
-        prevSenders.map(sender => 
-          sender.sender_email === senderEmail 
-            ? { ...sender, category_id: categoryId } 
-            : sender
-        )
-      );
-      
-      toast.success("Sender category updated successfully");
+      setRefreshing(true);
+      const refreshedStats = await getSenderStats(user.id);
+      setSenders(refreshedStats);
+      toast.success("Sender statistics refreshed");
     } catch (error) {
-      console.error("Error updating sender category:", error);
-      toast.error("Failed to update sender category");
+      console.error("Error refreshing data:", error);
+      toast.error("Failed to refresh sender data");
+    } finally {
+      setRefreshing(false);
     }
   };
+  
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortKey(key);
+      setSortAsc(true);
+    }
+  };
+  
+  // Filter and sort the senders
+  const filteredSenders = senders
+    .filter(sender => {
+      const senderName = sender.sender_name?.toLowerCase() || "";
+      const senderEmail = sender.sender_email?.toLowerCase() || "";
+      const term = searchTerm.toLowerCase();
+      return senderName.includes(term) || senderEmail.includes(term);
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      
+      if (sortKey === "name") {
+        const nameA = a.sender_name?.toLowerCase() || a.sender_email?.toLowerCase() || "";
+        const nameB = b.sender_name?.toLowerCase() || b.sender_email?.toLowerCase() || "";
+        comparison = nameA.localeCompare(nameB);
+      } else if (sortKey === "count") {
+        comparison = (a.newsletter_count || 0) - (b.newsletter_count || 0);
+      } else if (sortKey === "date") {
+        const dateA = a.last_sync_date ? new Date(a.last_sync_date).getTime() : 0;
+        const dateB = b.last_sync_date ? new Date(b.last_sync_date).getTime() : 0;
+        comparison = dateA - dateB;
+      }
+      
+      return sortAsc ? comparison : -comparison;
+    });
 
   return (
-    <div className="container mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Newsletter Senders</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <LoadingState />
-          ) : (
-            <SenderList 
-              senders={senders} 
-              categories={categories} 
-              onCategoryChange={handleCategoryChange} 
+    <Card className="border shadow-md max-w-full">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <CardTitle className="text-2xl font-bold">Newsletter Senders</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={refreshing || loading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search senders..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+          
+          <div className="flex flex-row gap-2">
+            <Button 
+              variant={sortKey === "name" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => toggleSort("name")}
+            >
+              Name {sortKey === "name" && <ArrowUpDown className="ml-1 h-4 w-4" />}
+            </Button>
+            <Button 
+              variant={sortKey === "count" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => toggleSort("count")}
+            >
+              Count {sortKey === "count" && <ArrowUpDown className="ml-1 h-4 w-4" />}
+            </Button>
+            <Button 
+              variant={sortKey === "date" ? "default" : "outline"} 
+              size="sm"
+              onClick={() => toggleSort("date")}
+            >
+              Latest {sortKey === "date" && <ArrowUpDown className="ml-1 h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+        
+        <Separator className="my-4" />
+        
+        <SenderList 
+          senders={filteredSenders}
+          categories={categories}
+          loading={loading}
+        />
+      </CardContent>
+    </Card>
   );
-};
-
-export default NewsletterSenders;
+}

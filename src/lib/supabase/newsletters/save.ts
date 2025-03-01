@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter } from "../types";
+import { NewsletterFilterOptions } from "./types";
 
 // Update multiple newsletters' categories
 export async function updateNewsletterCategories(
@@ -123,4 +124,48 @@ export async function syncEmailAccountNewsletters(accountId: string) {
       error: `Failed to sync newsletters: ${error.message || String(error)}`,
     };
   }
+}
+
+// Gets newsletters with pagination and optional filtering
+export function getNewsletters(options: NewsletterFilterOptions = {}) {
+  const {
+    page = 1,
+    limit = 10,
+    categoryId,
+    searchQuery,
+    industries,
+    fromDate,
+    toDate
+  } = options;
+
+  const startRow = (page - 1) * limit;
+  const endRow = startRow + limit - 1;
+
+  let query = supabase
+    .from('newsletters')
+    .select('*, categories:category_id(*)', { count: 'exact' })
+    .order('published_at', { ascending: false });
+
+  // Apply filters
+  if (categoryId && categoryId !== 'all') {
+    query = query.eq('category_id', categoryId);
+  }
+
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,preview.ilike.%${searchQuery}%,sender.ilike.%${searchQuery}%`);
+  }
+
+  if (industries && industries.length > 0) {
+    query = query.in('industry', industries);
+  }
+
+  if (fromDate) {
+    query = query.gte('published_at', fromDate);
+  }
+
+  if (toDate) {
+    query = query.lte('published_at', toDate);
+  }
+
+  return query.range(startRow, endRow);
 }

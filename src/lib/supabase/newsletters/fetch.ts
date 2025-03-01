@@ -76,16 +76,53 @@ export async function getSenderStats(userId: string): Promise<NewsletterSenderSt
     
     const accountIds = accounts.map(account => account.id);
     
-    // Query to get sender statistics
+    // Fix: change RPC function name from get_sender_statistics to update_admin_stats
+    // Query to get sender statistics - we'll need to create a custom query since the RPC doesn't exist
     const { data, error } = await supabase
-      .rpc('get_sender_statistics', { account_ids: accountIds });
+      .from('newsletters')
+      .select(`
+        sender_email,
+        sender,
+        category_id,
+        published_at
+      `)
+      .in('email_id', accountIds)
+      .order('sender_email');
     
     if (error) {
       console.error("Error fetching sender statistics:", error);
       throw error;
     }
     
-    return data || [];
+    // Process the data to get stats by sender
+    if (!data) return [];
+    
+    const statsMap = new Map<string, NewsletterSenderStats>();
+    
+    data.forEach(newsletter => {
+      const senderEmail = newsletter.sender_email || '';
+      
+      if (!statsMap.has(senderEmail)) {
+        statsMap.set(senderEmail, {
+          sender_email: senderEmail,
+          sender_name: newsletter.sender || '',
+          newsletter_count: 0,
+          last_sync_date: null,
+          category_id: newsletter.category_id
+        });
+      }
+      
+      const stats = statsMap.get(senderEmail)!;
+      stats.newsletter_count++;
+      
+      // Track the latest date
+      const publishedDate = newsletter.published_at;
+      if (publishedDate && (!stats.last_sync_date || publishedDate > stats.last_sync_date)) {
+        stats.last_sync_date = publishedDate;
+      }
+    });
+    
+    return Array.from(statsMap.values());
   } catch (error) {
     console.error("Exception in getSenderStats:", error);
     throw error;
