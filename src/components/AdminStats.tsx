@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Users, Mail, Database, TrendingUp, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAdminStats } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 interface StatsCardProps {
   title: string;
@@ -91,13 +90,10 @@ const AdminStats = () => {
       try {
         setIsLoading(true);
         
-        // Fetch the latest stats from admin_stats table
         const statsData = await getAdminStats();
         
-        // Get the latest stats or use empty default if no stats exist
         const latestStats = statsData || null;
         
-        // Fetch additional data that isn't stored in the stats table
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('categories')
           .select('count', { count: 'exact' });
@@ -107,7 +103,6 @@ const AdminStats = () => {
           throw new Error(categoriesError.message);
         }
         
-        // Fetch weekly newsletters count
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         
@@ -121,18 +116,14 @@ const AdminStats = () => {
           throw new Error(weeklyNewslettersError.message);
         }
 
-        // For now, use some calculated or default values for data we don't have yet
         const categoriesCount = categoriesData?.length || 0;
         const weeklyNewslettersCount = weeklyNewsletters?.length || 0;
         
-        // If we don't have stats data, fetch direct counts
         let totalUsers = latestStats?.total_users || 0;
         let premiumUsers = latestStats?.premium_users || 0;
         let totalNewsletters = latestStats?.total_newsletters || 0;
         
-        // If we don't have stats data, try to get direct counts
         if (!latestStats) {
-          // Get user count
           const { count: userCount, error: userCountError } = await supabase
             .from('profiles')
             .select('*', { count: 'exact', head: true });
@@ -143,7 +134,6 @@ const AdminStats = () => {
             totalUsers = userCount || 0;
           }
           
-          // Get premium user count
           const { count: premiumCount, error: premiumCountError } = await supabase
             .from('profiles')
             .select('*', { count: 'exact', head: true })
@@ -155,7 +145,6 @@ const AdminStats = () => {
             premiumUsers = premiumCount || 0;
           }
           
-          // Get newsletter count
           const { count: newsletterCount, error: newsletterCountError } = await supabase
             .from('newsletters')
             .select('*', { count: 'exact', head: true });
@@ -172,14 +161,14 @@ const AdminStats = () => {
           premiumUsers: premiumUsers,
           totalNewsletters: totalNewsletters,
           storageUsed: formatBytes(latestStats?.storage_used || 0),
-          newUsers: Math.floor(totalUsers * 0.12) || 0, // Placeholder: 12% of total
-          activeUsers: Math.floor(totalUsers * 0.76) || 0, // Placeholder: 76% of total
+          newUsers: Math.floor(totalUsers * 0.12) || 0,
+          activeUsers: Math.floor(totalUsers * 0.76) || 0,
           premiumConversion: totalUsers > 0 ? 
             `${((premiumUsers / totalUsers) * 100).toFixed(1)}%` : 
             "0%",
           newNewslettersPastWeek: weeklyNewslettersCount,
           categories: categoriesCount,
-          uncategorized: Math.floor(totalNewsletters * 0.05) || 0 // Placeholder: 5% of total
+          uncategorized: Math.floor(totalNewsletters * 0.05) || 0
         };
         
         setStats(formattedStats);
@@ -193,13 +182,11 @@ const AdminStats = () => {
 
     fetchStats();
     
-    // Update stats automatically every 5 minutes
     const intervalId = setInterval(fetchStats, 5 * 60 * 1000);
     
     return () => clearInterval(intervalId);
   }, [user, isAdmin]);
 
-  // Helper function to format bytes to human-readable format
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     

@@ -6,7 +6,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Mail, RefreshCw, Trash2, PlusCircle, AlertCircle, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { getUserEmailAccounts, connectGoogleEmail, disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase";
+import { 
+  getUserEmailAccounts, 
+  connectGoogleEmail, 
+  disconnectEmailAccount, 
+  syncEmailAccount 
+} from "@/lib/supabase";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const EmailConnection = () => {
