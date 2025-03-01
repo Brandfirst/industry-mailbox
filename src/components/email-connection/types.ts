@@ -12,3 +12,9 @@ export interface SyncResult {
   count: number;
   timestamp: number;
 }
+
+// Add a selection state interface for newsletters
+export interface NewsletterSelectionState {
+  selectedIds: number[];
+  allSelected: boolean;
+}

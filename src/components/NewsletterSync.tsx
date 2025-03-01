@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,8 @@ import {
   getUserEmailAccounts, 
   getNewslettersFromEmailAccount,
   syncEmailAccount,
-  getAllCategories
+  getAllCategories,
+  deleteNewsletters
 } from "@/lib/supabase";
 import { useAuth } from "@/contexts/auth";
 
@@ -152,6 +154,33 @@ export default function NewsletterSync() {
     setNewsletters(updatedNewsletters);
   };
 
+  const handleDeleteNewsletters = async (ids: number[]) => {
+    if (!ids.length) return;
+    
+    try {
+      await deleteNewsletters(ids);
+      
+      // Update the local state to remove deleted newsletters
+      const remainingNewsletters = newsletters.filter(
+        newsletter => !ids.includes(newsletter.id)
+      );
+      
+      setNewsletters(remainingNewsletters);
+      
+      // Update total count
+      setTotalCount(prev => prev - ids.length);
+      
+      // If all newsletters on the current page were deleted and we're not on page 1,
+      // go to the previous page
+      if (remainingNewsletters.length === 0 && page > 1) {
+        setPage(prev => prev - 1);
+      }
+    } catch (error) {
+      console.error("Error deleting newsletters:", error);
+      throw error; // Re-throw to let the component handle the error display
+    }
+  };
+
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   
   const getLastSyncTime = () => {
@@ -218,6 +247,7 @@ export default function NewsletterSync() {
                   newsletters={newsletters}
                   categories={categories}
                   onCategoryChange={handleCategoryChange}
+                  onDeleteNewsletters={handleDeleteNewsletters}
                 />
                 
                 <NewsletterPagination 
