@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
 import { Newsletter, NewsletterCategory } from '@/lib/supabase/types';
 import { format } from 'date-fns';
-import { ArrowRight, Filter } from 'lucide-react';
+import { ArrowRight, Filter, ExternalLink } from 'lucide-react';
 
 const FeaturedNewsletters = () => {
   const navigate = useNavigate();
@@ -74,20 +74,33 @@ const FeaturedNewsletters = () => {
     navigate('/search');
   };
   
+  // Get random time string for display
+  const getRandomTime = () => {
+    const hours = Math.floor(Math.random() * 12) + 1;
+    const minutes = Math.floor(Math.random() * 60);
+    return `${hours}:${minutes < 10 ? '0' + minutes : minutes}pm`;
+  };
+  
+  // Generate random country code (2 letters)
+  const getRandomCountry = () => {
+    const countries = ['US', 'GB', 'DE', 'AU', 'CA', 'NO', 'SE', 'DK', 'FR'];
+    return countries[Math.floor(Math.random() * countries.length)];
+  };
+  
   return (
     <section className="py-16 bg-white">
       <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-between gap-4 md:flex-row mb-8">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-primary">
-              Aktuelle nyhetsbrev
-            </h2>
-            <p className="mt-4 text-muted-foreground max-w-[700px]">
-              Oppdateres daglig med de nyeste nyhetsbrevene i vår arkiv
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2">
+        <div className="flex flex-col items-center text-center mb-10">
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-primary mb-3">
+            Aktuelle nyhetsbrev
+          </h2>
+          <p className="text-muted-foreground max-w-[700px]">
+            Oppdagelse av de nyeste og mest populære nyhetsbrevene i vår samling
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
             <div className="relative">
               <Input
                 type="search"
@@ -137,37 +150,55 @@ const FeaturedNewsletters = () => {
         ) : newsletters.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {newsletters.map((newsletter) => (
-              <Card key={newsletter.id} className="overflow-hidden transition-shadow hover:shadow-lg">
-                <CardHeader className="pb-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <CardTitle className="line-clamp-2">{newsletter.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{newsletter.sender}</p>
-                    </div>
-                    {newsletter.category_id && (
-                      <div 
-                        className="px-2 py-1 text-xs rounded-full font-medium"
-                        style={{ 
-                          backgroundColor: newsletter.categories?.color ? `${newsletter.categories.color}20` : '#8B5CF620',
-                          color: newsletter.categories?.color || '#8B5CF6' 
-                        }}
-                      >
-                        {newsletter.categories?.name || 'Ukategorisert'}
-                      </div>
+              <Card key={newsletter.id} className="overflow-hidden transition-shadow hover:shadow-md border rounded-lg">
+                {/* Header with sender info */}
+                <div className="flex items-center p-4 border-b">
+                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-3">
+                    {newsletter.sender && (
+                      <span className="text-lg font-semibold text-gray-700">
+                        {newsletter.sender.charAt(0).toUpperCase()}
+                      </span>
                     )}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm line-clamp-3 text-muted-foreground">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-sm">{newsletter.sender || 'Unknown Sender'}</h3>
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      {getRandomCountry()} · {getRandomTime()}
+                    </div>
+                  </div>
+                  {newsletter.category_id && (
+                    <div 
+                      className="px-2 py-1 text-xs rounded-full font-medium ml-2"
+                      style={{ 
+                        backgroundColor: newsletter.categories?.color ? `${newsletter.categories.color}20` : '#8B5CF620',
+                        color: newsletter.categories?.color || '#8B5CF6' 
+                      }}
+                    >
+                      {newsletter.categories?.name || 'Ukategorisert'}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Email content preview */}
+                <div className="p-4">
+                  <h4 className="font-bold text-lg mb-3">{newsletter.title}</h4>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
                     {newsletter.preview || 'Ingen forhåndsvisning tilgjengelig.'}
                   </p>
-                </CardContent>
-                <CardFooter className="flex justify-between border-t pt-4">
+                  
+                  {/* Mock email content - image placeholder */}
+                  <div className="bg-gray-100 rounded-md h-40 mb-4 flex items-center justify-center">
+                    <span className="text-muted-foreground text-sm">Nyhetsbrev innhold</span>
+                  </div>
+                </div>
+                
+                {/* Footer */}
+                <CardFooter className="flex justify-between border-t px-4 py-3">
                   <p className="text-xs text-muted-foreground">
                     {newsletter.published_at ? format(new Date(newsletter.published_at), 'dd.MM.yyyy') : 'Ukjent dato'}
                   </p>
-                  <Button variant="ghost" size="sm" onClick={() => navigate(`/newsletter/${newsletter.id}`)}>
-                    Les mer
+                  <Button variant="ghost" size="sm" onClick={() => navigate(`/newsletter/${newsletter.id}`)} className="flex items-center gap-1 text-xs">
+                    Les mer <ExternalLink className="h-3 w-3 ml-1" />
                   </Button>
                 </CardFooter>
               </Card>
