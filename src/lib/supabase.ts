@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -11,6 +12,9 @@ export interface Newsletter {
   published_at: string;
   created_at: string;
   categories?: any;
+  email_id?: string;
+  sender_email?: string;
+  category_id?: number;
 }
 
 export interface EmailAccount {
@@ -23,6 +27,13 @@ export interface EmailAccount {
   refresh_token: string | null;
   created_at: string | null;
   last_sync: string | null;
+}
+
+export interface NewsletterCategory {
+  id: number;
+  name: string;
+  slug: string;
+  color: string;
 }
 
 // Simple interface to avoid deep type instantiation
@@ -74,7 +85,7 @@ export async function getNewsletters(options) {
   
   const { data, error, count } = await supabase
     .from("newsletters")
-    .select("*", { count: "exact" })
+    .select("*, categories(name, slug, color)")
     .range(from, to);
   
   if (error) {
@@ -82,6 +93,26 @@ export async function getNewsletters(options) {
     throw error;
   }
   
+  return { data: data || [], count };
+}
+
+// Get newsletters from a specific email account
+export async function getNewslettersFromEmailAccount(accountId, page = 1, limit = 50) {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, error, count } = await supabase
+    .from("newsletters")
+    .select("*, categories(name, slug, color)", { count: "exact" })
+    .eq("email_id", accountId)
+    .range(from, to)
+    .order("published_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching newsletters for email account:", error);
+    throw error;
+  }
+
   return { data: data || [], count };
 }
 
@@ -184,6 +215,39 @@ export async function getAllCategories() {
 
   if (error) {
     console.error("Error fetching categories:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Create a new category
+export async function createCategory(categoryData) {
+  const { data, error } = await supabase
+    .from("categories")
+    .insert(categoryData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating category:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+// Update newsletter category
+export async function updateNewsletterCategory(newsletterId, categoryId) {
+  const { data, error } = await supabase
+    .from("newsletters")
+    .update({ category_id: categoryId })
+    .eq("id", newsletterId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating newsletter category:", error);
     throw error;
   }
 
@@ -313,6 +377,8 @@ export async function disconnectEmailAccount(accountId) {
 
 export async function syncEmailAccount(accountId) {
   try {
+    console.log("Starting sync for email account:", accountId);
+    
     const response = await supabase.functions.invoke("sync-emails", {
       body: { accountId },
     });
@@ -336,9 +402,16 @@ export async function syncEmailAccount(accountId) {
       };
     }
 
+    // Update the last_sync timestamp for the email account
+    await supabase
+      .from("email_accounts")
+      .update({ last_sync: new Date().toISOString() })
+      .eq("id", accountId);
+
     return { 
       success: true, 
-      synced: response.data.synced,
+      synced: response.data.synced || [],
+      count: response.data.count || 0,
       statusCode: 200  // Use a default status code for success
     };
   } catch (error) {

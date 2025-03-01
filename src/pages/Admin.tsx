@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -17,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import AdminStats from "@/components/AdminStats";
 import EmailConnection from "@/components/EmailConnection";
+import NewsletterSync from "@/components/NewsletterSync";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,8 +32,8 @@ const Sidebar = ({ activeTab, setActiveTab, isMobileSidebarOpen, toggleMobileSid
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "newsletters", label: "Newsletters", icon: Mail },
-    { id: "users", label: "Users", icon: Users },
     { id: "categories", label: "Categories", icon: Layers },
+    { id: "users", label: "Users", icon: Users },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -281,7 +281,12 @@ const Admin = () => {
             <div className="bg-card rounded-lg border border-border p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-medium text-card-foreground">Recently Added Newsletters</h2>
-                <Button variant="outline" size="sm" className="text-xs">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-xs" 
+                  onClick={() => setActiveTab("newsletters")}
+                >
                   <Inbox className="mr-1 h-3 w-3" />
                   View All
                 </Button>
@@ -323,7 +328,11 @@ const Admin = () => {
                     <Users className="mr-2 h-4 w-4" />
                     Invite New Admin
                   </Button>
-                  <Button variant="outline" className="w-full justify-start text-foreground">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start text-foreground"
+                    onClick={() => setActiveTab("categories")}
+                  >
                     <Layers className="mr-2 h-4 w-4" />
                     Create New Category
                   </Button>
@@ -333,8 +342,15 @@ const Admin = () => {
           </div>
         )}
         
-        {/* Other tabs would be implemented similarly */}
-        {activeTab !== "dashboard" && (
+        {/* Newsletters Tab Content */}
+        {activeTab === "newsletters" && (
+          <div className="space-y-6">
+            <NewsletterSync />
+          </div>
+        )}
+        
+        {/* Other tabs (categories, users, settings) would be implemented similarly */}
+        {(activeTab === "categories" || activeTab === "users" || activeTab === "settings") && (
           <div className="bg-card rounded-lg border border-border p-6 text-center my-4">
             <h2 className="text-xl font-medium mb-2 text-card-foreground">This Section is Under Construction</h2>
             <p className="text-muted-foreground mb-4">
