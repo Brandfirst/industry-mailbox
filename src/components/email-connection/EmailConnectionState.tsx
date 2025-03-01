@@ -63,7 +63,7 @@ export const useEmailConnectionState = () => {
     if (!user) {
       console.log("No user, can't fetch email accounts");
       setEmailAccounts([]);
-      return [];
+      return;
     }
 
     setStatus({ loading: true, error: null });
@@ -76,7 +76,6 @@ export const useEmailConnectionState = () => {
       console.log("Fetched email accounts:", data);
       setEmailAccounts(data || []);
       setStatus({ loading: false, error: null });
-      return data || [];
     } catch (err) {
       console.error("Exception fetching email accounts:", err);
       setStatus({ 
@@ -84,7 +83,6 @@ export const useEmailConnectionState = () => {
         error: err instanceof Error ? err.message : "Unknown error" 
       });
       setEmailAccounts([]);
-      return [];
     }
   }, [user]);
 
