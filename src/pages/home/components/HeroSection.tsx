@@ -23,17 +23,20 @@ const CountUpAnimation = ({
     const startValue = Math.floor(endValue * 0.7);
     setCount(startValue);
     
-    const step = Math.ceil((endValue - startValue) / (duration / 50));
+    // Increment more slowly - once per second
+    const incrementInterval = 1000; // 1 second
+    const incrementValue = 1; // Increment by 1 each time
+    
     const timer = setInterval(() => {
       setCount(prevCount => {
-        const nextCount = prevCount + step;
+        const nextCount = prevCount + incrementValue;
         if (nextCount >= endValue) {
           clearInterval(timer);
           return endValue;
         }
         return nextCount;
       });
-    }, 50);
+    }, incrementInterval);
     
     return () => clearInterval(timer);
   }, [endValue, duration]);

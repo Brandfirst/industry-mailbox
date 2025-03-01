@@ -145,14 +145,15 @@ const FeaturedNewsletters = () => {
                   </div>
                 </div>
                 
-                {/* Content Preview using iframe */}
-                <div className="w-full h-[350px] overflow-hidden relative">
+                {/* Content Preview using iframe - Improved to fit the entire container */}
+                <div className="flex-1 w-full overflow-hidden relative">
                   {newsletter.content ? (
                     <iframe
                       srcDoc={newsletter.content}
                       title={newsletter.title || "Newsletter Content"}
                       className="w-full h-full border-0"
                       sandbox="allow-same-origin"
+                      style={{ transform: "scale(0.97)", transformOrigin: "top center" }}
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center">
