@@ -33,13 +33,13 @@ const CategorySelector = ({
         onValueChange={(value) => onCategoryChange(senderEmail, value)}
         disabled={isUpdating}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px] bg-background border-border">
           <SelectValue placeholder="Select category" />
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="null">Uncategorized</SelectItem>
+        <SelectContent className="bg-background border-border text-foreground shadow-md">
+          <SelectItem value="null" className="text-foreground">Uncategorized</SelectItem>
           {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id.toString()}>
+            <SelectItem key={category.id} value={category.id.toString()} className="text-foreground">
               {category.name}
             </SelectItem>
           ))}
