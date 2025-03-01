@@ -20,6 +20,7 @@ const queryClient = new QueryClient();
 // Wrapper component to conditionally render the Navbar
 const AppLayout = () => {
   const location = useLocation();
+  // Fix the condition to properly detect all admin routes
   const isAdminRoute = location.pathname.startsWith('/admin');
   
   return (

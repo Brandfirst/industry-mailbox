@@ -13,7 +13,7 @@ const AnnouncementBar = () => {
   );
 };
 
-// Remove the HomeHeader component that's creating the duplicate navbar
+// Export a null component to prevent rendering a second navbar
 export const HomeHeader = () => null;
 
 export default AnnouncementBar;

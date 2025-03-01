@@ -18,7 +18,7 @@ const HomePage = () => {
   
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header and Announcement */}
+      {/* Only render AnnouncementBar, HomeHeader is a null component */}
       <HomeHeader />
       <AnnouncementBar />
       
