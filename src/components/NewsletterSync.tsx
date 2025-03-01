@@ -30,7 +30,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Pagination } from "@/components/ui/pagination";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 import { RefreshCw, Filter, Check, Tag, Calendar, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -292,23 +299,32 @@ export default function NewsletterSync() {
                 {totalPages > 1 && (
                   <div className="flex justify-center mt-4">
                     <Pagination>
-                      <Button 
-                        variant="outline" 
-                        disabled={page === 1} 
-                        onClick={() => setPage(p => Math.max(p - 1, 1))}
-                      >
-                        Previous
-                      </Button>
-                      <div className="mx-4 flex items-center">
-                        Page {page} of {totalPages}
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        disabled={page === totalPages} 
-                        onClick={() => setPage(p => Math.min(p + 1, totalPages))}
-                      >
-                        Next
-                      </Button>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            disabled={page === 1} 
+                            onClick={() => setPage(p => Math.max(p - 1, 1))} 
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: totalPages }).map((_, i) => (
+                          <PaginationItem key={i}>
+                            <PaginationLink
+                              isActive={page === i + 1}
+                              onClick={() => setPage(i + 1)}
+                            >
+                              {i + 1}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            disabled={page === totalPages} 
+                            onClick={() => setPage(p => Math.min(p + 1, totalPages))} 
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
                     </Pagination>
                   </div>
                 )}

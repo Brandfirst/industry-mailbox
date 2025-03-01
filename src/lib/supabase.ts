@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -34,6 +33,7 @@ export interface NewsletterCategory {
   name: string;
   slug: string;
   color: string;
+  created_at?: string;
 }
 
 // Simple interface to avoid deep type instantiation
@@ -210,7 +210,7 @@ export async function getAdminStats() {
 export async function getAllCategories() {
   const { data, error } = await supabase
     .from("categories")
-    .select("*")
+    .select("id, name, slug, color, created_at")
     .order("name");
 
   if (error) {
@@ -218,7 +218,7 @@ export async function getAllCategories() {
     throw error;
   }
 
-  return data;
+  return data as NewsletterCategory[];
 }
 
 // Create a new category
@@ -239,19 +239,25 @@ export async function createCategory(categoryData) {
 
 // Update newsletter category
 export async function updateNewsletterCategory(newsletterId, categoryId) {
-  const { data, error } = await supabase
-    .from("newsletters")
-    .update({ category_id: categoryId })
-    .eq("id", newsletterId)
-    .select()
-    .single();
+  // First check if category_id column exists
+  try {
+    const { error } = await supabase
+      .from("newsletters")
+      .update({ category_id: categoryId })
+      .eq("id", newsletterId)
+      .select()
+      .single();
 
-  if (error) {
-    console.error("Error updating newsletter category:", error);
+    if (error) {
+      console.error("Error updating newsletter category:", error);
+      throw error;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in updateNewsletterCategory:", error);
     throw error;
   }
-
-  return data;
 }
 
 // Email account functions

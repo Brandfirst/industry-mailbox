@@ -1,7 +1,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Button } from "./button"
+import { Button, ButtonProps } from "./button"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
 const Pagination = React.forwardRef<
@@ -36,16 +36,19 @@ const PaginationItem = React.forwardRef<
 ))
 PaginationItem.displayName = "PaginationItem"
 
-type PaginationLinkProps =
-  React.AnchorHTMLAttributes<HTMLAnchorElement> &
-    Pick<React.ButtonHTMLAttributes<HTMLButtonElement>, "disabled"> & {
-      isActive?: boolean
-    }
+type PaginationLinkProps = {
+  className?: string;
+  isActive?: boolean;
+  disabled?: boolean;
+  children?: React.ReactNode;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+}
 
 const PaginationLink = ({
   className,
   isActive,
   disabled,
+  children,
   ...props
 }: PaginationLinkProps) => (
   <Button
@@ -61,7 +64,9 @@ const PaginationLink = ({
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </Button>
 )
 PaginationLink.displayName = "PaginationLink"
 
@@ -71,7 +76,6 @@ const PaginationPrevious = ({
 }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink
     aria-label="Go to previous page"
-    size="sm"
     className={cn("h-8 w-8 p-0", className)}
     {...props}
   >
@@ -86,7 +90,6 @@ const PaginationNext = ({
 }: React.ComponentProps<typeof PaginationLink>) => (
   <PaginationLink
     aria-label="Go to next page"
-    size="sm"
     className={cn("h-8 w-8 p-0", className)}
     {...props}
   >
