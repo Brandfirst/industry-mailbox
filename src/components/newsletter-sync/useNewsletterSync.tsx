@@ -14,7 +14,7 @@ export function useNewsletterSync(userId: string | undefined) {
   const [filters, setFilters] = useState<FiltersState>({
     searchQuery: "",
     sender: "",
-    categoryId: "",
+    categoryId: "all", // Changed from empty string to "all"
     fromDate: undefined,
     toDate: undefined
   });
@@ -53,7 +53,7 @@ export function useNewsletterSync(userId: string | undefined) {
     selectedAccount,
     page,
     setNewsletters,
-    setTotalCount,
+    setTotalCount,  // Pass setTotalCount from useNewsletterFetching
     setFetchErrorMessage,
     setWarningMessage
   );

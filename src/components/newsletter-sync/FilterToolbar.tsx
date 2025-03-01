@@ -1,21 +1,28 @@
 
-import { useState } from "react";
-import { Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Calendar as CalendarIcon, Search, X } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
 import { NewsletterCategory } from "@/lib/supabase";
 
-interface FiltersState {
+export type FiltersState = {
   searchQuery: string;
   sender: string;
   categoryId: string;
-  fromDate: Date | undefined;
-  toDate: Date | undefined;
-}
+  fromDate?: Date;
+  toDate?: Date;
+};
 
 interface FilterToolbarProps {
   categories: NewsletterCategory[];
@@ -23,120 +30,164 @@ interface FilterToolbarProps {
 }
 
 export function FilterToolbar({ categories, onFiltersChange }: FilterToolbarProps) {
-  const [filters, setFilters] = useState<FiltersState>({
-    searchQuery: "",
-    sender: "",
-    categoryId: "",
-    fromDate: undefined,
-    toDate: undefined
-  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sender, setSender] = useState("");
+  const [categoryId, setCategoryId] = useState("all"); // Changed from empty string to "all"
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const handleFilterChange = (key: keyof FiltersState, value: any) => {
-    const updatedFilters = { ...filters, [key]: value };
-    setFilters(updatedFilters);
-    onFiltersChange(updatedFilters);
+  // Apply filters when any filter value changes
+  useEffect(() => {
+    onFiltersChange({
+      searchQuery,
+      sender,
+      categoryId,
+      fromDate,
+      toDate
+    });
+  }, [searchQuery, sender, categoryId, fromDate, toDate, onFiltersChange]);
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSender("");
+    setCategoryId("all"); // Reset to "all" instead of empty string
+    setFromDate(undefined);
+    setToDate(undefined);
+    setShowFilters(false);
   };
 
-  const resetFilters = () => {
-    const resetState = {
-      searchQuery: "",
-      sender: "",
-      categoryId: "",
-      fromDate: undefined,
-      toDate: undefined
-    };
-    setFilters(resetState);
-    onFiltersChange(resetState);
-  };
+  const hasActiveFilters = 
+    searchQuery !== "" || 
+    sender !== "" || 
+    categoryId !== "all" || // Check against "all" instead of empty string
+    fromDate !== undefined || 
+    toDate !== undefined;
 
   return (
     <div className="space-y-4 mb-6">
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Search box */}
-        <div className="flex-1">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
-            placeholder="Search in newsletter content..."
-            value={filters.searchQuery}
-            onChange={(e) => handleFilterChange("searchQuery", e.target.value)}
-            className="w-full"
+            type="search"
+            placeholder="Search newsletters..."
+            className="pl-9"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        {/* Sender filter */}
-        <div className="w-full md:w-64">
-          <Input
-            placeholder="Filter by sender..."
-            value={filters.sender}
-            onChange={(e) => handleFilterChange("sender", e.target.value)}
-            className="w-full"
-          />
-        </div>
-
-        {/* Category filter */}
-        <div className="w-full md:w-48">
-          <Select
-            value={filters.categoryId}
-            onValueChange={(value) => handleFilterChange("categoryId", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id.toString()}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Date range */}
+        
         <div className="flex gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full md:w-auto justify-start text-left font-normal">
-                <Calendar className="mr-2 h-4 w-4" />
-                {filters.fromDate ? format(filters.fromDate, "PPP") : "From date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={filters.fromDate}
-                onSelect={(date) => handleFilterChange("fromDate", date)}
-                disabled={(date) => filters.toDate ? date > filters.toDate : false}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full md:w-auto justify-start text-left font-normal">
-                <Calendar className="mr-2 h-4 w-4" />
-                {filters.toDate ? format(filters.toDate, "PPP") : "To date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={filters.toDate}
-                onSelect={(date) => handleFilterChange("toDate", date)}
-                disabled={(date) => filters.fromDate ? date < filters.fromDate : false}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <Button 
+            variant={showFilters ? "default" : "outline"} 
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            className="whitespace-nowrap"
+          >
+            {hasActiveFilters ? "Filters Active" : "Filters"}
+            {hasActiveFilters && (
+              <span className="ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground text-xs text-primary">
+                {[
+                  sender !== "", 
+                  categoryId !== "all", // Check against "all" instead of empty string
+                  fromDate !== undefined,
+                  toDate !== undefined
+                ].filter(Boolean).length + (searchQuery !== "" ? 1 : 0)}
+              </span>
+            )}
+          </Button>
+          
+          {hasActiveFilters && (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleClearFilters}
+              title="Clear all filters"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button variant="ghost" onClick={resetFilters} size="sm">Reset filters</Button>
-      </div>
+      {showFilters && (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-md">
+          <div className="space-y-2">
+            <Label htmlFor="sender">Sender</Label>
+            <Input
+              id="sender"
+              placeholder="Filter by sender..."
+              value={sender}
+              onChange={(e) => setSender(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={categoryId} onValueChange={setCategoryId}>
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>From Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {fromDate ? format(fromDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={fromDate}
+                  onSelect={setFromDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>To Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {toDate ? format(toDate, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={toDate}
+                  onSelect={setToDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-export type { FiltersState };

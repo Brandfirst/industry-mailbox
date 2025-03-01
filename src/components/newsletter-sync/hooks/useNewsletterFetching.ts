@@ -57,7 +57,12 @@ export function useNewsletterFetching(
 
         // Only include categoryId filter if it's not "all"
         if (filters.categoryId && filters.categoryId !== "all") {
-          filterOptions.categoryId = filters.categoryId;
+          // Handle "uncategorized" as a special case for null or empty category_id
+          if (filters.categoryId === "uncategorized") {
+            filterOptions.categoryId = "null"; // Special value to be handled by the backend
+          } else {
+            filterOptions.categoryId = filters.categoryId;
+          }
         }
 
         if (filters.fromDate) {
