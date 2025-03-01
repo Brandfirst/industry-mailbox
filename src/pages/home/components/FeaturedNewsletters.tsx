@@ -131,26 +131,26 @@ const FeaturedNewsletters = () => {
                     </div>
                   </div>
                   
-                  <div className="flex-1 w-full overflow-hidden relative">
+                  <div className="flex-1 w-full overflow-hidden">
                     {newsletter.content ? (
                       <iframe
                         srcDoc={newsletter.content}
                         title={newsletter.title || "Newsletter Content"}
                         className="w-full h-full border-0"
                         sandbox="allow-same-origin"
-                        style={{ transform: "scale(0.99)", transformOrigin: "top center", height: "400px" }}
+                        style={{ 
+                          transform: "scale(0.85)", 
+                          transformOrigin: "top center", 
+                          height: "450px",
+                          width: "117.5%", // Compensate for the 0.85 scale to make it fill the width
+                          marginLeft: "-8.75%" // Center the wider iframe
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                         <p className="text-gray-500">No content available</p>
                       </div>
                     )}
-                  </div>
-                  
-                  <div className="p-3 border-t min-h-[60px] flex items-center">
-                    <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
-                      {newsletter.title || 'Untitled Newsletter'}
-                    </h3>
                   </div>
                 </a>
               ))}
