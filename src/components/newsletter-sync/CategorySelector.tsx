@@ -8,6 +8,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -91,39 +92,43 @@ export function CategorySelector({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[200px] bg-popover border border-border" align="start">
-        <Command className="w-full">
-          <CommandInput placeholder="Search categories..." className="text-foreground" />
-          <CommandEmpty className="text-foreground">No category found.</CommandEmpty>
-          <CommandGroup>
-            <CommandItem
-              key="uncategorized"
-              value="uncategorized"
-              onSelect={() => handleCategorySelect("uncategorized")}
-              className="text-foreground hover:bg-secondary"
-            >
-              <div className="flex items-center gap-2">
-                {!currentCategory && <Check className="h-4 w-4" />}
-                <span>Uncategorized</span>
-              </div>
-            </CommandItem>
-            {categories.map((category) => (
+      <PopoverContent 
+        className="p-0 w-[200px]" 
+        align="start"
+        sideOffset={5}
+      >
+        <Command>
+          <CommandInput placeholder="Search categories..." />
+          <CommandList>
+            <CommandEmpty>No category found.</CommandEmpty>
+            <CommandGroup>
               <CommandItem
-                key={category.id}
-                value={category.name}
-                onSelect={() => handleCategorySelect(String(category.id))}
-                className="text-foreground hover:bg-secondary"
+                key="uncategorized"
+                value="uncategorized"
+                onSelect={() => handleCategorySelect("uncategorized")}
               >
                 <div className="flex items-center gap-2">
-                  {currentCategoryId === category.id && (
-                    <Check className="h-4 w-4" />
-                  )}
-                  <FolderIcon className="h-4 w-4 text-muted-foreground" />
-                  <span>{category.name}</span>
+                  {!currentCategory && <Check className="h-4 w-4" />}
+                  <span>Uncategorized</span>
                 </div>
               </CommandItem>
-            ))}
-          </CommandGroup>
+              {categories.map((category) => (
+                <CommandItem
+                  key={String(category.id)}
+                  value={category.name}
+                  onSelect={() => handleCategorySelect(String(category.id))}
+                >
+                  <div className="flex items-center gap-2">
+                    {currentCategoryId === category.id && (
+                      <Check className="h-4 w-4" />
+                    )}
+                    <FolderIcon className="h-4 w-4 text-muted-foreground" />
+                    <span>{category.name}</span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
