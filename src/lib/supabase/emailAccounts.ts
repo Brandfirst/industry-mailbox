@@ -163,6 +163,7 @@ export async function syncEmailAccount(accountId) {
         partial: true,
         count: response.data.count || 0,
         synced: response.data.synced || [],
+        failed: response.data.failed || [],
         warning: "Some newsletters failed to sync",
         details: response.data.details,
         statusCode: 200
