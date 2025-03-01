@@ -1,53 +1,10 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
-} from "@/components/ui/pagination";
-import { RefreshCw, Filter, Check, Tag, Calendar, Mail, Eye, AlertCircle, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
 import { 
   EmailAccount, 
   NewsletterCategory, 
@@ -55,10 +12,17 @@ import {
   getUserEmailAccounts, 
   getNewslettersFromEmailAccount,
   syncEmailAccount,
-  getAllCategories,
-  updateNewsletterCategory
+  getAllCategories
 } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+
+// Import sub-components
+import { EmptyState } from "./newsletter-sync/EmptyState";
+import { AlertMessages } from "./newsletter-sync/AlertMessages";
+import { AccountSelector } from "./newsletter-sync/AccountSelector";
+import { NewsletterList } from "./newsletter-sync/NewsletterList";
+import { NewsletterPagination } from "./newsletter-sync/NewsletterPagination";
+import { LoadingState } from "./newsletter-sync/LoadingState";
 
 export default function NewsletterSync() {
   const { user } = useAuth();
@@ -72,7 +36,6 @@ export default function NewsletterSync() {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [selectedNewsletter, setSelectedNewsletter] = useState<Newsletter | null>(null);
   const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -186,26 +149,8 @@ export default function NewsletterSync() {
     }
   };
 
-  const handleCategoryChange = async (newsletterId: number, categoryId: string) => {
-    try {
-      // Convert categoryId to number or null if empty string
-      const numericCategoryId = categoryId ? parseInt(categoryId) : null;
-      
-      await updateNewsletterCategory(newsletterId, numericCategoryId);
-      toast.success("Category updated successfully");
-      
-      // Update the local state to reflect the change
-      setNewsletters(prev => 
-        prev.map(newsletter => 
-          newsletter.id === newsletterId 
-            ? { ...newsletter, category_id: numericCategoryId } 
-            : newsletter
-        )
-      );
-    } catch (error) {
-      console.error("Error updating category:", error);
-      toast.error("Failed to update category");
-    }
+  const handleCategoryChange = (updatedNewsletters: Newsletter[]) => {
+    setNewsletters(updatedNewsletters);
   };
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
@@ -216,7 +161,7 @@ export default function NewsletterSync() {
     const account = emailAccounts.find(acc => acc.id === selectedAccount);
     if (!account || !account.last_sync) return "Never";
     
-    return formatDistanceToNow(new Date(account.last_sync), { addSuffix: true });
+    return account.last_sync;
   };
 
   return (
@@ -248,179 +193,39 @@ export default function NewsletterSync() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {errorMessage && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 mb-4 rounded-md flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-        
-        {warningMessage && (
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 mb-4 rounded-md flex items-center">
-            <AlertTriangle className="h-5 w-5 mr-2" />
-            <span>{warningMessage}</span>
-          </div>
-        )}
+        <AlertMessages 
+          errorMessage={errorMessage} 
+          warningMessage={warningMessage} 
+        />
         
         {emailAccounts.length === 0 ? (
-          <div className="text-center py-8">
-            <Mail className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-semibold">No email accounts connected</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Connect an email account to start importing newsletters
-            </p>
-          </div>
+          <EmptyState type="noAccounts" />
         ) : (
           <>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <Select
-                value={selectedAccount || ""}
-                onValueChange={setSelectedAccount}
-                disabled={isLoading || isSyncing}
-              >
-                <SelectTrigger className="w-full sm:w-72">
-                  <SelectValue placeholder="Select email account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {emailAccounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.email} ({account.provider})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <div className="text-sm text-muted-foreground">
-                <Calendar className="inline-block mr-1 h-4 w-4" />
-                Last synced: {getLastSyncTime()}
-              </div>
-            </div>
+            <AccountSelector 
+              accounts={emailAccounts}
+              selectedAccount={selectedAccount}
+              onSelectAccount={setSelectedAccount}
+              isDisabled={isLoading || isSyncing}
+            />
             
             {isLoading ? (
-              <div className="py-32 flex justify-center items-center">
-                <RefreshCw className="animate-spin h-8 w-8 text-primary" />
-              </div>
+              <LoadingState />
             ) : newsletters.length === 0 ? (
-              <div className="text-center py-12">
-                <Tag className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-semibold">No newsletters found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Try syncing your account or select a different email account
-                </p>
-              </div>
+              <EmptyState type="noNewsletters" />
             ) : (
               <>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Sender</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {newsletters.map((newsletter) => (
-                        <TableRow key={newsletter.id}>
-                          <TableCell className="font-medium">
-                            {newsletter.title || "Untitled"}
-                          </TableCell>
-                          <TableCell>
-                            {newsletter.sender || newsletter.sender_email || "Unknown"}
-                          </TableCell>
-                          <TableCell>
-                            {newsletter.published_at
-                              ? formatDistanceToNow(new Date(newsletter.published_at), { addSuffix: true })
-                              : "Unknown"}
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={newsletter.category_id?.toString() || ""}
-                              onValueChange={(value) => handleCategoryChange(newsletter.id, value)}
-                            >
-                              <SelectTrigger className="w-full max-w-[180px]">
-                                <SelectValue placeholder="Categorize" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="">Uncategorized</SelectItem>
-                                {categories.map((category) => (
-                                  <SelectItem key={category.id} value={category.id.toString()}>
-                                    {category.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => setSelectedNewsletter(newsletter)}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl h-[80vh]">
-                                <DialogHeader>
-                                  <DialogTitle>{newsletter.title || "Untitled Newsletter"}</DialogTitle>
-                                </DialogHeader>
-                                <div className="mt-4 overflow-auto h-full pb-6">
-                                  {newsletter.content ? (
-                                    <div 
-                                      className="prose max-w-none"
-                                      dangerouslySetInnerHTML={{ __html: newsletter.content }} 
-                                    />
-                                  ) : (
-                                    <div className="text-center py-12">
-                                      <p>No content available for this newsletter.</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                <NewsletterList 
+                  newsletters={newsletters}
+                  categories={categories}
+                  onCategoryChange={handleCategoryChange}
+                />
                 
-                {totalPages > 1 && (
-                  <div className="flex justify-center mt-4">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            disabled={page === 1} 
-                            onClick={() => setPage(p => Math.max(p - 1, 1))} 
-                          />
-                        </PaginationItem>
-                        
-                        {Array.from({ length: totalPages }).map((_, i) => (
-                          <PaginationItem key={i}>
-                            <PaginationLink
-                              isActive={page === i + 1}
-                              onClick={() => setPage(i + 1)}
-                            >
-                              {i + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-                        
-                        <PaginationItem>
-                          <PaginationNext 
-                            disabled={page === totalPages} 
-                            onClick={() => setPage(p => Math.min(p + 1, totalPages))} 
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  </div>
-                )}
+                <NewsletterPagination 
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                />
               </>
             )}
           </>
