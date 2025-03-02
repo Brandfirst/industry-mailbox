@@ -1,6 +1,5 @@
 
-import { useRef, memo } from 'react';
-import Spline from '@splinetool/react-spline';
+import { memo } from 'react';
 
 type SplineBackgroundProps = {
   position?: 'top' | 'center' | 'bottom';
@@ -14,25 +13,10 @@ type SplineBackgroundProps = {
 // Using memo to prevent unnecessary re-renders
 const SplineBackground = memo(({
   position = 'center',
-  rotation = 0,
-  scale = 1,
   opacity = 0.5,
   zIndex = -1,
   className = '',
 }: SplineBackgroundProps) => {
-  const splineRef = useRef(null);
-
-  // Function to handle when Spline is loaded
-  const onLoad = (splineApp) => {
-    splineRef.current = splineApp;
-    console.log("Spline scene loaded");
-    
-    // Attempt to reduce quality for better performance
-    if (splineApp && splineApp.setQuality) {
-      splineApp.setQuality('low');
-    }
-  };
-
   // Calculate position style based on the position prop
   const getPositionStyle = () => {
     switch (position) {
@@ -51,15 +35,11 @@ const SplineBackground = memo(({
       style={{ 
         opacity, 
         zIndex,
-        transform: `rotate(${rotation}deg) scale(${scale})`,
-        willChange: 'transform', // Improve GPU performance
       }}
     >
-      <Spline 
-        scene="https://prod.spline.design/kiQGRbPlp9LUJc9j/scene.splinecode" 
-        className="w-full h-full"
-        onLoad={onLoad}
-      />
+      {/* Lightweight gradient background instead of 3D Spline */}
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black to-black"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent opacity-70"></div>
       
       {/* Add gradient overlay at the bottom for better content visibility */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10"></div>

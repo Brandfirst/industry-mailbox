@@ -1,10 +1,8 @@
 
 import { useState, useEffect, useRef, memo } from 'react';
-import Spline from '@splinetool/react-spline';
 
 const BackgroundEffects = memo(() => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const splineRef = useRef(null);
   const mouseMoveThrottleRef = useRef(null);
 
   useEffect(() => {
@@ -16,15 +14,6 @@ const BackgroundEffects = memo(() => {
           const x = (event.clientX / window.innerWidth) * 2 - 1;
           const y = (event.clientY / window.innerHeight) * 2 - 1;
           setMousePosition({ x, y });
-          
-          // If we have access to Spline's API, we could send the mouse position
-          if (splineRef.current) {
-            const splineApp = splineRef.current;
-            // This will work if the Spline scene has been set up to receive these events
-            if (splineApp.emitEvent) {
-              splineApp.emitEvent('mouseMove', { x, y });
-            }
-          }
           mouseMoveThrottleRef.current = null;
         }, 50); // Throttle to 50ms
       }
@@ -41,20 +30,12 @@ const BackgroundEffects = memo(() => {
     };
   }, []);
 
-  // Function to handle when Spline is loaded
-  const onLoad = (splineApp) => {
-    splineRef.current = splineApp;
-    console.log("Spline scene loaded");
-  };
-
   return (
     <>
-      <div className="absolute inset-0 z-0 w-full h-[120%]">
-        <Spline 
-          scene="https://prod.spline.design/kiQGRbPlp9LUJc9j/scene.splinecode" 
-          className="w-full h-full"
-          onLoad={onLoad}
-        />
+      <div className="absolute inset-0 z-0 w-full h-[120%] bg-black">
+        {/* Lightweight gradient background instead of 3D Spline */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black to-black"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent opacity-70"></div>
       </div>
       
       <div className="absolute inset-0 z-0 opacity-10">
