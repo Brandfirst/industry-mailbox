@@ -11,9 +11,9 @@ interface NewsletterGridProps {
 const NewsletterGrid = ({ newsletters, loading, onNewsletterClick }: NewsletterGridProps) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="animate-pulse h-[400px]">
+          <Card key={i} className="animate-pulse h-24 md:h-[400px]">
             <div className="h-full bg-muted/20"></div>
           </Card>
         ))}
@@ -31,7 +31,7 @@ const NewsletterGrid = ({ newsletters, loading, onNewsletterClick }: NewsletterG
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
       {newsletters.map((newsletter) => (
         <NewsletterCard 
           key={newsletter.id} 

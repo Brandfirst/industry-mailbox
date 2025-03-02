@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { NewsletterCategory } from '@/lib/supabase/types';
-import { Filter } from 'lucide-react';
+import { Filter, X } from 'lucide-react';
 
 interface SenderBrand {
   sender_email: string;
@@ -24,6 +24,8 @@ interface FilterSidebarProps {
   dateRange: { from: Date | undefined, to: Date | undefined };
   setDateRange: (range: { from: Date | undefined, to: Date | undefined }) => void;
   onApplyFilters: () => void;
+  isMobileOpen: boolean;
+  toggleMobileFilters: () => void;
 }
 
 const FilterSidebar = ({
@@ -35,7 +37,9 @@ const FilterSidebar = ({
   handleBrandChange,
   dateRange,
   setDateRange,
-  onApplyFilters
+  onApplyFilters,
+  isMobileOpen,
+  toggleMobileFilters
 }: FilterSidebarProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   
@@ -51,11 +55,21 @@ const FilterSidebar = ({
     return `${formatDate(dateRange.from)} — ${formatDate(dateRange.to)}`;
   };
 
-  return (
-    <div className="w-full md:w-64 space-y-6 pr-4 border-r">
-      <div className="flex items-center mb-4">
-        <Filter className="h-5 w-5 mr-2" />
-        <h3 className="text-lg font-semibold">Filtre</h3>
+  const filterContent = (
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <Filter className="h-5 w-5 mr-2" />
+          <h3 className="text-lg font-semibold">Filtre</h3>
+        </div>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleMobileFilters}
+          className="md:hidden"
+        >
+          <X className="h-5 w-5" />
+        </Button>
       </div>
       
       {/* Date Range Section */}
@@ -170,11 +184,46 @@ const FilterSidebar = ({
 
       <Button 
         className="w-full mt-4" 
-        onClick={onApplyFilters}
+        onClick={() => {
+          onApplyFilters();
+          if (window.innerWidth < 768) {
+            toggleMobileFilters();
+          }
+        }}
       >
         Bruk filtre
       </Button>
+    </>
+  );
+
+  // Mobile sidebar (slide in from right)
+  const mobileSidebar = isMobileOpen ? (
+    <div className="md:hidden fixed inset-0 z-50">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50"
+        onClick={toggleMobileFilters}
+      ></div>
+      
+      {/* Sidebar */}
+      <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs bg-background p-4 overflow-y-auto animate-slide-in-right">
+        {filterContent}
+      </div>
     </div>
+  ) : null;
+
+  // Desktop sidebar
+  const desktopSidebar = (
+    <div className="hidden md:block w-64 space-y-6 pr-4 border-r">
+      {filterContent}
+    </div>
+  );
+
+  return (
+    <>
+      {desktopSidebar}
+      {mobileSidebar}
+    </>
   );
 };
 
