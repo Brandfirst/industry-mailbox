@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { Newsletter } from '@/lib/supabase/types';
@@ -14,6 +13,48 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
     return format(new Date(dateString), 'MMM d');
   };
 
+  const getIframeContent = () => {
+    if (!newsletter.content) {
+      return `<!DOCTYPE html><html><head></head><body><p>No content available</p></body></html>`;
+    }
+    
+    return `<!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            html, body {
+              margin: 0;
+              padding: 0;
+              overflow: hidden;
+              height: 100%;
+              width: 100%;
+            }
+            body {
+              zoom: 0.4;
+              -moz-transform: scale(0.4);
+              -moz-transform-origin: 0 0;
+              -o-transform: scale(0.4);
+              -o-transform-origin: 0 0;
+              -webkit-transform: scale(0.4);
+              -webkit-transform-origin: 0 0;
+              transform: scale(0.4);
+              transform-origin: 0 0;
+            }
+            a {
+              pointer-events: none;
+            }
+            * {
+              max-width: 100%;
+              box-sizing: border-box;
+            }
+          </style>
+        </head>
+        <body>${newsletter.content}</body>
+      </html>`;
+  };
+
   return (
     <div 
       onClick={() => onClick(newsletter)}
@@ -25,41 +66,7 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
           {newsletter.content ? (
             <div className="h-24 relative">
               <iframe
-                srcDoc={`<!DOCTYPE html>
-                  <html>
-                    <head>
-                      <meta charset="utf-8">
-                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                      <style>
-                        html, body {
-                          margin: 0;
-                          padding: 0;
-                          overflow: hidden;
-                          height: 100%;
-                          width: 100%;
-                        }
-                        body {
-                          zoom: 0.4;
-                          -moz-transform: scale(0.4);
-                          -moz-transform-origin: 0 0;
-                          -o-transform: scale(0.4);
-                          -o-transform-origin: 0 0;
-                          -webkit-transform: scale(0.4);
-                          -webkit-transform-origin: 0 0;
-                          transform: scale(0.4);
-                          transform-origin: 0 0;
-                        }
-                        a {
-                          pointer-events: none;
-                        }
-                        * {
-                          max-width: 100%;
-                          box-sizing: border-box;
-                        }
-                      </style>
-                    </head>
-                    <body>${newsletter.content || ''}</body>
-                  </html>`}
+                srcDoc={getIframeContent()}
                 title={newsletter.title || "Newsletter Content"}
                 className="w-full h-full border-0"
                 sandbox="allow-same-origin"
@@ -148,41 +155,7 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
               style={{ pointerEvents: 'none' }}
             >
               <iframe
-                srcDoc={`<!DOCTYPE html>
-                  <html>
-                    <head>
-                      <meta charset="utf-8">
-                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                      <style>
-                        html, body {
-                          margin: 0;
-                          padding: 0;
-                          overflow: hidden;
-                          height: 100%;
-                          width: 100%;
-                        }
-                        body {
-                          zoom: 0.5;
-                          -moz-transform: scale(0.5);
-                          -moz-transform-origin: 0 0;
-                          -o-transform: scale(0.5);
-                          -o-transform-origin: 0 0;
-                          -webkit-transform: scale(0.5);
-                          -webkit-transform-origin: 0 0;
-                          transform: scale(0.5);
-                          transform-origin: 0 0;
-                        }
-                        a {
-                          pointer-events: none;
-                        }
-                        * {
-                          max-width: 100%;
-                          box-sizing: border-box;
-                        }
-                      </style>
-                    </head>
-                    <body>${newsletter.content || ''}</body>
-                  </html>`}
+                srcDoc={getIframeContent()}
                 title={newsletter.title || "Newsletter Content"}
                 className="w-full h-full border-0"
                 sandbox="allow-same-origin"
