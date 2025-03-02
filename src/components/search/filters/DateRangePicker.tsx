@@ -71,12 +71,23 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
               mode="range"
               defaultMonth={dateRange.from || new Date()}
               selected={tempDateRange}
-              onSelect={setTempDateRange}
+              onSelect={(range) => {
+                setTempDateRange(range);
+              }}
               numberOfMonths={1}
               captionLayout="dropdown-buttons"
-              fromYear={2020}
+              fromYear={2015}
               toYear={2030}
               initialFocus
+              formatters={{
+                formatCaption: (date, options) => {
+                  return format(date, 'MMMM yyyy');
+                }
+              }}
+              modifiersClassNames={{
+                selected: "bg-primary text-primary-foreground",
+                today: "bg-accent text-accent-foreground"
+              }}
             />
             
             <div className="flex gap-2">
