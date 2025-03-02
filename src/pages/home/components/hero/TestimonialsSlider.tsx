@@ -54,7 +54,7 @@ const TestimonialsSlider = ({ testimonials }: TestimonialsSliderProps) => {
                   <div className="w-8 h-8 rounded-full bg-[#FF5722]/20 flex items-center justify-center mr-3 border border-[#FF5722]/30">
                     <UserRound className="w-5 h-5 text-white/80" />
                   </div>
-                  <div className="testimonial-info">
+                  <div className="testimonial-info text-left">
                     <p className="testimonial-name text-white">{item.author}</p>
                     <p className="testimonial-company text-white/70">{item.title}</p>
                   </div>
