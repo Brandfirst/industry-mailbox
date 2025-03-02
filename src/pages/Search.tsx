@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
@@ -69,6 +70,12 @@ const SearchPage = () => {
         setDateRange={setDateRange}
       />
       
+      <FilterButtons
+        toggleMobileFilters={toggleMobileFilters}
+        toggleDesktopFilters={toggleDesktopFilters}
+        isDesktopFiltersOpen={isDesktopFiltersOpen}
+      />
+      
       <SearchLayout
         categories={categories}
         selectedCategory={selectedCategory}
@@ -84,12 +91,6 @@ const SearchPage = () => {
         isDesktopFiltersOpen={isDesktopFiltersOpen}
         toggleDesktopFilters={toggleDesktopFilters}
       >
-        <FilterButtons
-          toggleMobileFilters={toggleMobileFilters}
-          toggleDesktopFilters={toggleDesktopFilters}
-          isDesktopFiltersOpen={isDesktopFiltersOpen}
-        />
-        
         <NewsletterResults
           newsletters={newsletters}
           loading={loading}

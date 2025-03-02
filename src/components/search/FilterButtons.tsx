@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Filter, ChevronRight } from 'lucide-react';
+import { Filter, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface FilterButtonsProps {
   toggleMobileFilters: () => void;
@@ -27,7 +27,7 @@ const FilterButtons = ({
         </Button>
       </div>
 
-      {toggleDesktopFilters && !isDesktopFiltersOpen && (
+      {toggleDesktopFilters && (
         <div className="hidden md:block">
           <Button
             variant="outline"
@@ -35,7 +35,12 @@ const FilterButtons = ({
             onClick={toggleDesktopFilters}
             className="flex items-center gap-2"
           >
-            <ChevronRight className="h-4 w-4" /> Vis filtre
+            {isDesktopFiltersOpen ? (
+              <ChevronLeft className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+            {isDesktopFiltersOpen ? "Skjul filtre" : "Vis filtre"}
           </Button>
         </div>
       )}
