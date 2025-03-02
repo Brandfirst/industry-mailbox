@@ -47,8 +47,9 @@
 }
 
 .announcement-glow-container:hover {
-  border-color: rgba(255, 87, 34, 0.5);
-  box-shadow: 0 0 15px rgba(255, 87, 34, 0.2);
+  border-color: rgba(255, 87, 34, 0.5) !important;
+  box-shadow: 0 0 15px rgba(255, 87, 34, 0.2) !important;
+  background-color: rgba(255, 87, 34, 0.05) !important;
 }
 
 .announcement-glow-effect {
@@ -65,4 +66,17 @@
 
 .announcement-glow-container:hover .announcement-glow-effect {
   opacity: 1;
+}
+
+/* Custom button hover effect with orange glow */
+.custom-button-hover {
+  transition: all 0.3s ease;
+  border-color: rgba(255, 87, 34, 0.3);
+  background-color: transparent;
+}
+
+.custom-button-hover:hover {
+  border-color: rgba(255, 87, 34, 0.5);
+  box-shadow: 0 0 15px rgba(255, 87, 34, 0.2);
+  background-color: rgba(255, 87, 34, 0.05);
 }
