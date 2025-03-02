@@ -2,9 +2,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowRight, Mail, Database, Server, BarChart, Zap } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
 import FeaturedNewsletters from "./FeaturedNewsletters";
-import LogoSection from "./LogoSection";
 
 const CountUpAnimation = ({ 
   endValue, 
@@ -50,34 +49,7 @@ const CountUpAnimation = ({
   );
 };
 
-const DataStreamIcon = ({ icon: Icon, delay, size = 24 }: { icon: any; delay: number; size?: number }) => {
-  return (
-    <div 
-      className="animate-data-stream absolute" 
-      style={{ 
-        animationDelay: `${delay}s`,
-        top: `${Math.random() * 100}%`,
-      }}
-    >
-      <Icon size={size} className="text-[#3a6ffb]" />
-    </div>
-  );
-};
-
 const HeroSection = () => {
-  const [showDataIcons, setShowDataIcons] = useState(false);
-  
-  useEffect(() => {
-    // Start the data streaming animation after the component mounts
-    const timer = setTimeout(() => {
-      setShowDataIcons(true);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
-  
-  const dataIcons = [Mail, Database, Server, BarChart, Zap];
-  
   return (
     <section className="py-16 lg:py-20 relative overflow-hidden bg-black">
       <div className="container mx-auto max-w-6xl px-4 text-center relative z-10">
@@ -100,18 +72,6 @@ const HeroSection = () => {
               fra <span className="text-[#3a6ffb] font-bold"><CountUpAnimation endValue={1750} /></span> varemerker. 
               Laget for markedsførere <span className="smaller-text">og byråer</span> som ønsker å skape effektive og engasjerende nyhetsbrev.
             </p>
-            
-            {/* Animated data icons streaming */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {showDataIcons && dataIcons.map((icon, index) => (
-                <DataStreamIcon 
-                  key={index} 
-                  icon={icon} 
-                  delay={index * 0.3} 
-                  size={index % 2 === 0 ? 20 : 24} 
-                />
-              ))}
-            </div>
             
             {/* Data visualization elements */}
             <div className="flex justify-center my-6 w-full">
@@ -145,9 +105,6 @@ const HeroSection = () => {
               </div>
             </div>
           </div>
-          
-          {/* Brand logos section */}
-          <LogoSection />
           
           {/* Featured Newsletters Section */}
           <div className="mt-8">
