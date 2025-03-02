@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 interface DateRangePickerProps {
   dateRange: { from: Date | undefined, to: Date | undefined };
@@ -13,17 +14,24 @@ interface DateRangePickerProps {
 
 const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
   const hasDateSelected = dateRange.from || dateRange.to;
-  const [tempDateRange, setTempDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>(dateRange);
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
+    dateRange.from ? { from: dateRange.from, to: dateRange.to } : undefined
+  );
   const [open, setOpen] = useState(false);
   
   const handleApply = () => {
-    setDateRange(tempDateRange);
+    if (tempDateRange) {
+      setDateRange({ 
+        from: tempDateRange.from, 
+        to: tempDateRange.to 
+      });
+    }
     setOpen(false);
   };
   
   const handleClear = () => {
     const clearedRange = { from: undefined, to: undefined };
-    setTempDateRange(clearedRange);
+    setTempDateRange(undefined);
     setDateRange(clearedRange);
     setOpen(false);
   };
@@ -52,32 +60,14 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <div className="p-4 space-y-4">
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-              <div>
-                <h4 className="text-sm font-medium mb-2">Fra dato</h4>
-                <Calendar
-                  mode="single"
-                  selected={tempDateRange.from}
-                  onSelect={(date) => setTempDateRange({ ...tempDateRange, from: date })}
-                  disabled={(date) => 
-                    tempDateRange.to ? date > tempDateRange.to : false
-                  }
-                  initialFocus
-                />
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-medium mb-2">Til dato</h4>
-                <Calendar
-                  mode="single"
-                  selected={tempDateRange.to}
-                  onSelect={(date) => setTempDateRange({ ...tempDateRange, to: date })}
-                  disabled={(date) => 
-                    tempDateRange.from ? date < tempDateRange.from : false
-                  }
-                />
-              </div>
-            </div>
+            <Calendar
+              mode="range"
+              defaultMonth={dateRange.from}
+              selected={tempDateRange}
+              onSelect={setTempDateRange}
+              numberOfMonths={1}
+              initialFocus
+            />
             
             <div className="flex gap-2">
               <Button
