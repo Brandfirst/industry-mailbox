@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import Spline from '@splinetool/react-spline';
 import NewsletterItem from "@/components/search/NewsletterItem";
 import { Newsletter } from "@/lib/supabase/types";
 import { getFeaturedNewsletters } from "@/lib/supabase/newsletters";
+import { motion, AnimatePresence } from "framer-motion";
 
 const CountUpAnimation = ({ 
   endValue, 
@@ -50,7 +52,7 @@ const CountUpAnimation = ({
 };
 
 const HeroSection = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Alle kategorier");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -58,11 +60,8 @@ const HeroSection = () => {
     const fetchNewsletters = async () => {
       setLoading(true);
       try {
-        const categoryId = selectedCategory !== "Alle kategorier" ? 
-          selectedCategory : undefined;
-          
         const result = await getFeaturedNewsletters({
-          categoryId,
+          categoryId: selectedCategory !== "all" ? selectedCategory : undefined,
           limit: 3
         });
         
@@ -131,95 +130,108 @@ const HeroSection = () => {
             </Link>
           </div>
           
-          <div className="mt-16">
-            <div className="flex flex-wrap justify-center gap-3 mb-8">
-              <Button 
-                variant="outline" 
-                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
-                  selectedCategory === "Alle kategorier" 
-                    ? "text-white border-[#FF5722] border-2" 
-                    : "text-gray-300 border-gray-700"
-                } hover:bg-[#FF5722]/10`}
-                onClick={() => setSelectedCategory("Alle kategorier")}
-              >
-                Alle kategorier
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
-                  selectedCategory === "Business" 
-                    ? "text-white border-[#FF5722] border-2" 
-                    : "text-gray-300 border-gray-700"
-                } hover:bg-[#FF5722]/10`}
-                onClick={() => setSelectedCategory("Business")}
-              >
-                Business
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
-                  selectedCategory === "Education" 
-                    ? "text-white border-[#FF5722] border-2" 
-                    : "text-gray-300 border-gray-700"
-                } hover:bg-[#FF5722]/10`}
-                onClick={() => setSelectedCategory("Education")}
-              >
-                Education
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
-                  selectedCategory === "Finance" 
-                    ? "text-white border-[#FF5722] border-2" 
-                    : "text-gray-300 border-gray-700"
-                } hover:bg-[#FF5722]/10`}
-                onClick={() => setSelectedCategory("Finance")}
-              >
-                Finance
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
-                  selectedCategory === "Health" 
-                    ? "text-white border-[#FF5722] border-2" 
-                    : "text-gray-300 border-gray-700"
-                } hover:bg-[#FF5722]/10`}
-                onClick={() => setSelectedCategory("Health")}
-              >
-                Health
-              </Button>
-            </div>
+          <div className="flex flex-wrap justify-center gap-3 mb-8 mt-16">
+            <Button 
+              variant="outline" 
+              className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                selectedCategory === "all" 
+                  ? "text-white border-[#FF5722] border-2" 
+                  : "text-gray-300 border-gray-700"
+              } hover:bg-[#FF5722]/10`}
+              onClick={() => setSelectedCategory("all")}
+            >
+              Alle kategorier
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                selectedCategory === "1" 
+                  ? "text-white border-[#FF5722] border-2" 
+                  : "text-gray-300 border-gray-700"
+              } hover:bg-[#FF5722]/10`}
+              onClick={() => setSelectedCategory("1")}
+            >
+              Business
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                selectedCategory === "2" 
+                  ? "text-white border-[#FF5722] border-2" 
+                  : "text-gray-300 border-gray-700"
+              } hover:bg-[#FF5722]/10`}
+              onClick={() => setSelectedCategory("2")}
+            >
+              Education
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                selectedCategory === "3" 
+                  ? "text-white border-[#FF5722] border-2" 
+                  : "text-gray-300 border-gray-700"
+              } hover:bg-[#FF5722]/10`}
+              onClick={() => setSelectedCategory("3")}
+            >
+              Finance
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                selectedCategory === "4" 
+                  ? "text-white border-[#FF5722] border-2" 
+                  : "text-gray-300 border-gray-700"
+              } hover:bg-[#FF5722]/10`}
+              onClick={() => setSelectedCategory("4")}
+            >
+              Health
+            </Button>
           </div>
           
           <div className="mb-20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-5xl mx-auto px-4">
-              {loading ? (
-                Array(3).fill(null).map((_, index) => (
-                  <div key={index} className="bg-black/40 backdrop-blur-sm border border-[#FF5722]/30 rounded-xl overflow-hidden h-[500px] animate-pulse">
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-gray-500">Loading...</span>
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={selectedCategory}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-5xl mx-auto px-4"
+              >
+                {loading ? (
+                  Array(3).fill(null).map((_, index) => (
+                    <div key={index} className="bg-black/40 backdrop-blur-sm border border-[#FF5722]/20 rounded-xl overflow-hidden h-[500px] animate-pulse">
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-gray-500">Loading...</span>
+                      </div>
                     </div>
+                  ))
+                ) : newsletters.length > 0 ? (
+                  newsletters.map((newsletter) => (
+                    <motion.div 
+                      key={newsletter.id} 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                      className="bg-black/40 backdrop-blur-sm border border-[#FF5722]/20 rounded-xl overflow-hidden transform transition-all hover:scale-105 hover:shadow-glow"
+                    >
+                      <NewsletterItem
+                        newsletter={newsletter}
+                        onClick={() => handleNewsletterClick(newsletter)}
+                      />
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="col-span-3 text-center py-10">
+                    <p className="text-gray-400">No newsletters found. Try selecting a different category.</p>
                   </div>
-                ))
-              ) : newsletters.length > 0 ? (
-                newsletters.map((newsletter) => (
-                  <div key={newsletter.id} className="bg-black/40 backdrop-blur-sm border border-[#FF5722]/30 rounded-xl overflow-hidden transform transition-all hover:scale-105 hover:shadow-glow">
-                    <NewsletterItem
-                      newsletter={newsletter}
-                      onClick={handleNewsletterClick}
-                    />
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-3 text-center py-10">
-                  <p className="text-gray-400">No newsletters found. Try selecting a different category.</p>
-                </div>
-              )}
-            </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -232,7 +244,7 @@ const HeroSection = () => {
         </div>
       </div>
       
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black to-transparent z-10"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10"></div>
       
       <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-1/2 h-40 bg-[#FF5722]/10 rounded-full blur-3xl"></div>
       <div className="absolute -top-20 right-0 w-40 h-40 bg-[#FF5722]/5 rounded-full blur-3xl"></div>
