@@ -79,6 +79,29 @@ export const VisualEditorProvider: React.FC<{ children: ReactNode }> = ({ childr
   const [editableStyles, setEditableStyles] = useState<Partial<EditableStyles>>({});
   const [editableContent, setEditableContent] = useState<EditableContent | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [pendingChanges, setPendingChanges] = useState<any>(null);
+
+  // When active section changes, initialize editable styles from section styles
+  React.useEffect(() => {
+    if (activeSection && activeSection.styles) {
+      // Convert section styles to editable properties format
+      const initialStyles: Partial<EditableStyles> = {};
+      
+      Object.entries(activeSection.styles).forEach(([key, value]) => {
+        initialStyles[key as keyof EditableStyles] = {
+          name: key,
+          value: value as string | number,
+          type: key === 'textAlign' ? 'alignment' : 'range',
+          unit: key.includes('padding') || key.includes('margin') || key.includes('height') || key.includes('width') ? 'px' : undefined
+        } as EditableProperty;
+      });
+      
+      setEditableStyles(initialStyles);
+    } else {
+      // Reset if no active section
+      setEditableStyles({});
+    }
+  }, [activeSection]);
 
   const updateStyle = (property: string, value: string | number) => {
     setEditableStyles(prev => ({
@@ -88,6 +111,17 @@ export const VisualEditorProvider: React.FC<{ children: ReactNode }> = ({ childr
         value
       }
     }));
+    
+    // Also update pending changes for real-time preview
+    if (activeSection) {
+      setPendingChanges({
+        ...pendingChanges,
+        styles: {
+          ...(pendingChanges?.styles || {}),
+          [property]: value
+        }
+      });
+    }
   };
 
   const updateContent = (content: string) => {
@@ -96,6 +130,15 @@ export const VisualEditorProvider: React.FC<{ children: ReactNode }> = ({ childr
         ...editableContent,
         content
       });
+      
+      // Also update pending changes
+      setPendingChanges({
+        ...pendingChanges,
+        contentEdits: {
+          elementId: editableContent.elementId,
+          content
+        }
+      });
     }
   };
 
@@ -103,6 +146,8 @@ export const VisualEditorProvider: React.FC<{ children: ReactNode }> = ({ childr
     // This would update the actual DOM elements or state
     console.log("Applying changes:", { editableStyles, editableContent });
     setIsEditing(false);
+    // Clear pending changes after apply
+    setPendingChanges(null);
   };
 
   const cancelChanges = () => {
@@ -110,6 +155,8 @@ export const VisualEditorProvider: React.FC<{ children: ReactNode }> = ({ childr
     setSelectedElementId(null);
     setEditableContent(null);
     setEditableStyles({});
+    // Clear pending changes on cancel
+    setPendingChanges(null);
   };
 
   const togglePanel = () => {

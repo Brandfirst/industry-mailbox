@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowUp, ArrowDown, Check, X, Edit, Move, Settings } from 'lucide-react';
 import { Button } from './ui/button';
@@ -26,6 +25,7 @@ export type Section = {
   title: string;
   component: React.ReactNode;
   styles?: SectionStyles;
+  selectedElementId?: string | null;
 };
 
 interface SectionManagerProps {
@@ -46,7 +46,9 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
     setActiveSection, 
     activeSection, 
     isPanelOpen, 
-    togglePanel 
+    togglePanel,
+    selectedElementId,
+    setSelectedElementId 
   } = useVisualEditor();
 
   // If not admin, don't render anything
@@ -57,6 +59,22 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
   useEffect(() => {
     setSections(initialSections);
   }, [initialSections]);
+
+  // Update selected element when it changes in context
+  useEffect(() => {
+    if (activeSection && selectedElementId) {
+      const updatedSections = sections.map(section => {
+        if (section.id === activeSection.id) {
+          return {
+            ...section,
+            selectedElementId
+          };
+        }
+        return section;
+      });
+      setSections(updatedSections);
+    }
+  }, [selectedElementId, activeSection]);
 
   const moveSection = (index: number, direction: 'up' | 'down') => {
     const newSections = [...sections];
@@ -71,7 +89,7 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
   const saveChanges = () => {
     onReorder(sections);
     setIsEditing(false);
-    toast("Section order updated successfully!");
+    toast.success("Section order updated successfully!");
   };
 
   const cancelChanges = () => {
@@ -83,10 +101,16 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
   };
 
   const handleSectionEdit = (section: Section) => {
+    // First, set the active section in the visual editor context
     setActiveSection(section);
+    
+    // If the panel isn't open, open it
     if (!isPanelOpen) {
       togglePanel();
     }
+    
+    // Clear any previously selected element
+    setSelectedElementId(null);
   };
 
   const handleSectionUpdate = (sectionId: string, updates: any) => {
@@ -94,7 +118,7 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
       onUpdate(sectionId, updates);
     }
     
-    // Also update local state if needed
+    // Update local state
     const updatedSections = sections.map(section => {
       if (section.id === sectionId) {
         return {
@@ -109,6 +133,17 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
     });
     
     setSections(updatedSections);
+    
+    // Also update the active section in context if it's the one being edited
+    if (activeSection && activeSection.id === sectionId) {
+      setActiveSection({
+        ...activeSection,
+        styles: {
+          ...activeSection.styles,
+          ...updates.styles
+        }
+      });
+    }
   };
 
   if (!isEditing) {

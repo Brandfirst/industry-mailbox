@@ -55,11 +55,11 @@
   position: relative;
   outline: 2px solid transparent;
   transition: outline 0.2s ease;
+  cursor: pointer;
 }
 
 [data-editable]:hover {
   outline: 2px dashed rgba(255, 87, 34, 0.3);
-  cursor: pointer;
 }
 
 [data-editable].active {
@@ -94,4 +94,16 @@
   font-size: 12px;
   border-radius: 4px;
   z-index: 5;
+}
+
+/* Visual Editor transition classes for smooth style changes */
+section {
+  transition: min-height 0.3s ease, padding 0.3s ease, text-align 0.3s ease;
+}
+
+/* Ensure selected items stay highlighted */
+[data-editable].active {
+  outline: 2px solid #FF5722 !important;
+  z-index: 2;
+  position: relative;
 }

@@ -16,13 +16,6 @@ const HeroSection = () => {
   const [loading, setLoading] = useState(true);
   const { activeSection, setSelectedElementId } = useVisualEditor();
   
-  // Add a state to store section-specific styles
-  const [sectionStyles, setSectionStyles] = useState({
-    paddingTop: "16",
-    paddingBottom: "24",
-    textAlign: "center"
-  });
-  
   useEffect(() => {
     const fetchNewsletters = async () => {
       setLoading(true);
@@ -52,18 +45,19 @@ const HeroSection = () => {
     setSelectedElementId(elementId);
   };
   
-  // Calculate dynamic styles based on section settings
-  const containerStyle = {
-    paddingTop: `${sectionStyles.paddingTop}px`,
-    paddingBottom: `${sectionStyles.paddingBottom}px`,
-    textAlign: sectionStyles.textAlign as "center" | "left" | "right"
-  };
+  // Get section styles if available
+  const sectionStyles = activeSection?.styles || {};
   
   return (
     <section 
-      className={`py-16 lg:py-24 relative overflow-hidden bg-black ${activeSection?.id === 'heroSection' ? 'section-active' : ''}`}
+      className={`relative overflow-hidden bg-black ${activeSection?.id === 'heroSection' ? 'section-active' : ''}`}
       data-section-id="heroSection"
-      style={containerStyle}
+      style={{
+        paddingTop: sectionStyles.paddingTop ? `${sectionStyles.paddingTop}px` : '64px',
+        paddingBottom: sectionStyles.paddingBottom ? `${sectionStyles.paddingBottom}px` : '96px',
+        textAlign: sectionStyles.textAlign as "center" | "left" | "right" || 'center',
+        minHeight: sectionStyles.height ? `${sectionStyles.height}px` : 'auto'
+      }}
     >
       <BackgroundEffects />
       
@@ -75,6 +69,7 @@ const HeroSection = () => {
           data-editable="heading" 
           id="hero-heading"
           onClick={() => handleElementSelect('hero-heading')}
+          className={activeSection?.selectedElementId === 'hero-heading' ? 'active' : ''}
         >
           <HeroHeading />
         </div>
@@ -84,6 +79,7 @@ const HeroSection = () => {
           data-editable="buttons" 
           id="hero-actions"
           onClick={() => handleElementSelect('hero-actions')}
+          className={activeSection?.selectedElementId === 'hero-actions' ? 'active' : ''}
         >
           <HeroActions />
         </div>
@@ -93,6 +89,7 @@ const HeroSection = () => {
           data-editable="filter" 
           id="category-filter"
           onClick={() => handleElementSelect('category-filter')}
+          className={activeSection?.selectedElementId === 'category-filter' ? 'active' : ''}
         >
           <CategoryFilter 
             selectedCategory={selectedCategory} 
@@ -105,6 +102,7 @@ const HeroSection = () => {
           data-editable="content" 
           id="newsletter-display"
           onClick={() => handleElementSelect('newsletter-display')}
+          className={activeSection?.selectedElementId === 'newsletter-display' ? 'active' : ''}
         >
           <NewsletterDisplay 
             newsletters={newsletters}

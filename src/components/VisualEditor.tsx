@@ -89,24 +89,25 @@ const VisualEditor: React.FC<VisualEditorProps> = ({ sections, onSectionUpdate }
             <div>
               <h4 className="text-md font-semibold text-white mb-4 border-b border-[#FF5722]/20 pb-2">Layout Settings</h4>
               
-              {/* Height */}
+              {/* Min Height - Changed from Height to Min Height for better layout */}
               <div className="mb-4">
-                <Label htmlFor="height" className="text-sm text-gray-300 mb-1 block">Height</Label>
+                <Label htmlFor="height" className="text-sm text-gray-300 mb-1 block">Min Height</Label>
                 <div className="flex gap-2 items-center">
                   <Slider
                     id="height"
-                    defaultValue={[100]}
+                    defaultValue={[activeSection.styles?.height as number || 400]}
+                    min={200}
                     max={1000}
                     step={10}
-                    value={[editableStyles.height?.value as number || 100]}
+                    value={[editableStyles.height?.value as number || activeSection.styles?.height as number || 400]}
                     onValueChange={(vals) => handleStyleChange('height', vals[0])}
                     className="flex-1"
                   />
                   <div className="flex items-center">
                     <Input
                       type="number"
-                      value={editableStyles.height?.value || 100}
-                      onChange={(e) => handleStyleChange('height', parseInt(e.target.value))}
+                      value={editableStyles.height?.value || activeSection.styles?.height || 400}
+                      onChange={(e) => handleStyleChange('height', parseInt(e.target.value) || 400)}
                       className="w-16 h-8 bg-black border-gray-700 text-white"
                     />
                     <span className="ml-1 text-gray-400">px</span>
@@ -114,31 +115,25 @@ const VisualEditor: React.FC<VisualEditorProps> = ({ sections, onSectionUpdate }
                 </div>
               </div>
 
-              {/* Padding Controls */}
+              {/* Padding Top */}
               <div className="mb-4">
-                <Label htmlFor="padding" className="text-sm text-gray-300 mb-1 block">Padding Vertical</Label>
+                <Label htmlFor="paddingTop" className="text-sm text-gray-300 mb-1 block">Padding Top</Label>
                 <div className="flex gap-2 items-center">
                   <Slider
-                    id="paddingVertical"
-                    defaultValue={[24]}
-                    max={100}
-                    step={1}
-                    value={[editableStyles.paddingTop?.value as number || 24]}
-                    onValueChange={(vals) => {
-                      handleStyleChange('paddingTop', vals[0]);
-                      handleStyleChange('paddingBottom', vals[0]);
-                    }}
+                    id="paddingTop"
+                    defaultValue={[activeSection.styles?.paddingTop as number || 64]}
+                    min={0}
+                    max={200}
+                    step={4}
+                    value={[editableStyles.paddingTop?.value as number || activeSection.styles?.paddingTop as number || 64]}
+                    onValueChange={(vals) => handleStyleChange('paddingTop', vals[0])}
                     className="flex-1"
                   />
                   <div className="flex items-center">
                     <Input
                       type="number"
-                      value={editableStyles.paddingTop?.value || 24}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        handleStyleChange('paddingTop', val);
-                        handleStyleChange('paddingBottom', val);
-                      }}
+                      value={editableStyles.paddingTop?.value || activeSection.styles?.paddingTop || 64}
+                      onChange={(e) => handleStyleChange('paddingTop', parseInt(e.target.value) || 0)}
                       className="w-16 h-8 bg-black border-gray-700 text-white"
                     />
                     <span className="ml-1 text-gray-400">px</span>
@@ -146,30 +141,25 @@ const VisualEditor: React.FC<VisualEditorProps> = ({ sections, onSectionUpdate }
                 </div>
               </div>
 
+              {/* Padding Bottom */}
               <div className="mb-4">
-                <Label htmlFor="paddingHorizontal" className="text-sm text-gray-300 mb-1 block">Padding Horizontal</Label>
+                <Label htmlFor="paddingBottom" className="text-sm text-gray-300 mb-1 block">Padding Bottom</Label>
                 <div className="flex gap-2 items-center">
                   <Slider
-                    id="paddingHorizontal"
-                    defaultValue={[16]}
-                    max={100}
-                    step={1}
-                    value={[editableStyles.paddingLeft?.value as number || 16]}
-                    onValueChange={(vals) => {
-                      handleStyleChange('paddingLeft', vals[0]);
-                      handleStyleChange('paddingRight', vals[0]);
-                    }}
+                    id="paddingBottom"
+                    defaultValue={[activeSection.styles?.paddingBottom as number || 96]}
+                    min={0}
+                    max={200}
+                    step={4}
+                    value={[editableStyles.paddingBottom?.value as number || activeSection.styles?.paddingBottom as number || 96]}
+                    onValueChange={(vals) => handleStyleChange('paddingBottom', vals[0])}
                     className="flex-1"
                   />
                   <div className="flex items-center">
                     <Input
                       type="number"
-                      value={editableStyles.paddingLeft?.value || 16}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        handleStyleChange('paddingLeft', val);
-                        handleStyleChange('paddingRight', val);
-                      }}
+                      value={editableStyles.paddingBottom?.value || activeSection.styles?.paddingBottom || 96}
+                      onChange={(e) => handleStyleChange('paddingBottom', parseInt(e.target.value) || 0)}
                       className="w-16 h-8 bg-black border-gray-700 text-white"
                     />
                     <span className="ml-1 text-gray-400">px</span>
@@ -177,38 +167,6 @@ const VisualEditor: React.FC<VisualEditorProps> = ({ sections, onSectionUpdate }
                 </div>
               </div>
 
-              {/* Margin Controls */}
-              <div className="mb-4">
-                <Label htmlFor="marginVertical" className="text-sm text-gray-300 mb-1 block">Margin Vertical</Label>
-                <div className="flex gap-2 items-center">
-                  <Slider
-                    id="marginVertical"
-                    defaultValue={[16]}
-                    max={100}
-                    step={1}
-                    value={[editableStyles.marginTop?.value as number || 16]}
-                    onValueChange={(vals) => {
-                      handleStyleChange('marginTop', vals[0]);
-                      handleStyleChange('marginBottom', vals[0]);
-                    }}
-                    className="flex-1"
-                  />
-                  <div className="flex items-center">
-                    <Input
-                      type="number"
-                      value={editableStyles.marginTop?.value || 16}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        handleStyleChange('marginTop', val);
-                        handleStyleChange('marginBottom', val);
-                      }}
-                      className="w-16 h-8 bg-black border-gray-700 text-white"
-                    />
-                    <span className="ml-1 text-gray-400">px</span>
-                  </div>
-                </div>
-              </div>
-              
               {/* Text Alignment */}
               <div className="mb-4">
                 <Label htmlFor="textAlign" className="text-sm text-gray-300 mb-1 block">Text Alignment</Label>
@@ -217,7 +175,7 @@ const VisualEditor: React.FC<VisualEditorProps> = ({ sections, onSectionUpdate }
                     variant="outline" 
                     size="sm"
                     onClick={() => handleStyleChange('textAlign', 'left')}
-                    className={`${editableStyles.textAlign?.value === 'left' ? 'bg-[#FF5722]/20 border-[#FF5722]' : 'bg-black/40'}`}
+                    className={`${(editableStyles.textAlign?.value === 'left' || activeSection.styles?.textAlign === 'left') ? 'bg-[#FF5722]/20 border-[#FF5722]' : 'bg-black/40'}`}
                   >
                     <AlignLeft size={16} />
                   </Button>
@@ -225,7 +183,7 @@ const VisualEditor: React.FC<VisualEditorProps> = ({ sections, onSectionUpdate }
                     variant="outline" 
                     size="sm"
                     onClick={() => handleStyleChange('textAlign', 'center')}
-                    className={`${editableStyles.textAlign?.value === 'center' ? 'bg-[#FF5722]/20 border-[#FF5722]' : 'bg-black/40'}`}
+                    className={`${(editableStyles.textAlign?.value === 'center' || activeSection.styles?.textAlign === 'center') ? 'bg-[#FF5722]/20 border-[#FF5722]' : 'bg-black/40'}`}
                   >
                     <AlignCenter size={16} />
                   </Button>
@@ -233,7 +191,7 @@ const VisualEditor: React.FC<VisualEditorProps> = ({ sections, onSectionUpdate }
                     variant="outline" 
                     size="sm"
                     onClick={() => handleStyleChange('textAlign', 'right')}
-                    className={`${editableStyles.textAlign?.value === 'right' ? 'bg-[#FF5722]/20 border-[#FF5722]' : 'bg-black/40'}`}
+                    className={`${(editableStyles.textAlign?.value === 'right' || activeSection.styles?.textAlign === 'right') ? 'bg-[#FF5722]/20 border-[#FF5722]' : 'bg-black/40'}`}
                   >
                     <AlignRight size={16} />
                   </Button>
