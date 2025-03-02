@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
@@ -11,8 +10,8 @@ import FilterButtons from '@/components/search/FilterButtons';
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(true);
-  
+  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false);
+
   const {
     newsletters,
     categories,
@@ -34,12 +33,10 @@ const SearchPage = () => {
     applyFilters,
     handleNewsletterClick
   } = useSearchNewsletters();
-  
-  // Handle sender query parameter
+
   useEffect(() => {
     const senderParam = searchParams.get('sender');
     if (senderParam) {
-      // Find the sender in the senderBrands list
       const senderExists = senderBrands.some(brand => brand.sender_email === senderParam || brand.sender_name === senderParam);
       
       if (senderExists) {
@@ -48,15 +45,15 @@ const SearchPage = () => {
       }
     }
   }, [searchParams, senderBrands, setSelectedBrands, applyFilters]);
-  
+
   const toggleMobileFilters = () => {
     setIsMobileFiltersOpen(!isMobileFiltersOpen);
   };
-  
+
   const toggleDesktopFilters = () => {
     setIsDesktopFiltersOpen(!isDesktopFiltersOpen);
   };
-  
+
   return (
     <div className="container py-8 md:py-12 px-4 md:px-6">
       <SearchHeader />
@@ -89,6 +86,8 @@ const SearchPage = () => {
       >
         <FilterButtons
           toggleMobileFilters={toggleMobileFilters}
+          toggleDesktopFilters={toggleDesktopFilters}
+          isDesktopFiltersOpen={isDesktopFiltersOpen}
         />
         
         <NewsletterResults
