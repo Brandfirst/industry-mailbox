@@ -32,7 +32,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               background-color: white;
             }
             body {
-              ${isMobile ? 'transform: scale(0.2); transform-origin: 0 0; width: 500%; height: 500%;' : ''}
+              ${isMobile ? 'transform: scale(0.15); transform-origin: 0 0; width: 660%; height: 660%;' : ''}
             }
             a {
               pointer-events: none;
