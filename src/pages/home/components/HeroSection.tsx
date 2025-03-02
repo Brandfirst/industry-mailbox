@@ -1,13 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowRight } from "lucide-react";
 import Spline from '@splinetool/react-spline';
-import { Card } from "@/components/ui/card";
-import NewsletterPreview from "@/components/search/NewsletterPreview";
-import { Newsletter } from "@/lib/supabase/types";
 import NewsletterItem from "@/components/search/NewsletterItem";
+import { Newsletter } from "@/lib/supabase/types";
+import { getFeaturedNewsletters } from "@/lib/supabase/newsletters";
 
 const CountUpAnimation = ({ 
   endValue, 
@@ -51,63 +49,40 @@ const CountUpAnimation = ({
   );
 };
 
-// Sample newsletter data
-const sampleNewsletters = [
-  {
-    id: 1,
-    title: "Ukentlig Markedsføringsbrev",
-    content: `<div style="text-align: center; padding: 20px; background-color: #f7f7f7; font-family: Arial, sans-serif;">
-      <h2 style="color: #FF5722;">Ukentlig Markedsføring</h2>
-      <p style="color: #333;">De beste tipsene for din bedrift</p>
-    </div>`,
-    sender: "MarkedsføringsEksperten",
-    published_at: "2023-08-15T12:00:00Z",
-    categories: { name: "Markedsføring", color: "#FF5722" }
-  },
-  {
-    id: 2,
-    title: "Tech Nyheter",
-    content: `<div style="text-align: center; padding: 20px; background-color: #e6f7ff; font-family: Arial, sans-serif;">
-      <h2 style="color: #0078D7;">Tech Nyheter</h2>
-      <p style="color: #333;">Siste innovasjoner innen teknologi</p>
-    </div>`,
-    sender: "TechNorge",
-    published_at: "2023-08-16T14:30:00Z",
-    categories: { name: "Tech", color: "#0078D7" }
-  },
-  {
-    id: 3,
-    title: "Finansbrevet",
-    content: `<div style="text-align: center; padding: 20px; background-color: #e6ffe6; font-family: Arial, sans-serif;">
-      <h2 style="color: #006600;">Finansbrevet</h2>
-      <p style="color: #333;">Økonomiske innsikter for deg</p>
-    </div>`,
-    sender: "Finansinnsikt",
-    published_at: "2023-08-17T09:00:00Z",
-    categories: { name: "Finans", color: "#006600" }
-  }
-];
-
-// Convert sample newsletters to match Newsletter type
-const typedSampleNewsletters: Newsletter[] = sampleNewsletters.map(newsletter => ({
-  id: newsletter.id,
-  title: newsletter.title,
-  content: newsletter.content,
-  sender: newsletter.sender,
-  published_at: newsletter.published_at,
-  categories: newsletter.categories
-} as Newsletter));
-
 const HeroSection = () => {
   const [selectedCategory, setSelectedCategory] = useState("Alle kategorier");
+  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchNewsletters = async () => {
+      setLoading(true);
+      try {
+        const categoryId = selectedCategory !== "Alle kategorier" ? 
+          selectedCategory : undefined;
+          
+        const result = await getFeaturedNewsletters({
+          categoryId,
+          limit: 3
+        });
+        
+        setNewsletters(result.data);
+      } catch (error) {
+        console.error("Error fetching newsletters:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchNewsletters();
+  }, [selectedCategory]);
   
   const handleNewsletterClick = (newsletter: Newsletter) => {
-    // This would handle newsletter click in a real implementation
     console.log("Newsletter clicked:", newsletter.title);
   };
   
   return (
-    <section className="py-16 lg:py-24 relative overflow-hidden bg-gradient-to-b from-black via-black to-transparent">
+    <section className="py-16 lg:py-24 relative overflow-hidden bg-black">
       <div className="absolute inset-0 z-0 w-full h-full -top-20">
         <Spline 
           scene="https://prod.spline.design/kiQGRbPlp9LUJc9j/scene.splinecode" 
@@ -156,7 +131,6 @@ const HeroSection = () => {
             </Link>
           </div>
           
-          {/* Category Filter - Now above the cards */}
           <div className="mt-16">
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               <Button 
@@ -221,17 +195,30 @@ const HeroSection = () => {
             </div>
           </div>
           
-          {/* Newsletter Preview Cards - Now using NewsletterItem component from search */}
           <div className="mb-20">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-5xl mx-auto px-4">
-              {typedSampleNewsletters.map((newsletter) => (
-                <div key={newsletter.id} className="bg-black/40 backdrop-blur-sm border-2 border-[#FF5722] rounded-xl overflow-hidden transform transition-all hover:scale-105 hover:shadow-glow">
-                  <NewsletterItem
-                    newsletter={newsletter}
-                    onClick={handleNewsletterClick}
-                  />
+              {loading ? (
+                Array(3).fill(null).map((_, index) => (
+                  <div key={index} className="bg-black/40 backdrop-blur-sm border border-[#FF5722]/30 rounded-xl overflow-hidden h-[500px] animate-pulse">
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-gray-500">Loading...</span>
+                    </div>
+                  </div>
+                ))
+              ) : newsletters.length > 0 ? (
+                newsletters.map((newsletter) => (
+                  <div key={newsletter.id} className="bg-black/40 backdrop-blur-sm border border-[#FF5722]/30 rounded-xl overflow-hidden transform transition-all hover:scale-105 hover:shadow-glow">
+                    <NewsletterItem
+                      newsletter={newsletter}
+                      onClick={handleNewsletterClick}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-10">
+                  <p className="text-gray-400">No newsletters found. Try selecting a different category.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -245,8 +232,7 @@ const HeroSection = () => {
         </div>
       </div>
       
-      {/* Gradient overlay at the bottom to blend with the next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-black z-10"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black to-transparent z-10"></div>
       
       <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-1/2 h-40 bg-[#FF5722]/10 rounded-full blur-3xl"></div>
       <div className="absolute -top-20 right-0 w-40 h-40 bg-[#FF5722]/5 rounded-full blur-3xl"></div>
