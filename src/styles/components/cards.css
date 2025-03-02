@@ -1,0 +1,13 @@
+
+/* Cards styling */
+.glass-card {
+  @apply bg-card/80 backdrop-blur-sm border border-white/10 shadow-glass rounded-xl;
+}
+
+.glass-effect {
+  @apply bg-card/70 backdrop-blur-sm border border-white/10 rounded-xl;
+}
+
+.feature-card {
+  @apply transition-all duration-300 hover:translate-y-[-5px] hover:shadow-lg rounded-xl;
+}

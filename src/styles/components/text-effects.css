@@ -1,0 +1,51 @@
+
+/* CSS class for smaller "byråer" text */
+.smaller-text {
+  font-size: 0.75em;
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600;
+}
+
+/* Brand logos */
+.brand-logo {
+  @apply text-gray-300 hover:text-white transition-colors duration-300;
+}
+
+/* New Hero Text Styles */
+.hero-heading-span {
+  @apply relative z-10 transition-all duration-300;
+  text-shadow: 0 2px 15px rgba(58, 111, 251, 0.2);
+}
+
+.hero-heading-span:hover {
+  text-shadow: 0 2px 20px rgba(58, 111, 251, 0.4);
+}
+
+.creative-text-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.creative-text-container::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(90deg, transparent, rgba(58, 111, 251, 0.3), transparent);
+  animation: slide-down 1.5s ease-in-out infinite;
+}
+
+.highlight-word {
+  @apply relative inline-block text-white font-semibold;
+  text-shadow: 0 0 10px rgba(58, 111, 251, 0.6);
+}
+
+@keyframes slide-down {
+  0% { top: -10px; }
+  50% { top: 100%; }
+  100% { top: 100%; }
+}

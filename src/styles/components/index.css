@@ -1,0 +1,9 @@
+
+/* Components styles index file that imports all component-specific styles */
+@import './transitions.css';
+@import './cards.css';
+@import './buttons.css';
+@import './stats.css';
+@import './text-effects.css';
+@import './containers.css';
+@import './shadows.css';

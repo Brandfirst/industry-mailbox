@@ -1,0 +1,37 @@
+
+/* Stats section styling */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.stat-card {
+  background-color: rgba(17, 24, 39, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.5);
+  background-color: rgba(30, 41, 59, 0.7);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #60a5fa;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}

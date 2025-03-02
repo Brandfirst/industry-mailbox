@@ -1,0 +1,23 @@
+
+/* Smooth transitions for all interactive elements */
+.feature-card, 
+.testimonial-card,
+.btn-transition {
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover,
+.testimonial-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.3);
+}
+
+/* Collapsible animation */
+[data-state='open'] > [data-collapsible-trigger-icon] {
+  transform: rotate(180deg);
+}
+
+/* Rotating arrows for FAQ */
+.ui-open\:rotate-180[data-state='open'] {
+  transform: rotate(180deg);
+}

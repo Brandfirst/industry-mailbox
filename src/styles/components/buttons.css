@@ -1,0 +1,29 @@
+
+/* Custom button styles beyond the base buttons.css */
+.btn-hover-effect {
+  @apply relative overflow-hidden transition-all duration-300;
+}
+
+.btn-hover-effect::after {
+  @apply content-[''] absolute inset-0 scale-x-0 origin-left transition-transform duration-300 ease-out bg-white/10;
+}
+
+.btn-hover-effect:hover::after {
+  @apply scale-x-100;
+}
+
+.gradient-button {
+  @apply relative overflow-hidden bg-gradient-to-r from-[#FF5722] to-[#FF8A50] text-white font-medium py-3 px-6 rounded-lg transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md;
+}
+
+.gradient-button:hover {
+  @apply from-[#FF8A50] to-[#FF5722] shadow-glow;
+}
+
+.glass-button {
+  @apply relative bg-black/40 backdrop-blur-sm border border-[#FF5722]/20 hover:border-[#FF5722]/50 text-white rounded-lg transition-all shadow-md;
+}
+
+.glass-button:hover {
+  @apply bg-black/50 shadow-glow;
+}
