@@ -69,7 +69,9 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         sandbox="allow-same-origin"
         style={{ 
           pointerEvents: "none",
-          display: "block"
+          display: "block",
+          width: "100%",
+          height: "100%"
         }}
       />
     </div>
