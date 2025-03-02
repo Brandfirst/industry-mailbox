@@ -1,0 +1,60 @@
+
+:root {
+  /* Main brand colors */
+  --primary: 210 100% 50%; /* Blue: #0D6EFD */
+  --primary-light: 210 100% 60%; /* Lighter blue: #3D8DFF */
+  --primary-dark: 210 100% 40%; /* Darker blue: #084BB0 */
+  
+  /* Accent colors */
+  --accent: 262 83% 58%; /* Purple: #7C3AED */
+  --accent-light: 262 83% 68%; /* Lighter purple: #9A68F3 */
+  --accent-dark: 262 83% 48%; /* Darker purple: #5E21C9 */
+  
+  /* Background colors */
+  --bg-dark: 230 20% 5%; /* Very dark blue-gray: #08090E */
+  --bg-card: 230 15% 10%; /* Dark blue-gray for cards: #13151E */
+  --bg-card-hover: 230 15% 15%; /* Slightly lighter for hover states: #1D202F */
+  
+  /* Text colors */
+  --text-primary: 0 0% 100%; /* White: #FFFFFF */
+  --text-secondary: 220 10% 80%; /* Light gray: #C8CDD7 */
+  --text-muted: 220 10% 60%; /* Medium gray: #8B92A5 */
+  
+  /* Border colors */
+  --border-light: 220 20% 20%; /* Dark border: #272D3D */
+  --border-highlight: 262 83% 58%; /* Purple border (same as accent): #7C3AED */
+}
+
+/* Gradient backgrounds */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(210 100% 50%) 0%, hsl(240 100% 60%) 100%);
+}
+
+.bg-gradient-accent {
+  background: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(280 83% 58%) 100%);
+}
+
+/* Glassmorphism */
+.glass-card {
+  @apply bg-black/40 backdrop-blur-sm border border-white/10 hover:border-white/20 rounded-xl transition-all shadow-md;
+}
+
+.glass-button {
+  @apply relative bg-black/40 backdrop-blur-sm border border-primary/20 hover:border-primary/50 text-white rounded-lg transition-all shadow-md;
+}
+
+.glass-button:hover {
+  @apply bg-black/50 shadow-glow;
+}
+
+.gradient-button {
+  @apply relative overflow-hidden bg-gradient-to-r from-primary to-primary-light text-white font-medium py-3 px-6 rounded-lg transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md;
+}
+
+.gradient-button:hover {
+  @apply from-primary-light to-primary shadow-glow;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(13, 110, 253, 0.2);
+}

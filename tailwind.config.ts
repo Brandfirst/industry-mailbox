@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -29,8 +28,10 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#3a6ffb',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: 'hsl(var(--primary))',
+					foreground: 'hsl(var(--primary-foreground))',
+					light: 'hsl(var(--primary-light))',
+					dark: 'hsl(var(--primary-dark))',
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -45,8 +46,10 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: '#3a6ffb',
-					foreground: 'hsl(var(--accent-foreground))'
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))',
+					light: 'hsl(var(--accent-light))',
+					dark: 'hsl(var(--accent-dark))',
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -67,11 +70,6 @@ export default {
 					'700': '#5A5A5A',
 					'800': '#6C6C6C',
 					'900': '#7E7E7E'
-				},
-				blue: {
-					DEFAULT: '#3a6ffb',
-					light: '#5c86fb',
-					dark: '#2a58dd'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',

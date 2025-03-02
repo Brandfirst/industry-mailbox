@@ -4,6 +4,7 @@
 @tailwind utilities;
 
 @import './styles/variables.css';
+@import './styles/global-colors.css';
 @import './styles/base-elements.css';
 @import './styles/ui-effects.css';
 @import './styles/buttons.css';

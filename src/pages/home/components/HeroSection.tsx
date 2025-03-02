@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowRight } from "lucide-react";
-import FeaturedNewsletters from "./FeaturedNewsletters";
 import Spline from '@splinetool/react-spline';
 
 const CountUpAnimation = ({ 
@@ -51,7 +50,7 @@ const CountUpAnimation = ({
 const HeroSection = () => {
   return (
     <section className="py-16 lg:py-24 relative overflow-hidden bg-black">
-      <div className="absolute inset-0 z-0 w-full h-full -top-16">
+      <div className="absolute inset-0 z-0 w-full h-full -top-20">
         <Spline 
           scene="https://prod.spline.design/kiQGRbPlp9LUJc9j/scene.splinecode" 
           className="w-full h-full"
@@ -66,17 +65,17 @@ const HeroSection = () => {
             <span className="block text-white mb-2">Norges største</span>
             <span className="block">database</span>
             <span className="block mt-2">
-              av <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#FF8A50] to-[#FF5722]">nyhetsbrev</span>
+              av <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-light to-primary">nyhetsbrev</span>
             </span>
           </h1>
           
           <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
             Utforsk mer enn 
-            <span className="text-[#FF5722] font-bold mx-2">
+            <span className="text-primary font-bold mx-2">
               <CountUpAnimation endValue={70350} />
             </span>
             nyhetsbrev fra 
-            <span className="text-[#FF5722] font-bold mx-2">
+            <span className="text-primary font-bold mx-2">
               <CountUpAnimation endValue={1750} />
             </span>
             varemerker. 
@@ -86,8 +85,57 @@ const HeroSection = () => {
             og engasjerende nyhetsbrev.
           </p>
           
-          <div className="mt-8">
-            <FeaturedNewsletters />
+          <div className="flex flex-wrap justify-center gap-4 mt-10">
+            <Link to="/search">
+              <Button size="lg" className="gradient-button">
+                Utforsk nyhetsbrev <Search className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/auth?mode=signup">
+              <Button size="lg" variant="outline" className="glass-button">
+                Prøv gratis <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Category Filter */}
+          <div className="mt-16">
+            <div className="flex flex-wrap justify-center gap-3 my-8">
+              <Button 
+                variant="outline" 
+                className="bg-black text-white border-primary hover:bg-black/90 rounded-lg"
+              >
+                Alle kategorier
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-primary/10 backdrop-blur-sm rounded-lg"
+              >
+                Business
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-primary/10 backdrop-blur-sm rounded-lg"
+              >
+                Education
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-primary/10 backdrop-blur-sm rounded-lg"
+              >
+                Finance
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-primary/10 backdrop-blur-sm rounded-lg"
+              >
+                Health
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -95,13 +143,13 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-0 opacity-10">
         <div className="absolute inset-0 grid grid-cols-12 grid-rows-6">
           {Array(72).fill(null).map((_, i) => (
-            <div key={i} className="border-t border-l border-[#FF5722]/20"></div>
+            <div key={i} className="border-t border-l border-primary/20"></div>
           ))}
         </div>
       </div>
       
-      <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-1/2 h-40 bg-[#FF5722]/10 rounded-full blur-3xl"></div>
-      <div className="absolute -top-20 right-0 w-40 h-40 bg-[#FF5722]/5 rounded-full blur-3xl"></div>
+      <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-1/2 h-40 bg-primary/10 rounded-full blur-3xl"></div>
+      <div className="absolute -top-20 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
     </section>
   );
 };
