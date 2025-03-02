@@ -3,6 +3,8 @@ import React, { memo } from 'react';
 import { Button } from "@/components/ui/button";
 import { NewsletterCategory } from '@/lib/supabase/types';
 import FilterHeader from './FilterHeader';
+import CategoryFilter from './CategoryFilter';
+import DateRangePicker from './DateRangePicker';
 import SenderFilter from './SenderFilter';
 
 interface SenderBrand {
@@ -28,9 +30,15 @@ interface MobileFilterDrawerProps {
 const MobileFilterDrawer = ({
   isOpen,
   toggleMobileFilters,
+  categories,
+  selectedCategory,
+  handleCategoryChange,
   senderBrands,
   selectedBrands,
-  handleBrandChange
+  handleBrandChange,
+  dateRange,
+  setDateRange,
+  onApplyFilters
 }: MobileFilterDrawerProps) => {
   if (!isOpen) return null;
   
@@ -44,13 +52,45 @@ const MobileFilterDrawer = ({
       
       {/* Sidebar */}
       <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs bg-background p-4 overflow-y-auto animate-slide-in-right">
-        <FilterHeader toggleMobileFilters={toggleMobileFilters} />
+        <FilterHeader toggleMobileFilters={toggleMobileFilters} title="Filtre" />
         
-        <SenderFilter 
-          senderBrands={senderBrands}
-          selectedBrands={selectedBrands}
-          handleBrandChange={handleBrandChange}
-        />
+        <div className="space-y-6">
+          <div>
+            <h3 className="font-medium mb-3">Kategorier</h3>
+            <CategoryFilter 
+              categories={categories}
+              selectedCategory={selectedCategory}
+              handleCategoryChange={handleCategoryChange}
+            />
+          </div>
+          
+          <div>
+            <h3 className="font-medium mb-3">Dato</h3>
+            <DateRangePicker 
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+            />
+          </div>
+          
+          <div>
+            <h3 className="font-medium mb-3">Avsender</h3>
+            <SenderFilter 
+              senderBrands={senderBrands}
+              selectedBrands={selectedBrands}
+              handleBrandChange={handleBrandChange}
+            />
+          </div>
+          
+          <Button 
+            onClick={() => {
+              onApplyFilters();
+              toggleMobileFilters();
+            }} 
+            className="w-full"
+          >
+            Bruk filtre
+          </Button>
+        </div>
       </div>
     </div>
   );

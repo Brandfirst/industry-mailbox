@@ -1,6 +1,6 @@
 
 import React, { memo } from 'react';
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { NewsletterCategory } from '@/lib/supabase/types';
 
@@ -16,37 +16,34 @@ const CategoryFilter = ({
   handleCategoryChange 
 }: CategoryFilterProps) => {
   return (
-    <div className="space-y-2">
-      <h4 className="text-sm font-medium">Kategorier</h4>
-      <div className="space-y-2 max-h-60 overflow-y-auto">
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="all-categories" 
-            checked={selectedCategory === 'all'} 
-            onCheckedChange={() => handleCategoryChange('all')}
-          />
-          <Label htmlFor="all-categories" className="cursor-pointer">
-            Alle kategorier
-          </Label>
-          <span className="text-sm text-muted-foreground ml-auto">
-            {categories.length}
-          </span>
-        </div>
-        
-        {categories.map((category) => (
-          <div key={category.id} className="flex items-center space-x-2">
-            <Checkbox 
-              id={`category-${category.id}`} 
-              checked={selectedCategory === String(category.id)} 
-              onCheckedChange={() => handleCategoryChange(String(category.id))}
-            />
-            <Label htmlFor={`category-${category.id}`} className="cursor-pointer">
-              {category.name}
-            </Label>
-          </div>
-        ))}
+    <RadioGroup 
+      value={selectedCategory} 
+      onValueChange={handleCategoryChange}
+      className="space-y-1"
+    >
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="all" id="category-all" />
+        <Label htmlFor="category-all" className="cursor-pointer">
+          Alle kategorier
+        </Label>
       </div>
-    </div>
+      
+      {categories.map((category) => (
+        <div key={category.id} className="flex items-center space-x-2">
+          <RadioGroupItem value={String(category.id)} id={`category-${category.id}`} />
+          <Label 
+            htmlFor={`category-${category.id}`} 
+            className="cursor-pointer flex items-center"
+          >
+            <span 
+              className="w-3 h-3 rounded-full mr-2" 
+              style={{ backgroundColor: category.color || '#888' }}
+            />
+            {category.name}
+          </Label>
+        </div>
+      ))}
+    </RadioGroup>
   );
 };
 

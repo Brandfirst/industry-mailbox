@@ -1,9 +1,9 @@
 
-import React, { memo } from 'react';
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
+import React, { memo, useState } from 'react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface SenderBrand {
   sender_email: string;
@@ -22,37 +22,53 @@ const SenderFilter = ({
   selectedBrands, 
   handleBrandChange 
 }: SenderFilterProps) => {
-  if (senderBrands.length === 0) return null;
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const filteredBrands = senderBrands.filter(brand => 
+    brand.sender_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    brand.sender_email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <Avatar className="h-16 w-16 border">
-          <div className="font-semibold text-xl">
-            {senderBrands[0]?.sender_name?.charAt(0)?.toUpperCase() || 'S'}
-          </div>
-        </Avatar>
-        <div>
-          <h3 className="text-xl font-bold">{senderBrands[0]?.sender_name || 'Sender'}</h3>
-          <p className="text-sm text-muted-foreground">{senderBrands[0]?.sender_email}</p>
-        </div>
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Søk avsendere..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-8"
+        />
       </div>
       
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button variant="outline" className="flex items-center gap-2">
-          <Plus className="h-4 w-4" /> Follow
-        </Button>
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search newsletters..." className="pl-8" />
-        </div>
-      </div>
-      
-      <div>
-        <h4 className="text-lg font-semibold mb-2">Recent Emails</h4>
-        <div className="text-sm text-muted-foreground mb-4">
-          {senderBrands[0]?.count || 0} newsletters available
-        </div>
+      <div className="max-h-[200px] overflow-y-auto space-y-2">
+        {filteredBrands.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Ingen avsendere funnet</p>
+        ) : (
+          filteredBrands.map((brand) => (
+            <div key={brand.sender_email} className="flex items-start space-x-2">
+              <Checkbox
+                id={`brand-${brand.sender_email}`}
+                checked={selectedBrands.includes(brand.sender_email)}
+                onCheckedChange={(checked) => 
+                  handleBrandChange(brand.sender_email, checked === true)
+                }
+              />
+              <Label 
+                htmlFor={`brand-${brand.sender_email}`}
+                className="text-sm cursor-pointer leading-tight"
+              >
+                <span className="font-medium">{brand.sender_name}</span>
+                <span className="block text-xs text-muted-foreground truncate max-w-[200px]">
+                  {brand.sender_email}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {brand.count} nyhetsbrev
+                </span>
+              </Label>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

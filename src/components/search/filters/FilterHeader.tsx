@@ -8,7 +8,7 @@ interface FilterHeaderProps {
   title?: string;
 }
 
-const FilterHeader = ({ toggleMobileFilters, title = "Sender Profile" }: FilterHeaderProps) => {
+const FilterHeader = ({ toggleMobileFilters, title = "Filtre" }: FilterHeaderProps) => {
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center">

@@ -13,7 +13,7 @@ export * from "./adminStats";
 
 // Re-export all email account functionality
 // Using the index file that already handles re-exports properly
-export * from "./emailAccounts/index";
+export * from "./emailAccounts";
 
 // Export the supabase instance for components that need direct access
 export { supabase };

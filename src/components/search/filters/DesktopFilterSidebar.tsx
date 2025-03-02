@@ -1,13 +1,8 @@
-
 import React, { memo } from 'react';
 import { NewsletterCategory } from '@/lib/supabase/types';
 import { Button } from "@/components/ui/button";
-import { User } from 'lucide-react';
-import { 
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from "@/components/ui/collapsible";
+import CategoryFilter from './CategoryFilter';
+import DateRangePicker from './DateRangePicker';
 import SenderFilter from './SenderFilter';
 
 interface SenderBrand {
@@ -32,42 +27,58 @@ interface DesktopFilterSidebarProps {
 
 const DesktopFilterSidebar = ({
   isOpen,
-  toggleDesktopFilters,
+  categories,
+  selectedCategory,
+  handleCategoryChange,
   senderBrands,
   selectedBrands,
-  handleBrandChange
+  handleBrandChange,
+  dateRange,
+  setDateRange,
+  onApplyFilters
 }: DesktopFilterSidebarProps) => {
   return (
     <div className="hidden md:block">
-      <Collapsible
-        open={isOpen}
-        onOpenChange={toggleDesktopFilters}
-        className="border-r"
-      >
-        <div className="flex items-center justify-between px-4 py-2 border-b">
-          <span className="font-medium">Sender Profile</span>
+      {isOpen ? (
+        <div className="w-80 p-4 border-r">
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-medium mb-3">Kategorier</h3>
+              <CategoryFilter 
+                categories={categories}
+                selectedCategory={selectedCategory}
+                handleCategoryChange={handleCategoryChange}
+              />
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-3">Dato</h3>
+              <DateRangePicker 
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+              />
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-3">Avsender</h3>
+              <SenderFilter 
+                senderBrands={senderBrands}
+                selectedBrands={selectedBrands}
+                handleBrandChange={handleBrandChange}
+              />
+            </div>
+            
+            <Button 
+              onClick={onApplyFilters} 
+              className="w-full"
+            >
+              Bruk filtre
+            </Button>
+          </div>
         </div>
-        
-        <CollapsibleContent className="w-80 p-4">
-          <SenderFilter 
-            senderBrands={senderBrands}
-            selectedBrands={selectedBrands}
-            handleBrandChange={handleBrandChange}
-          />
-        </CollapsibleContent>
-      </Collapsible>
-      
-      {!isOpen && (
+      ) : (
         <div className="w-12 flex flex-col items-center py-4 border-r">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleDesktopFilters}
-            className="mb-2"
-            title="Sender Profile"
-          >
-            <User className="h-5 w-5" />
-          </Button>
+          {/* We'll keep this minimal when collapsed */}
         </div>
       )}
     </div>
