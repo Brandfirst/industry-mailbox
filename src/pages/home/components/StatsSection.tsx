@@ -1,6 +1,6 @@
 import { Mail, Users, BarChart, Calendar, TrendingUp, PieChart, LineChart } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { useState, useEffect } from "react";
+import { useState, useEffect, CSSProperties } from "react";
 import { SectionManager, Section, SectionStyle } from "@/components/SectionManager";
 
 const StatsSection = () => {
@@ -41,6 +41,18 @@ const StatsSection = () => {
       description: "NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet."
     }
   });
+
+  // Apply styles to a component based on section ID
+  const applySectionStyle = (sectionId: string): CSSProperties => {
+    const style = sectionStyles[sectionId] || {};
+    return {
+      marginTop: style.marginTop || '',
+      marginBottom: style.marginBottom || '',
+      paddingTop: style.paddingTop || '',
+      paddingBottom: style.paddingBottom || '',
+      textAlign: (style.textAlign as "left" | "center" | "right" | undefined) || undefined
+    };
+  };
 
   // Define the sections with editable content
   const brandLogosSection = (
@@ -279,18 +291,6 @@ const StatsSection = () => {
       ...prev,
       [sectionId]: content
     }));
-  };
-
-  // Apply styles to a component based on section ID
-  const applySectionStyle = (sectionId: string) => {
-    const style = sectionStyles[sectionId] || {};
-    return {
-      marginTop: style.marginTop || '',
-      marginBottom: style.marginBottom || '',
-      paddingTop: style.paddingTop || '',
-      paddingBottom: style.paddingBottom || '',
-      textAlign: style.textAlign as 'left' | 'center' | 'right' || 'inherit'
-    };
   };
 
   return (

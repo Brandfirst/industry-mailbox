@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { ArrowUp, ArrowDown, Check, X, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Type, Underline, ArrowUpDown, Spacing } from 'lucide-react';
+import { ArrowUp, ArrowDown, Check, X, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Type, Underline, ArrowUpDown, Sliders } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/auth';
@@ -46,12 +45,10 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
   const [editTab, setEditTab] = useState<string>('layout');
   const { isAdmin } = useAuth();
 
-  // Update sections when initialSections change
   useEffect(() => {
     setSections(initialSections);
   }, [initialSections]);
 
-  // If not admin, don't render anything
   if (!isAdmin) {
     return null;
   }
@@ -91,7 +88,6 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
       return section;
     }));
 
-    // Call the parent handler if provided
     if (onStyleUpdate) {
       const sectionIndex = sections.findIndex(s => s.id === sectionId);
       if (sectionIndex >= 0) {
@@ -110,7 +106,6 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
       return section;
     }));
 
-    // Call the parent handler if provided
     if (onContentUpdate) {
       const sectionIndex = sections.findIndex(s => s.id === sectionId);
       if (sectionIndex >= 0) {
@@ -181,7 +176,7 @@ export const SectionManager: React.FC<SectionManagerProps> = ({
             <Tabs value={editTab} onValueChange={setEditTab} className="w-full">
               <TabsList className="grid grid-cols-2 mb-4">
                 <TabsTrigger value="layout" className="flex items-center">
-                  <Spacing className="mr-2 h-4 w-4" /> Layout
+                  <Sliders className="mr-2 h-4 w-4" /> Layout
                 </TabsTrigger>
                 <TabsTrigger value="content" className="flex items-center">
                   <Type className="mr-2 h-4 w-4" /> Content
