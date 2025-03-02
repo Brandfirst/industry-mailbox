@@ -1,8 +1,9 @@
 
 import { useEffect, useState } from "react";
-import { Award, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Embla from 'embla-carousel-react';
+import { cn } from "@/lib/utils";
 
 const TestimonialsSection = () => {
   const [testimonialViewportRef, emblaApi] = Embla({ 
@@ -59,12 +60,23 @@ const TestimonialsSection = () => {
     },
   ];
 
+  // Navigate slider with keyboard arrows
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') emblaApi?.scrollPrev();
+      if (e.key === 'ArrowRight') emblaApi?.scrollNext();
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [emblaApi]);
+
   return (
     <section className="py-20 bg-gradient-to-b from-black to-[#FF5722]/20">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <Badge variant="outline" className="mb-4 text-[#FF8A50] border-[#FF5722]/30 bg-[#FF5722]/5 px-3 py-1">
-            <Award className="w-4 h-4 mr-1" /> Brukervurderinger
+            Kundehistorier
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Hva våre kunder sier</h2>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
@@ -72,20 +84,44 @@ const TestimonialsSection = () => {
           </p>
         </div>
         
-        <div className="carousel-container">
-          <div className="embla" ref={testimonialViewportRef}>
-            <div className="embla__container">
+        <div className="relative max-w-5xl mx-auto">
+          {/* Navigation buttons */}
+          <button 
+            onClick={() => emblaApi?.scrollPrev()} 
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-10 p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-[#FF5722]/10 transition-all"
+            aria-label="Previous testimonial"
+          >
+            <ChevronLeft className="w-5 h-5 text-white" />
+          </button>
+          
+          <button 
+            onClick={() => emblaApi?.scrollNext()} 
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-10 p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-[#FF5722]/10 transition-all"
+            aria-label="Next testimonial"
+          >
+            <ChevronRight className="w-5 h-5 text-white" />
+          </button>
+          
+          {/* Testimonial carousel */}
+          <div className="overflow-hidden rounded-xl" ref={testimonialViewportRef}>
+            <div className="flex">
               {testimonials.map((testimonial, index) => (
-                <div key={index} className="embla__slide px-2 md:px-4">
-                  <div className="testimonial-card shine-effect">
-                    <div className="mb-4 flex">
+                <div key={index} className="flex-shrink-0 w-full md:w-4/5 px-4">
+                  <div className={cn(
+                    "testimonial-card glass-effect",
+                    activeIndex === index ? "scale-100 opacity-100" : "scale-95 opacity-70"
+                  )}>
+                    <div className="rating-stars">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${i < testimonial.rating ? 'text-yellow-400' : 'text-gray-500'}`} fill={i < testimonial.rating ? 'currentColor' : 'none'} />
+                        <Star 
+                          key={i} 
+                          className={`w-4 h-4 mr-1 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-500'}`} 
+                        />
                       ))}
                     </div>
-                    <p className="testimonial-text mb-4">{testimonial.text}</p>
+                    <p className="testimonial-text">{testimonial.text}</p>
                     <div className="testimonial-author">
-                      <div className="testimonial-avatar bg-[#FF5722]/10">
+                      <div className="testimonial-avatar">
                         {testimonial.initial}
                       </div>
                       <div className="testimonial-info">
@@ -99,13 +135,14 @@ const TestimonialsSection = () => {
             </div>
           </div>
           
-          {/* Pagination dots */}
-          <div className="flex justify-center mt-8 gap-2">
+          {/* Modern pagination dots */}
+          <div className="pagination-dots">
             {testimonials.map((_, index) => (
               <button
                 key={index}
-                className={`w-3 h-3 rounded-full ${activeIndex === index ? 'bg-[#FF5722]' : 'bg-gray-600'}`}
+                className={`pagination-dot ${activeIndex === index ? 'active' : ''}`}
                 onClick={() => emblaApi?.scrollTo(index)}
+                aria-label={`Go to testimonial ${index + 1}`}
               />
             ))}
           </div>

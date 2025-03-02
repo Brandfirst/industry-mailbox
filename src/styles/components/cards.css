@@ -11,3 +11,5 @@
 .feature-card {
   @apply transition-all duration-300 hover:translate-y-[-5px] hover:shadow-lg rounded-xl;
 }
+
+/* Testimonial card specific styling is now in testimonials.css */
