@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import Spline from '@splinetool/react-spline';
 
@@ -40,7 +41,7 @@ const BackgroundEffects = () => {
 
   return (
     <>
-      <div className="absolute inset-0 z-0 w-full h-full -top-20">
+      <div className="absolute inset-0 z-0 w-full h-full">
         <Spline 
           scene="https://prod.spline.design/kiQGRbPlp9LUJc9j/scene.splinecode" 
           className="w-full h-full"
