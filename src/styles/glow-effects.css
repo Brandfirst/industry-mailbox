@@ -28,9 +28,9 @@
 
 /* Version 2.0 badge animation */
 @keyframes pulse-glow {
-  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
 }
 
 .pulse-glow {
@@ -44,6 +44,7 @@
 /* Announcement bar glow effect */
 .announcement-glow-container {
   transition: all 0.3s ease;
+  border-color: rgba(255, 87, 34, 0.3) !important;
 }
 
 .announcement-glow-container:hover {
@@ -62,6 +63,8 @@
   transition: opacity 0.3s ease;
   opacity: 0;
   z-index: 0;
+  position: absolute;
+  inset: 0;
 }
 
 .announcement-glow-container:hover .announcement-glow-effect {
