@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,10 +13,24 @@ interface DateRangePickerProps {
 
 const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
   const hasDateSelected = dateRange.from || dateRange.to;
+  const [tempDateRange, setTempDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>(dateRange);
+  const [open, setOpen] = useState(false);
+  
+  const handleApply = () => {
+    setDateRange(tempDateRange);
+    setOpen(false);
+  };
+  
+  const handleClear = () => {
+    const clearedRange = { from: undefined, to: undefined };
+    setTempDateRange(clearedRange);
+    setDateRange(clearedRange);
+    setOpen(false);
+  };
   
   return (
     <div className="space-y-4">
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -43,10 +57,10 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
                 <h4 className="text-sm font-medium mb-2">Fra dato</h4>
                 <Calendar
                   mode="single"
-                  selected={dateRange.from}
-                  onSelect={(date) => setDateRange({ ...dateRange, from: date })}
+                  selected={tempDateRange.from}
+                  onSelect={(date) => setTempDateRange({ ...tempDateRange, from: date })}
                   disabled={(date) => 
-                    dateRange.to ? date > dateRange.to : false
+                    tempDateRange.to ? date > tempDateRange.to : false
                   }
                   initialFocus
                 />
@@ -56,26 +70,33 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
                 <h4 className="text-sm font-medium mb-2">Til dato</h4>
                 <Calendar
                   mode="single"
-                  selected={dateRange.to}
-                  onSelect={(date) => setDateRange({ ...dateRange, to: date })}
+                  selected={tempDateRange.to}
+                  onSelect={(date) => setTempDateRange({ ...tempDateRange, to: date })}
                   disabled={(date) => 
-                    dateRange.from ? date < dateRange.from : false
+                    tempDateRange.from ? date < tempDateRange.from : false
                   }
                 />
               </div>
             </div>
             
-            {hasDateSelected && (
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setDateRange({ from: undefined, to: undefined })}
-                className="w-full"
+                onClick={handleClear}
+                className="flex-1"
               >
                 <X className="h-4 w-4 mr-1" />
-                Nullstill datoer
+                Nullstill
               </Button>
-            )}
+              <Button
+                size="sm"
+                onClick={handleApply}
+                className="flex-1"
+              >
+                Bruk datoer
+              </Button>
+            </div>
           </div>
         </PopoverContent>
       </Popover>
