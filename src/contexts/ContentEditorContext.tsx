@@ -107,7 +107,17 @@ export const ContentEditorProvider: React.FC<{ children: ReactNode }> = ({ child
   };
 
   const selectElement = (element: EditableElement | null) => {
+    // If we already have a selected element, restore its original styles before selecting a new one
+    if (selectedElement && selectedElement.element && selectedElement.originalClassName && element?.id !== selectedElement.id) {
+      selectedElement.element.className = selectedElement.className || '';
+    }
+    
     setSelectedElement(element);
+    
+    // Log selection for debugging
+    if (element) {
+      console.log('Selected element:', element);
+    }
   };
 
   const updateSelectedElement = (updates: Partial<EditableElement>) => {

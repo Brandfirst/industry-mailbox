@@ -18,10 +18,27 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ children }) => {
   useEffect(() => {
     if (!isEditing) return;
     
+    // Ensure all editable elements have the necessary attributes and IDs
+    document.querySelectorAll('[data-editable]').forEach((el, index) => {
+      const element = el as HTMLElement;
+      
+      // Add a unique ID if none exists
+      if (!element.getAttribute('data-editable-id')) {
+        element.setAttribute('data-editable-id', `editable-${index}-${Date.now()}`);
+      }
+      
+      // Set a default editable type if none specified
+      if (!element.getAttribute('data-editable-type')) {
+        element.setAttribute('data-editable-type', 'text,padding,margin,color,background,fontSize,alignment');
+      }
+    });
+    
     const handleElementClick = (e: MouseEvent) => {
       // Prevent default behaviors
       e.preventDefault();
       e.stopPropagation();
+      
+      console.log('Click detected in edit mode');
       
       const target = e.target as HTMLElement;
       
@@ -44,6 +61,8 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ children }) => {
       
       // Only select elements with data-editable attribute
       if (editableElement.hasAttribute('data-editable')) {
+        console.log('Editable element clicked:', editableElement);
+        
         // Get editable type from the element or default to a combination of types
         let editableType = editableElement.getAttribute('data-editable-type');
         
@@ -52,7 +71,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ children }) => {
           editableType = 'text,padding,margin,color,background,fontSize,alignment';
         }
         
-        const editableId = editableElement.getAttribute('data-editable-id') || crypto.randomUUID();
+        const editableId = editableElement.getAttribute('data-editable-id') || `editable-${Date.now()}`;
         
         // Get current content for text elements
         let content = '';

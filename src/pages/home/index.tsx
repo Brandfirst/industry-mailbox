@@ -18,16 +18,34 @@ const HomePage = () => {
     <ContentEditorProvider>
       <ContentEditor>
         <div className="min-h-screen bg-black text-white">
-          <AnnouncementBar />
+          <div data-editable="true" data-editable-type="text,color,background">
+            <AnnouncementBar />
+          </div>
           <HeroSection />
-          <FeaturesSection />
-          <StatsSection />
-          <TestimonialsSection />
-          <FAQSection />
-          <PricingSection />
-          <CTASection />
-          <NewsletterSubscriptionSection />
-          <FooterSection />
+          <div data-editable="true" data-editable-type="padding,margin,background">
+            <FeaturesSection />
+          </div>
+          <div data-editable="true" data-editable-type="padding,margin,background">
+            <StatsSection />
+          </div>
+          <div data-editable="true" data-editable-type="padding,margin,background">
+            <TestimonialsSection />
+          </div>
+          <div data-editable="true" data-editable-type="padding,margin,background">
+            <FAQSection />
+          </div>
+          <div data-editable="true" data-editable-type="padding,margin,background">
+            <PricingSection />
+          </div>
+          <div data-editable="true" data-editable-type="padding,margin,background">
+            <CTASection />
+          </div>
+          <div data-editable="true" data-editable-type="padding,margin,background">
+            <NewsletterSubscriptionSection />
+          </div>
+          <div data-editable="true" data-editable-type="padding,margin,background">
+            <FooterSection />
+          </div>
         </div>
       </ContentEditor>
     </ContentEditorProvider>
