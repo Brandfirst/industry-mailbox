@@ -43,6 +43,7 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate }: Newsle
         <NewsletterPreview 
           content={newsletter.content} 
           title={newsletter.title}
+          isMobile={false}
         />
       </div>
     </div>

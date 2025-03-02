@@ -4,9 +4,10 @@ import React from 'react';
 interface NewsletterPreviewProps {
   content: string | null;
   title: string | null;
+  isMobile?: boolean;
 }
 
-const NewsletterPreview = ({ content, title }: NewsletterPreviewProps) => {
+const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPreviewProps) => {
   const getIframeContent = () => {
     if (!content) {
       return `<!DOCTYPE html><html><head></head><body><p>No content available</p></body></html>`;
@@ -29,6 +30,9 @@ const NewsletterPreview = ({ content, title }: NewsletterPreviewProps) => {
               height: 100%;
               width: 100%;
               background-color: white;
+            }
+            body {
+              ${isMobile ? 'transform: scale(0.5); transform-origin: 0 0; width: 200%; height: 200%;' : ''}
             }
             a {
               pointer-events: none;
