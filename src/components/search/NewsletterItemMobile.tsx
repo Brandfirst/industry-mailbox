@@ -12,13 +12,11 @@ interface NewsletterItemMobileProps {
 const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate }: NewsletterItemMobileProps) => {
   return (
     <div className="md:hidden flex" onClick={onClick}>
-      <div className="w-1/3 h-24 bg-white overflow-hidden relative">
-        <div className="absolute inset-0 w-full h-full">
-          <NewsletterPreview 
-            content={newsletter.content} 
-            title={newsletter.title}
-          />
-        </div>
+      <div className="w-1/3 h-24 bg-white overflow-hidden">
+        <NewsletterPreview 
+          content={newsletter.content} 
+          title={newsletter.title}
+        />
       </div>
       
       <div className="w-2/3 p-3 flex flex-col">

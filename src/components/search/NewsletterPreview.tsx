@@ -4,20 +4,9 @@ import React from 'react';
 interface NewsletterPreviewProps {
   content: string | null;
   title: string | null;
-  height?: string;
-  width?: string;
-  previewHeight?: string;
-  previewWidth?: string;
 }
 
-const NewsletterPreview = ({ 
-  content, 
-  title, 
-  height = "100%", 
-  width = "100%",
-  previewHeight = "200%",
-  previewWidth = "200%" 
-}: NewsletterPreviewProps) => {
+const NewsletterPreview = ({ content, title }: NewsletterPreviewProps) => {
   const getIframeContent = () => {
     if (!content) {
       return `<!DOCTYPE html><html><head></head><body><p>No content available</p></body></html>`;
@@ -41,19 +30,6 @@ const NewsletterPreview = ({
               width: 100%;
               background-color: white;
             }
-            body {
-              zoom: 0.5;
-              -moz-transform: scale(0.5);
-              -moz-transform-origin: 0 0;
-              -o-transform: scale(0.5);
-              -o-transform-origin: 0 0;
-              -webkit-transform: scale(0.5);
-              -webkit-transform-origin: 0 0;
-              transform: scale(0.5);
-              transform-origin: 0 0;
-              width: 200%;
-              height: 200%;
-            }
             a {
               pointer-events: none;
             }
@@ -74,7 +50,7 @@ const NewsletterPreview = ({
 
   if (!content) {
     return (
-      <div className={`w-full h-full bg-gray-100 flex items-center justify-center`}>
+      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
         <p className="text-gray-500 text-xs md:text-base">No preview</p>
       </div>
     );
@@ -88,8 +64,6 @@ const NewsletterPreview = ({
         className="w-full h-full border-0"
         sandbox="allow-same-origin"
         style={{ 
-          height: "100%",
-          width: "100%",
           pointerEvents: "none",
           display: "block"
         }}
