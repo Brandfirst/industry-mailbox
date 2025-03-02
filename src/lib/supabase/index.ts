@@ -3,7 +3,16 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // Re-export all types from types.ts
-export * from "./types";
+// We need to avoid re-exporting GoogleOAuthResult from here since it's already
+// exported from the emailAccounts module
+export type {
+  Newsletter,
+  EmailAccount,
+  NewsletterCategory,
+  CategoryWithStats,
+  NewsletterFilters,
+  // Removing GoogleOAuthResult from here as it's exported from emailAccounts/types.ts
+} from "./types";
 
 // Re-export functionality from sub-modules
 export * from "./userProfile";
