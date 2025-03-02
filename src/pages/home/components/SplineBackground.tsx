@@ -1,5 +1,5 @@
 
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 import Spline from '@splinetool/react-spline';
 
 type SplineBackgroundProps = {
@@ -11,7 +11,8 @@ type SplineBackgroundProps = {
   className?: string;
 };
 
-const SplineBackground = ({
+// Using memo to prevent unnecessary re-renders
+const SplineBackground = memo(({
   position = 'center',
   rotation = 0,
   scale = 1,
@@ -41,7 +42,7 @@ const SplineBackground = ({
 
   return (
     <div 
-      className={`absolute inset-0 w-full h-full overflow-hidden ${getPositionStyle()} ${className}`}
+      className={`absolute inset-0 w-full h-[150%] overflow-hidden ${getPositionStyle()} ${className}`}
       style={{ 
         opacity, 
         zIndex,
@@ -54,10 +55,12 @@ const SplineBackground = ({
         onLoad={onLoad}
       />
       
-      {/* Add gradient overlay at the bottom */}
+      {/* Add gradient overlay at the bottom for better content visibility */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10"></div>
     </div>
   );
-};
+});
+
+SplineBackground.displayName = 'SplineBackground';
 
 export default SplineBackground;

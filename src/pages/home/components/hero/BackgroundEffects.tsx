@@ -1,35 +1,43 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import Spline from '@splinetool/react-spline';
 
-const BackgroundEffects = () => {
+const BackgroundEffects = memo(() => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const splineRef = useRef(null);
+  const mouseMoveThrottleRef = useRef(null);
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
-      // Calculate mouse position as normalized values between -1 and 1
-      const x = (event.clientX / window.innerWidth) * 2 - 1;
-      const y = (event.clientY / window.innerHeight) * 2 - 1;
-      setMousePosition({ x, y });
-      
-      // If we have access to Spline's API, we could send the mouse position
-      if (splineRef.current) {
-        const splineApp = splineRef.current;
-        // This will work if the Spline scene has been set up to receive these events
-        if (splineApp.emitEvent) {
-          splineApp.emitEvent('mouseMove', { x, y });
-        }
+      // Throttle mouse movement updates for better performance
+      if (!mouseMoveThrottleRef.current) {
+        mouseMoveThrottleRef.current = setTimeout(() => {
+          // Calculate mouse position as normalized values between -1 and 1
+          const x = (event.clientX / window.innerWidth) * 2 - 1;
+          const y = (event.clientY / window.innerHeight) * 2 - 1;
+          setMousePosition({ x, y });
+          
+          // If we have access to Spline's API, we could send the mouse position
+          if (splineRef.current) {
+            const splineApp = splineRef.current;
+            // This will work if the Spline scene has been set up to receive these events
+            if (splineApp.emitEvent) {
+              splineApp.emitEvent('mouseMove', { x, y });
+            }
+          }
+          mouseMoveThrottleRef.current = null;
+        }, 50); // Throttle to 50ms
       }
     };
 
     // Use both mousemove and pointermove for better cross-device support
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('pointermove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('pointermove', handleMouseMove);
+      if (mouseMoveThrottleRef.current) {
+        clearTimeout(mouseMoveThrottleRef.current);
+      }
     };
   }, []);
 
@@ -41,7 +49,7 @@ const BackgroundEffects = () => {
 
   return (
     <>
-      <div className="absolute inset-0 z-0 w-full h-full">
+      <div className="absolute inset-0 z-0 w-full h-[120%]">
         <Spline 
           scene="https://prod.spline.design/kiQGRbPlp9LUJc9j/scene.splinecode" 
           className="w-full h-full"
@@ -59,6 +67,7 @@ const BackgroundEffects = () => {
       
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10"></div>
       
+      {/* Use transform for better performance instead of positioning */}
       <div 
         className="absolute -bottom-20 left-1/2 w-1/2 h-40 bg-[#FF5722]/10 rounded-full blur-3xl cursor-follow"
         style={{
@@ -90,6 +99,8 @@ const BackgroundEffects = () => {
       />
     </>
   );
-};
+});
+
+BackgroundEffects.displayName = 'BackgroundEffects';
 
 export default BackgroundEffects;
