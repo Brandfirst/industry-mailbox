@@ -6,7 +6,7 @@ interface Testimonial {
   quote: string;
   author: string;
   title: string;
-  avatar: string;
+  avatar: string; // We'll keep this in the interface but won't use it
 }
 
 interface TestimonialsSliderProps {
@@ -49,14 +49,11 @@ const TestimonialsSlider = ({ testimonials }: TestimonialsSliderProps) => {
                     <Star key={i} className="w-3 h-3 text-[#FF5722]" fill="currentColor" />
                   ))}
                 </div>
-                <p className="testimonial-text">"{item.quote}"</p>
+                <p className="testimonial-text text-white">"{item.quote}"</p>
                 <div className="flex items-center">
-                  <div className="testimonial-avatar">
-                    <img src={item.avatar} alt={item.author} className="w-full h-full object-cover" />
-                  </div>
                   <div className="testimonial-info">
-                    <p className="testimonial-name">{item.author}</p>
-                    <p className="testimonial-company">{item.title}</p>
+                    <p className="testimonial-name text-white">{item.author}</p>
+                    <p className="testimonial-company text-white/70">{item.title}</p>
                   </div>
                 </div>
               </div>
