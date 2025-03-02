@@ -23,11 +23,15 @@ const NewsletterPreview = ({
       return `<!DOCTYPE html><html><head></head><body><p>No content available</p></body></html>`;
     }
     
+    // Replace all http:// with https:// to prevent mixed content warnings
+    let secureContent = content.replace(/http:\/\//g, 'https://');
+    
     return `<!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
           <style>
             html, body {
               margin: 0;
@@ -50,13 +54,16 @@ const NewsletterPreview = ({
             a {
               pointer-events: none;
             }
+            img {
+              max-width: 100%;
+            }
             * {
               max-width: 100%;
               box-sizing: border-box;
             }
           </style>
         </head>
-        <body>${content}</body>
+        <body>${secureContent}</body>
       </html>`;
   };
 
