@@ -43,3 +43,55 @@
 .glow-effect:hover {
   box-shadow: 0 0 30px rgba(59,130,246,0.3);
 }
+
+/* Visual Editor Styles */
+.writing-mode-vertical {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+}
+
+/* Editable element styles */
+[data-editable] {
+  position: relative;
+  outline: 2px solid transparent;
+  transition: outline 0.2s ease;
+}
+
+[data-editable]:hover {
+  outline: 2px dashed rgba(255, 87, 34, 0.3);
+  cursor: pointer;
+}
+
+[data-editable].active {
+  outline: 2px solid #FF5722;
+}
+
+/* Highlight active section with a subtle border */
+.section-active {
+  position: relative;
+}
+
+.section-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed #FF5722;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Style for section badges */
+.section-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  background-color: #FF5722;
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+  z-index: 5;
+}
