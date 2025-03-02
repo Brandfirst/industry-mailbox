@@ -25,9 +25,11 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
           {newsletter.content ? (
             <div className="h-24 relative">
               <iframe
-                srcDoc={`
+                srcDoc={`<!DOCTYPE html>
                   <html>
                     <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
                       <style>
                         html, body {
                           margin: 0;
@@ -56,9 +58,8 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
                         }
                       </style>
                     </head>
-                    <body>${newsletter.content}</body>
-                  </html>
-                `}
+                    <body>${newsletter.content || ''}</body>
+                  </html>`}
                 title={newsletter.title || "Newsletter Content"}
                 className="w-full h-full border-0"
                 sandbox="allow-same-origin"
@@ -147,9 +148,11 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
               style={{ pointerEvents: 'none' }}
             >
               <iframe
-                srcDoc={`
+                srcDoc={`<!DOCTYPE html>
                   <html>
                     <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
                       <style>
                         html, body {
                           margin: 0;
@@ -178,9 +181,8 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
                         }
                       </style>
                     </head>
-                    <body>${newsletter.content}</body>
-                  </html>
-                `}
+                    <body>${newsletter.content || ''}</body>
+                  </html>`}
                 title={newsletter.title || "Newsletter Content"}
                 className="w-full h-full border-0"
                 sandbox="allow-same-origin"
