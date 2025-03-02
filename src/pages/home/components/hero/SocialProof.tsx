@@ -2,13 +2,13 @@
 import { motion } from "framer-motion";
 
 const SocialProof = () => {
-  // Profile images for the social proof section
+  // Profile images for the social proof section - using the new uploaded images
   const profiles = [
-    "/lovable-uploads/a6ebea68-fa17-4abb-a155-7a6e62e95514.png",
-    "/lovable-uploads/9c18978d-5f8f-4ce3-9eab-aed71d4f66d3.png",
-    "/lovable-uploads/bc6da6c1-6e77-4e9a-a2cd-554f46a925e6.png",
-    "/lovable-uploads/8e30f8f8-9e78-4332-804f-a64bfee8112a.png",
-    "/lovable-uploads/a6ebea68-fa17-4abb-a155-7a6e62e95514.png"
+    "/lovable-uploads/3bd3a78a-ed4c-4c2f-9661-a247d626f5b6.png",
+    "/lovable-uploads/a86b4a49-530b-4bea-902d-d79c254737f0.png",
+    "/lovable-uploads/0baed1aa-d0fc-4d00-8491-9b413d90c9f1.png",
+    "/lovable-uploads/4d2e5613-2abd-49c9-ba8b-59f049e54dce.png",
+    "/lovable-uploads/479f4b5c-3e23-46bb-ae99-d17e2ad134bd.png"
   ];
 
   return (
