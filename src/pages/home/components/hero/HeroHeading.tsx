@@ -18,7 +18,7 @@ const HeroHeading = () => {
           incrementAmount={7} 
           intervalMs={1000} 
           prefix=" " 
-          suffix="" 
+          suffix=" " 
         />
          nyhetsbrev fra 
         <DynamicCounter 
