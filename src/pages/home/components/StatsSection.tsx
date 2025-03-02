@@ -1,7 +1,7 @@
 import { Mail, Users, BarChart, Calendar, TrendingUp, PieChart, LineChart } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { useState } from "react";
-import { SectionManager, Section } from "@/components/SectionManager";
+import { useState, useEffect } from "react";
+import { SectionManager, Section, SectionStyle } from "@/components/SectionManager";
 
 const StatsSection = () => {
   // Stats data with mock values for now
@@ -31,10 +31,23 @@ const StatsSection = () => {
     { name: "HEXCLAD", className: "font-bold tracking-wider" },
   ];
 
-  // Define the sections
+  // State for section styles
+  const [sectionStyles, setSectionStyles] = useState<Record<string, SectionStyle>>({});
+  
+  // State for section content
+  const [sectionContent, setSectionContent] = useState<Record<string, Record<string, string>>>({
+    dataViz: {
+      title: "Dyp innsikt i nyhetsbrev-landskapet",
+      description: "NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet."
+    }
+  });
+
+  // Define the sections with editable content
   const brandLogosSection = (
-    <div className="pb-16 mb-10">
-      <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">Loved by 5,000+ Brands & Agencies</h3>
+    <div className="pb-16 mb-10" style={applySectionStyle("brandLogos")}>
+      <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">
+        {sectionContent.brandLogos?.title || "Loved by 5,000+ Brands & Agencies"}
+      </h3>
       
       <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
         {logos.map((logo, index) => (
@@ -49,7 +62,10 @@ const StatsSection = () => {
   );
 
   const statsGridSection = (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16 border-t border-gray-800 pt-10">
+    <div 
+      className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16 border-t border-gray-800 pt-10"
+      style={applySectionStyle("statsGrid")}
+    >
       {stats.map((stat, index) => (
         <div key={index} className="p-6 bg-[#0A0A0A] rounded-xl border border-[#3a6ffb]/20 hover:border-[#3a6ffb]/30 transition-all">
           <div className="flex justify-between items-center mb-2">
@@ -63,18 +79,24 @@ const StatsSection = () => {
   );
 
   const dataVisualizationSection = (
-    <div className="text-center mb-14 border-t border-gray-800 pt-10">
-      <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Dyp innsikt i nyhetsbrev-landskapet</h2>
+    <div 
+      className="text-center mb-14 border-t border-gray-800 pt-10"
+      style={applySectionStyle("dataViz")}
+    >
+      <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+        {sectionContent.dataViz?.title || "Dyp innsikt i nyhetsbrev-landskapet"}
+      </h2>
       <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-        NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, 
-        for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet.
+        {sectionContent.dataViz?.description || "NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet."}
       </p>
     </div>
   );
 
   const chartsSection = (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
-      {/* Trend analysis chart */}
+    <div 
+      className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16"
+      style={applySectionStyle("charts")}
+    >
       <div className="bg-[#0A0A0A] p-6 rounded-xl border border-[#3a6ffb]/20">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white flex items-center">
@@ -190,32 +212,102 @@ const StatsSection = () => {
     </div>
   );
 
-  // Define initial sections
+  // Define initial sections with editable content
   const initialSections: Section[] = [
-    { id: "brandLogos", title: "Brand Logos", component: brandLogosSection },
-    { id: "statsGrid", title: "Stats Grid", component: statsGridSection },
-    { id: "dataViz", title: "Data Visualization Text", component: dataVisualizationSection },
-    { id: "charts", title: "Charts & Analysis", component: chartsSection }
+    { 
+      id: "brandLogos", 
+      title: "Brand Logos", 
+      component: brandLogosSection,
+      style: sectionStyles.brandLogos || {},
+      editableContent: {
+        title: sectionContent.brandLogos?.title || "Loved by 5,000+ Brands & Agencies"
+      }
+    },
+    { 
+      id: "statsGrid", 
+      title: "Stats Grid", 
+      component: statsGridSection,
+      style: sectionStyles.statsGrid || {}
+    },
+    { 
+      id: "dataViz", 
+      title: "Data Visualization Text", 
+      component: dataVisualizationSection,
+      style: sectionStyles.dataViz || {},
+      editableContent: {
+        title: sectionContent.dataViz?.title || "Dyp innsikt i nyhetsbrev-landskapet",
+        description: sectionContent.dataViz?.description || "NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet."
+      }
+    },
+    { 
+      id: "charts", 
+      title: "Charts & Analysis", 
+      component: chartsSection,
+      style: sectionStyles.charts || {}
+    }
   ];
 
   // State for managing the sections
   const [sectionsList, setSectionsList] = useState<Section[]>(initialSections);
+
+  // Update sections when content or styles change
+  useEffect(() => {
+    const updatedSections = initialSections.map(section => ({
+      ...section,
+      style: sectionStyles[section.id] || {},
+      editableContent: sectionContent[section.id] || section.editableContent
+    }));
+    setSectionsList(updatedSections);
+  }, [sectionStyles, sectionContent]);
 
   // Handle section reordering
   const handleReorder = (reorderedSections: Section[]) => {
     setSectionsList(reorderedSections);
   };
 
+  // Handle style updates
+  const handleStyleUpdate = (sectionId: string, style: SectionStyle) => {
+    setSectionStyles(prev => ({
+      ...prev,
+      [sectionId]: style
+    }));
+  };
+
+  // Handle content updates
+  const handleContentUpdate = (sectionId: string, content: Record<string, string>) => {
+    setSectionContent(prev => ({
+      ...prev,
+      [sectionId]: content
+    }));
+  };
+
+  // Apply styles to a component based on section ID
+  const applySectionStyle = (sectionId: string) => {
+    const style = sectionStyles[sectionId] || {};
+    return {
+      marginTop: style.marginTop || '',
+      marginBottom: style.marginBottom || '',
+      paddingTop: style.paddingTop || '',
+      paddingBottom: style.paddingBottom || '',
+      textAlign: style.textAlign as 'left' | 'center' | 'right' || 'inherit'
+    };
+  };
+
   return (
     <section className="py-8 bg-black">
-      <div className="container mx-auto px-4 max-w-7xl">
+      <div className="container mx-auto px-4 max-w-7xl section-transition">
         {/* Render sections based on their order */}
         {sectionsList.map((section) => (
           <div key={section.id}>{section.component}</div>
         ))}
 
         {/* Section Manager component */}
-        <SectionManager sections={sectionsList} onReorder={handleReorder} />
+        <SectionManager 
+          sections={sectionsList} 
+          onReorder={handleReorder}
+          onStyleUpdate={handleStyleUpdate}
+          onContentUpdate={handleContentUpdate}
+        />
       </div>
     </section>
   );
