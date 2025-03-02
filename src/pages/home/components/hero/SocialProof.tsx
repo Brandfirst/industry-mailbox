@@ -13,12 +13,6 @@ const SocialProof = () => {
 
   return (
     <div className="flex items-center glass-effect px-4 py-2 rounded-full shadow-glass">
-      {/* Glowing dot similar to "Nytt newsletter" */}
-      <div className="relative mr-2 flex items-center">
-        <span className="absolute w-2 h-2 bg-[#FF5722] rounded-full animate-pulse shadow-glow"></span>
-        <span className="w-2 h-2 bg-[#FF5722] rounded-full opacity-75"></span>
-      </div>
-      
       {/* Profile pictures */}
       <div className="flex -space-x-2 mr-3">
         {profiles.map((profile, index) => (
