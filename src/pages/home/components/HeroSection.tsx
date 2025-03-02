@@ -65,7 +65,7 @@ const HeroSection = () => {
             <span className="block text-white mb-2">Norges største</span>
             <span className="block">database</span>
             <span className="block mt-2">
-              av <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-light to-primary">nyhetsbrev</span>
+              av <span className="text-white">nyhetsbrev</span>
             </span>
           </h1>
           

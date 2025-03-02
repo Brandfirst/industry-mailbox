@@ -60,10 +60,10 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-black to-blue-950/20">
+    <section className="py-20 bg-gradient-to-b from-black to-[#FF5722]/20">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-16">
-          <Badge variant="outline" className="mb-4 text-blue-400 border-blue-500/30 bg-blue-500/5 px-3 py-1">
+          <Badge variant="outline" className="mb-4 text-[#FF8A50] border-[#FF5722]/30 bg-[#FF5722]/5 px-3 py-1">
             <Award className="w-4 h-4 mr-1" /> Brukervurderinger
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Hva våre kunder sier</h2>
@@ -85,7 +85,7 @@ const TestimonialsSection = () => {
                     </div>
                     <p className="testimonial-text mb-4">{testimonial.text}</p>
                     <div className="testimonial-author">
-                      <div className="testimonial-avatar bg-blue-500/10">
+                      <div className="testimonial-avatar bg-[#FF5722]/10">
                         {testimonial.initial}
                       </div>
                       <div className="testimonial-info">
@@ -104,7 +104,7 @@ const TestimonialsSection = () => {
             {testimonials.map((_, index) => (
               <button
                 key={index}
-                className={`w-3 h-3 rounded-full ${activeIndex === index ? 'bg-blue-500' : 'bg-gray-600'}`}
+                className={`w-3 h-3 rounded-full ${activeIndex === index ? 'bg-[#FF5722]' : 'bg-gray-600'}`}
                 onClick={() => emblaApi?.scrollTo(index)}
               />
             ))}

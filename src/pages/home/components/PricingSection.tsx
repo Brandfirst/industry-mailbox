@@ -51,10 +51,10 @@ const PricingSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-blue-950/20 to-black">
+    <section className="py-20 bg-gradient-to-b from-[#FF5722]/20 to-black">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-16">
-          <Badge variant="outline" className="mb-4 text-blue-400 border-blue-500/30 bg-blue-500/5 px-3 py-1">
+          <Badge variant="outline" className="mb-4 text-[#FF8A50] border-[#FF5722]/30 bg-[#FF5722]/5 px-3 py-1">
             Prisplaner
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Finn den riktige planen for deg</h2>
@@ -65,9 +65,9 @@ const PricingSection = () => {
         
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {pricingTiers.map((tier, index) => (
-            <div key={index} className={`relative rounded-xl p-6 transition-all ${tier.popular ? 'bg-gradient-to-b from-blue-800/30 to-blue-950/30 border border-blue-500/30 shadow-xl' : 'bg-blue-950/10 border border-gray-800'}`}>
+            <div key={index} className={`relative rounded-xl p-6 transition-all ${tier.popular ? 'bg-gradient-to-b from-[#FF5722]/30 to-[#FF5722]/10 border border-[#FF5722]/30 shadow-xl' : 'bg-[#FF5722]/10 border border-gray-800'}`}>
               {tier.popular && (
-                <div className="absolute -top-3 left-0 right-0 mx-auto w-fit px-3 py-1 bg-blue-500 text-xs font-bold rounded-full text-white">
+                <div className="absolute -top-3 left-0 right-0 mx-auto w-fit px-3 py-1 bg-[#FF5722] text-xs font-bold rounded-full text-white">
                   Mest Populær
                 </div>
               )}
@@ -88,7 +88,7 @@ const PricingSection = () => {
                   ))}
                 </ul>
               </div>
-              <Button className={`w-full ${tier.popular ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'border border-blue-500/30 text-blue-400 hover:bg-blue-500/10'}`}>
+              <Button className={`w-full ${tier.popular ? 'bg-[#FF5722] hover:bg-[#FF8A50] text-white' : 'border border-[#FF5722]/30 text-[#FF8A50] hover:bg-[#FF5722]/10'}`}>
                 {tier.cta}
               </Button>
             </div>

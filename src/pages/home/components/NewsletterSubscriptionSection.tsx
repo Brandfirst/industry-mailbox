@@ -8,9 +8,9 @@ const NewsletterSubscriptionSection = () => {
   const [email, setEmail] = useState("");
   
   return (
-    <section className="py-20 bg-gradient-to-b from-black to-accent/10">
+    <section className="py-20 bg-gradient-to-b from-black to-[#FF5722]/10">
       <div className="container mx-auto px-4 max-w-3xl">
-        <div className="bg-gradient-to-br from-accent/20 to-accent/10 rounded-2xl border border-accent/20 p-8 md:p-12 text-center">
+        <div className="bg-gradient-to-br from-[#FF5722]/20 to-[#FF5722]/10 rounded-2xl border border-[#FF5722]/20 p-8 md:p-12 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Få eksklusive markedsføringstips</h2>
           <p className="text-gray-300 mb-8 max-w-xl mx-auto">
             Registrer deg for vårt ukentlige nyhetsbrev og få eksklusive innsikter og tips om nyhetsbrev-markedsføring.
@@ -20,7 +20,7 @@ const NewsletterSubscriptionSection = () => {
             <Input 
               type="email" 
               placeholder="Din e-postadresse" 
-              className="bg-black/30 backdrop-blur-sm border-primary/20 text-white rounded-xl" 
+              className="bg-black/30 backdrop-blur-sm border-[#FF5722]/20 text-white rounded-xl" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

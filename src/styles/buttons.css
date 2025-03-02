@@ -1,22 +1,22 @@
 
 .btn-primary {
-  @apply bg-gradient-to-r from-primary to-primary-light text-white font-medium py-2.5 px-5 rounded-lg transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md;
+  @apply bg-gradient-to-r from-[#FF5722] to-[#FF8A50] text-white font-medium py-2.5 px-5 rounded-lg transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md;
 }
 
 .btn-outline {
-  @apply border border-primary/30 bg-black/30 backdrop-blur-sm hover:bg-primary/10 text-white font-medium py-2.5 px-5 rounded-lg transition-all;
+  @apply border border-[#FF5722]/30 bg-black/30 backdrop-blur-sm hover:bg-[#FF5722]/10 text-white font-medium py-2.5 px-5 rounded-lg transition-all;
 }
 
 .gradient-button {
-  @apply relative overflow-hidden bg-gradient-to-r from-primary to-primary-light text-white font-medium py-3 px-6 rounded-lg transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md;
+  @apply relative overflow-hidden bg-gradient-to-r from-[#FF5722] to-[#FF8A50] text-white font-medium py-3 px-6 rounded-lg transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md;
 }
 
 .gradient-button:hover {
-  @apply from-primary-light to-primary shadow-glow;
+  @apply from-[#FF8A50] to-[#FF5722] shadow-glow;
 }
 
 .glass-button {
-  @apply relative bg-black/40 backdrop-blur-sm border border-primary/20 hover:border-primary/50 text-white rounded-lg transition-all shadow-md;
+  @apply relative bg-black/40 backdrop-blur-sm border border-[#FF5722]/20 hover:border-[#FF5722]/50 text-white rounded-lg transition-all shadow-md;
 }
 
 .glass-button:hover {
