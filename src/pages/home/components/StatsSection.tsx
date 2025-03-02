@@ -14,6 +14,22 @@ const StatsSection = () => {
   // Mock data for the line chart
   const chartPoints = "M5,40 C20,10 35,50 50,20 C65,50 80,10 95,30";
 
+  // Logo data
+  const logos = [
+    { name: "TRUE CLASSIC", className: "font-bold tracking-wide" },
+    { name: "AGI", className: "font-light" },
+    { name: "VAYNERMEDIA", className: "font-medium" },
+    { name: "THE RIDGE", className: "font-bold" },
+    { name: "PARAMOUNT", className: "font-light italic" },
+    { name: "TUBESCIENCE", className: "font-medium tracking-wide" },
+    { name: "JONES ROAD", className: "font-bold tracking-widest" },
+    { name: "JAMBYS", className: "font-light italic" },
+    { name: "KETTLE & FIRE", className: "font-medium" },
+    { name: "BACARDI", className: "font-bold" },
+    { name: "MAGIC SPOON", className: "font-medium" },
+    { name: "HEXCLAD", className: "font-bold tracking-wider" },
+  ];
+
   return (
     <section className="py-8 bg-black">
       <div className="container mx-auto px-4 max-w-7xl">
@@ -35,6 +51,21 @@ const StatsSection = () => {
               <span className="text-sm text-gray-300">{stat.label}</span>
             </div>
           ))}
+        </div>
+        
+        {/* Brand logos section */}
+        <div className="pt-8 pb-16 border-t border-gray-800">
+          <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">Loved by 5,000+ Brands & Agencies</h3>
+          
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
+            {logos.map((logo, index) => (
+              <div key={index} className="flex items-center justify-center">
+                <span className={`text-white text-sm md:text-base opacity-80 hover:opacity-100 transition-opacity ${logo.className}`}>
+                  {logo.name}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
         
         {/* Data visualization section */}
