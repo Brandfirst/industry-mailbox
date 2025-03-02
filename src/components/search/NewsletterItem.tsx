@@ -65,6 +65,7 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
                 style={{ 
                   height: "250%",
                   width: "250%",
+                  pointerEvents: "none"
                 }}
               />
             </div>
@@ -126,7 +127,7 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
               NO • {getFormattedDate(newsletter.published_at || '')}
             </span>
           </div>
-          {newsletter.category_id && (
+          {newsletter.categories?.name && (
             <div 
               className="px-2 py-1 text-xs rounded-full font-medium ml-auto"
               style={{ 
@@ -134,7 +135,7 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
                 color: newsletter.categories?.color || '#8B5CF6' 
               }}
             >
-              {newsletter.categories?.name || 'Ukategorisert'}
+              {newsletter.categories.name}
             </div>
           )}
         </div>
@@ -186,6 +187,7 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
                 style={{ 
                   height: "200%",
                   width: "200%",
+                  pointerEvents: "none"
                 }}
               />
             </div>
