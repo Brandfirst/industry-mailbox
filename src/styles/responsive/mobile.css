@@ -43,4 +43,16 @@
     max-width: 350px;
     margin: 0 auto;
   }
+  
+  /* Fix for hero section spacing */
+  section.py-16 {
+    padding-top: 0.5rem;
+    padding-bottom: 2rem;
+  }
+  
+  /* Add space between announcement and hero heading */
+  .pt-10 {
+    padding-top: 1.5rem;
+  }
 }
+
