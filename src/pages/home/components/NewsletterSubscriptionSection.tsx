@@ -3,14 +3,13 @@ import { useState } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import SplineBackground from "./SplineBackground";
 
 const NewsletterSubscriptionSection = () => {
   const [email, setEmail] = useState("");
   
   return (
     <section className="py-20 bg-black relative overflow-hidden">
-      <SplineBackground position="center" rotation={45} scale={1.8} opacity={0.5} />
+      {/* Removed SplineBackground */}
       
       <div className="container mx-auto px-4 max-w-3xl relative z-10">
         <div className="bg-black/90 backdrop-blur-md rounded-2xl border border-[#FF5722]/20 p-8 md:p-12 text-center">

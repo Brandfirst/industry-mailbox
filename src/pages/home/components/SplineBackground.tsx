@@ -26,6 +26,11 @@ const SplineBackground = memo(({
   const onLoad = (splineApp) => {
     splineRef.current = splineApp;
     console.log("Spline scene loaded");
+    
+    // Attempt to reduce quality for better performance
+    if (splineApp && splineApp.setQuality) {
+      splineApp.setQuality('low');
+    }
   };
 
   // Calculate position style based on the position prop
@@ -47,6 +52,7 @@ const SplineBackground = memo(({
         opacity, 
         zIndex,
         transform: `rotate(${rotation}deg) scale(${scale})`,
+        willChange: 'transform', // Improve GPU performance
       }}
     >
       <Spline 
