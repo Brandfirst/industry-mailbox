@@ -1,3 +1,4 @@
+
 .glass-card {
   @apply bg-card/80 backdrop-blur-sm border border-white/10 shadow-glass;
 }
@@ -41,65 +42,4 @@
 
 .glow-effect:hover {
   box-shadow: 0 0 30px rgba(59,130,246,0.3);
-}
-
-/* Section editor styles */
-.writing-mode-vertical {
-  writing-mode: vertical-lr;
-  transform: rotate(180deg);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.section-transition * {
-  transition: all 0.3s ease-in-out;
-}
-
-/* Section editor buttons and controls */
-.section-editor-control {
-  @apply p-2 bg-black/40 backdrop-blur-sm border border-[#3a6ffb]/20 rounded-md;
-}
-
-/* The toggle buttons for text alignment */
-.section-editor-toggle-group {
-  @apply flex gap-1;
-}
-
-.section-editor-toggle-item {
-  @apply p-2 bg-black/40 rounded-md;
-}
-
-.section-editor-toggle-item[data-state='on'] {
-  @apply bg-[#3a6ffb]/20 border-[#3a6ffb]/50;
-}
-
-/* Improved editor panel styles */
-.section-editor-panel {
-  @apply bg-black/95 text-white border-l border-[#3a6ffb]/30;
-}
-
-.section-editor-label {
-  @apply text-white text-sm mb-1 block;
-}
-
-.section-editor-input {
-  @apply bg-[#111] text-white border border-[#333] rounded;
-}
-
-.section-editor-slider {
-  @apply bg-[#222];
-}
-
-.section-editor-slider-thumb {
-  @apply bg-[#3a6ffb] border border-white;
-}
-
-.section-editor-tabs {
-  @apply bg-[#111] text-white;
-}
-
-.section-editor-section-item {
-  @apply bg-[#111] border border-[#333] hover:border-[#3a6ffb]/50 text-white;
 }

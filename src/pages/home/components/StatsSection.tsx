@@ -1,8 +1,7 @@
-
 import { Mail, Users, BarChart, Calendar, TrendingUp, PieChart, LineChart } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { useState, useEffect, CSSProperties } from "react";
-import { SectionManager, Section, SectionStyle } from "@/components/SectionManager";
+import { useState } from "react";
+import { SectionManager, Section } from "@/components/SectionManager";
 
 const StatsSection = () => {
   // Stats data with mock values for now
@@ -32,57 +31,10 @@ const StatsSection = () => {
     { name: "HEXCLAD", className: "font-bold tracking-wider" },
   ];
 
-  // State for section styles
-  const [sectionStyles, setSectionStyles] = useState<Record<string, SectionStyle>>({});
-  
-  // State for section content
-  const [sectionContent, setSectionContent] = useState<Record<string, Record<string, string>>>({
-    header: {
-      title: "Statistikk og Innsikt",
-      subtitle: "Utforsk data og trender fra vår omfattende nyhetsbrev-analyse"
-    },
-    brandLogos: {
-      title: "Trusted by Leading Brands"
-    },
-    dataViz: {
-      title: "Dyp innsikt i nyhetsbrev-landskapet",
-      description: "NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet."
-    },
-    footer: {
-      title: "Ta innsiktsdrevet beslutninger",
-      description: "Bruk våre analyser for å forbedre dine markedsføringsstrategier og øke engasjement"
-    }
-  });
-
-  // Apply styles to a component based on section ID
-  const applySectionStyle = (sectionId: string): CSSProperties => {
-    const style = sectionStyles[sectionId] || {};
-    return {
-      marginTop: style.marginTop || '',
-      marginBottom: style.marginBottom || '',
-      paddingTop: style.paddingTop || '',
-      paddingBottom: style.paddingBottom || '',
-      textAlign: (style.textAlign as "left" | "center" | "right" | undefined) || undefined
-    };
-  };
-
-  // Define the sections with editable content
-  const headerSection = (
-    <div className="text-center mb-10 border-b border-gray-800 pb-10" style={applySectionStyle("header")}>
-      <h2 className="text-4xl font-bold mb-4 text-white">
-        {sectionContent.header?.title || "Statistikk og Innsikt"}
-      </h2>
-      <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-        {sectionContent.header?.subtitle || "Utforsk data og trender fra vår omfattende nyhetsbrev-analyse"}
-      </p>
-    </div>
-  );
-
+  // Define the sections
   const brandLogosSection = (
-    <div className="pb-16 mb-10" style={applySectionStyle("brandLogos")}>
-      <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">
-        {sectionContent.brandLogos?.title || "Trusted by Leading Brands"}
-      </h3>
+    <div className="pb-16 mb-10">
+      <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">Loved by 5,000+ Brands & Agencies</h3>
       
       <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
         {logos.map((logo, index) => (
@@ -97,10 +49,7 @@ const StatsSection = () => {
   );
 
   const statsGridSection = (
-    <div 
-      className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16 border-t border-gray-800 pt-10"
-      style={applySectionStyle("statsGrid")}
-    >
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16 border-t border-gray-800 pt-10">
       {stats.map((stat, index) => (
         <div key={index} className="p-6 bg-[#0A0A0A] rounded-xl border border-[#3a6ffb]/20 hover:border-[#3a6ffb]/30 transition-all">
           <div className="flex justify-between items-center mb-2">
@@ -114,24 +63,18 @@ const StatsSection = () => {
   );
 
   const dataVisualizationSection = (
-    <div 
-      className="text-center mb-14 border-t border-gray-800 pt-10"
-      style={applySectionStyle("dataViz")}
-    >
-      <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
-        {sectionContent.dataViz?.title || "Dyp innsikt i nyhetsbrev-landskapet"}
-      </h2>
+    <div className="text-center mb-14 border-t border-gray-800 pt-10">
+      <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Dyp innsikt i nyhetsbrev-landskapet</h2>
       <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-        {sectionContent.dataViz?.description || "NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet."}
+        NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, 
+        for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet.
       </p>
     </div>
   );
 
   const chartsSection = (
-    <div 
-      className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16"
-      style={applySectionStyle("charts")}
-    >
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+      {/* Trend analysis chart */}
       <div className="bg-[#0A0A0A] p-6 rounded-xl border border-[#3a6ffb]/20">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white flex items-center">
@@ -247,121 +190,32 @@ const StatsSection = () => {
     </div>
   );
 
-  const footerSection = (
-    <div className="text-center border-t border-gray-800 pt-10 pb-4" style={applySectionStyle("footer")}>
-      <h3 className="text-2xl font-bold mb-4 text-white">
-        {sectionContent.footer?.title || "Ta innsiktsdrevet beslutninger"}
-      </h3>
-      <p className="text-lg text-gray-300 max-w-3xl mx-auto mb-6">
-        {sectionContent.footer?.description || "Bruk våre analyser for å forbedre dine markedsføringsstrategier og øke engasjement"}
-      </p>
-    </div>
-  );
-
-  // Define initial sections with editable content
+  // Define initial sections
   const initialSections: Section[] = [
-    { 
-      id: "header", 
-      title: "Header Section", 
-      component: headerSection,
-      style: sectionStyles.header || {},
-      editableContent: {
-        title: sectionContent.header?.title || "Statistikk og Innsikt",
-        subtitle: sectionContent.header?.subtitle || "Utforsk data og trender fra vår omfattende nyhetsbrev-analyse"
-      }
-    },
-    { 
-      id: "brandLogos", 
-      title: "Brand Logos", 
-      component: brandLogosSection,
-      style: sectionStyles.brandLogos || {},
-      editableContent: {
-        title: sectionContent.brandLogos?.title || "Trusted by Leading Brands"
-      }
-    },
-    { 
-      id: "statsGrid", 
-      title: "Stats Grid", 
-      component: statsGridSection,
-      style: sectionStyles.statsGrid || {}
-    },
-    { 
-      id: "dataViz", 
-      title: "Data Visualization Text", 
-      component: dataVisualizationSection,
-      style: sectionStyles.dataViz || {},
-      editableContent: {
-        title: sectionContent.dataViz?.title || "Dyp innsikt i nyhetsbrev-landskapet",
-        description: sectionContent.dataViz?.description || "NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet."
-      }
-    },
-    { 
-      id: "charts", 
-      title: "Charts & Analysis", 
-      component: chartsSection,
-      style: sectionStyles.charts || {}
-    },
-    { 
-      id: "footer", 
-      title: "Footer Section", 
-      component: footerSection,
-      style: sectionStyles.footer || {},
-      editableContent: {
-        title: sectionContent.footer?.title || "Ta innsiktsdrevet beslutninger",
-        description: sectionContent.footer?.description || "Bruk våre analyser for å forbedre dine markedsføringsstrategier og øke engasjement"
-      }
-    }
+    { id: "brandLogos", title: "Brand Logos", component: brandLogosSection },
+    { id: "statsGrid", title: "Stats Grid", component: statsGridSection },
+    { id: "dataViz", title: "Data Visualization Text", component: dataVisualizationSection },
+    { id: "charts", title: "Charts & Analysis", component: chartsSection }
   ];
 
   // State for managing the sections
   const [sectionsList, setSectionsList] = useState<Section[]>(initialSections);
-
-  // Update sections when content or styles change
-  useEffect(() => {
-    const updatedSections = initialSections.map(section => ({
-      ...section,
-      style: sectionStyles[section.id] || {},
-      editableContent: sectionContent[section.id] || section.editableContent
-    }));
-    setSectionsList(updatedSections);
-  }, [sectionStyles, sectionContent]);
 
   // Handle section reordering
   const handleReorder = (reorderedSections: Section[]) => {
     setSectionsList(reorderedSections);
   };
 
-  // Handle style updates
-  const handleStyleUpdate = (sectionId: string, style: SectionStyle) => {
-    setSectionStyles(prev => ({
-      ...prev,
-      [sectionId]: style
-    }));
-  };
-
-  // Handle content updates
-  const handleContentUpdate = (sectionId: string, content: Record<string, string>) => {
-    setSectionContent(prev => ({
-      ...prev,
-      [sectionId]: content
-    }));
-  };
-
   return (
     <section className="py-8 bg-black">
-      <div className="container mx-auto px-4 max-w-7xl section-transition">
+      <div className="container mx-auto px-4 max-w-7xl">
         {/* Render sections based on their order */}
         {sectionsList.map((section) => (
           <div key={section.id}>{section.component}</div>
         ))}
 
         {/* Section Manager component */}
-        <SectionManager 
-          sections={sectionsList} 
-          onReorder={handleReorder}
-          onStyleUpdate={handleStyleUpdate}
-          onContentUpdate={handleContentUpdate}
-        />
+        <SectionManager sections={sectionsList} onReorder={handleReorder} />
       </div>
     </section>
   );
