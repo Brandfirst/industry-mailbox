@@ -20,11 +20,11 @@ const NewsletterSubscriptionSection = () => {
             <Input 
               type="email" 
               placeholder="Din e-postadresse" 
-              className="bg-blue-950/40 border-blue-500/30 text-white" 
+              className="bg-black/30 backdrop-blur-sm border-[#FF5722]/20 text-white" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+            <Button className="bg-gradient-to-r from-[#FF5722] to-[#FF8A50] hover:from-[#FF8A50] hover:to-[#FF5722] text-white transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md">
               Abonner
               <Send className="ml-2 h-4 w-4" />
             </Button>

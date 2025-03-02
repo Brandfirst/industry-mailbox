@@ -13,12 +13,12 @@ const CTASection = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth?mode=signup">
-              <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-7 text-lg">
+              <Button size="lg" className="bg-gradient-to-r from-[#FF5722] to-[#FF8A50] text-white hover:from-[#FF8A50] hover:to-[#FF5722] transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md px-8 py-7 text-lg">
                 Start gratis prøveperiode
               </Button>
             </Link>
             <Link to="/search">
-              <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-blue-500/10 px-8 py-7 text-lg">
+              <Button size="lg" variant="outline" className="border-[#FF5722]/30 bg-black/30 backdrop-blur-sm text-white hover:bg-[#FF5722]/10 px-8 py-7 text-lg">
                 Se demoer
               </Button>
             </Link>

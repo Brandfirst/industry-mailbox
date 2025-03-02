@@ -15,7 +15,7 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }: Cate
         variant="outline"
         className={`${selectedCategory === 'all' 
           ? 'bg-black text-white border-[#FF5722] hover:bg-black/90' 
-          : 'bg-black text-gray-300 border-gray-700 hover:bg-[#FF5722]/10'
+          : 'bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm'
         } rounded-lg`}
         onClick={() => onCategoryChange('all')}
       >
@@ -28,7 +28,7 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }: Cate
           variant="outline"
           className={`${selectedCategory === String(category.id) 
             ? 'bg-black text-white border-[#FF5722] hover:bg-black/90' 
-            : 'bg-black text-gray-300 border-gray-700 hover:bg-[#FF5722]/10'
+            : 'bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm'
           } rounded-lg`}
           onClick={() => onCategoryChange(String(category.id))}
         >

@@ -105,7 +105,7 @@ const FeaturedNewsletters = () => {
         </div>
         
         <div className="flex justify-center mt-12">
-          <Button onClick={handleSeeMoreClick} className="gap-2 bg-[#FF5722] hover:bg-[#FF5722]/90">
+          <Button onClick={handleSeeMoreClick} className="gap-2 bg-gradient-to-r from-[#FF5722] to-[#FF8A50] hover:from-[#FF8A50] hover:to-[#FF5722] text-white transition-all backdrop-blur-sm bg-opacity-20 border border-white/10 shadow-md">
             Se flere nyhetsbrev <ArrowRight className="h-4 w-4" />
           </Button>
         </div>

@@ -29,13 +29,13 @@ const SearchForm = ({
             <Input
               type="search"
               placeholder="Søk etter nyhetsbrev..."
-              className="w-full pl-10"
+              className="w-full pl-10 bg-black/30 backdrop-blur-sm border-[#FF5722]/20"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           
-          <Button type="submit">Søk</Button>
+          <Button type="submit" className="bg-gradient-to-r from-[#FF5722] to-[#FF8A50] hover:from-[#FF8A50] hover:to-[#FF5722]">Søk</Button>
         </div>
       </form>
     </div>

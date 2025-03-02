@@ -33,6 +33,7 @@ export function SyncHeader({ isSyncing, selectedAccount, emailAccounts, onSync }
               size="sm" 
               onClick={onSync}
               disabled={isSyncing || !selectedAccount}
+              className="backdrop-blur-sm bg-black/30 border-[#FF5722]/30"
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
               Sync Now
