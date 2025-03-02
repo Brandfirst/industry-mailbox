@@ -14,9 +14,10 @@ const FeaturedNewsletters = () => {
   const navigate = useNavigate();
   const { newsletters, categories, loading, selectedCategory, setSelectedCategory } = useNewsletters();
   
-  // State for animated newsletters
+  // State for displayed newsletters
   const [visibleNewsletters, setVisibleNewsletters] = useState<Newsletter[]>([]);
-  const [animatingRow, setAnimatingRow] = useState<boolean>(false);
+  const [changingIndex, setChangingIndex] = useState<number | null>(null);
+  const [fadeOut, setFadeOut] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
   // Setup newsletter rotation
@@ -24,51 +25,44 @@ const FeaturedNewsletters = () => {
     // Only setup animation when we have newsletters loaded
     if (!loading && newsletters.length > 0) {
       // Initialize with the current newsletters
-      setVisibleNewsletters([...newsletters]);
+      setVisibleNewsletters(newsletters.slice(0, 4));
       
-      // Set up rotation interval (every 8 seconds)
+      // Set up rotation interval (every 5 seconds)
       intervalRef.current = window.setInterval(() => {
-        // Animate the entire row
-        setAnimatingRow(true);
+        // Pick a random index to change (0-3)
+        const indexToChange = Math.floor(Math.random() * 4);
+        setChangingIndex(indexToChange);
         
-        // After animation completes, swap all newsletters
+        // Start fade out
+        setFadeOut(true);
+        
+        // After fade out completes, swap the newsletter
         setTimeout(() => {
           setVisibleNewsletters(prev => {
-            // Get random newsletters that aren't already visible
+            // Find a newsletter that isn't currently visible
             const availableNewsletters = newsletters.filter(
               nl => !prev.some(visible => visible.id === nl.id)
             );
             
-            if (availableNewsletters.length < 4) {
-              // If we don't have enough newsletters, just return the current list
+            if (availableNewsletters.length === 0) {
               return prev;
             }
             
-            // Create a new array with 4 random newsletters
-            const randomNewsletters = [];
-            const tempAvailable = [...availableNewsletters];
+            // Pick a random newsletter from available ones
+            const randomIndex = Math.floor(Math.random() * availableNewsletters.length);
+            const newNewsletter = availableNewsletters[randomIndex];
             
-            for (let i = 0; i < 4; i++) {
-              if (tempAvailable.length === 0) break;
-              const randomIndex = Math.floor(Math.random() * tempAvailable.length);
-              randomNewsletters.push(tempAvailable[randomIndex]);
-              tempAvailable.splice(randomIndex, 1);
-            }
+            // Create a new array with the updated newsletter at the changing index
+            const newNewsletters = [...prev];
+            newNewsletters[indexToChange] = newNewsletter;
             
-            // If we didn't get enough random newsletters, fill with the current ones
-            if (randomNewsletters.length < 4) {
-              return prev;
-            }
-            
-            return randomNewsletters;
+            return newNewsletters;
           });
           
-          // Reset the animating state after new newsletters are set
-          setTimeout(() => {
-            setAnimatingRow(false);
-          }, 100);
-        }, 600); // Match the animation duration
-      }, 8000); // Rotate every 8 seconds (more time to read)
+          // Start fade in
+          setFadeOut(false);
+        }, 300); // Fade out duration
+      }, 5000); // Change one newsletter every 5 seconds
     }
     
     // Cleanup interval on unmount or when newsletters change
@@ -108,18 +102,13 @@ const FeaturedNewsletters = () => {
                 <div key={i} className="animate-pulse bg-muted/20 h-24 md:h-[400px] rounded-lg"></div>
               ))
             ) : visibleNewsletters.length > 0 ? (
-              // Animated newsletters with right-to-left animation
-              visibleNewsletters.slice(0, 4).map((newsletter, index) => (
+              // Display newsletters with subtle transition for the changing one
+              visibleNewsletters.map((newsletter, index) => (
                 <div 
                   key={newsletter.id} 
-                  className={`transition-all duration-500 ${
-                    animatingRow 
-                      ? 'opacity-0' 
-                      : 'animate-slide-from-right'
+                  className={`transition-opacity duration-300 ${
+                    changingIndex === index && fadeOut ? 'opacity-0' : 'opacity-100'
                   }`}
-                  style={{
-                    animationDelay: `${index * 0.1}s`
-                  }}
                 >
                   <div className="h-full">
                     <NewsletterItem
