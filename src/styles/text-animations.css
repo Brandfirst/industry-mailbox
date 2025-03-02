@@ -1,0 +1,44 @@
+
+/* Animation for stats counting */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-count-up {
+  animation: count-up 0.6s ease-out forwards;
+}
+
+/* Word appearance animations */
+@keyframes word-appear {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.hero-heading-span {
+  display: inline-block;
+  animation: word-appear 0.5s ease-out forwards;
+}
+
+.hero-heading-span.is-1 { animation-delay: 0.1s; }
+.hero-heading-span.is-2 { animation-delay: 0.2s; }
+.hero-heading-span.is-3 { animation-delay: 0.3s; }
+.hero-heading-span.is-4 { animation-delay: 0.4s; }
+
+/* Text underline animation */
+@keyframes underline-slide {
+  0% { width: 0; left: 50%; }
+  100% { width: 100%; left: 0; }
+}
+
+.highlight-word::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(58, 111, 251, 0.5);
+  transform-origin: center;
+  animation: underline-slide 0.5s ease-out forwards;
+}

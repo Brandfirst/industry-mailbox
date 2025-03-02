@@ -1,0 +1,54 @@
+
+/* Announcement Button Glow Effect */
+.announcement-glow-container {
+  position: relative;
+  overflow: hidden;
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.announcement-glow-effect {
+  position: absolute;
+  inset: -2px;
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 60deg,
+    rgba(255, 87, 34, 0.8) 120deg,
+    rgba(255, 87, 34, 0.6) 180deg,
+    rgba(255, 87, 34, 0.4) 240deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  border-radius: 9999px;
+  animation: glow-rotate 4s linear infinite, glow-opacity 2s ease-in-out infinite;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1; /* Make sure the glow is always visible */
+}
+
+/* Enhance the glow effect to be always visible */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.4), 0 0 10px rgba(255, 87, 34, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 87, 34, 0.6), 0 0 20px rgba(255, 87, 34, 0.3);
+  }
+}
+
+@keyframes glow-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes glow-opacity {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
