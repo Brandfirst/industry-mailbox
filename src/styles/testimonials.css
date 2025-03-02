@@ -49,3 +49,37 @@
   color: rgba(255, 255, 255, 0.6);
   font-size: 0.675rem;
 }
+
+/* Card stack styling */
+.card-stack {
+  position: relative;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.card-stack-item {
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  transform-origin: center center;
+}
+
+.swipe-instruction {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.7);
+  font-size: 0.8rem;
+  text-align: center;
+  z-index: 50;
+  pointer-events: none;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}

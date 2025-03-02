@@ -36,6 +36,13 @@
     height: auto;
     max-height: 100px;
   }
+  
+  /* Card stack for mobile */
+  .card-stack {
+    width: 90%;
+    max-width: 350px;
+    margin: 0 auto;
+  }
 }
 
 /* Tablet optimizations */
