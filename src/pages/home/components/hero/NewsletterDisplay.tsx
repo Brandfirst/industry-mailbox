@@ -1,4 +1,3 @@
-
 import { Newsletter } from "@/lib/supabase/types";
 import NewsletterItem from "@/components/search/NewsletterItem";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,8 +18,7 @@ const NewsletterDisplay = ({
   handleNewsletterClick 
 }: NewsletterDisplayProps) => {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const testimonialContainerRef = useRef<HTMLDivElement>(null);
-
+  
   const testimonials = [
     {
       quote: "Nyhetsbrev Hub er et fantastisk verktøy for markedsførere som ønsker å følge med på trender.",
@@ -99,14 +97,10 @@ const NewsletterDisplay = ({
         </motion.div>
       </AnimatePresence>
       
-      {/* Minimalistic Testimonials Section */}
-      <div className="mt-12 mb-6 max-w-4xl mx-auto">
-        <div 
-          ref={testimonialContainerRef}
-          className="relative p-6"
-        >
-          <div className="flex flex-col items-center">
-            <h3 className="text-xl font-medium text-white mb-6 text-center">
+      <div className="mt-8 max-w-4xl mx-auto">
+        <div className="relative px-4">
+          <div className="flex flex-col">
+            <h3 className="text-lg font-medium text-white mb-4 text-left">
               Profesjonelle bruker Nyhetsbrev Hub for å oppnå mer, raskere.
             </h3>
             
@@ -115,21 +109,21 @@ const NewsletterDisplay = ({
                 style={{ transform: `translateX(-${activeTestimonial * 100}%)` }}
               >
                 {testimonials.map((item, index) => (
-                  <div key={index} className="w-full flex-shrink-0 px-4">
-                    <div className="p-5 border-l-2 border-[#FF5722]/50">
-                      <div className="flex mb-3">
+                  <div key={index} className="w-full flex-shrink-0">
+                    <div className="py-3 border-l-2 border-[#FF5722]/50 pl-4">
+                      <div className="flex mb-2">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 text-[#FF5722]" fill="currentColor" />
+                          <Star key={i} className="w-3 h-3 text-[#FF5722]" fill="currentColor" />
                         ))}
                       </div>
-                      <p className="text-white italic mb-4 text-lg">"{item.quote}"</p>
+                      <p className="testimonial-text">"{item.quote}"</p>
                       <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-full overflow-hidden mr-3 border border-[#FF5722]/30">
+                        <div className="testimonial-avatar">
                           <img src={item.avatar} alt={item.author} className="w-full h-full object-cover" />
                         </div>
-                        <div>
-                          <p className="font-medium text-white">{item.author}</p>
-                          <p className="text-sm text-gray-400">{item.title}</p>
+                        <div className="testimonial-info">
+                          <p className="testimonial-name">{item.author}</p>
+                          <p className="testimonial-company">{item.title}</p>
                         </div>
                       </div>
                     </div>
@@ -138,18 +132,18 @@ const NewsletterDisplay = ({
               </div>
             </div>
             
-            <div className="flex justify-between w-full mt-4">
+            <div className="flex justify-between mt-3">
               <button 
                 onClick={prevTestimonial}
-                className="bg-transparent border border-[#FF5722]/30 rounded-full p-2 hover:bg-[#FF5722]/10 transition-colors"
+                className="bg-transparent border border-[#FF5722]/30 rounded-full p-1 hover:bg-[#FF5722]/10 transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-white" />
+                <ArrowLeft className="w-4 h-4 text-white" />
               </button>
               <button 
                 onClick={nextTestimonial}
-                className="bg-transparent border border-[#FF5722]/30 rounded-full p-2 hover:bg-[#FF5722]/10 transition-colors"
+                className="bg-transparent border border-[#FF5722]/30 rounded-full p-1 hover:bg-[#FF5722]/10 transition-colors"
               >
-                <ArrowRight className="w-5 h-5 text-white" />
+                <ArrowRight className="w-4 h-4 text-white" />
               </button>
             </div>
           </div>
