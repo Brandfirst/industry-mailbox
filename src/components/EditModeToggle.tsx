@@ -1,29 +1,22 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { useEditMode } from '@/contexts/EditModeContext';
-import { useAuth } from '@/contexts/auth';
+import { Button } from '@/components/ui/button';
 import { Pencil, Check } from 'lucide-react';
 
-const EditModeToggle: React.FC = () => {
+const EditModeToggle = () => {
   const { isEditMode, toggleEditMode } = useEditMode();
-  const { isAdmin } = useAuth();
-
-  // Only show to admins
-  if (!isAdmin) {
-    return null;
-  }
 
   return (
-    <div className="fixed right-4 bottom-4 z-50">
+    <div className="fixed bottom-4 left-4 z-50">
       <Button
         onClick={toggleEditMode}
-        className={`${
+        className={`edit-mode-toggle ${
           isEditMode 
-            ? 'bg-[#FF5722] hover:bg-[#FF8A50]' 
-            : 'bg-black border border-[#FF5722] text-white hover:bg-[#FF5722]/20'
-        } rounded-full p-3 shadow-lg`}
-        aria-label={isEditMode ? 'Exit edit mode' : 'Enter edit mode'}
+            ? 'bg-green-600 hover:bg-green-700' 
+            : 'bg-[#FF5722] hover:bg-[#FF8A50]'
+        } text-white rounded-full p-3 h-12 w-12 flex items-center justify-center shadow-lg`}
+        size="icon"
       >
         {isEditMode ? (
           <Check className="h-5 w-5" />

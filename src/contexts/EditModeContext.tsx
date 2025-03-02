@@ -6,13 +6,28 @@ interface EditModeContextType {
   toggleEditMode: () => void;
 }
 
-const EditModeContext = createContext<EditModeContextType | undefined>(undefined);
+const EditModeContext = createContext<EditModeContextType>({
+  isEditMode: false,
+  toggleEditMode: () => {},
+});
 
-export const EditModeProvider = ({ children }: { children: ReactNode }) => {
+export const useEditMode = () => useContext(EditModeContext);
+
+interface EditModeProviderProps {
+  children: ReactNode;
+}
+
+export const EditModeProvider = ({ children }: EditModeProviderProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const toggleEditMode = () => {
     setIsEditMode((prev) => !prev);
+    // Add or remove a class to the body for global styling
+    if (!isEditMode) {
+      document.body.classList.add('edit-mode-active');
+    } else {
+      document.body.classList.remove('edit-mode-active');
+    }
   };
 
   return (
@@ -20,12 +35,4 @@ export const EditModeProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </EditModeContext.Provider>
   );
-};
-
-export const useEditMode = (): EditModeContextType => {
-  const context = useContext(EditModeContext);
-  if (context === undefined) {
-    throw new Error('useEditMode must be used within an EditModeProvider');
-  }
-  return context;
 };
