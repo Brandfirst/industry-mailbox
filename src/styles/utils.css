@@ -1,0 +1,7 @@
+
+.writing-mode-vertical {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  text-orientation: mixed;
+  white-space: nowrap;
+}
