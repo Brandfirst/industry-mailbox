@@ -1,16 +1,13 @@
-
 export * from './fetch';
 export * from './manage';
 export * from './save';
 export * from './types';
+export * from './search';
+export * from './account';
+export * from './analytics';
 
-// Export specific functions from fetch
-export { getSenderStats, getSenderFrequencyData } from './fetch';
-
-// Export specific functions from manage
+// For backward compatibility, we'll keep these specific exports
 export { updateSenderCategory, updateSenderBrand } from './manage';
-
-// Export specific functions for saved newsletters
 export {
   saveNewsletter,
   unsaveNewsletter,
