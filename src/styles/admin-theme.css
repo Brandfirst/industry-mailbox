@@ -1,0 +1,101 @@
+
+/* Admin Portal Dark Mode Theme */
+:root.admin-theme {
+  /* Dark backgrounds */
+  --admin-bg-primary: #121212;
+  --admin-bg-secondary: #1E1E1E;
+  --admin-bg-tertiary: #252525;
+  --admin-bg-elevated: #2A2A2A;
+  
+  /* Text colors */
+  --admin-text-primary: #FFFFFF;
+  --admin-text-secondary: #AAAAAA;
+  --admin-text-muted: #777777;
+  
+  /* Border colors */
+  --admin-border-subtle: rgba(255, 255, 255, 0.1);
+  --admin-border-strong: rgba(255, 255, 255, 0.2);
+  
+  /* Accent colors */
+  --admin-accent: #FF5722;
+  --admin-accent-muted: rgba(255, 87, 34, 0.2);
+  
+  /* Status colors */
+  --admin-success: #4CAF50;
+  --admin-warning: #FFC107;
+  --admin-error: #F44336;
+  --admin-info: #2196F3;
+}
+
+/* Admin Layout Dark Mode Styles */
+.admin-theme .admin-layout {
+  background-color: var(--admin-bg-primary);
+  color: var(--admin-text-primary);
+}
+
+.admin-theme .admin-sidebar {
+  background-color: var(--admin-bg-secondary);
+  border-right: 1px solid var(--admin-border-subtle);
+}
+
+.admin-theme .admin-card {
+  background-color: var(--admin-bg-tertiary);
+  border: 1px solid var(--admin-border-subtle);
+}
+
+.admin-theme .admin-header {
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.admin-theme .admin-table {
+  --tw-border-opacity: 0.1;
+}
+
+.admin-theme .admin-table th {
+  background-color: var(--admin-bg-tertiary);
+  color: var(--admin-text-secondary);
+}
+
+.admin-theme .admin-table tr:hover {
+  background-color: var(--admin-bg-elevated);
+}
+
+/* Button styling for admin dark theme */
+.admin-theme .admin-button-primary {
+  background-color: var(--admin-accent);
+  color: white;
+}
+
+.admin-theme .admin-button-secondary {
+  background-color: transparent;
+  border: 1px solid var(--admin-border-strong);
+  color: var(--admin-text-primary);
+}
+
+/* Form elements styling */
+.admin-theme .admin-input {
+  background-color: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border-subtle);
+  color: var(--admin-text-primary);
+}
+
+.admin-theme .admin-input:focus {
+  border-color: var(--admin-accent);
+}
+
+/* Status indicators */
+.admin-theme .admin-status-success {
+  color: var(--admin-success);
+}
+
+.admin-theme .admin-status-warning {
+  color: var(--admin-warning);
+}
+
+.admin-theme .admin-status-error {
+  color: var(--admin-error);
+}
+
+.admin-theme .admin-status-info {
+  color: var(--admin-info);
+}

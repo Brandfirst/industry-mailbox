@@ -13,6 +13,15 @@ const SearchPage = () => {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false);
 
+  // Add dark mode class for search page
+  useEffect(() => {
+    document.body.classList.add('dark-mode');
+    
+    return () => {
+      document.body.classList.remove('dark-mode');
+    };
+  }, []);
+
   const {
     newsletters,
     categories,
@@ -56,7 +65,7 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="container py-8 md:py-12 px-4 md:px-6">
+    <div className="container py-8 md:py-12 px-4 md:px-6 bg-dark-200 text-white">
       <SearchHeader />
       
       <SearchForm 

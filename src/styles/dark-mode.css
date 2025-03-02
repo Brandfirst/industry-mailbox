@@ -1,0 +1,88 @@
+
+/* Dark Mode Styling for Search Page */
+body.dark-mode {
+  background-color: #121212;
+  color: #FFFFFF;
+}
+
+.dark-mode .bg-white {
+  background-color: #1E1E1E;
+}
+
+.dark-mode .text-black {
+  color: #FFFFFF;
+}
+
+.dark-mode .bg-gray-50,
+.dark-mode .bg-gray-100 {
+  background-color: #252525;
+}
+
+.dark-mode .border-gray-200,
+.dark-mode .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .text-gray-500,
+.dark-mode .text-gray-600 {
+  color: #AAAAAA;
+}
+
+.dark-mode .text-gray-700,
+.dark-mode .text-gray-800,
+.dark-mode .text-gray-900 {
+  color: #FFFFFF;
+}
+
+.dark-mode .shadow-md,
+.dark-mode .shadow-lg {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .hover\:bg-gray-50:hover,
+.dark-mode .hover\:bg-gray-100:hover {
+  background-color: #333333;
+}
+
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background-color: #2A2A2A;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.dark-mode input:focus,
+.dark-mode select:focus,
+.dark-mode textarea:focus {
+  border-color: #FF5722;
+}
+
+/* Search specific components */
+.dark-mode .newsletter-item {
+  border-color: rgba(255, 87, 34, 0.2);
+}
+
+.dark-mode .filter-sidebar {
+  background-color: #1E1E1E;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .category-pill {
+  background-color: #333333;
+  color: #FFFFFF;
+}
+
+.dark-mode .category-pill.active {
+  background-color: rgba(255, 87, 34, 0.2);
+  color: #FF5722;
+}
+
+.dark-mode .load-more-button {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.dark-mode .load-more-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
