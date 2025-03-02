@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import SplineBackground from "./SplineBackground";
 
 const PricingSection = () => {
   // Pricing tiers
@@ -52,8 +53,10 @@ const PricingSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-black">
-      <div className="container mx-auto px-4 max-w-7xl">
+    <section className="py-20 bg-black relative overflow-hidden">
+      <SplineBackground position="center" rotation={135} scale={1.3} opacity={0.15} />
+      
+      <div className="container mx-auto px-4 max-w-7xl relative z-10">
         <div className="text-center mb-16">
           <Badge variant="outline" className="mb-4 text-white border-[#FF5722]/30 bg-[#FF5722]/5 px-3 py-1">
             Prisplaner

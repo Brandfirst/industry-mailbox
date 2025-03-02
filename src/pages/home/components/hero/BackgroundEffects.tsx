@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import Spline from '@splinetool/react-spline';
 
@@ -74,7 +73,6 @@ const BackgroundEffects = () => {
         }}
       />
 
-      {/* Adding more reactive elements */}
       <div 
         className="absolute top-1/3 left-1/4 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl cursor-follow"
         style={{

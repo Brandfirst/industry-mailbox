@@ -1,11 +1,14 @@
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useState } from "react";
+import SplineBackground from "./SplineBackground";
 
 const FAQSection = () => {
   return (
-    <section className="py-20 bg-black">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <section className="py-20 bg-black relative overflow-hidden">
+      <SplineBackground position="top" rotation={-45} scale={1.1} opacity={0.1} />
+      
+      <div className="container mx-auto px-4 max-w-4xl relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 faq-header inline-block px-6 py-2 border rounded-lg border-[#FF5722]/30 text-white">Ofte stilte spørsmål</h2>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">

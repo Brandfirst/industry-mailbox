@@ -1,11 +1,14 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import SplineBackground from "./SplineBackground";
 
 const CTASection = () => {
   return (
-    <section className="py-20 bg-black">
-      <div className="container mx-auto px-4 text-center max-w-4xl">
+    <section className="py-20 bg-black relative overflow-hidden">
+      <SplineBackground position="bottom" rotation={180} scale={1.2} opacity={0.15} />
+      
+      <div className="container mx-auto px-4 text-center max-w-4xl relative z-10">
         <div className="bg-black rounded-2xl border border-[#FF5722]/20 p-8 md:p-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Klar til å forbedre dine nyhetsbrev?</h2>
           <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
