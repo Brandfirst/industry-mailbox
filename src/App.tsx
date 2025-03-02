@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Saved from "./pages/Saved";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
+import NewsletterDetail from "./pages/NewsletterDetail";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -24,6 +25,7 @@ const AppLayout = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/newsletter/:id" element={<NewsletterDetail />} />
         <Route path="/admin" element={
           <ProtectedRoute requireAuth requireAdmin>
             <Admin />
