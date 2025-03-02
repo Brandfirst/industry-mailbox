@@ -1,7 +1,9 @@
 
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { NewsletterCategory } from '@/lib/supabase/types';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
 import FilterHeader from './FilterHeader';
 import CategoryFilter from './CategoryFilter';
 import DateRangePicker from './DateRangePicker';
@@ -40,6 +42,18 @@ const MobileFilterDrawer = ({
   setDateRange,
   onApplyFilters
 }: MobileFilterDrawerProps) => {
+  const [categoryOpen, setCategoryOpen] = useState(true);
+  const [dateOpen, setDateOpen] = useState(true);
+  const [senderOpen, setSenderOpen] = useState(true);
+  
+  const clearAllFilters = () => {
+    handleCategoryChange('all');
+    setDateRange({ from: undefined, to: undefined });
+    selectedBrands.forEach(brand => handleBrandChange(brand, false));
+  };
+  
+  const hasActiveFilters = selectedCategory !== 'all' || selectedBrands.length > 0 || dateRange.from || dateRange.to;
+  
   if (!isOpen) return null;
   
   return (
@@ -55,31 +69,70 @@ const MobileFilterDrawer = ({
         <FilterHeader toggleMobileFilters={toggleMobileFilters} title="Filtre" />
         
         <div className="space-y-6">
-          <div>
-            <h3 className="font-medium mb-3">Kategorier</h3>
-            <CategoryFilter 
-              categories={categories}
-              selectedCategory={selectedCategory}
-              handleCategoryChange={handleCategoryChange}
-            />
-          </div>
+          {hasActiveFilters && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearAllFilters}
+              className="h-8 flex items-center"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Nullstill alle filtre
+            </Button>
+          )}
           
-          <div>
-            <h3 className="font-medium mb-3">Dato</h3>
-            <DateRangePicker 
-              dateRange={dateRange}
-              setDateRange={setDateRange}
-            />
-          </div>
+          <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium mb-2">Kategorier</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  {categoryOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+              <CategoryFilter 
+                categories={categories}
+                selectedCategory={selectedCategory}
+                handleCategoryChange={handleCategoryChange}
+              />
+            </CollapsibleContent>
+          </Collapsible>
           
-          <div>
-            <h3 className="font-medium mb-3">Avsender</h3>
-            <SenderFilter 
-              senderBrands={senderBrands}
-              selectedBrands={selectedBrands}
-              handleBrandChange={handleBrandChange}
-            />
-          </div>
+          <Collapsible open={dateOpen} onOpenChange={setDateOpen}>
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium mb-2">Dato</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  {dateOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+              <DateRangePicker 
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+              />
+            </CollapsibleContent>
+          </Collapsible>
+          
+          <Collapsible open={senderOpen} onOpenChange={setSenderOpen}>
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium mb-2">Avsender</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  {senderOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+              <SenderFilter 
+                senderBrands={senderBrands}
+                selectedBrands={selectedBrands}
+                handleBrandChange={handleBrandChange}
+              />
+            </CollapsibleContent>
+          </Collapsible>
           
           <Button 
             onClick={() => {

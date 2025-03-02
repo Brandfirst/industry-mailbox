@@ -60,10 +60,7 @@ const SenderFilter = ({
               >
                 <span className="font-medium">{brand.sender_name}</span>
                 <span className="block text-xs text-muted-foreground truncate max-w-[200px]">
-                  {brand.sender_email}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {brand.count} nyhetsbrev
+                  {brand.sender_email} ({brand.count})
                 </span>
               </Label>
             </div>
