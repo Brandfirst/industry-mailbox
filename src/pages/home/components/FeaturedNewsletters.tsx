@@ -65,6 +65,10 @@ const FeaturedNewsletters = () => {
     if (!dateString) return '';
     return format(new Date(dateString), 'MMM d');
   };
+
+  const handleNewsletterClick = (id: number) => {
+    navigate(`/newsletter/${id}`);
+  };
   
   return (
     <>
@@ -106,14 +110,10 @@ const FeaturedNewsletters = () => {
           ) : newsletters.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {newsletters.map((newsletter) => (
-                <a 
-                  key={newsletter.id} 
-                  href={`/newsletter/${newsletter.id}`}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm border flex flex-col h-[450px] hover:shadow-md transition-shadow"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate(`/newsletter/${newsletter.id}`);
-                  }}
+                <div 
+                  key={newsletter.id}
+                  onClick={() => handleNewsletterClick(newsletter.id)}
+                  className="cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm border flex flex-col h-[500px] hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center p-3 border-b">
                     <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0">
@@ -124,35 +124,38 @@ const FeaturedNewsletters = () => {
                       )}
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <span className="font-medium text-sm truncate">{newsletter.sender || 'Unknown Sender'}</span>
-                      <span className="text-gray-500 text-xs">
+                      <span className="font-medium text-sm truncate text-black">{newsletter.sender || 'Unknown Sender'}</span>
+                      <span className="text-black text-xs">
                         NO • {getFormattedDate(newsletter.published_at || '')}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="flex-1 w-full overflow-hidden">
+                  <div className="relative flex-1 w-full overflow-hidden">
                     {newsletter.content ? (
-                      <iframe
-                        srcDoc={newsletter.content}
-                        title={newsletter.title || "Newsletter Content"}
-                        className="w-full h-full border-0"
-                        sandbox="allow-same-origin"
-                        style={{ 
-                          transform: "scale(0.70)", 
-                          transformOrigin: "top center", 
-                          height: "600px",
-                          width: "143%", // Compensate for the 0.7 scale to make it fill the width
-                          marginLeft: "-21.5%" // Center the wider iframe
-                        }}
-                      />
+                      <div className="absolute inset-0 pointer-events-none">
+                        <iframe
+                          srcDoc={newsletter.content}
+                          title={newsletter.title || "Newsletter Content"}
+                          className="w-full h-full border-0"
+                          sandbox="allow-same-origin"
+                          style={{ 
+                            transform: "scale(0.65)", 
+                            transformOrigin: "top center", 
+                            height: "800px",
+                            width: "154%", // Compensate for the 0.65 scale
+                            marginLeft: "-27%", // Center the wider iframe
+                            pointerEvents: "none" // Disable iframe interaction to allow click through
+                          }}
+                        />
+                      </div>
                     ) : (
                       <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                         <p className="text-gray-500">No content available</p>
                       </div>
                     )}
                   </div>
-                </a>
+                </div>
               ))}
             </div>
           ) : (
