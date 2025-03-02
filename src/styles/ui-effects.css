@@ -43,3 +43,9 @@
 .glow-effect:hover {
   box-shadow: 0 0 30px rgba(59,130,246,0.3);
 }
+
+/* Reduced spacing for brand logos */
+.brand-logo-container {
+  @apply pt-4 pb-8;
+}
+

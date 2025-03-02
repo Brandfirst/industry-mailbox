@@ -16,3 +16,12 @@
 @import './styles/components.css';
 @import './styles/admin-theme.css';
 @import './styles/dark-mode.css';
+
+/* Brand logo spacing adjustments */
+.brand-logos {
+  @apply py-2 mt-0;
+}
+
+.brand-logo-item {
+  @apply py-1;
+}
