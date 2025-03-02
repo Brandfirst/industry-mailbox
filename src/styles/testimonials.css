@@ -10,25 +10,26 @@
   line-height: 1.6;
   color: #ffffff;
   position: relative;
+  text-align: left;
 }
 
 .testimonial-author {
   display: flex;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
 }
 
 .testimonial-avatar {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 9999px;
   overflow: hidden;
-  margin-right: 0.75rem;
+  margin-right: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FF5722;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   border: 1px solid rgba(255, 87, 34, 0.3);
 }
@@ -46,4 +47,124 @@
 .testimonial-company {
   color: rgba(255, 255, 255, 0.6);
   font-size: 0.75rem;
+}
+
+/* Mobile optimization for testimonials */
+@media (max-width: 768px) {
+  .testimonial-slider {
+    max-width: 100%;
+  }
+  
+  .testimonial-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  .testimonial-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+
+/* Newsletter card carousel */
+.newsletter-carousel {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  height: 500px;
+}
+
+.newsletter-card {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background-color: #fff;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.newsletter-card:hover {
+  transform: translateY(-5px);
+}
+
+.newsletter-card-image {
+  height: 70%;
+  overflow: hidden;
+  background-color: #f8f8f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.newsletter-card-content {
+  padding: 15px;
+  height: 30%;
+}
+
+.newsletter-card-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.newsletter-card-author {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.newsletter-card-author-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.newsletter-card-author-name {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.newsletter-card-category {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+/* Card swipe animation */
+.swipe-left-exit {
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.swipe-right-exit {
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+.swipe-enter {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.swipe-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
