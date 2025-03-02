@@ -2,7 +2,7 @@
 import React, { memo } from 'react';
 import { NewsletterCategory } from '@/lib/supabase/types';
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { 
   Collapsible,
   CollapsibleContent,
@@ -46,11 +46,7 @@ const DesktopFilterSidebar = ({
       >
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <span className="font-medium">Sender Profile</span>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm">
-              {!isOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </Button>
-          </CollapsibleTrigger>
+          {/* Filter button in header removed */}
         </div>
         
         <CollapsibleContent className="w-80 p-4">
