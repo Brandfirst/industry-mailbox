@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,43 +8,31 @@ import { Newsletter } from "@/lib/supabase/types";
 import { getFeaturedNewsletters } from "@/lib/supabase/newsletters";
 import { motion, AnimatePresence } from "framer-motion";
 
-const CountUpAnimation = ({ 
-  endValue, 
-  duration = 2000, 
+const DynamicCounter = ({ 
+  startValue, 
+  incrementAmount,
+  intervalMs = 1000,
   prefix = "", 
   suffix = "" 
 }: { 
-  endValue: number; 
-  duration?: number; 
+  startValue: number;
+  incrementAmount: number;
+  intervalMs?: number;
   prefix?: string; 
   suffix?: string; 
 }) => {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(startValue);
   
   useEffect(() => {
-    const startValue = Math.floor(endValue * 0.7);
-    setCount(startValue);
-    
-    const incrementInterval = 100;
-    const steps = 15;
-    const increment = Math.ceil((endValue - startValue) / steps);
-    
     const timer = setInterval(() => {
-      setCount(prevCount => {
-        const nextCount = prevCount + increment;
-        if (nextCount >= endValue) {
-          clearInterval(timer);
-          return endValue;
-        }
-        return nextCount;
-      });
-    }, incrementInterval);
+      setCount(prevCount => prevCount + incrementAmount);
+    }, intervalMs);
     
     return () => clearInterval(timer);
-  }, [endValue, duration]);
+  }, [incrementAmount, intervalMs]);
 
   return (
-    <span className="animate-number-count">
+    <span className="text-[#FF5722] font-bold">
       {prefix}{count.toLocaleString()}{suffix}
     </span>
   );
@@ -103,13 +90,21 @@ const HeroSection = () => {
           
           <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
             Utforsk mer enn 
-            <span className="text-[#FF5722] font-bold mx-2">
-              <CountUpAnimation endValue={70350} />
-            </span>
+            <DynamicCounter 
+              startValue={70350} 
+              incrementAmount={7} 
+              intervalMs={1000} 
+              prefix=" " 
+              suffix="" 
+            />
             nyhetsbrev fra 
-            <span className="text-[#FF5722] font-bold mx-2">
-              <CountUpAnimation endValue={1750} />
-            </span>
+            <DynamicCounter 
+              startValue={1750} 
+              incrementAmount={2} 
+              intervalMs={1000} 
+              prefix=" " 
+              suffix=" " 
+            />
             varemerker. 
             Laget for markedsførere
             <span className="smaller-text mx-1">og byråer</span>
