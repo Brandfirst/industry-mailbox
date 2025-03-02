@@ -65,7 +65,7 @@ const SplineCanvas = memo(() => {
       ref={containerRef}
       className="w-full h-full relative"
       style={{ 
-        opacity: isLoaded ? 0.7 : 0, // Increased opacity from 0.3 to 0.7
+        opacity: isLoaded ? 1 : 0, // Removed opacity limitation, now fully visible when loaded
         transition: 'opacity 0.5s ease-in-out'
       }}
     >

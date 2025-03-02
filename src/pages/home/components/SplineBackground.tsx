@@ -42,8 +42,8 @@ const SplineBackground = memo(({
       <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black to-black"></div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent opacity-70"></div>
       
-      {/* Optional: Add SplineCanvas for sections where you want 3D effects */}
-      <div className="absolute inset-0" style={{ opacity: 0.8 }}>
+      {/* SplineCanvas with full opacity */}
+      <div className="absolute inset-0">
         <SplineCanvas />
       </div>
       
