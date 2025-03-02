@@ -53,7 +53,7 @@ const StatsSection = () => {
           ))}
         </div>
         
-        {/* Brand logos section */}
+        {/* Brand logos section - moved above the data visualization section */}
         <div className="pt-8 pb-16 border-t border-gray-800">
           <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">Loved by 5,000+ Brands & Agencies</h3>
           
@@ -68,7 +68,7 @@ const StatsSection = () => {
           </div>
         </div>
         
-        {/* Data visualization section */}
+        {/* Data visualization section - now below the brand logos section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
           {/* Trend analysis chart */}
           <div className="bg-[#0A0A0A] p-6 rounded-xl border border-[#3a6ffb]/20">
