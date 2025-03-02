@@ -81,7 +81,7 @@ const VisualEditor = () => {
   const textRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
-    if (selectedElement?.type === 'text' && textRef.current) {
+    if (selectedElement?.type.includes('text') && textRef.current) {
       textRef.current.value = selectedElement.content || '';
     }
   }, [selectedElement]);
@@ -168,6 +168,25 @@ const VisualEditor = () => {
     
     return marginValue;
   };
+
+  // Function to check if element supports certain edit type
+  const supportsEditType = (type: string): boolean => {
+    if (!selectedElement) return false;
+    return selectedElement.type.includes(type);
+  };
+  
+  // Get the default active tab based on the element type
+  const getDefaultTab = (): string => {
+    if (!selectedElement) return 'text';
+    
+    if (selectedElement.type.includes('text')) return 'text';
+    if (selectedElement.type.includes('padding')) return 'padding';
+    if (selectedElement.type.includes('margin')) return 'margin';
+    if (selectedElement.type.includes('color') || selectedElement.type.includes('background')) return 'colors';
+    if (selectedElement.type.includes('fontSize') || selectedElement.type.includes('alignment')) return 'typography';
+    
+    return 'text';
+  };
   
   if (!isEditing) {
     return null;
@@ -199,486 +218,514 @@ const VisualEditor = () => {
         </div>
         
         {selectedElement ? (
-          <Tabs defaultValue="text" className="w-full">
+          <Tabs defaultValue={getDefaultTab()} className="w-full">
             <TabsList className="w-full grid grid-cols-5 mb-4">
-              <TabsTrigger value="text" className="flex items-center">
-                <Type className="mr-2 h-4 w-4" /> Text
-              </TabsTrigger>
-              <TabsTrigger value="padding" className="flex items-center">
-                <Layout className="mr-2 h-4 w-4" /> Padding
-              </TabsTrigger>
-              <TabsTrigger value="margin" className="flex items-center">
-                <Layout className="mr-2 h-4 w-4" /> Margin
-              </TabsTrigger>
-              <TabsTrigger value="colors" className="flex items-center">
-                <PaintBucket className="mr-2 h-4 w-4" /> Colors
-              </TabsTrigger>
-              <TabsTrigger value="typography" className="flex items-center">
-                <Type className="mr-2 h-4 w-4" /> Typography
-              </TabsTrigger>
+              {supportsEditType('text') && (
+                <TabsTrigger value="text" className="flex items-center">
+                  <Type className="mr-2 h-4 w-4" /> Text
+                </TabsTrigger>
+              )}
+              {supportsEditType('padding') && (
+                <TabsTrigger value="padding" className="flex items-center">
+                  <Layout className="mr-2 h-4 w-4" /> Padding
+                </TabsTrigger>
+              )}
+              {supportsEditType('margin') && (
+                <TabsTrigger value="margin" className="flex items-center">
+                  <Layout className="mr-2 h-4 w-4" /> Margin
+                </TabsTrigger>
+              )}
+              {(supportsEditType('color') || supportsEditType('background')) && (
+                <TabsTrigger value="colors" className="flex items-center">
+                  <PaintBucket className="mr-2 h-4 w-4" /> Colors
+                </TabsTrigger>
+              )}
+              {(supportsEditType('fontSize') || supportsEditType('alignment')) && (
+                <TabsTrigger value="typography" className="flex items-center">
+                  <Type className="mr-2 h-4 w-4" /> Typography
+                </TabsTrigger>
+              )}
             </TabsList>
             
-            <TabsContent value="text" className="space-y-4">
-              {selectedElement.type === 'text' && (
-                <div className="flex flex-col space-y-2">
-                  <Label htmlFor="content">Content</Label>
-                  <Input 
-                    id="content"
-                    ref={textRef}
-                    defaultValue={selectedElement.content}
-                    onChange={handleTextChange}
-                    className="border-gray-600 bg-black text-white"
-                  />
+            {supportsEditType('text') && (
+              <TabsContent value="text" className="space-y-4">
+                {selectedElement.type.includes('text') && (
+                  <div className="flex flex-col space-y-2">
+                    <Label htmlFor="content">Content</Label>
+                    <Input 
+                      id="content"
+                      ref={textRef}
+                      defaultValue={selectedElement.content}
+                      onChange={handleTextChange}
+                      className="border-gray-600 bg-black text-white"
+                    />
+                    
+                    <div className="flex space-x-2 mt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => replaceClassInElement('text-align', 'text-left')}
+                      >
+                        <AlignLeft className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => replaceClassInElement('text-align', 'text-center')}
+                      >
+                        <AlignCenter className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => replaceClassInElement('text-align', 'text-right')}
+                      >
+                        <AlignRight className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const hasClass = selectedElement.className?.includes('font-bold');
+                          if (hasClass) {
+                            const newClassName = selectedElement.className?.replace('font-bold', '').trim();
+                            updateSelectedElement({ className: newClassName });
+                          } else {
+                            updateSelectedElement({ 
+                              className: `${selectedElement.className || ''} font-bold` 
+                            });
+                          }
+                        }}
+                      >
+                        <Bold className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const hasClass = selectedElement.className?.includes('italic');
+                          if (hasClass) {
+                            const newClassName = selectedElement.className?.replace('italic', '').trim();
+                            updateSelectedElement({ className: newClassName });
+                          } else {
+                            updateSelectedElement({ 
+                              className: `${selectedElement.className || ''} italic` 
+                            });
+                          }
+                        }}
+                      >
+                        <Italic className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const hasClass = selectedElement.className?.includes('underline');
+                          if (hasClass) {
+                            const newClassName = selectedElement.className?.replace('underline', '').trim();
+                            updateSelectedElement({ className: newClassName });
+                          } else {
+                            updateSelectedElement({ 
+                              className: `${selectedElement.className || ''} underline` 
+                            });
+                          }
+                        }}
+                      >
+                        <Underline className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+            )}
+            
+            {supportsEditType('padding') && (
+              <TabsContent value="padding" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>All Padding (p-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[getPaddingValue()]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('p-', `p-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                      <span className="text-sm text-white">{getPaddingValue()}</span>
+                    </div>
+                  </div>
                   
-                  <div className="flex space-x-2 mt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => replaceClassInElement('text-align', 'text-left')}
-                    >
-                      <AlignLeft className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => replaceClassInElement('text-align', 'text-center')}
-                    >
-                      <AlignCenter className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => replaceClassInElement('text-align', 'text-right')}
-                    >
-                      <AlignRight className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        const hasClass = selectedElement.className?.includes('font-bold');
-                        if (hasClass) {
-                          const newClassName = selectedElement.className?.replace('font-bold', '').trim();
-                          updateSelectedElement({ className: newClassName });
-                        } else {
-                          updateSelectedElement({ 
-                            className: `${selectedElement.className || ''} font-bold` 
-                          });
-                        }
-                      }}
-                    >
-                      <Bold className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        const hasClass = selectedElement.className?.includes('italic');
-                        if (hasClass) {
-                          const newClassName = selectedElement.className?.replace('italic', '').trim();
-                          updateSelectedElement({ className: newClassName });
-                        } else {
-                          updateSelectedElement({ 
-                            className: `${selectedElement.className || ''} italic` 
-                          });
-                        }
-                      }}
-                    >
-                      <Italic className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        const hasClass = selectedElement.className?.includes('underline');
-                        if (hasClass) {
-                          const newClassName = selectedElement.className?.replace('underline', '').trim();
-                          updateSelectedElement({ className: newClassName });
-                        } else {
-                          updateSelectedElement({ 
-                            className: `${selectedElement.className || ''} underline` 
-                          });
-                        }
-                      }}
-                    >
-                      <Underline className="h-4 w-4" />
-                    </Button>
+                  <div>
+                    <Label>X-Axis Padding (px-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('px-', `px-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Y-Axis Padding (py-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('py-', `py-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Top Padding (pt-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('pt-', `pt-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Bottom Padding (pb-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('pb-', `pb-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Left Padding (pl-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('pl-', `pl-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Right Padding (pr-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('pr-', `pr-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
                   </div>
                 </div>
-              )}
-            </TabsContent>
+              </TabsContent>
+            )}
             
-            <TabsContent value="padding" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>All Padding (p-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[getPaddingValue()]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('p-', `p-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                    <span className="text-sm text-white">{getPaddingValue()}</span>
+            {supportsEditType('margin') && (
+              <TabsContent value="margin" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>All Margins (m-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[getMarginValue()]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('m-', `m-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                      <span className="text-sm text-white">{getMarginValue()}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>X-Axis Margin (mx-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          if (value === 0) {
+                            replaceClassInElement('mx-', 'mx-0');
+                          } else {
+                            replaceClassInElement('mx-', `mx-${value}`);
+                          }
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => replaceClassInElement('mx-', 'mx-auto')}
+                      className="mt-2"
+                    >
+                      Center (mx-auto)
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <Label>Y-Axis Margin (my-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('my-', `my-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Top Margin (mt-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('mt-', `mt-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Bottom Margin (mb-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('mb-', `mb-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Left Margin (ml-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('ml-', `ml-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Right Margin (mr-X)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Slider 
+                        defaultValue={[0]} 
+                        max={20} 
+                        step={1}
+                        onValueChange={([value]) => {
+                          replaceClassInElement('mr-', `mr-${value}`);
+                        }}
+                        className="my-4"
+                      />
+                    </div>
                   </div>
                 </div>
-                
-                <div>
-                  <Label>X-Axis Padding (px-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('px-', `px-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Y-Axis Padding (py-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('py-', `py-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Top Padding (pt-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('pt-', `pt-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Bottom Padding (pb-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('pb-', `pb-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Left Padding (pl-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('pl-', `pl-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Right Padding (pr-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('pr-', `pr-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
+            )}
             
-            <TabsContent value="margin" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>All Margins (m-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[getMarginValue()]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('m-', `m-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                    <span className="text-sm text-white">{getMarginValue()}</span>
-                  </div>
+            {(supportsEditType('color') || supportsEditType('background')) && (
+              <TabsContent value="colors" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {supportsEditType('color') && (
+                    <div>
+                      <Label>Text Color</Label>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {colorClasses.map((color) => (
+                          <Button 
+                            key={color}
+                            variant="outline" 
+                            size="sm"
+                            className={`h-8 w-full ${color} border border-gray-600`}
+                            onClick={() => replaceClassInElement('text-color', color)}
+                          >
+                            Aa
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {supportsEditType('background') && (
+                    <div>
+                      <Label>Background Color</Label>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {backgroundClasses.map((bgColor) => (
+                          <Button 
+                            key={bgColor}
+                            variant="outline" 
+                            size="sm"
+                            className={`h-8 w-full ${bgColor} border border-gray-600`}
+                            onClick={() => replaceClassInElement('bg-', bgColor)}
+                          >
+                            {bgColor === 'bg-transparent' ? 'None' : ''}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                
-                <div>
-                  <Label>X-Axis Margin (mx-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        if (value === 0) {
-                          replaceClassInElement('mx-', 'mx-0');
-                        } else {
-                          replaceClassInElement('mx-', `mx-${value}`);
-                        }
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => replaceClassInElement('mx-', 'mx-auto')}
-                    className="mt-2"
-                  >
-                    Center (mx-auto)
-                  </Button>
-                </div>
-                
-                <div>
-                  <Label>Y-Axis Margin (my-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('my-', `my-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Top Margin (mt-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('mt-', `mt-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Bottom Margin (mb-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('mb-', `mb-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Left Margin (ml-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('ml-', `ml-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Right Margin (mr-X)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Slider 
-                      defaultValue={[0]} 
-                      max={20} 
-                      step={1}
-                      onValueChange={([value]) => {
-                        replaceClassInElement('mr-', `mr-${value}`);
-                      }}
-                      className="my-4"
-                    />
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
+            )}
             
-            <TabsContent value="colors" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Text Color</Label>
-                  <div className="grid grid-cols-5 gap-2 mt-2">
-                    {colorClasses.map((color) => (
+            {(supportsEditType('fontSize') || supportsEditType('alignment')) && (
+              <TabsContent value="typography" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {supportsEditType('fontSize') && (
+                    <div>
+                      <Label>Font Size</Label>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {fontSizeClasses.map((fontSize) => (
+                          <Button 
+                            key={fontSize}
+                            variant="outline" 
+                            size="sm"
+                            className={`h-8 ${fontSize === 'text-xs' ? 'text-xs' : ''} ${fontSize === 'text-sm' ? 'text-sm' : ''} border border-gray-600`}
+                            onClick={() => replaceClassInElement('text-size', fontSize)}
+                          >
+                            {fontSize.replace('text-', '')}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {supportsEditType('alignment') && (
+                    <div>
+                      <Label>Text Alignment</Label>
+                      <div className="flex space-x-2 mt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => replaceClassInElement('text-', 'text-left')}
+                          className="flex-1"
+                        >
+                          <AlignLeft className="h-4 w-4 mr-2" /> Left
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => replaceClassInElement('text-', 'text-center')}
+                          className="flex-1"
+                        >
+                          <AlignCenter className="h-4 w-4 mr-2" /> Center
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => replaceClassInElement('text-', 'text-right')}
+                          className="flex-1"
+                        >
+                          <AlignRight className="h-4 w-4 mr-2" /> Right
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="col-span-2">
+                    <Label>Font Style</Label>
+                    <div className="flex space-x-2 mt-2">
                       <Button 
-                        key={color}
                         variant="outline" 
-                        size="sm"
-                        className={`h-8 w-full ${color} border border-gray-600`}
-                        onClick={() => replaceClassInElement('text-color', color)}
+                        className={`flex-1 ${selectedElement.className?.includes('font-normal') ? 'bg-[#3a6ffb]/20' : ''}`}
+                        onClick={() => {
+                          const classes = ['font-light', 'font-normal', 'font-medium', 'font-semibold', 'font-bold'];
+                          let classArray = selectedElement.className?.split(' ') || [];
+                          classArray = classArray.filter(c => !classes.includes(c));
+                          classArray.push('font-normal');
+                          updateSelectedElement({
+                            className: classArray.join(' ')
+                          });
+                        }}
                       >
-                        Aa
+                        Normal
                       </Button>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Background Color</Label>
-                  <div className="grid grid-cols-5 gap-2 mt-2">
-                    {backgroundClasses.map((bgColor) => (
                       <Button 
-                        key={bgColor}
-                        variant="outline" 
-                        size="sm"
-                        className={`h-8 w-full ${bgColor} border border-gray-600`}
-                        onClick={() => replaceClassInElement('bg-', bgColor)}
+                        variant="outline"
+                        className={`flex-1 ${selectedElement.className?.includes('font-medium') ? 'bg-[#3a6ffb]/20' : ''}`}
+                        onClick={() => {
+                          const classes = ['font-light', 'font-normal', 'font-medium', 'font-semibold', 'font-bold'];
+                          let classArray = selectedElement.className?.split(' ') || [];
+                          classArray = classArray.filter(c => !classes.includes(c));
+                          classArray.push('font-medium');
+                          updateSelectedElement({
+                            className: classArray.join(' ')
+                          });
+                        }}
                       >
-                        {bgColor === 'bg-transparent' ? 'None' : ''}
+                        Medium
                       </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="typography" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Font Size</Label>
-                  <div className="grid grid-cols-5 gap-2 mt-2">
-                    {fontSizeClasses.map((fontSize) => (
                       <Button 
-                        key={fontSize}
-                        variant="outline" 
-                        size="sm"
-                        className={`h-8 ${fontSize === 'text-xs' ? 'text-xs' : ''} ${fontSize === 'text-sm' ? 'text-sm' : ''} border border-gray-600`}
-                        onClick={() => replaceClassInElement('text-size', fontSize)}
+                        variant="outline"
+                        className={`flex-1 ${selectedElement.className?.includes('font-bold') ? 'bg-[#3a6ffb]/20' : ''}`}
+                        onClick={() => {
+                          const classes = ['font-light', 'font-normal', 'font-medium', 'font-semibold', 'font-bold'];
+                          let classArray = selectedElement.className?.split(' ') || [];
+                          classArray = classArray.filter(c => !classes.includes(c));
+                          classArray.push('font-bold');
+                          updateSelectedElement({
+                            className: classArray.join(' ')
+                          });
+                        }}
                       >
-                        {fontSize.replace('text-', '')}
+                        Bold
                       </Button>
-                    ))}
+                    </div>
                   </div>
                 </div>
-                
-                <div>
-                  <Label>Text Alignment</Label>
-                  <div className="flex space-x-2 mt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => replaceClassInElement('text-', 'text-left')}
-                      className="flex-1"
-                    >
-                      <AlignLeft className="h-4 w-4 mr-2" /> Left
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => replaceClassInElement('text-', 'text-center')}
-                      className="flex-1"
-                    >
-                      <AlignCenter className="h-4 w-4 mr-2" /> Center
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => replaceClassInElement('text-', 'text-right')}
-                      className="flex-1"
-                    >
-                      <AlignRight className="h-4 w-4 mr-2" /> Right
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="col-span-2">
-                  <Label>Font Style</Label>
-                  <div className="flex space-x-2 mt-2">
-                    <Button 
-                      variant="outline" 
-                      className={`flex-1 ${selectedElement.className?.includes('font-normal') ? 'bg-[#3a6ffb]/20' : ''}`}
-                      onClick={() => {
-                        const classes = ['font-light', 'font-normal', 'font-medium', 'font-semibold', 'font-bold'];
-                        let classArray = selectedElement.className?.split(' ') || [];
-                        classArray = classArray.filter(c => !classes.includes(c));
-                        classArray.push('font-normal');
-                        updateSelectedElement({
-                          className: classArray.join(' ')
-                        });
-                      }}
-                    >
-                      Normal
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className={`flex-1 ${selectedElement.className?.includes('font-medium') ? 'bg-[#3a6ffb]/20' : ''}`}
-                      onClick={() => {
-                        const classes = ['font-light', 'font-normal', 'font-medium', 'font-semibold', 'font-bold'];
-                        let classArray = selectedElement.className?.split(' ') || [];
-                        classArray = classArray.filter(c => !classes.includes(c));
-                        classArray.push('font-medium');
-                        updateSelectedElement({
-                          className: classArray.join(' ')
-                        });
-                      }}
-                    >
-                      Medium
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className={`flex-1 ${selectedElement.className?.includes('font-bold') ? 'bg-[#3a6ffb]/20' : ''}`}
-                      onClick={() => {
-                        const classes = ['font-light', 'font-normal', 'font-medium', 'font-semibold', 'font-bold'];
-                        let classArray = selectedElement.className?.split(' ') || [];
-                        classArray = classArray.filter(c => !classes.includes(c));
-                        classArray.push('font-bold');
-                        updateSelectedElement({
-                          className: classArray.join(' ')
-                        });
-                      }}
-                    >
-                      Bold
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
+            )}
           </Tabs>
         ) : (
           <div className="text-center py-4">

@@ -44,12 +44,19 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ children }) => {
       
       // Only select elements with data-editable attribute
       if (editableElement.hasAttribute('data-editable')) {
-        const editableType = editableElement.getAttribute('data-editable-type') || 'text';
+        // Get editable type from the element or default to a combination of types
+        let editableType = editableElement.getAttribute('data-editable-type');
+        
+        // If no specific type is set, make it support multiple edit features
+        if (!editableType) {
+          editableType = 'text,padding,margin,color,background,fontSize,alignment';
+        }
+        
         const editableId = editableElement.getAttribute('data-editable-id') || crypto.randomUUID();
         
         // Get current content for text elements
         let content = '';
-        if (editableType === 'text') {
+        if (editableType.includes('text')) {
           content = editableElement.textContent || '';
         }
         

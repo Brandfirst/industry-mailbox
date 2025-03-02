@@ -47,11 +47,16 @@
 /* Visual Editor Element Highlighting */
 .visual-editor-active [data-editable] {
   @apply relative transition-all duration-200;
+  outline: 1px dashed rgba(58, 111, 251, 0.3);
+}
+
+.visual-editor-active [data-editable]:hover {
+  outline: 1px solid rgba(58, 111, 251, 0.8);
 }
 
 .visual-editor-active [data-editable]::before {
   content: attr(data-editable-type);
-  @apply absolute -top-5 left-0 bg-blue-500 text-white text-xs px-2 py-0.5 rounded opacity-0 transition-opacity pointer-events-none;
+  @apply absolute -top-5 left-0 bg-blue-500 text-white text-xs px-2 py-0.5 rounded opacity-0 transition-opacity pointer-events-none z-50;
 }
 
 .visual-editor-active [data-editable]:hover::before {

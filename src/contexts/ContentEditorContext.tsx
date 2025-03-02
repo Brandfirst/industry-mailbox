@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { toast } from 'sonner';
 
 // Types for our editor state and operations
-type EditableType = 'text' | 'padding' | 'margin' | 'color' | 'background' | 'fontSize' | 'alignment';
+export type EditableType = 'text' | 'padding' | 'margin' | 'color' | 'background' | 'fontSize' | 'alignment' | string;
 export type EditableElement = {
   id: string;
   type: EditableType;
@@ -121,7 +121,7 @@ export const ContentEditorProvider: React.FC<{ children: ReactNode }> = ({ child
         updatedElement.element.className = updates.className;
       }
       
-      if (updates.content && updatedElement.type === 'text') {
+      if (updates.content && updatedElement.type.includes('text')) {
         updatedElement.element.textContent = updates.content;
       }
     }
