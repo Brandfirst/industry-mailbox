@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { NewsletterCategory } from '@/lib/supabase/types';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "@/components/ui/collapsible";
 
 interface SenderBrand {
   sender_email: string;
@@ -42,6 +47,7 @@ const FilterSidebar = ({
   toggleMobileFilters
 }: FilterSidebarProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   
   // Format date for display
   const formatDateRange = () => {
@@ -53,6 +59,12 @@ const FilterSidebar = ({
     };
     
     return `${formatDate(dateRange.from)} — ${formatDate(dateRange.to)}`;
+  };
+
+  // Clear date range
+  const handleClearDateRange = () => {
+    setDateRange({ from: undefined, to: undefined });
+    setIsDatePickerOpen(false);
   };
 
   const filterContent = (
@@ -98,8 +110,35 @@ const FilterSidebar = ({
             readOnly
           />
           
+          {dateRange.from || dateRange.to ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2"
+              onClick={handleClearDateRange}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          ) : null}
+          
           {isDatePickerOpen && (
             <div className="absolute z-50 mt-2 bg-popover border rounded-md shadow-md">
+              <div className="p-2 bg-muted/30 border-b flex items-center justify-between">
+                <span className="text-sm font-medium">
+                  {dateRange.from && dateRange.to 
+                    ? 'Valgt periode' 
+                    : dateRange.from 
+                      ? 'Velg sluttdato' 
+                      : 'Velg startdato'}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleClearDateRange}
+                >
+                  Nullstill
+                </Button>
+              </div>
               <Calendar
                 initialFocus
                 mode="range"
@@ -115,6 +154,7 @@ const FilterSidebar = ({
                   });
                   if (range?.to) setIsDatePickerOpen(false);
                 }}
+                className="rounded-md"
               />
             </div>
           )}
@@ -212,10 +252,41 @@ const FilterSidebar = ({
     </div>
   ) : null;
 
-  // Desktop sidebar
+  // Desktop sidebar with collapsible functionality
   const desktopSidebar = (
-    <div className="hidden md:block w-64 space-y-6 pr-4 border-r">
-      {filterContent}
+    <div className="hidden md:block">
+      <Collapsible
+        open={!isDesktopCollapsed}
+        onOpenChange={(open) => setIsDesktopCollapsed(!open)}
+        className="border-r"
+      >
+        <div className="flex items-center justify-between px-4 py-2 border-b">
+          <span className="font-medium">Filtre</span>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm">
+              {isDesktopCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+        
+        <CollapsibleContent className="w-64 p-4 space-y-6">
+          {filterContent}
+        </CollapsibleContent>
+      </Collapsible>
+      
+      {isDesktopCollapsed && (
+        <div className="w-12 flex flex-col items-center py-4 border-r">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsDesktopCollapsed(false)}
+            className="mb-2"
+            title="Åpne filter"
+          >
+            <Filter className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 

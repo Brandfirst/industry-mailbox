@@ -49,7 +49,7 @@ const SearchPage = () => {
         onSubmit={handleSearch}
       />
       
-      <div className="flex flex-col md:flex-row gap-6 mt-8">
+      <div className="flex flex-col md:flex-row gap-0 mt-8">
         <FilterSidebar 
           categories={categories}
           selectedCategory={selectedCategory}
