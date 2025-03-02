@@ -30,6 +30,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               height: 100%;
               width: 100%;
               background-color: white;
+              border-radius: 12px;
             }
             body {
               ${isMobile ? 'zoom: 0.2;' : ''}
@@ -54,25 +55,26 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
 
   if (!content) {
     return (
-      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+      <div className="w-full h-full bg-gray-100 flex items-center justify-center rounded-xl">
         <p className="text-gray-500 text-xs md:text-base">No preview</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full overflow-hidden bg-white">
+    <div className="w-full h-full overflow-hidden bg-white rounded-xl">
       <iframe
         srcDoc={getIframeContent()}
         title={title || "Newsletter Content"}
-        className="w-full h-full border-0"
+        className="w-full h-full border-0 rounded-xl"
         sandbox="allow-same-origin"
         style={{ 
           pointerEvents: "none",
           display: "block",
           width: "100%",
           height: "100%",
-          objectFit: "cover"
+          objectFit: "cover",
+          borderRadius: "12px"
         }}
       />
     </div>

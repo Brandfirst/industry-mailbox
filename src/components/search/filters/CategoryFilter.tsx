@@ -31,7 +31,7 @@ const CategoryFilter = ({
           placeholder="Søk kategorier..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-8"
+          className="pl-8 rounded-lg"
         />
       </div>
       
@@ -41,7 +41,11 @@ const CategoryFilter = ({
         className="space-y-1 max-h-[200px] overflow-y-auto"
       >
         <div className="flex items-center space-x-2">
-          <RadioGroupItem value="all" id="category-all" />
+          <RadioGroupItem 
+            value="all" 
+            id="category-all" 
+            className="text-[#FF5722] border-[#FF5722] focus:ring-[#FF5722]" 
+          />
           <Label htmlFor="category-all" className="cursor-pointer">
             Alle kategorier
           </Label>
@@ -52,7 +56,11 @@ const CategoryFilter = ({
         ) : (
           filteredCategories.map((category) => (
             <div key={category.id} className="flex items-center space-x-2">
-              <RadioGroupItem value={String(category.id)} id={`category-${category.id}`} />
+              <RadioGroupItem 
+                value={String(category.id)} 
+                id={`category-${category.id}`} 
+                className="text-[#FF5722] border-[#FF5722] focus:ring-[#FF5722]"
+              />
               <Label 
                 htmlFor={`category-${category.id}`} 
                 className="cursor-pointer flex items-center"

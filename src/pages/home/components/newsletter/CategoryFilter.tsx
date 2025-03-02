@@ -13,7 +13,10 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }: Cate
     <div className="flex flex-wrap gap-2">
       <Button
         variant="outline"
-        className={`${selectedCategory === 'all' ? 'bg-[#3a6ffb] text-white hover:bg-[#3a6ffb]/90' : 'bg-black text-gray-300 border-gray-700 hover:bg-[#3a6ffb]/10'}`}
+        className={`${selectedCategory === 'all' 
+          ? 'bg-black text-white border-[#FF5722] hover:bg-black/90' 
+          : 'bg-black text-gray-300 border-gray-700 hover:bg-[#FF5722]/10'
+        } rounded-lg`}
         onClick={() => onCategoryChange('all')}
       >
         Alle kategorier
@@ -23,7 +26,10 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }: Cate
         <Button
           key={category.id}
           variant="outline"
-          className={`${selectedCategory === String(category.id) ? 'bg-[#3a6ffb] text-white hover:bg-[#3a6ffb]/90' : 'bg-black text-gray-300 border-gray-700 hover:bg-[#3a6ffb]/10'}`}
+          className={`${selectedCategory === String(category.id) 
+            ? 'bg-black text-white border-[#FF5722] hover:bg-black/90' 
+            : 'bg-black text-gray-300 border-gray-700 hover:bg-[#FF5722]/10'
+          } rounded-lg`}
           onClick={() => onCategoryChange(String(category.id))}
         >
           {category.name}
