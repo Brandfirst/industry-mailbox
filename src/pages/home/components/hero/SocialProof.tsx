@@ -33,8 +33,8 @@ const SocialProof = () => {
         ))}
       </div>
       
-      {/* Text - ensure it stays on one line in mobile */}
-      <p className="text-sm font-medium text-white whitespace-nowrap overflow-hidden text-ellipsis">
+      {/* Text */}
+      <p className="text-sm font-medium text-white">
         500+ markedsførere bruker verktøyet akkurat nå
       </p>
     </div>
