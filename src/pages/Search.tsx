@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
 import SearchHeader from '@/components/search/SearchHeader';
 import SearchForm from '@/components/search/SearchForm';
@@ -9,7 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 
 const SearchPage = () => {
+  const [searchParams] = useSearchParams();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(true);
   
   const {
     newsletters,
@@ -23,6 +26,7 @@ const SearchPage = () => {
     hasMore,
     setSearchQuery,
     setSelectedCategory,
+    setSelectedBrands,
     setDateRange,
     handleLoadMore,
     handleSearch,
@@ -32,8 +36,26 @@ const SearchPage = () => {
     handleNewsletterClick
   } = useSearchNewsletters();
   
+  // Handle sender query parameter
+  useEffect(() => {
+    const senderParam = searchParams.get('sender');
+    if (senderParam) {
+      // Find the sender in the senderBrands list
+      const senderExists = senderBrands.some(brand => brand.sender_email === senderParam || brand.sender_name === senderParam);
+      
+      if (senderExists) {
+        setSelectedBrands([senderParam]);
+        applyFilters();
+      }
+    }
+  }, [searchParams, senderBrands, setSelectedBrands, applyFilters]);
+  
   const toggleMobileFilters = () => {
     setIsMobileFiltersOpen(!isMobileFiltersOpen);
+  };
+  
+  const toggleDesktopFilters = () => {
+    setIsDesktopFiltersOpen(!isDesktopFiltersOpen);
   };
   
   return (
@@ -62,18 +84,32 @@ const SearchPage = () => {
           onApplyFilters={applyFilters}
           isMobileOpen={isMobileFiltersOpen}
           toggleMobileFilters={toggleMobileFilters}
+          isDesktopOpen={isDesktopFiltersOpen}
+          toggleDesktopFilters={toggleDesktopFilters}
         />
         
         <div className="flex-1">
-          <div className="flex justify-end mb-4 md:hidden">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={toggleMobileFilters}
-              className="flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" /> Filtre
-            </Button>
+          <div className="flex justify-between items-center mb-4">
+            <div className="md:hidden">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleMobileFilters}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" /> Filtre
+              </Button>
+            </div>
+            <div className="hidden md:block">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleDesktopFilters}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" /> {isDesktopFiltersOpen ? 'Skjul filtre' : 'Vis filtre'}
+              </Button>
+            </div>
           </div>
           
           <NewsletterResults

@@ -2,6 +2,8 @@
 import React from 'react';
 import { Newsletter } from '@/lib/supabase/types';
 import NewsletterPreview from './NewsletterPreview';
+import { useNavigate } from 'react-router-dom';
+import { navigateToSender } from '@/lib/utils/newsletterNavigation';
 
 interface NewsletterItemMobileProps {
   newsletter: Newsletter;
@@ -10,6 +12,12 @@ interface NewsletterItemMobileProps {
 }
 
 const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate }: NewsletterItemMobileProps) => {
+  const navigate = useNavigate();
+  
+  const handleSenderClick = (e: React.MouseEvent) => {
+    navigateToSender(newsletter.sender || '', navigate, e);
+  };
+  
   return (
     <div className="md:hidden flex" onClick={onClick}>
       <div className="w-1/3 h-56 bg-white overflow-hidden">
@@ -24,14 +32,22 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate }: Newslet
       
       <div className="w-2/3 p-3 flex flex-col">
         <div className="flex items-center mb-1">
-          <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0">
+          <div 
+            className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0 cursor-pointer"
+            onClick={handleSenderClick}
+          >
             {newsletter.sender && (
               <span className="text-xs font-semibold text-gray-700">
                 {newsletter.sender.charAt(0).toUpperCase()}
               </span>
             )}
           </div>
-          <span className="font-medium text-xs truncate text-black">{newsletter.sender || 'Unknown Sender'}</span>
+          <span 
+            className="font-medium text-xs truncate text-black cursor-pointer hover:underline"
+            onClick={handleSenderClick}
+          >
+            {newsletter.sender || 'Unknown Sender'}
+          </span>
           <span className="text-black text-xs ml-1">
             {newsletter.categories?.name && (
               <span 

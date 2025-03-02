@@ -1,21 +1,32 @@
 
 import { format } from 'date-fns';
 import { Newsletter } from "@/lib/supabase/types";
+import { useNavigate } from "react-router-dom";
+import { navigateToSender } from "@/lib/utils/newsletterNavigation";
 
 interface NewsletterMetaProps {
   newsletter: Newsletter;
 }
 
 const NewsletterMeta = ({ newsletter }: NewsletterMetaProps) => {
+  const navigate = useNavigate();
+  
   const getFormattedDate = (dateString: string) => {
     if (!dateString) return '';
     return format(new Date(dateString), 'MMM d, yyyy');
   };
   
+  const handleSenderClick = (e: React.MouseEvent) => {
+    navigateToSender(newsletter.sender || '', navigate, e);
+  };
+  
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2">
+        <div 
+          className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 cursor-pointer"
+          onClick={handleSenderClick}
+        >
           {newsletter.sender && (
             <span className="text-lg font-semibold text-gray-700">
               {newsletter.sender.charAt(0).toUpperCase()}
@@ -25,7 +36,12 @@ const NewsletterMeta = ({ newsletter }: NewsletterMetaProps) => {
         <div>
           <h2 className="text-2xl font-bold">{newsletter.title}</h2>
           <div className="flex items-center text-sm text-gray-500">
-            <span className="font-medium text-gray-700">{newsletter.sender}</span>
+            <span 
+              className="font-medium text-gray-700 cursor-pointer hover:underline"
+              onClick={handleSenderClick}
+            >
+              {newsletter.sender}
+            </span>
             <span className="mx-2">•</span>
             <span>{getFormattedDate(newsletter.published_at)}</span>
             
