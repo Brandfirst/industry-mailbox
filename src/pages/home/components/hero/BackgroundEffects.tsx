@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef, memo } from 'react';
+import SplineCanvas from '../SplineCanvas';
 
 const BackgroundEffects = memo(() => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -33,9 +34,11 @@ const BackgroundEffects = memo(() => {
   return (
     <>
       <div className="absolute inset-0 z-0 w-full h-[120%] bg-black">
-        {/* Lightweight gradient background instead of 3D Spline */}
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black to-black"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent opacity-70"></div>
+        {/* Lightweight Spline implementation */}
+        <SplineCanvas />
+        
+        {/* Additional gradient overlays to improve visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40"></div>
       </div>
       
       <div className="absolute inset-0 z-0 opacity-10">
