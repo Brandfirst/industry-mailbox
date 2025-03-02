@@ -23,10 +23,13 @@ const BackgroundEffects = () => {
       }
     };
 
+    // Use both mousemove and pointermove for better cross-device support
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('pointermove', handleMouseMove);
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('pointermove', handleMouseMove);
     };
   }, []);
 
@@ -57,17 +60,33 @@ const BackgroundEffects = () => {
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10"></div>
       
       <div 
-        className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-1/2 h-40 bg-[#FF5722]/10 rounded-full blur-3xl"
+        className="absolute -bottom-20 left-1/2 w-1/2 h-40 bg-[#FF5722]/10 rounded-full blur-3xl cursor-follow"
         style={{
-          transform: `translate(calc(-50% + ${mousePosition.x * 20}px), ${mousePosition.y * 10}px)`,
-          transition: 'transform 0.3s ease-out'
+          transform: `translate(calc(-50% + ${mousePosition.x * 40}px), ${mousePosition.y * 20}px)`,
+          transition: 'transform 0.2s ease-out'
         }}
       />
       <div 
-        className="absolute -top-20 right-0 w-40 h-40 bg-[#FF5722]/5 rounded-full blur-3xl"
+        className="absolute -top-20 right-0 w-40 h-40 bg-[#FF5722]/5 rounded-full blur-3xl cursor-follow"
         style={{
-          transform: `translate(${mousePosition.x * -20}px, ${mousePosition.y * 20}px)`,
-          transition: 'transform 0.3s ease-out'
+          transform: `translate(${mousePosition.x * -30}px, ${mousePosition.y * 30}px)`,
+          transition: 'transform 0.2s ease-out'
+        }}
+      />
+
+      {/* Adding more reactive elements */}
+      <div 
+        className="absolute top-1/3 left-1/4 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl cursor-follow"
+        style={{
+          transform: `translate(${mousePosition.x * 25}px, ${mousePosition.y * -25}px)`,
+          transition: 'transform 0.15s ease-out'
+        }}
+      />
+      <div 
+        className="absolute top-1/2 right-1/4 w-24 h-24 bg-purple-500/5 rounded-full blur-3xl cursor-follow"
+        style={{
+          transform: `translate(${mousePosition.x * -20}px, ${mousePosition.y * 15}px)`,
+          transition: 'transform 0.25s ease-out'
         }}
       />
     </>
