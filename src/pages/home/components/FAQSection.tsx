@@ -1,10 +1,9 @@
-
-import { ChevronDown } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useState } from "react";
 
 const FAQSection = () => {
   return (
-    <section className="py-20 bg-gradient-to-b from-[#FF5722]/20 to-black">
+    <section className="py-20 bg-black">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 faq-header inline-block px-6 py-2 border rounded-lg border-[#FF5722]/30">Ofte stilte spørsmål</h2>
@@ -12,48 +11,39 @@ const FAQSection = () => {
             Få svar på de vanligste spørsmålene om NewsletterHub.
           </p>
         </div>
-        
-        <div className="space-y-4">
-          <Collapsible className="bg-[#FF5722]/10 rounded-lg border border-[#FF5722]/10">
-            <CollapsibleTrigger className="w-full px-6 py-4 flex justify-between items-center">
-              <span className="text-lg font-medium text-white">Hva er NewsletterHub?</span>
-              <ChevronDown className="h-5 w-5 text-[#FF8A50] transition-transform ui-open:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-6 pb-4 text-gray-300">
-              <p>NewsletterHub er Norges største database av nyhetsbrev. Vi samler inn, analyserer og kategoriserer nyhetsbrev fra tusenvis av norske merkevarer, slik at markedsførere og byråer kan finne inspirasjon, analysere trender og forbedre sine egne nyhetsbrev.</p>
-            </CollapsibleContent>
-          </Collapsible>
-          
-          <Collapsible className="bg-[#FF5722]/10 rounded-lg border border-[#FF5722]/10">
-            <CollapsibleTrigger className="w-full px-6 py-4 flex justify-between items-center">
-              <span className="text-lg font-medium text-white">Hvordan fungerer tjenesten?</span>
-              <ChevronDown className="h-5 w-5 text-[#FF8A50] transition-transform ui-open:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-6 pb-4 text-gray-300">
-              <p>Etter registrering får du umiddelbart tilgang til vår omfattende database. Du kan søke basert på bransje, merkevare, emne og mer. Se nyhetsbrev i full størrelse, analyser elementene og få inspirasjon til dine egne kampanjer.</p>
-            </CollapsibleContent>
-          </Collapsible>
-          
-          <Collapsible className="bg-[#FF5722]/10 rounded-lg border border-[#FF5722]/10">
-            <CollapsibleTrigger className="w-full px-6 py-4 flex justify-between items-center">
-              <span className="text-lg font-medium text-white">Hvor ofte oppdateres databasen?</span>
-              <ChevronDown className="h-5 w-5 text-[#FF8A50] transition-transform ui-open:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-6 pb-4 text-gray-300">
-              <p>Vår database oppdateres daglig med de nyeste nyhetsbrevene fra alle registrerte merkevarer. Det betyr at du alltid har tilgang til de siste trendene og kampanjene i markedet.</p>
-            </CollapsibleContent>
-          </Collapsible>
-          
-          <Collapsible className="bg-[#FF5722]/10 rounded-lg border border-[#FF5722]/10">
-            <CollapsibleTrigger className="w-full px-6 py-4 flex justify-between items-center">
-              <span className="text-lg font-medium text-white">Kan jeg prøve tjenesten før jeg kjøper?</span>
-              <ChevronDown className="h-5 w-5 text-[#FF8A50] transition-transform ui-open:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="px-6 pb-4 text-gray-300">
-              <p>Ja, alle våre planer kommer med en 14-dagers gratis prøveperiode. Du trenger ikke å oppgi betalingsinformasjon for å starte prøveperioden, og du kan avbryte når som helst.</p>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="item-1">
+            <AccordionTrigger className="text-lg font-medium">Hva er NewsletterHub?</AccordionTrigger>
+            <AccordionContent className="text-gray-400">
+              NewsletterHub er en plattform som samler og organiserer nyhetsbrev fra ulike kilder, slik at du enkelt kan søke, oppdage og lese relevant innhold.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-2">
+            <AccordionTrigger className="text-lg font-medium">Hvordan søker jeg etter nyhetsbrev?</AccordionTrigger>
+            <AccordionContent className="text-gray-400">
+              Du kan søke etter nyhetsbrev ved å bruke søkefeltet på forsiden eller navigere til "Utforsk" siden. Søk på emner, nøkkelord eller avsendere for å finne relevante nyhetsbrev.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-3">
+            <AccordionTrigger className="text-lg font-medium">Koster det noe å bruke NewsletterHub?</AccordionTrigger>
+            <AccordionContent className="text-gray-400">
+              NewsletterHub tilbyr både gratis og betalte abonnementer. Med et gratis abonnement får du tilgang til et begrenset antall nyhetsbrev og funksjoner, mens et betalt abonnement gir deg full tilgang og flere fordeler.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-4">
+            <AccordionTrigger className="text-lg font-medium">Kan jeg foreslå et nyhetsbrev som mangler?</AccordionTrigger>
+            <AccordionContent className="text-gray-400">
+              Ja, du kan foreslå nyhetsbrev som mangler ved å bruke forslagsskjemaet på "Kontakt oss" siden. Vi vil vurdere forslaget ditt og legge til nyhetsbrevet hvis det passer inn i vår katalog.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-5">
+            <AccordionTrigger className="text-lg font-medium">Hvordan melder jeg meg av et nyhetsbrev?</AccordionTrigger>
+            <AccordionContent className="text-gray-400">
+              Du melder deg av et nyhetsbrev ved å bruke avmeldingslenken som finnes nederst i hvert nyhetsbrev. NewsletterHub er ikke ansvarlig for avmeldinger, da dette administreres av de enkelte avsenderne.
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </section>
   );
