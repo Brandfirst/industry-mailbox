@@ -175,6 +175,9 @@ export async function searchNewsletters(
   const { 
     searchQuery, 
     categoryId, 
+    sender,
+    fromDate,
+    toDate,
     page = 1, 
     limit = 12 
   } = options;
@@ -185,8 +188,7 @@ export async function searchNewsletters(
     let query = supabase
       .from("newsletters")
       .select("*, categories(name, color)", { count: "exact" })
-      .order("published_at", { ascending: false })
-      .range(startIndex, startIndex + limit - 1);
+      .order("published_at", { ascending: false });
 
     if (searchQuery) {
       query = query.ilike("title", `%${searchQuery}%`);
@@ -196,6 +198,25 @@ export async function searchNewsletters(
       const categoryIdNum = typeof categoryId === 'string' ? parseInt(categoryId) : categoryId;
       query = query.eq("category_id", categoryIdNum);
     }
+    
+    // Handle sender email filtering (can be an array of emails)
+    if (sender && Array.isArray(sender) && sender.length > 0) {
+      query = query.in("sender_email", sender);
+    } else if (sender && !Array.isArray(sender)) {
+      query = query.ilike("sender_email", `%${sender}%`);
+    }
+    
+    // Handle date range filtering
+    if (fromDate) {
+      query = query.gte("published_at", fromDate);
+    }
+    
+    if (toDate) {
+      query = query.lte("published_at", toDate);
+    }
+
+    // Apply pagination
+    query = query.range(startIndex, startIndex + limit - 1);
 
     const { data, error, count } = await query;
 

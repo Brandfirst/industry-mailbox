@@ -3,20 +3,27 @@ import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
 import SearchHeader from '@/components/search/SearchHeader';
 import SearchForm from '@/components/search/SearchForm';
 import NewsletterResults from '@/components/search/NewsletterResults';
+import FilterSidebar from '@/components/search/FilterSidebar';
 
 const SearchPage = () => {
   const {
     newsletters,
     categories,
+    senderBrands,
     loading,
     searchQuery,
     selectedCategory,
+    selectedBrands,
+    dateRange,
     hasMore,
     setSearchQuery,
     setSelectedCategory,
+    setDateRange,
     handleLoadMore,
     handleSearch,
     handleCategoryChange,
+    handleBrandChange,
+    applyFilters,
     handleNewsletterClick
   } = useSearchNewsletters();
   
@@ -33,16 +40,32 @@ const SearchPage = () => {
         onSubmit={handleSearch}
       />
       
-      <NewsletterResults
-        newsletters={newsletters}
-        loading={loading}
-        hasMore={hasMore}
-        handleLoadMore={handleLoadMore}
-        handleNewsletterClick={handleNewsletterClick}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        setSelectedCategory={setSelectedCategory}
-      />
+      <div className="flex flex-col md:flex-row gap-6 mt-8">
+        <FilterSidebar 
+          categories={categories}
+          selectedCategory={selectedCategory}
+          handleCategoryChange={handleCategoryChange}
+          senderBrands={senderBrands}
+          selectedBrands={selectedBrands}
+          handleBrandChange={handleBrandChange}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          onApplyFilters={applyFilters}
+        />
+        
+        <div className="flex-1">
+          <NewsletterResults
+            newsletters={newsletters}
+            loading={loading}
+            hasMore={hasMore}
+            handleLoadMore={handleLoadMore}
+            handleNewsletterClick={handleNewsletterClick}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            setSelectedCategory={setSelectedCategory}
+          />
+        </div>
+      </div>
     </div>
   );
 };

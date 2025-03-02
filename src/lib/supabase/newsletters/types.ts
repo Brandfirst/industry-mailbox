@@ -4,7 +4,7 @@ import { Newsletter, NewsletterCategory } from "../types";
 // Define interface for the filter options
 export interface NewsletterFilterOptions {
   searchQuery?: string;
-  sender?: string;
+  sender?: string | string[];
   categoryId?: number | string;
   fromDate?: Date | string;
   toDate?: Date | string;
