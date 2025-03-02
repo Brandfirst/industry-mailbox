@@ -1,3 +1,4 @@
+
 import { Newsletter } from "@/lib/supabase/types";
 import NewsletterItem from "@/components/search/NewsletterItem";
 import { motion, AnimatePresence } from "framer-motion";
@@ -98,14 +99,14 @@ const NewsletterDisplay = ({
         </motion.div>
       </AnimatePresence>
       
-      {/* Testimonials Section - Now positioned right under the newsletter cards */}
+      {/* Minimalistic Testimonials Section */}
       <div className="mt-12 mb-6 max-w-4xl mx-auto">
         <div 
           ref={testimonialContainerRef}
-          className="relative bg-[#F5F5F0] rounded-xl p-6 text-gray-800"
+          className="relative p-6"
         >
           <div className="flex flex-col items-center">
-            <h3 className="text-xl font-medium text-gray-600 mb-6 text-center">
+            <h3 className="text-xl font-medium text-white mb-6 text-center">
               Profesjonelle bruker Nyhetsbrev Hub for å oppnå mer, raskere.
             </h3>
             
@@ -115,20 +116,20 @@ const NewsletterDisplay = ({
               >
                 {testimonials.map((item, index) => (
                   <div key={index} className="w-full flex-shrink-0 px-4">
-                    <div className="bg-white p-5 rounded-lg shadow-sm">
+                    <div className="p-5 border-l-2 border-[#FF5722]/50">
                       <div className="flex mb-3">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" />
+                          <Star key={i} className="w-4 h-4 text-[#FF5722]" fill="currentColor" />
                         ))}
                       </div>
-                      <p className="text-gray-700 italic mb-4">"{item.quote}"</p>
+                      <p className="text-white italic mb-4 text-lg">"{item.quote}"</p>
                       <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
+                        <div className="w-10 h-10 rounded-full overflow-hidden mr-3 border border-[#FF5722]/30">
                           <img src={item.avatar} alt={item.author} className="w-full h-full object-cover" />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-800">{item.author}</p>
-                          <p className="text-sm text-gray-500">{item.title}</p>
+                          <p className="font-medium text-white">{item.author}</p>
+                          <p className="text-sm text-gray-400">{item.title}</p>
                         </div>
                       </div>
                     </div>
@@ -140,35 +141,16 @@ const NewsletterDisplay = ({
             <div className="flex justify-between w-full mt-4">
               <button 
                 onClick={prevTestimonial}
-                className="bg-white rounded-full p-2 shadow-sm hover:bg-gray-100 transition-colors"
+                className="bg-transparent border border-[#FF5722]/30 rounded-full p-2 hover:bg-[#FF5722]/10 transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
+                <ArrowLeft className="w-5 h-5 text-white" />
               </button>
               <button 
                 onClick={nextTestimonial}
-                className="bg-white rounded-full p-2 shadow-sm hover:bg-gray-100 transition-colors"
+                className="bg-transparent border border-[#FF5722]/30 rounded-full p-2 hover:bg-[#FF5722]/10 transition-colors"
               >
-                <ArrowRight className="w-5 h-5 text-gray-600" />
+                <ArrowRight className="w-5 h-5 text-white" />
               </button>
-            </div>
-          </div>
-          
-          {/* Updated branded logos section */}
-          <div className="mt-8 pt-4 border-t border-gray-200">
-            <p className="text-sm text-white text-center mb-4 bg-transparent">Loved by 5,000+ Brands & Agencies</p>
-            <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold tracking-wide">TRUE CLASSIC</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-light">AGI</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-medium">VAYNERMEDIA</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold">THE RIDGE</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-light italic">PARAMOUNT</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-medium tracking-wide">TUBESCIENCE</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold tracking-widest">JONES ROAD</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-light italic">JAMBYS</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-medium">KETTLE & FIRE</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold">BACARDI</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-medium">MAGIC SPOON</span>
-              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold tracking-wider">HEXCLAD</span>
             </div>
           </div>
         </div>
