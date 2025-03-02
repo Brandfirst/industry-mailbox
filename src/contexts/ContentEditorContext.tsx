@@ -33,8 +33,18 @@ export const ContentEditorProvider: React.FC<{ children: ReactNode }> = ({ child
   const [elementsHistory, setElementsHistory] = useState<Record<string, string>>({});
   
   useEffect(() => {
-    // Clean up when the component unmounts or editing is stopped
+    // Add visual-editor-active class to body when editing is active
+    if (isEditing) {
+      document.body.classList.add('visual-editor-active');
+    } else {
+      document.body.classList.remove('visual-editor-active');
+      // Clean up any leftover styles when editing is stopped
+      restoreOriginalStyles();
+    }
+    
+    // Clean up when the component unmounts
     return () => {
+      document.body.classList.remove('visual-editor-active');
       if (isEditing) {
         restoreOriginalStyles();
       }
@@ -86,6 +96,14 @@ export const ContentEditorProvider: React.FC<{ children: ReactNode }> = ({ child
     if (selectedElement && selectedElement.element && selectedElement.originalClassName) {
       selectedElement.element.className = selectedElement.originalClassName;
     }
+    
+    // Remove any highlighting from editable elements
+    document.querySelectorAll('[data-editable]').forEach(el => {
+      el.classList.remove(
+        'ring-2', 'ring-[#3a6ffb]', 'ring-offset-2', 'ring-offset-black',
+        'ring-1', 'ring-blue-400', 'ring-opacity-50'
+      );
+    });
   };
 
   const selectElement = (element: EditableElement | null) => {
