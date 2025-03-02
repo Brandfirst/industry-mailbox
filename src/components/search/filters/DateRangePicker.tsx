@@ -1,5 +1,5 @@
 
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -18,6 +18,13 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
     dateRange.from ? { from: dateRange.from, to: dateRange.to } : undefined
   );
   const [open, setOpen] = useState(false);
+  
+  // Reset temp date range when the popover opens to match current dateRange
+  useEffect(() => {
+    if (open) {
+      setTempDateRange(dateRange.from ? { from: dateRange.from, to: dateRange.to } : undefined);
+    }
+  }, [open, dateRange]);
   
   const handleApply = () => {
     if (tempDateRange) {
@@ -62,10 +69,13 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
           <div className="p-4 space-y-4">
             <Calendar
               mode="range"
-              defaultMonth={dateRange.from}
+              defaultMonth={dateRange.from || new Date()}
               selected={tempDateRange}
               onSelect={setTempDateRange}
               numberOfMonths={1}
+              captionLayout="dropdown-buttons"
+              fromYear={2020}
+              toYear={2030}
               initialFocus
             />
             
