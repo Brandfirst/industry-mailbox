@@ -49,7 +49,7 @@ const TestimonialsSlider = ({ testimonials }: TestimonialsSliderProps) => {
                     <Star key={i} className="w-3 h-3 text-[#FF5722]" fill="currentColor" />
                   ))}
                 </div>
-                <p className="testimonial-text text-white">"{item.quote}"</p>
+                <p className="testimonial-text text-white text-left">"{item.quote}"</p>
                 <div className="flex items-center mt-3">
                   <div className="w-8 h-8 rounded-full bg-[#FF5722]/20 flex items-center justify-center mr-3 border border-[#FF5722]/30">
                     <UserRound className="w-5 h-5 text-white/80" />
