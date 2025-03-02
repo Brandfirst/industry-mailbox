@@ -45,7 +45,22 @@ const StatsSection = () => {
           ))}
         </div>
         
-        {/* Data visualization section - now above the brand logos section */}
+        {/* Brand logos section - now above the data visualization section */}
+        <div className="pt-8 pb-16 border-t border-gray-800 mb-10">
+          <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">Loved by 5,000+ Brands & Agencies</h3>
+          
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
+            {logos.map((logo, index) => (
+              <div key={index} className="flex items-center justify-center">
+                <span className={`text-white text-sm md:text-base opacity-80 hover:opacity-100 transition-opacity ${logo.className}`}>
+                  {logo.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Data visualization section - now below the brand logos section */}
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Dyp innsikt i nyhetsbrev-landskapet</h2>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
@@ -167,21 +182,6 @@ const StatsSection = () => {
                 </TableRow>
               </TableBody>
             </Table>
-          </div>
-        </div>
-        
-        {/* Brand logos section - now below the data visualization section */}
-        <div className="pt-8 pb-16 border-t border-gray-800">
-          <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">Loved by 5,000+ Brands & Agencies</h3>
-          
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
-            {logos.map((logo, index) => (
-              <div key={index} className="flex items-center justify-center">
-                <span className={`text-white text-sm md:text-base opacity-80 hover:opacity-100 transition-opacity ${logo.className}`}>
-                  {logo.name}
-                </span>
-              </div>
-            ))}
           </div>
         </div>
       </div>
