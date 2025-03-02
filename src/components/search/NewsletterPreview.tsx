@@ -39,23 +39,28 @@ const NewsletterPreview = ({
               overflow: hidden;
               height: 100%;
               width: 100%;
+              background-color: white;
             }
             body {
-              zoom: 0.4;
-              -moz-transform: scale(0.4);
+              zoom: 0.5;
+              -moz-transform: scale(0.5);
               -moz-transform-origin: 0 0;
-              -o-transform: scale(0.4);
+              -o-transform: scale(0.5);
               -o-transform-origin: 0 0;
-              -webkit-transform: scale(0.4);
+              -webkit-transform: scale(0.5);
               -webkit-transform-origin: 0 0;
-              transform: scale(0.4);
+              transform: scale(0.5);
               transform-origin: 0 0;
+              width: 200%;
+              height: 200%;
             }
             a {
               pointer-events: none;
             }
             img {
               max-width: 100%;
+              height: auto;
+              display: inline-block;
             }
             * {
               max-width: 100%;
@@ -76,17 +81,22 @@ const NewsletterPreview = ({
   }
 
   return (
-    <iframe
-      srcDoc={getIframeContent()}
-      title={title || "Newsletter Content"}
-      className="w-full h-full border-0"
-      sandbox="allow-same-origin"
-      style={{ 
-        height: previewHeight,
-        width: previewWidth,
-        pointerEvents: "none"
-      }}
-    />
+    <div className="w-full h-full overflow-hidden bg-white">
+      <iframe
+        srcDoc={getIframeContent()}
+        title={title || "Newsletter Content"}
+        className="w-full h-full border-0"
+        sandbox="allow-same-origin"
+        style={{ 
+          height: previewHeight,
+          width: previewWidth,
+          pointerEvents: "none",
+          transform: "scale(0.5)",
+          transformOrigin: "0 0",
+          display: "block"
+        }}
+      />
+    </div>
   );
 };
 

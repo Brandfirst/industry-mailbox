@@ -11,7 +11,7 @@ interface NewsletterItemDesktopProps {
 
 const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate }: NewsletterItemDesktopProps) => {
   return (
-    <div className="hidden md:block h-[500px] flex flex-col" onClick={onClick}>
+    <div className="hidden md:flex md:flex-col h-[500px]" onClick={onClick}>
       <div className="flex items-center p-3 border-b">
         <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0">
           {newsletter.sender && (
@@ -39,18 +39,13 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate }: Newsle
         )}
       </div>
       
-      <div className="relative flex-1 w-full overflow-hidden">
-        <div 
-          className="absolute inset-0"
-          style={{ pointerEvents: 'none' }}
-        >
-          <NewsletterPreview 
-            content={newsletter.content} 
-            title={newsletter.title}
-            previewHeight="200%"
-            previewWidth="200%"
-          />
-        </div>
+      <div className="relative flex-1 overflow-hidden bg-white">
+        <NewsletterPreview 
+          content={newsletter.content} 
+          title={newsletter.title}
+          previewHeight="200%"
+          previewWidth="200%"
+        />
       </div>
     </div>
   );

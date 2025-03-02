@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { format } from 'date-fns';
 import { Newsletter } from '@/lib/supabase/types';
 import NewsletterPreview from './NewsletterPreview';
 
@@ -13,8 +12,8 @@ interface NewsletterItemMobileProps {
 const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate }: NewsletterItemMobileProps) => {
   return (
     <div className="md:hidden flex" onClick={onClick}>
-      <div className="w-1/3 relative overflow-hidden">
-        <div className="h-24 relative">
+      <div className="w-1/3 h-24 bg-white overflow-hidden">
+        <div className="h-full w-full">
           <NewsletterPreview 
             content={newsletter.content} 
             title={newsletter.title}
