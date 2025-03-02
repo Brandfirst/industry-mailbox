@@ -15,7 +15,7 @@ const StatsSection = () => {
   const chartPoints = "M5,40 C20,10 35,50 50,20 C65,50 80,10 95,30";
 
   return (
-    <section className="py-16 bg-black">
+    <section className="py-8 bg-black">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-14">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Dyp innsikt i nyhetsbrev-landskapet</h2>
