@@ -5,8 +5,7 @@ const HeroHeading = () => {
   return (
     <div className="animate-slide-down max-w-5xl mx-auto">
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-ebgaramond tracking-tight mb-6">
-        <span className="block text-white mb-2">Norges største</span>
-        <span className="block text-white">database</span>
+        <span className="block text-white mb-2">Norges største database</span>
         <span className="block mt-2 text-white">
           av <span className="text-[#FF5722]">nyhetsbrev</span>
         </span>
@@ -21,7 +20,7 @@ const HeroHeading = () => {
           prefix=" " 
           suffix="" 
         />
-        nyhetsbrev fra 
+         nyhetsbrev fra 
         <DynamicCounter 
           startValue={1750} 
           incrementAmount={2} 
