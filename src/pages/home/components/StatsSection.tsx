@@ -33,20 +33,8 @@ const StatsSection = () => {
   return (
     <section className="py-8 bg-black">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16">
-          {stats.map((stat, index) => (
-            <div key={index} className="p-6 bg-[#0A0A0A] rounded-xl border border-[#3a6ffb]/20 hover:border-[#3a6ffb]/30 transition-all">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-2xl md:text-3xl font-bold text-white">{stat.value}</span>
-                <stat.icon className="h-6 w-6 text-[#3a6ffb]" />
-              </div>
-              <span className="text-sm text-gray-300">{stat.label}</span>
-            </div>
-          ))}
-        </div>
-        
-        {/* Brand logos section - now above the data visualization section */}
-        <div className="pt-8 pb-16 border-t border-gray-800 mb-10">
+        {/* Brand logos section - now at the very top of StatsSection */}
+        <div className="pb-16 mb-10">
           <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">Loved by 5,000+ Brands & Agencies</h3>
           
           <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
@@ -60,8 +48,21 @@ const StatsSection = () => {
           </div>
         </div>
         
-        {/* Data visualization section - now below the brand logos section */}
-        <div className="text-center mb-14">
+        {/* Stats grid - now in the middle */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16 border-t border-gray-800 pt-10">
+          {stats.map((stat, index) => (
+            <div key={index} className="p-6 bg-[#0A0A0A] rounded-xl border border-[#3a6ffb]/20 hover:border-[#3a6ffb]/30 transition-all">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-2xl md:text-3xl font-bold text-white">{stat.value}</span>
+                <stat.icon className="h-6 w-6 text-[#3a6ffb]" />
+              </div>
+              <span className="text-sm text-gray-300">{stat.label}</span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Data visualization section - now at the bottom */}
+        <div className="text-center mb-14 border-t border-gray-800 pt-10">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Dyp innsikt i nyhetsbrev-landskapet</h2>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
             NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, 
