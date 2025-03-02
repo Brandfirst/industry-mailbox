@@ -43,33 +43,3 @@
 .glow-effect:hover {
   box-shadow: 0 0 30px rgba(59,130,246,0.3);
 }
-
-/* Visual Editor Element Highlighting */
-.visual-editor-active [data-editable] {
-  @apply relative transition-all duration-200;
-  outline: 2px dashed rgba(58, 111, 251, 0.5);
-}
-
-.visual-editor-active [data-editable]:hover {
-  outline: 2px solid rgba(58, 111, 251, 1);
-  background-color: rgba(58, 111, 251, 0.05);
-}
-
-.visual-editor-active [data-editable]::before {
-  content: attr(data-editable-type);
-  @apply absolute -top-7 left-0 bg-blue-500 text-white text-xs px-2 py-0.5 rounded opacity-0 transition-opacity pointer-events-none z-[999];
-}
-
-.visual-editor-active [data-editable]:hover::before {
-  @apply opacity-100;
-}
-
-.visual-editor-active [data-editable].ring-2 {
-  outline: none;
-  @apply bg-black/5;
-}
-
-/* Make sure the editor UI has a higher z-index than everything else */
-.visual-editor-panel {
-  @apply z-[9999];
-}
