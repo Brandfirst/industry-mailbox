@@ -1,0 +1,8 @@
+
+/* Mobile optimizations for newsletter cards */
+@media (max-width: 768px) {
+  .newsletter-card-mobile {
+    height: auto;
+    max-height: 100px;
+  }
+}

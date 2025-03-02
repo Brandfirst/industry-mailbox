@@ -1,0 +1,16 @@
+
+.btn-primary {
+  @apply bg-[#3a6ffb] hover:bg-[#3a6ffb]/90 text-white font-medium py-2.5 px-5 rounded-lg transition-all;
+}
+
+.btn-outline {
+  @apply border border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium py-2.5 px-5 rounded-lg transition-all;
+}
+
+.gradient-button {
+  @apply relative overflow-hidden bg-gradient-to-r from-[#3a6ffb] to-[#2a58dd] text-white font-medium py-3 px-6 rounded-lg transition-all;
+}
+
+.gradient-button:hover {
+  @apply from-[#2a58dd] to-[#1a48cd];
+}
