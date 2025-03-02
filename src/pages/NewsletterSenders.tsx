@@ -1,10 +1,12 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { getSenderStats, getSenderFrequencyData } from "@/lib/supabase/newsletters/fetch";
+import { getSenderStats } from "@/lib/supabase/newsletters/analytics";
+import { getSenderFrequencyData } from "@/lib/supabase/newsletters/frequency-analytics";
 import { CategoryWithStats, NewsletterCategory } from "@/lib/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import SenderList from "@/components/newsletter-senders/SenderList";

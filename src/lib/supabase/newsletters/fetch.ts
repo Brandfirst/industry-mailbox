@@ -10,6 +10,10 @@ export {
 } from './search';
 
 export { 
-  getSenderStats,
-  getSenderFrequencyData 
+  getSenderStats
 } from './analytics';
+
+export {
+  getSenderFrequencyData,
+  getTopSendersFrequency
+} from './frequency-analytics';
