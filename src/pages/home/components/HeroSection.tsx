@@ -51,26 +51,45 @@ const CountUpAnimation = ({
 
 const HeroSection = () => {
   return (
-    <section className="py-16 lg:py-20 relative overflow-hidden bg-black">
+    <section className="py-16 lg:py-24 relative overflow-hidden bg-black">
       <div className="container mx-auto max-w-6xl px-4 text-center relative z-10">
         {/* Provide space at the top for the announcement button */}
         <div className="pt-10"></div>
         
         <div className="animate-slide-down max-w-5xl mx-auto">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-ebgaramond tracking-tight mb-6 text-white">
-            Norges største database
-            <br />av nyhetsbrev
-            <span className="block text-[#3a6ffb] mt-4 relative">
-              <div className="absolute -bottom-2 w-full h-0.5 bg-gradient-to-r from-transparent via-[#3a6ffb] to-transparent"></div>
+            <span className="block text-white mb-2">Norges største</span>
+            <span className="block relative">
+              <span className="hero-heading-span inline-block transform hover:scale-105 transition-transform duration-300">database</span>
+              <img src="/lovable-uploads/9c18978d-5f8f-4ce3-9eab-aed71d4f66d3.png" alt="abstract pattern" className="absolute w-16 h-16 md:w-24 md:h-24 top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-70 z-0" />
+            </span>
+            <span className="block mt-2">
+              av <span className="hero-heading-span inline-block bg-clip-text text-transparent bg-gradient-to-r from-[#3a6ffb] to-blue-400">nyhetsbrev</span>
             </span>
           </h1>
           
-          {/* Data visualization container */}
-          <div className="relative mx-auto max-w-4xl bg-black/50 backdrop-blur-sm rounded-xl p-6 border border-[#3a6ffb]/20 mb-8">
+          {/* Creative paragraph with styled text */}
+          <div className="creative-text-container relative mx-auto max-w-4xl bg-black/50 backdrop-blur-sm rounded-xl p-6 border border-[#3a6ffb]/20 mb-8">
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto relative z-10">
-              Utforsk mer enn <span className="text-[#3a6ffb] font-bold"><CountUpAnimation endValue={70350} /></span> nyhetsbrev 
-              fra <span className="text-[#3a6ffb] font-bold"><CountUpAnimation endValue={1750} /></span> varemerker. 
-              Laget for markedsførere <span className="smaller-text">og byråer</span> som ønsker å skape effektive og engasjerende nyhetsbrev.
+              <span className="highlight-word">Utforsk</span> mer enn 
+              <span className="text-[#3a6ffb] font-bold mx-2 relative inline-block">
+                <CountUpAnimation endValue={70350} />
+                <span className="absolute -bottom-1 w-full h-0.5 bg-[#3a6ffb]/50"></span>
+              </span>
+              nyhetsbrev fra 
+              <span className="text-[#3a6ffb] font-bold mx-2 relative inline-block">
+                <CountUpAnimation endValue={1750} />
+                <span className="absolute -bottom-1 w-full h-0.5 bg-[#3a6ffb]/50"></span>
+              </span>
+              <span className="hero-heading-span inline-block transform hover:scale-105 transition-transform duration-300 mx-1">varemerker</span>. 
+              <span>Laget for</span>
+              <span className="highlight-word mx-1">markedsførere</span>
+              <span className="smaller-text mx-1">og byråer</span>
+              <span>som ønsker å skape</span>
+              <span className="hero-heading-span inline-block mx-1">effektive</span>
+              <span>og</span>
+              <span className="hero-heading-span inline-block mx-1">engasjerende</span>
+              <span>nyhetsbrev.</span>
             </p>
             
             {/* Data visualization elements */}
