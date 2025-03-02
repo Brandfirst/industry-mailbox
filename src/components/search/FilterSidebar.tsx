@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { NewsletterCategory } from '@/lib/supabase/types';
 import MobileFilterDrawer from './filters/MobileFilterDrawer';
 import DesktopFilterSidebar from './filters/DesktopFilterSidebar';
@@ -74,4 +74,4 @@ const FilterSidebar = ({
   );
 };
 
-export default FilterSidebar;
+export default memo(FilterSidebar);

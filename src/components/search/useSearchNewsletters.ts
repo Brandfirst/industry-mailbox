@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Newsletter, NewsletterCategory } from '@/lib/supabase/types';
 import { searchNewsletters } from '@/lib/supabase/newsletters';
@@ -120,36 +120,36 @@ export const useSearchNewsletters = () => {
     fetchNewsletters();
   }, [searchQuery, selectedCategory, selectedBrands, dateRange, page]);
   
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     setPage(page + 1);
-  };
+  }, [page]);
   
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setPage(1); // Reset page when searching
-  };
+  }, []);
   
-  const handleCategoryChange = (value: string) => {
+  const handleCategoryChange = useCallback((value: string) => {
     setSelectedCategory(value);
     setPage(1); // Reset page when changing category
-  };
+  }, []);
   
-  const handleBrandChange = (brand: string, checked: boolean) => {
+  const handleBrandChange = useCallback((brand: string, checked: boolean) => {
     if (checked) {
       setSelectedBrands(prev => [...prev, brand]);
     } else {
       setSelectedBrands(prev => prev.filter(b => b !== brand));
     }
     setPage(1); // Reset page when changing brand selection
-  };
+  }, []);
   
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     setPage(1);
-  };
+  }, []);
 
-  const handleNewsletterClick = (newsletter: Newsletter) => {
+  const handleNewsletterClick = useCallback((newsletter: Newsletter) => {
     navigateToNewsletter(newsletter, navigate);
-  };
+  }, [navigate]);
 
   return {
     newsletters,

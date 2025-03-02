@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Filter, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
@@ -26,4 +26,4 @@ const FilterHeader = ({ toggleMobileFilters }: FilterHeaderProps) => {
   );
 };
 
-export default FilterHeader;
+export default memo(FilterHeader);

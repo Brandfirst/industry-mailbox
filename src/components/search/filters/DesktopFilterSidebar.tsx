@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { NewsletterCategory } from '@/lib/supabase/types';
 import { Button } from "@/components/ui/button";
 import { Filter, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -100,4 +100,4 @@ const DesktopFilterSidebar = ({
   );
 };
 
-export default DesktopFilterSidebar;
+export default memo(DesktopFilterSidebar);

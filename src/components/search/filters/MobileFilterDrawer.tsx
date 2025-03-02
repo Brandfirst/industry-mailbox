@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Button } from "@/components/ui/button";
 import { NewsletterCategory } from '@/lib/supabase/types';
 import FilterHeader from './FilterHeader';
@@ -82,4 +82,4 @@ const MobileFilterDrawer = ({
   );
 };
 
-export default MobileFilterDrawer;
+export default memo(MobileFilterDrawer);

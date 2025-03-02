@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,10 +26,26 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
   };
 
   // Clear date range
-  const handleClearDateRange = () => {
+  const handleClearDateRange = useCallback(() => {
     setDateRange({ from: undefined, to: undefined });
     setIsDatePickerOpen(false);
-  };
+  }, [setDateRange]);
+
+  // Toggle date picker
+  const toggleDatePicker = useCallback(() => {
+    setIsDatePickerOpen(prev => !prev);
+  }, []);
+
+  // Handle calendar selection
+  const handleCalendarSelect = useCallback((range: { from: Date | undefined; to: Date | undefined } | undefined) => {
+    if (range) {
+      setDateRange({
+        from: range.from,
+        to: range.to
+      });
+      if (range.to) setIsDatePickerOpen(false);
+    }
+  }, [setDateRange]);
 
   return (
     <div className="space-y-2">
@@ -40,7 +56,7 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
             type="button"
             variant="ghost"
             className={`flex-1 rounded-md ${!isDatePickerOpen ? 'bg-muted' : ''}`}
-            onClick={() => setIsDatePickerOpen(true)}
+            onClick={toggleDatePicker}
           >
             Datoområde
           </Button>
@@ -53,7 +69,7 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
           placeholder="Velg datoer"
           className="w-full cursor-pointer"
           value={formatDateRange()}
-          onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
+          onClick={toggleDatePicker}
           readOnly
         />
         
@@ -94,13 +110,7 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
                 from: dateRange.from,
                 to: dateRange.to
               }}
-              onSelect={(range) => {
-                setDateRange({
-                  from: range?.from,
-                  to: range?.to
-                });
-                if (range?.to) setIsDatePickerOpen(false);
-              }}
+              onSelect={handleCalendarSelect}
               className="rounded-md"
             />
           </div>
@@ -114,4 +124,4 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
   );
 };
 
-export default DateRangePicker;
+export default memo(DateRangePicker);

@@ -1,5 +1,5 @@
 
-import React, { ReactNode } from 'react';
+import React, { memo } from 'react';
 import FilterSidebar from '@/components/search/FilterSidebar';
 import { NewsletterCategory } from '@/lib/supabase/types';
 
@@ -10,7 +10,7 @@ interface SenderBrand {
 }
 
 interface SearchLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
   categories: NewsletterCategory[];
   selectedCategory: string;
   handleCategoryChange: (categoryId: string) => void;
@@ -67,4 +67,4 @@ const SearchLayout = ({
   );
 };
 
-export default SearchLayout;
+export default memo(SearchLayout);

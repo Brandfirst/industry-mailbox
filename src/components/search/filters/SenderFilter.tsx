@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
@@ -46,4 +46,4 @@ const SenderFilter = ({
   );
 };
 
-export default SenderFilter;
+export default memo(SenderFilter);
