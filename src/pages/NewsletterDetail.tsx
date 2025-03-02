@@ -18,10 +18,17 @@ const NewsletterDetail = () => {
       setLoading(true);
       
       try {
+        // Convert string ID to number for the query
+        const numericId = parseInt(id || '0', 10);
+        
+        if (isNaN(numericId)) {
+          throw new Error('Invalid newsletter ID');
+        }
+        
         const { data, error } = await supabase
           .from('newsletters')
           .select('*, categories(name, color)')
-          .eq('id', id)
+          .eq('id', numericId)
           .single();
         
         if (error) {
