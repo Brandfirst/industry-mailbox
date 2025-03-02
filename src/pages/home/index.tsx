@@ -10,6 +10,7 @@ import NewsletterSubscriptionSection from "./components/NewsletterSubscriptionSe
 import FAQSection from "./components/FAQSection";
 import CTASection from "./components/CTASection";
 import FooterSection from "./components/FooterSection";
+import FeaturedNewsletters from "./components/FeaturedNewsletters";
 import { DebugEdgeFunction } from "@/components/DebugEdgeFunction";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ const HomePage = () => {
       </div>
       <StatsSection />
       <FeaturesSection />
+      <FeaturedNewsletters />
       <TestimonialsSection />
       <PricingSection />
       <NewsletterSubscriptionSection />
