@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, ArrowRight } from "lucide-react";
 import FeaturedNewsletters from "./FeaturedNewsletters";
+import Spline from '@splinetool/react-spline';
 
 const CountUpAnimation = ({ 
   endValue, 
@@ -49,6 +50,13 @@ const CountUpAnimation = ({
 const HeroSection = () => {
   return (
     <section className="py-16 lg:py-24 relative overflow-hidden bg-black">
+      <div className="absolute inset-0 z-0 w-full h-full">
+        <Spline 
+          scene="https://prod.spline.design/kiQGRbPlp9LUJc9j/scene.splinecode" 
+          className="w-full h-full"
+        />
+      </div>
+      
       <div className="container mx-auto max-w-6xl px-4 text-center relative z-10">
         <div className="pt-10"></div>
         
