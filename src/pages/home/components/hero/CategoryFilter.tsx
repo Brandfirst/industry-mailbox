@@ -8,7 +8,7 @@ interface CategoryFilterProps {
 
 const CategoryFilter = ({ selectedCategory, setSelectedCategory }: CategoryFilterProps) => {
   return (
-    <div className="flex flex-wrap justify-center gap-3 mb-8 mt-16">
+    <div className="flex flex-wrap gap-3">
       <Button 
         variant="outline" 
         className={`bg-black/40 backdrop-blur-sm rounded-lg ${
@@ -18,7 +18,7 @@ const CategoryFilter = ({ selectedCategory, setSelectedCategory }: CategoryFilte
         } hover:bg-[#FF5722]/10`}
         onClick={() => setSelectedCategory("all")}
       >
-        Alle kategorier
+        All categories
       </Button>
       
       <Button 

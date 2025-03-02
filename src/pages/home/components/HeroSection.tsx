@@ -1,17 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Container } from '@/components/ui/container';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import BackgroundEffects from './hero/BackgroundEffects';
-import HeroHeading from './hero/HeroHeading';
-import HeroActions from './hero/HeroActions';
-import NewsletterDisplay from './hero/NewsletterDisplay';
 import CategoryFilter from './hero/CategoryFilter';
+import NewsletterDisplay from './hero/NewsletterDisplay';
+import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  
+  // Use the existing hook to fetch newsletters data
+  const { 
+    newsletters, 
+    loading, 
+    handleNewsletterClick 
+  } = useSearchNewsletters();
 
   return (
     <section className="relative min-h-[90vh] overflow-hidden flex items-center pt-20 pb-16 md:pb-24 lg:pt-24 lg:pb-32">
@@ -91,7 +98,10 @@ const HeroSection: React.FC = () => {
               >
                 Popular categories
               </div>
-              <CategoryFilter />
+              <CategoryFilter 
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+              />
             </div>
           </div>
           
@@ -101,7 +111,12 @@ const HeroSection: React.FC = () => {
             data-editable-type="padding,margin"
             data-editable-id="hero-display-container"
           >
-            <NewsletterDisplay />
+            <NewsletterDisplay 
+              newsletters={newsletters.slice(0, 3)}
+              loading={loading}
+              selectedCategory={selectedCategory}
+              handleNewsletterClick={handleNewsletterClick}
+            />
           </div>
         </div>
       </Container>
