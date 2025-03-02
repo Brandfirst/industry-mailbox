@@ -40,3 +40,29 @@
 .shadow-glow {
   box-shadow: 0 0 15px rgba(255, 87, 34, 0.15);
 }
+
+/* Announcement bar glow effect */
+.announcement-glow-container {
+  transition: all 0.3s ease;
+}
+
+.announcement-glow-container:hover {
+  border-color: rgba(255, 87, 34, 0.5);
+  box-shadow: 0 0 15px rgba(255, 87, 34, 0.2);
+}
+
+.announcement-glow-effect {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 87, 34, 0) 0%,
+    rgba(255, 87, 34, 0.03) 50%,
+    rgba(255, 87, 34, 0) 100%
+  );
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  z-index: 0;
+}
+
+.announcement-glow-container:hover .announcement-glow-effect {
+  opacity: 1;
+}
