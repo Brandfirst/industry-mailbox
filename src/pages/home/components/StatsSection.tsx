@@ -1,3 +1,4 @@
+
 import { Mail, Users, BarChart, Calendar, TrendingUp, PieChart, LineChart } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { useState, useEffect, CSSProperties } from "react";
@@ -36,9 +37,20 @@ const StatsSection = () => {
   
   // State for section content
   const [sectionContent, setSectionContent] = useState<Record<string, Record<string, string>>>({
+    header: {
+      title: "Statistikk og Innsikt",
+      subtitle: "Utforsk data og trender fra vår omfattende nyhetsbrev-analyse"
+    },
+    brandLogos: {
+      title: "Trusted by Leading Brands"
+    },
     dataViz: {
       title: "Dyp innsikt i nyhetsbrev-landskapet",
       description: "NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet."
+    },
+    footer: {
+      title: "Ta innsiktsdrevet beslutninger",
+      description: "Bruk våre analyser for å forbedre dine markedsføringsstrategier og øke engasjement"
     }
   });
 
@@ -55,10 +67,21 @@ const StatsSection = () => {
   };
 
   // Define the sections with editable content
+  const headerSection = (
+    <div className="text-center mb-10 border-b border-gray-800 pb-10" style={applySectionStyle("header")}>
+      <h2 className="text-4xl font-bold mb-4 text-white">
+        {sectionContent.header?.title || "Statistikk og Innsikt"}
+      </h2>
+      <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+        {sectionContent.header?.subtitle || "Utforsk data og trender fra vår omfattende nyhetsbrev-analyse"}
+      </p>
+    </div>
+  );
+
   const brandLogosSection = (
     <div className="pb-16 mb-10" style={applySectionStyle("brandLogos")}>
       <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">
-        {sectionContent.brandLogos?.title || "Loved by 5,000+ Brands & Agencies"}
+        {sectionContent.brandLogos?.title || "Trusted by Leading Brands"}
       </h3>
       
       <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
@@ -224,15 +247,36 @@ const StatsSection = () => {
     </div>
   );
 
+  const footerSection = (
+    <div className="text-center border-t border-gray-800 pt-10 pb-4" style={applySectionStyle("footer")}>
+      <h3 className="text-2xl font-bold mb-4 text-white">
+        {sectionContent.footer?.title || "Ta innsiktsdrevet beslutninger"}
+      </h3>
+      <p className="text-lg text-gray-300 max-w-3xl mx-auto mb-6">
+        {sectionContent.footer?.description || "Bruk våre analyser for å forbedre dine markedsføringsstrategier og øke engasjement"}
+      </p>
+    </div>
+  );
+
   // Define initial sections with editable content
   const initialSections: Section[] = [
+    { 
+      id: "header", 
+      title: "Header Section", 
+      component: headerSection,
+      style: sectionStyles.header || {},
+      editableContent: {
+        title: sectionContent.header?.title || "Statistikk og Innsikt",
+        subtitle: sectionContent.header?.subtitle || "Utforsk data og trender fra vår omfattende nyhetsbrev-analyse"
+      }
+    },
     { 
       id: "brandLogos", 
       title: "Brand Logos", 
       component: brandLogosSection,
       style: sectionStyles.brandLogos || {},
       editableContent: {
-        title: sectionContent.brandLogos?.title || "Loved by 5,000+ Brands & Agencies"
+        title: sectionContent.brandLogos?.title || "Trusted by Leading Brands"
       }
     },
     { 
@@ -256,6 +300,16 @@ const StatsSection = () => {
       title: "Charts & Analysis", 
       component: chartsSection,
       style: sectionStyles.charts || {}
+    },
+    { 
+      id: "footer", 
+      title: "Footer Section", 
+      component: footerSection,
+      style: sectionStyles.footer || {},
+      editableContent: {
+        title: sectionContent.footer?.title || "Ta innsiktsdrevet beslutninger",
+        description: sectionContent.footer?.description || "Bruk våre analyser for å forbedre dine markedsføringsstrategier og øke engasjement"
+      }
     }
   ];
 

@@ -1,4 +1,3 @@
-
 .glass-card {
   @apply bg-card/80 backdrop-blur-sm border border-white/10 shadow-glass;
 }
@@ -74,4 +73,33 @@
 
 .section-editor-toggle-item[data-state='on'] {
   @apply bg-[#3a6ffb]/20 border-[#3a6ffb]/50;
+}
+
+/* Improved editor panel styles */
+.section-editor-panel {
+  @apply bg-black/95 text-white border-l border-[#3a6ffb]/30;
+}
+
+.section-editor-label {
+  @apply text-white text-sm mb-1 block;
+}
+
+.section-editor-input {
+  @apply bg-[#111] text-white border border-[#333] rounded;
+}
+
+.section-editor-slider {
+  @apply bg-[#222];
+}
+
+.section-editor-slider-thumb {
+  @apply bg-[#3a6ffb] border border-white;
+}
+
+.section-editor-tabs {
+  @apply bg-[#111] text-white;
+}
+
+.section-editor-section-item {
+  @apply bg-[#111] border border-[#333] hover:border-[#3a6ffb]/50 text-white;
 }
