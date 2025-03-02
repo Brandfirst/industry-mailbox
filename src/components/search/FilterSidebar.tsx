@@ -31,6 +31,8 @@ interface FilterSidebarProps {
   onApplyFilters: () => void;
   isMobileOpen: boolean;
   toggleMobileFilters: () => void;
+  isDesktopOpen: boolean;
+  toggleDesktopFilters: () => void;
 }
 
 const FilterSidebar = ({
@@ -44,10 +46,11 @@ const FilterSidebar = ({
   setDateRange,
   onApplyFilters,
   isMobileOpen,
-  toggleMobileFilters
+  toggleMobileFilters,
+  isDesktopOpen,
+  toggleDesktopFilters
 }: FilterSidebarProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   
   // Format date for display
   const formatDateRange = () => {
@@ -256,15 +259,15 @@ const FilterSidebar = ({
   const desktopSidebar = (
     <div className="hidden md:block">
       <Collapsible
-        open={!isDesktopCollapsed}
-        onOpenChange={(open) => setIsDesktopCollapsed(!open)}
+        open={isDesktopOpen}
+        onOpenChange={toggleDesktopFilters}
         className="border-r"
       >
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <span className="font-medium">Filtre</span>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm">
-              {isDesktopCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              {!isDesktopOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </Button>
           </CollapsibleTrigger>
         </div>
@@ -274,12 +277,12 @@ const FilterSidebar = ({
         </CollapsibleContent>
       </Collapsible>
       
-      {isDesktopCollapsed && (
+      {!isDesktopOpen && (
         <div className="w-12 flex flex-col items-center py-4 border-r">
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => setIsDesktopCollapsed(false)}
+            onClick={toggleDesktopFilters}
             className="mb-2"
             title="Åpne filter"
           >
