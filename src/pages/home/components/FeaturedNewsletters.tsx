@@ -16,7 +16,7 @@ const FeaturedNewsletters = () => {
   
   // State for animated newsletters
   const [visibleNewsletters, setVisibleNewsletters] = useState<Newsletter[]>([]);
-  const [animatingIndex, setAnimatingIndex] = useState<number | null>(null);
+  const [animatingRow, setAnimatingRow] = useState<boolean>(false);
   const intervalRef = useRef<number | null>(null);
 
   // Setup newsletter rotation
@@ -26,42 +26,49 @@ const FeaturedNewsletters = () => {
       // Initialize with the current newsletters
       setVisibleNewsletters([...newsletters]);
       
-      // Set up rotation interval (every 5 seconds)
+      // Set up rotation interval (every 8 seconds)
       intervalRef.current = window.setInterval(() => {
-        // Choose a random index to rotate
-        const randomIndex = Math.floor(Math.random() * Math.min(newsletters.length, 4));
-        setAnimatingIndex(randomIndex);
+        // Animate the entire row
+        setAnimatingRow(true);
         
-        // After animation out completes, swap the newsletter
+        // After animation completes, swap all newsletters
         setTimeout(() => {
           setVisibleNewsletters(prev => {
-            // Get a random newsletter that's not already visible
+            // Get random newsletters that aren't already visible
             const availableNewsletters = newsletters.filter(
               nl => !prev.some(visible => visible.id === nl.id)
             );
             
-            if (availableNewsletters.length === 0) {
-              // If all newsletters are visible, just return the current list
+            if (availableNewsletters.length < 4) {
+              // If we don't have enough newsletters, just return the current list
               return prev;
             }
             
-            // Get a random newsletter from available ones
-            const randomNewsletter = availableNewsletters[
-              Math.floor(Math.random() * availableNewsletters.length)
-            ];
+            // Create a new array with 4 random newsletters
+            const randomNewsletters = [];
+            const tempAvailable = [...availableNewsletters];
             
-            // Create a new array with the random newsletter replacing the one at randomIndex
-            const updated = [...prev];
-            updated[randomIndex] = randomNewsletter;
-            return updated;
+            for (let i = 0; i < 4; i++) {
+              if (tempAvailable.length === 0) break;
+              const randomIndex = Math.floor(Math.random() * tempAvailable.length);
+              randomNewsletters.push(tempAvailable[randomIndex]);
+              tempAvailable.splice(randomIndex, 1);
+            }
+            
+            // If we didn't get enough random newsletters, fill with the current ones
+            if (randomNewsletters.length < 4) {
+              return prev;
+            }
+            
+            return randomNewsletters;
           });
           
-          // Reset the animating index after the new newsletter is set
+          // Reset the animating state after new newsletters are set
           setTimeout(() => {
-            setAnimatingIndex(null);
-          }, 500); // Match the fade-in duration
-        }, 500); // Match the fade-out duration
-      }, 5000); // Rotate every 5 seconds
+            setAnimatingRow(false);
+          }, 100);
+        }, 600); // Match the animation duration
+      }, 8000); // Rotate every 8 seconds (more time to read)
     }
     
     // Cleanup interval on unmount or when newsletters change
@@ -101,17 +108,17 @@ const FeaturedNewsletters = () => {
                 <div key={i} className="animate-pulse bg-muted/20 h-24 md:h-[400px] rounded-lg"></div>
               ))
             ) : visibleNewsletters.length > 0 ? (
-              // Animated newsletters
+              // Animated newsletters with right-to-left animation
               visibleNewsletters.slice(0, 4).map((newsletter, index) => (
                 <div 
                   key={newsletter.id} 
-                  className={`transition-all duration-500 relative ${
-                    animatingIndex === index 
-                      ? 'opacity-0 transform scale-95' 
-                      : 'opacity-100 transform scale-100 animate-float'
+                  className={`transition-all duration-500 ${
+                    animatingRow 
+                      ? 'opacity-0' 
+                      : 'animate-slide-from-right'
                   }`}
                   style={{
-                    animationDelay: `${index * 0.2}s`
+                    animationDelay: `${index * 0.1}s`
                   }}
                 >
                   <div className="h-full">

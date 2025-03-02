@@ -145,8 +145,17 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: translateY(0px); }
 }
 
+@keyframes slide-from-right {
+  0% { transform: translateX(50px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
 .animate-float {
   animation: float 5s ease-in-out infinite;
+}
+
+.animate-slide-from-right {
+  animation: slide-from-right 0.6s ease-out forwards;
 }
 
 .btn-primary {
