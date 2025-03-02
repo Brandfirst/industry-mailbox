@@ -1,3 +1,4 @@
+
 /* Gradient background animations */
 .mesh-gradient {
   background: linear-gradient(140deg, #000000, #091134, #0e1550);
@@ -228,8 +229,23 @@
   animation: glow-rotate 4s linear infinite, glow-opacity 2s ease-in-out infinite;
   z-index: 0;
   pointer-events: none;
+  opacity: 1; /* Make sure the glow is always visible */
 }
 
 .shadow-glow {
   box-shadow: 0 0 15px rgba(255, 87, 34, 0.15);
+}
+
+/* Enhance the glow effect to be always visible */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(255, 87, 34, 0.4), 0 0 10px rgba(255, 87, 34, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 87, 34, 0.6), 0 0 20px rgba(255, 87, 34, 0.3);
+  }
+}
+
+.announcement-glow-container {
+  animation: glow-pulse 3s ease-in-out infinite;
 }
