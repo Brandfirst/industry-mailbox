@@ -6,6 +6,8 @@ import { Search, ArrowRight } from "lucide-react";
 import Spline from '@splinetool/react-spline';
 import { Card } from "@/components/ui/card";
 import NewsletterPreview from "@/components/search/NewsletterPreview";
+import { Newsletter } from "@/lib/supabase/types";
+import NewsletterItem from "@/components/search/NewsletterItem";
 
 const CountUpAnimation = ({ 
   endValue, 
@@ -58,7 +60,9 @@ const sampleNewsletters = [
       <h2 style="color: #FF5722;">Ukentlig Markedsføring</h2>
       <p style="color: #333;">De beste tipsene for din bedrift</p>
     </div>`,
-    sender: "MarkedsføringsEksperten"
+    sender: "MarkedsføringsEksperten",
+    published_at: "2023-08-15T12:00:00Z",
+    categories: { name: "Markedsføring", color: "#FF5722" }
   },
   {
     id: 2,
@@ -67,7 +71,9 @@ const sampleNewsletters = [
       <h2 style="color: #0078D7;">Tech Nyheter</h2>
       <p style="color: #333;">Siste innovasjoner innen teknologi</p>
     </div>`,
-    sender: "TechNorge"
+    sender: "TechNorge",
+    published_at: "2023-08-16T14:30:00Z",
+    categories: { name: "Tech", color: "#0078D7" }
   },
   {
     id: 3,
@@ -76,11 +82,30 @@ const sampleNewsletters = [
       <h2 style="color: #006600;">Finansbrevet</h2>
       <p style="color: #333;">Økonomiske innsikter for deg</p>
     </div>`,
-    sender: "Finansinnsikt"
+    sender: "Finansinnsikt",
+    published_at: "2023-08-17T09:00:00Z",
+    categories: { name: "Finans", color: "#006600" }
   }
 ];
 
+// Convert sample newsletters to match Newsletter type
+const typedSampleNewsletters: Newsletter[] = sampleNewsletters.map(newsletter => ({
+  id: newsletter.id,
+  title: newsletter.title,
+  content: newsletter.content,
+  sender: newsletter.sender,
+  published_at: newsletter.published_at,
+  categories: newsletter.categories
+} as Newsletter));
+
 const HeroSection = () => {
+  const [selectedCategory, setSelectedCategory] = useState("Alle kategorier");
+  
+  const handleNewsletterClick = (newsletter: Newsletter) => {
+    // This would handle newsletter click in a real implementation
+    console.log("Newsletter clicked:", newsletter.title);
+  };
+  
   return (
     <section className="py-16 lg:py-24 relative overflow-hidden bg-gradient-to-b from-black via-black to-transparent">
       <div className="absolute inset-0 z-0 w-full h-full -top-20">
@@ -131,66 +156,82 @@ const HeroSection = () => {
             </Link>
           </div>
           
-          {/* Newsletter Preview Cards */}
-          <div className="mt-16 mb-20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-5xl mx-auto px-4">
-              {sampleNewsletters.map((newsletter) => (
-                <div key={newsletter.id} className="bg-black/40 backdrop-blur-sm border-2 border-[#FF5722] rounded-xl overflow-hidden h-44 md:h-64 transform transition-all hover:scale-105 hover:border-[#FF5722] hover:shadow-glow">
-                  <div className="p-2 border-b border-[#FF5722] bg-black/60 flex items-center">
-                    <div className="h-6 w-6 bg-[#FF5722]/20 rounded-full flex items-center justify-center text-white text-xs">
-                      {newsletter.sender.charAt(0)}
-                    </div>
-                    <span className="ml-2 text-sm text-white truncate">{newsletter.sender}</span>
-                  </div>
-                  <div className="h-full p-2">
-                    <NewsletterPreview 
-                      content={newsletter.content} 
-                      title={newsletter.title}
-                      isMobile={false}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Category Filter */}
-          <div className="mt-4">
-            <div className="flex flex-wrap justify-center gap-3 my-8">
+          {/* Category Filter - Now above the cards */}
+          <div className="mt-16">
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-white border-[#FF5722]/30 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
+                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                  selectedCategory === "Alle kategorier" 
+                    ? "text-white border-[#FF5722] border-2" 
+                    : "text-gray-300 border-gray-700"
+                } hover:bg-[#FF5722]/10`}
+                onClick={() => setSelectedCategory("Alle kategorier")}
               >
                 Alle kategorier
               </Button>
               
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
+                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                  selectedCategory === "Business" 
+                    ? "text-white border-[#FF5722] border-2" 
+                    : "text-gray-300 border-gray-700"
+                } hover:bg-[#FF5722]/10`}
+                onClick={() => setSelectedCategory("Business")}
               >
                 Business
               </Button>
               
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
+                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                  selectedCategory === "Education" 
+                    ? "text-white border-[#FF5722] border-2" 
+                    : "text-gray-300 border-gray-700"
+                } hover:bg-[#FF5722]/10`}
+                onClick={() => setSelectedCategory("Education")}
               >
                 Education
               </Button>
               
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
+                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                  selectedCategory === "Finance" 
+                    ? "text-white border-[#FF5722] border-2" 
+                    : "text-gray-300 border-gray-700"
+                } hover:bg-[#FF5722]/10`}
+                onClick={() => setSelectedCategory("Finance")}
               >
                 Finance
               </Button>
               
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
+                className={`bg-black/40 backdrop-blur-sm rounded-lg ${
+                  selectedCategory === "Health" 
+                    ? "text-white border-[#FF5722] border-2" 
+                    : "text-gray-300 border-gray-700"
+                } hover:bg-[#FF5722]/10`}
+                onClick={() => setSelectedCategory("Health")}
               >
                 Health
               </Button>
+            </div>
+          </div>
+          
+          {/* Newsletter Preview Cards - Now using NewsletterItem component from search */}
+          <div className="mb-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-5xl mx-auto px-4">
+              {typedSampleNewsletters.map((newsletter) => (
+                <div key={newsletter.id} className="bg-black/40 backdrop-blur-sm border-2 border-[#FF5722] rounded-xl overflow-hidden transform transition-all hover:scale-105 hover:shadow-glow">
+                  <NewsletterItem
+                    newsletter={newsletter}
+                    onClick={handleNewsletterClick}
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>
