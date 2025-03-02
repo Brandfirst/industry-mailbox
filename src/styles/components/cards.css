@@ -12,4 +12,9 @@
   @apply transition-all duration-300 hover:translate-y-[-5px] hover:shadow-lg rounded-xl;
 }
 
+/* Social proof glow */
+.social-proof-glow {
+  box-shadow: 0 0 10px rgba(255, 87, 34, 0.3);
+}
+
 /* Testimonial card specific styling is now in testimonials.css */

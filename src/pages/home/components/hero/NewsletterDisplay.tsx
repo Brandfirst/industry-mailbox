@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import NewsletterCardStack from "./NewsletterCardStack";
 import TestimonialsSlider from "./TestimonialsSlider";
+import SocialProof from "./SocialProof";
 
 interface NewsletterDisplayProps {
   newsletters: Newsletter[];
@@ -61,6 +62,11 @@ const NewsletterDisplay = ({
           />
         </motion.div>
       </AnimatePresence>
+      
+      {/* Social Proof Section */}
+      <div className="mt-4 mb-6 flex justify-center">
+        <SocialProof />
+      </div>
       
       <div className="mt-8 max-w-4xl mx-auto">
         <div className="relative px-4">
