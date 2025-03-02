@@ -11,7 +11,7 @@ const NewsletterSubscriptionSection = () => {
     <section className="py-20 bg-gradient-to-b from-black to-[#FF5722]/10">
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="bg-gradient-to-br from-[#FF5722]/20 to-[#FF5722]/10 rounded-2xl border border-[#FF5722]/20 p-8 md:p-12 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-white">Få eksklusive markedsføringstips</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 newsletter-header inline-block px-6 py-2 border rounded-lg border-[#FF5722]/30">Få eksklusive markedsføringstips</h2>
           <p className="text-gray-300 mb-8 max-w-xl mx-auto">
             Registrer deg for vårt ukentlige nyhetsbrev og få eksklusive innsikter og tips om nyhetsbrev-markedsføring.
           </p>

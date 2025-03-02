@@ -1,4 +1,5 @@
 
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
@@ -57,7 +58,7 @@ const PricingSection = () => {
           <Badge variant="outline" className="mb-4 text-[#FF8A50] border-[#FF5722]/30 bg-[#FF5722]/5 px-3 py-1">
             Prisplaner
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Finn den riktige planen for deg</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 pricing-header inline-block px-6 py-2 border rounded-lg">Finn den riktige planen for deg</h2>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
             Vi tilbyr fleksible prisplaner for å passe ethvert behov, fra enkeltpersoner til store byråer.
           </p>

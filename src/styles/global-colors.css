@@ -58,3 +58,15 @@
 .shadow-glow {
   box-shadow: 0 0 20px rgba(255, 87, 34, 0.2);
 }
+
+/* Styled section headers with black background, white text, and orange borders */
+.section-header {
+  @apply bg-black text-white border border-[#FF5722]/30 rounded-lg p-4 mb-6 inline-block;
+}
+
+/* Styling for specific section headers */
+.pricing-header,
+.newsletter-header,
+.faq-header {
+  @apply bg-black text-white border-[#FF5722]/30;
+}
