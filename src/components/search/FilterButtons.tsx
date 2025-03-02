@@ -5,8 +5,6 @@ import { Filter } from 'lucide-react';
 
 interface FilterButtonsProps {
   toggleMobileFilters: () => void;
-  toggleDesktopFilters: () => void;
-  isDesktopFiltersOpen: boolean;
 }
 
 const FilterButtons = ({ 

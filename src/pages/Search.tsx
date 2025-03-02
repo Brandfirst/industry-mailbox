@@ -68,6 +68,8 @@ const SearchPage = () => {
         handleCategoryChange={handleCategoryChange}
         categories={categories}
         onSubmit={handleSearch}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
       />
       
       <SearchLayout
@@ -87,8 +89,6 @@ const SearchPage = () => {
       >
         <FilterButtons
           toggleMobileFilters={toggleMobileFilters}
-          toggleDesktopFilters={toggleDesktopFilters}
-          isDesktopFiltersOpen={isDesktopFiltersOpen}
         />
         
         <NewsletterResults
