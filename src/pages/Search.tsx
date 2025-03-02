@@ -5,9 +5,8 @@ import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
 import SearchHeader from '@/components/search/SearchHeader';
 import SearchForm from '@/components/search/SearchForm';
 import NewsletterResults from '@/components/search/NewsletterResults';
-import FilterSidebar from '@/components/search/FilterSidebar';
-import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
+import SearchLayout from '@/components/search/SearchLayout';
+import FilterButtons from '@/components/search/FilterButtons';
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -71,59 +70,38 @@ const SearchPage = () => {
         onSubmit={handleSearch}
       />
       
-      <div className="flex flex-col md:flex-row gap-0 mt-8">
-        <FilterSidebar 
-          categories={categories}
-          selectedCategory={selectedCategory}
-          handleCategoryChange={handleCategoryChange}
-          senderBrands={senderBrands}
-          selectedBrands={selectedBrands}
-          handleBrandChange={handleBrandChange}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          onApplyFilters={applyFilters}
-          isMobileOpen={isMobileFiltersOpen}
+      <SearchLayout
+        categories={categories}
+        selectedCategory={selectedCategory}
+        handleCategoryChange={handleCategoryChange}
+        senderBrands={senderBrands}
+        selectedBrands={selectedBrands}
+        handleBrandChange={handleBrandChange}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        onApplyFilters={applyFilters}
+        isMobileFiltersOpen={isMobileFiltersOpen}
+        toggleMobileFilters={toggleMobileFilters}
+        isDesktopFiltersOpen={isDesktopFiltersOpen}
+        toggleDesktopFilters={toggleDesktopFilters}
+      >
+        <FilterButtons
           toggleMobileFilters={toggleMobileFilters}
-          isDesktopOpen={isDesktopFiltersOpen}
           toggleDesktopFilters={toggleDesktopFilters}
+          isDesktopFiltersOpen={isDesktopFiltersOpen}
         />
         
-        <div className="flex-1">
-          <div className="flex justify-between items-center mb-4">
-            <div className="md:hidden">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={toggleMobileFilters}
-                className="flex items-center gap-2"
-              >
-                <Filter className="h-4 w-4" /> Filtre
-              </Button>
-            </div>
-            <div className="hidden md:block">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={toggleDesktopFilters}
-                className="flex items-center gap-2"
-              >
-                <Filter className="h-4 w-4" /> {isDesktopFiltersOpen ? 'Skjul filtre' : 'Vis filtre'}
-              </Button>
-            </div>
-          </div>
-          
-          <NewsletterResults
-            newsletters={newsletters}
-            loading={loading}
-            hasMore={hasMore}
-            handleLoadMore={handleLoadMore}
-            handleNewsletterClick={handleNewsletterClick}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            setSelectedCategory={setSelectedCategory}
-          />
-        </div>
-      </div>
+        <NewsletterResults
+          newsletters={newsletters}
+          loading={loading}
+          hasMore={hasMore}
+          handleLoadMore={handleLoadMore}
+          handleNewsletterClick={handleNewsletterClick}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          setSelectedCategory={setSelectedCategory}
+        />
+      </SearchLayout>
     </div>
   );
 };
