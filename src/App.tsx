@@ -12,6 +12,7 @@ import Saved from "./pages/Saved";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import NewsletterDetail from "./pages/NewsletterDetail";
+import SenderNewsletters from "./pages/SenderNewsletters";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -26,8 +27,9 @@ const AppLayout = () => {
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<Search />} />
         <Route path="/newsletter/:id" element={<NewsletterDetail />} />
-        {/* New URL format */}
+        {/* New URL formats */}
         <Route path="/:sender/:titleId" element={<NewsletterDetail />} />
+        <Route path="/sender/:senderSlug" element={<SenderNewsletters />} />
         <Route path="/admin" element={
           <ProtectedRoute requireAuth requireAdmin>
             <Admin />

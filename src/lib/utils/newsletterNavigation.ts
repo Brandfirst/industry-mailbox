@@ -31,7 +31,7 @@ export const getSenderPath = (senderName: string): string => {
   if (!senderName) return '/search';
   
   const senderSlug = senderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  return `/search?sender=${encodeURIComponent(senderName)}`;
+  return `/sender/${senderSlug}`;
 };
 
 /**
