@@ -133,19 +133,35 @@ const FeaturedNewsletters = () => {
                   
                   <div className="relative flex-1 w-full overflow-hidden">
                     {newsletter.content ? (
-                      <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-0">
                         <iframe
-                          srcDoc={newsletter.content}
+                          srcDoc={`
+                            <html>
+                              <head>
+                                <style>
+                                  body {
+                                    margin: 0;
+                                    padding: 0;
+                                    overflow: hidden;
+                                    height: 100%;
+                                    width: 100%;
+                                  }
+                                  * {
+                                    max-width: 100%;
+                                    box-sizing: border-box;
+                                  }
+                                </style>
+                                <base target="_parent">
+                              </head>
+                              <body>${newsletter.content}</body>
+                            </html>
+                          `}
                           title={newsletter.title || "Newsletter Content"}
                           className="w-full h-full border-0"
-                          sandbox="allow-same-origin"
+                          sandbox="allow-same-origin allow-scripts allow-popups"
                           style={{ 
-                            transform: "scale(0.65)", 
-                            transformOrigin: "top center", 
-                            height: "800px",
-                            width: "154%", // Compensate for the 0.65 scale
-                            marginLeft: "-27%", // Center the wider iframe
-                            pointerEvents: "none" // Disable iframe interaction to allow click through
+                            height: "100%",
+                            width: "100%",
                           }}
                         />
                       </div>
