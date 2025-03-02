@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -80,10 +79,25 @@ const SearchPage = () => {
     setPage(1); // Reset page when changing category
   };
 
-  // Get formatted date
   const getFormattedDate = (dateString: string) => {
     if (!dateString) return '';
     return format(new Date(dateString), 'MMM d');
+  };
+
+  const handleNewsletterClick = (newsletter: Newsletter) => {
+    if (!newsletter) return;
+    
+    const senderSlug = newsletter.sender 
+      ? newsletter.sender.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : 'unknown';
+    
+    const titleSlug = newsletter.title 
+      ? newsletter.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : 'untitled';
+    
+    const titleId = `${titleSlug}-${newsletter.id}`;
+    
+    navigate(`/${senderSlug}/${titleId}`);
   };
   
   return (
@@ -132,34 +146,33 @@ const SearchPage = () => {
       </div>
       
       {loading && page === 1 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <Card key={i} className="animate-pulse h-[400px]">
+            <Card key={i} className="animate-pulse h-[500px]">
               <div className="h-full bg-muted/20"></div>
             </Card>
           ))}
         </div>
       ) : newsletters.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {newsletters.map((newsletter) => (
               <div 
                 key={newsletter.id} 
-                className="shadow-sm overflow-hidden rounded-xl bg-white border w-full flex flex-col h-full group cursor-pointer"
-                onClick={() => navigate(`/newsletter/${newsletter.id}`)}
+                onClick={() => handleNewsletterClick(newsletter)}
+                className="cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm border flex flex-col h-[500px] hover:shadow-md transition-shadow"
               >
-                {/* Header with sender info */}
-                <div className="flex items-center p-4 border-b">
-                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-3">
+                <div className="flex items-center p-3 border-b">
+                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0">
                     {newsletter.sender && (
-                      <span className="text-lg font-semibold text-gray-700">
+                      <span className="text-sm font-semibold text-gray-700">
                         {newsletter.sender.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{newsletter.sender || 'Unknown Sender'}</span>
-                    <span className="text-gray-500 text-sm">
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="font-medium text-sm truncate text-black">{newsletter.sender || 'Unknown Sender'}</span>
+                    <span className="text-black text-xs">
                       NO • {getFormattedDate(newsletter.published_at || '')}
                     </span>
                   </div>
@@ -176,32 +189,61 @@ const SearchPage = () => {
                   )}
                 </div>
                 
-                {/* Content Preview - HTML content with fallback */}
-                <div className="w-full h-48 border-gray-200 group-hover:opacity-75">
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                    {newsletter.content ? (
-                      <div 
-                        className="w-full h-full object-cover" 
-                        dangerouslySetInnerHTML={{ 
-                          __html: newsletter.content.length > 500 
-                            ? newsletter.content.substring(0, 500) + '...' 
-                            : newsletter.content 
-                        }} 
+                <div className="relative flex-1 w-full overflow-hidden">
+                  {newsletter.content ? (
+                    <div 
+                      className="absolute inset-0"
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      <iframe
+                        srcDoc={`
+                          <html>
+                            <head>
+                              <style>
+                                html, body {
+                                  margin: 0;
+                                  padding: 0;
+                                  overflow: hidden;
+                                  height: 100%;
+                                  width: 100%;
+                                }
+                                body {
+                                  zoom: 0.5;
+                                  -moz-transform: scale(0.5);
+                                  -moz-transform-origin: 0 0;
+                                  -o-transform: scale(0.5);
+                                  -o-transform-origin: 0 0;
+                                  -webkit-transform: scale(0.5);
+                                  -webkit-transform-origin: 0 0;
+                                  transform: scale(0.5);
+                                  transform-origin: 0 0;
+                                }
+                                a {
+                                  pointer-events: none;
+                                }
+                                * {
+                                  max-width: 100%;
+                                  box-sizing: border-box;
+                                }
+                              </style>
+                            </head>
+                            <body>${newsletter.content}</body>
+                          </html>
+                        `}
+                        title={newsletter.title || "Newsletter Content"}
+                        className="w-full h-full border-0"
+                        sandbox="allow-same-origin"
+                        style={{ 
+                          height: "200%",
+                          width: "200%",
+                        }}
                       />
-                    ) : (
-                      <span className="text-muted-foreground text-sm">Ingen innhold tilgjengelig</span>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Title and preview */}
-                <div className="flex flex-col gap-2 grow p-4 min-h-[80px]">
-                  <div className="text-base leading-6 line-clamp-2 font-medium text-gray-900">
-                    {newsletter.title || 'Untitled Newsletter'}
-                  </div>
-                  <div className="text-sm font-light text-gray-500 line-clamp-2">
-                    {newsletter.preview || 'Ingen forhåndsvisning tilgjengelig.'}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                      <p className="text-gray-500">No content available</p>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
