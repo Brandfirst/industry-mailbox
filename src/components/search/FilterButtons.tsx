@@ -5,10 +5,14 @@ import { Filter } from 'lucide-react';
 
 interface FilterButtonsProps {
   toggleMobileFilters: () => void;
+  toggleDesktopFilters?: () => void;
+  isDesktopFiltersOpen?: boolean;
 }
 
 const FilterButtons = ({ 
-  toggleMobileFilters, 
+  toggleMobileFilters,
+  toggleDesktopFilters,
+  isDesktopFiltersOpen 
 }: FilterButtonsProps) => {
   return (
     <div className="flex justify-between items-center mb-4">

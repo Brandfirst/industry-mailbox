@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export * from "./types";
 export * from "./userProfile";
 export * from "./newsletters";
-export * from "./emailAccounts";
+export * from "./emailAccounts/index";
 export * from "./categories";
 export * from "./adminStats";
 
