@@ -7,12 +7,12 @@ const HeroActions = () => {
   return (
     <div className="flex flex-wrap justify-center gap-4 mt-10">
       <Link to="/search">
-        <Button size="lg" className="gradient-button">
+        <Button size="lg" className="gradient-button border border-[#888888]/30">
           Utforsk nyhetsbrev <Search className="ml-2 h-4 w-4" />
         </Button>
       </Link>
       <Link to="/auth?mode=signup">
-        <Button size="lg" variant="outline" className="glass-button">
+        <Button size="lg" variant="outline" className="glass-button text-white border border-[#888888]/30">
           Prøv gratis <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </Link>
