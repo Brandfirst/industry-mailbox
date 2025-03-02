@@ -1,3 +1,4 @@
+
 import { Mail, Users, BarChart, Calendar, TrendingUp, PieChart, LineChart } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { useState } from "react";
@@ -34,12 +35,24 @@ const StatsSection = () => {
   // Define the sections
   const brandLogosSection = (
     <div className="pb-16 mb-10">
-      <h3 className="text-center text-sm md:text-base text-gray-400 mb-10">Loved by 5,000+ Brands & Agencies</h3>
+      <h3 
+        data-editable="true" 
+        data-editable-type="text" 
+        data-editable-id="brandlogos-title" 
+        className="text-center text-sm md:text-base text-gray-400 mb-10"
+      >
+        Loved by 5,000+ Brands & Agencies
+      </h3>
       
       <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
         {logos.map((logo, index) => (
           <div key={index} className="flex items-center justify-center">
-            <span className={`text-white text-sm md:text-base opacity-80 hover:opacity-100 transition-opacity ${logo.className}`}>
+            <span 
+              data-editable="true" 
+              data-editable-type="text" 
+              data-editable-id={`logo-${index}`} 
+              className={`text-white text-sm md:text-base opacity-80 hover:opacity-100 transition-opacity ${logo.className}`}
+            >
               {logo.name}
             </span>
           </div>
@@ -49,23 +62,65 @@ const StatsSection = () => {
   );
 
   const statsGridSection = (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16 border-t border-gray-800 pt-10">
+    <div 
+      data-editable="true" 
+      data-editable-type="margin" 
+      data-editable-id="stats-grid-container" 
+      className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-16 border-t border-gray-800 pt-10"
+    >
       {stats.map((stat, index) => (
-        <div key={index} className="p-6 bg-[#0A0A0A] rounded-xl border border-[#3a6ffb]/20 hover:border-[#3a6ffb]/30 transition-all">
+        <div 
+          key={index} 
+          data-editable="true" 
+          data-editable-type="padding" 
+          data-editable-id={`stat-card-${index}`} 
+          className="p-6 bg-[#0A0A0A] rounded-xl border border-[#3a6ffb]/20 hover:border-[#3a6ffb]/30 transition-all"
+        >
           <div className="flex justify-between items-center mb-2">
-            <span className="text-2xl md:text-3xl font-bold text-white">{stat.value}</span>
+            <span 
+              data-editable="true" 
+              data-editable-type="text" 
+              data-editable-id={`stat-value-${index}`} 
+              className="text-2xl md:text-3xl font-bold text-white"
+            >
+              {stat.value}
+            </span>
             <stat.icon className="h-6 w-6 text-[#3a6ffb]" />
           </div>
-          <span className="text-sm text-gray-300">{stat.label}</span>
+          <span 
+            data-editable="true" 
+            data-editable-type="text" 
+            data-editable-id={`stat-label-${index}`} 
+            className="text-sm text-gray-300"
+          >
+            {stat.label}
+          </span>
         </div>
       ))}
     </div>
   );
 
   const dataVisualizationSection = (
-    <div className="text-center mb-14 border-t border-gray-800 pt-10">
-      <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Dyp innsikt i nyhetsbrev-landskapet</h2>
-      <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+    <div 
+      data-editable="true" 
+      data-editable-type="padding" 
+      data-editable-id="data-viz-section" 
+      className="text-center mb-14 border-t border-gray-800 pt-10"
+    >
+      <h2 
+        data-editable="true" 
+        data-editable-type="text" 
+        data-editable-id="data-viz-heading" 
+        className="text-3xl md:text-4xl font-bold mb-4 text-white"
+      >
+        Dyp innsikt i nyhetsbrev-landskapet
+      </h2>
+      <p 
+        data-editable="true" 
+        data-editable-type="text" 
+        data-editable-id="data-viz-desc" 
+        className="text-lg text-gray-300 max-w-3xl mx-auto"
+      >
         NewsletterHub kombinerer AI-analyse med omfattende data fra ledende norske merkevarer, 
         for å gi deg uovertruffen innsikt i nyhetsbrev-trender, design og effektivitet.
       </p>
@@ -73,11 +128,26 @@ const StatsSection = () => {
   );
 
   const chartsSection = (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+    <div 
+      data-editable="true" 
+      data-editable-type="margin" 
+      data-editable-id="charts-container" 
+      className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16"
+    >
       {/* Trend analysis chart */}
-      <div className="bg-[#0A0A0A] p-6 rounded-xl border border-[#3a6ffb]/20">
+      <div 
+        data-editable="true" 
+        data-editable-type="padding" 
+        data-editable-id="trend-chart-card" 
+        className="bg-[#0A0A0A] p-6 rounded-xl border border-[#3a6ffb]/20"
+      >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-white flex items-center">
+          <h3 
+            data-editable="true" 
+            data-editable-type="text" 
+            data-editable-id="trend-chart-title" 
+            className="text-xl font-bold text-white flex items-center"
+          >
             <TrendingUp className="h-5 w-5 mr-2 text-[#3a6ffb]" /> 
             Nyhetsbrev-effektivitet
           </h3>
@@ -130,9 +200,19 @@ const StatsSection = () => {
       </div>
       
       {/* AI insights table */}
-      <div className="bg-[#0A0A0A] p-6 rounded-xl border border-[#3a6ffb]/20">
+      <div 
+        data-editable="true" 
+        data-editable-type="padding" 
+        data-editable-id="ai-insights-card" 
+        className="bg-[#0A0A0A] p-6 rounded-xl border border-[#3a6ffb]/20"
+      >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-white flex items-center">
+          <h3 
+            data-editable="true" 
+            data-editable-type="text" 
+            data-editable-id="ai-insights-title" 
+            className="text-xl font-bold text-white flex items-center"
+          >
             <PieChart className="h-5 w-5 mr-2 text-[#3a6ffb]" /> 
             AI-drevet analyse
           </h3>
@@ -149,40 +229,96 @@ const StatsSection = () => {
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="font-medium">Produktlansering</TableCell>
+              <TableCell 
+                data-editable="true" 
+                data-editable-type="text" 
+                data-editable-id="table-cell-1" 
+                className="font-medium"
+              >
+                Produktlansering
+              </TableCell>
               <TableCell>
                 <span className="flex items-center text-green-400">
                   <TrendingUp size={16} className="mr-1" /> Økende
                 </span>
               </TableCell>
-              <TableCell className="text-right">89%</TableCell>
+              <TableCell 
+                data-editable="true" 
+                data-editable-type="text" 
+                data-editable-id="table-percent-1" 
+                className="text-right"
+              >
+                89%
+              </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="font-medium">Rabattkampanjer</TableCell>
+              <TableCell 
+                data-editable="true" 
+                data-editable-type="text" 
+                data-editable-id="table-cell-2" 
+                className="font-medium"
+              >
+                Rabattkampanjer
+              </TableCell>
               <TableCell>
                 <span className="flex items-center text-[#3a6ffb]">
                   <LineChart size={16} className="mr-1" /> Stabil
                 </span>
               </TableCell>
-              <TableCell className="text-right">76%</TableCell>
+              <TableCell 
+                data-editable="true" 
+                data-editable-type="text" 
+                data-editable-id="table-percent-2" 
+                className="text-right"
+              >
+                76%
+              </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="font-medium">Informative artikler</TableCell>
+              <TableCell 
+                data-editable="true" 
+                data-editable-type="text" 
+                data-editable-id="table-cell-3" 
+                className="font-medium"
+              >
+                Informative artikler
+              </TableCell>
               <TableCell>
                 <span className="flex items-center text-green-400">
                   <TrendingUp size={16} className="mr-1" /> Økende
                 </span>
               </TableCell>
-              <TableCell className="text-right">83%</TableCell>
+              <TableCell 
+                data-editable="true" 
+                data-editable-type="text" 
+                data-editable-id="table-percent-3" 
+                className="text-right"
+              >
+                83%
+              </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="font-medium">Event-invitasjoner</TableCell>
+              <TableCell 
+                data-editable="true" 
+                data-editable-type="text" 
+                data-editable-id="table-cell-4" 
+                className="font-medium"
+              >
+                Event-invitasjoner
+              </TableCell>
               <TableCell>
                 <span className="flex items-center text-[#3a6ffb]">
                   <LineChart size={16} className="mr-1" /> Stabil
                 </span>
               </TableCell>
-              <TableCell className="text-right">72%</TableCell>
+              <TableCell 
+                data-editable="true" 
+                data-editable-type="text" 
+                data-editable-id="table-percent-4" 
+                className="text-right"
+              >
+                72%
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -207,8 +343,18 @@ const StatsSection = () => {
   };
 
   return (
-    <section className="py-8 bg-black">
-      <div className="container mx-auto px-4 max-w-7xl">
+    <section 
+      data-editable="true" 
+      data-editable-type="padding" 
+      data-editable-id="stats-section-container" 
+      className="py-8 bg-black"
+    >
+      <div 
+        data-editable="true" 
+        data-editable-type="padding" 
+        data-editable-id="stats-container" 
+        className="container mx-auto px-4 max-w-7xl"
+      >
         {/* Render sections based on their order */}
         {sectionsList.map((section) => (
           <div key={section.id}>{section.component}</div>
