@@ -3,34 +3,32 @@
 .testimonial-slider {
   position: relative;
   overflow: hidden;
-  margin: 0 auto;
 }
 
 .testimonial-text {
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.6;
   color: #ffffff;
-  text-align: left;
-  margin-bottom: 0.75rem;
+  position: relative;
 }
 
 .testimonial-author {
   display: flex;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
 .testimonial-avatar {
-  width: 2rem;
-  height: 2rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 9999px;
   overflow: hidden;
-  margin-right: 0.5rem;
+  margin-right: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FF5722;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
   border: 1px solid rgba(255, 87, 34, 0.3);
 }
@@ -42,10 +40,10 @@
 .testimonial-name {
   font-weight: 600;
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
 }
 
 .testimonial-company {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 0.675rem;
+  font-size: 0.75rem;
 }
