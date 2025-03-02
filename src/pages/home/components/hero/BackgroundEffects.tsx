@@ -34,11 +34,13 @@ const BackgroundEffects = memo(() => {
   return (
     <>
       <div className="absolute inset-0 z-0 w-full h-[120%] bg-black">
-        {/* Lightweight Spline implementation */}
-        <SplineCanvas />
+        {/* Lightweight Spline implementation with increased opacity */}
+        <div className="absolute inset-0" style={{ opacity: 0.8 }}>
+          <SplineCanvas />
+        </div>
         
-        {/* Additional gradient overlays to improve visibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40"></div>
+        {/* Lighter gradient overlays to allow more of the Spline to show through */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30"></div>
       </div>
       
       <div className="absolute inset-0 z-0 opacity-10">
