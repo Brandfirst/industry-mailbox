@@ -53,7 +53,7 @@ function App() {
         </div>
       )}
       
-      {/* Main content sections - HeroSection contains the AnnouncementBar now */}
+      {/* Main content sections */}
       <div className="relative">
         <AnnouncementBar />
         <HeroSection />
