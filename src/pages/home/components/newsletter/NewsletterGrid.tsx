@@ -1,11 +1,12 @@
 
 import { Card } from "@/components/ui/card";
-import NewsletterCard from "./NewsletterCard";
+import NewsletterItem from "@/components/search/NewsletterItem";
+import { Newsletter } from "@/lib/supabase/types";
 
 interface NewsletterGridProps {
-  newsletters: any[];
+  newsletters: Newsletter[];
   loading: boolean;
-  onNewsletterClick: (newsletter: any) => void;
+  onNewsletterClick: (newsletter: Newsletter) => void;
 }
 
 const NewsletterGrid = ({ newsletters, loading, onNewsletterClick }: NewsletterGridProps) => {
@@ -33,11 +34,12 @@ const NewsletterGrid = ({ newsletters, loading, onNewsletterClick }: NewsletterG
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
       {newsletters.map((newsletter) => (
-        <NewsletterCard 
-          key={newsletter.id} 
-          newsletter={newsletter} 
-          onClick={onNewsletterClick} 
-        />
+        <div key={newsletter.id} className="h-full">
+          <NewsletterItem 
+            newsletter={newsletter} 
+            onClick={() => onNewsletterClick(newsletter)} 
+          />
+        </div>
       ))}
     </div>
   );
