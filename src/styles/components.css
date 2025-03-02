@@ -192,3 +192,14 @@
   50% { top: 100%; }
   100% { top: 100%; }
 }
+
+/* Testimonial slider styles */
+.testimonial-slider {
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonial-slider .transition-all {
+  display: flex;
+  width: 100%;
+}
