@@ -3,8 +3,6 @@ import React, { memo } from 'react';
 import { Button } from "@/components/ui/button";
 import { NewsletterCategory } from '@/lib/supabase/types';
 import FilterHeader from './FilterHeader';
-import DateRangePicker from './DateRangePicker';
-import CategoryFilter from './CategoryFilter';
 import SenderFilter from './SenderFilter';
 
 interface SenderBrand {
@@ -30,15 +28,9 @@ interface MobileFilterDrawerProps {
 const MobileFilterDrawer = ({
   isOpen,
   toggleMobileFilters,
-  categories,
-  selectedCategory,
-  handleCategoryChange,
   senderBrands,
   selectedBrands,
-  handleBrandChange,
-  dateRange,
-  setDateRange,
-  onApplyFilters
+  handleBrandChange
 }: MobileFilterDrawerProps) => {
   if (!isOpen) return null;
   
@@ -54,29 +46,11 @@ const MobileFilterDrawer = ({
       <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs bg-background p-4 overflow-y-auto animate-slide-in-right">
         <FilterHeader toggleMobileFilters={toggleMobileFilters} />
         
-        <div className="space-y-6">
-          <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} />
-          <CategoryFilter 
-            categories={categories} 
-            selectedCategory={selectedCategory}
-            handleCategoryChange={handleCategoryChange}
-          />
-          <SenderFilter 
-            senderBrands={senderBrands}
-            selectedBrands={selectedBrands}
-            handleBrandChange={handleBrandChange}
-          />
-        </div>
-
-        <Button 
-          className="w-full mt-6" 
-          onClick={() => {
-            onApplyFilters();
-            toggleMobileFilters();
-          }}
-        >
-          Bruk filtre
-        </Button>
+        <SenderFilter 
+          senderBrands={senderBrands}
+          selectedBrands={selectedBrands}
+          handleBrandChange={handleBrandChange}
+        />
       </div>
     </div>
   );
