@@ -1,8 +1,8 @@
 
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Mail } from 'lucide-react';
 import LogoSection from './LogoSection';
 import CategoryFilter from './newsletter/CategoryFilter';
 import { useNewsletters } from './newsletter/useNewsletters';
@@ -16,62 +16,42 @@ const FeaturedNewsletters = () => {
   
   // State for displayed newsletters
   const [visibleNewsletters, setVisibleNewsletters] = useState<Newsletter[]>([]);
-  const [changingIndex, setChangingIndex] = useState<number | null>(null);
-  const [fadeOut, setFadeOut] = useState(false);
-  const intervalRef = useRef<number | null>(null);
-
-  // Setup newsletter rotation
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const [animationStarted, setAnimationStarted] = useState(false);
+  
+  // Setup newsletter display
   useEffect(() => {
-    // Only setup animation when we have newsletters loaded
     if (!loading && newsletters.length > 0) {
-      // Initialize with the current newsletters
-      setVisibleNewsletters(newsletters.slice(0, 4));
-      
-      // Set up rotation interval (every 5 seconds)
-      intervalRef.current = window.setInterval(() => {
-        // Pick a random index to change (0-3)
-        const indexToChange = Math.floor(Math.random() * 4);
-        setChangingIndex(indexToChange);
-        
-        // Start fade out
-        setFadeOut(true);
-        
-        // After fade out completes, swap the newsletter
+      // When animation completes, show the newsletters
+      if (animationComplete) {
+        setVisibleNewsletters(newsletters.slice(0, 4));
+      }
+    }
+  }, [loading, newsletters, animationComplete]);
+
+  // Start animation when section comes into view
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !animationStarted) {
+        setAnimationStarted(true);
+        // After the animation duration, set animation complete
         setTimeout(() => {
-          setVisibleNewsletters(prev => {
-            // Find a newsletter that isn't currently visible
-            const availableNewsletters = newsletters.filter(
-              nl => !prev.some(visible => visible.id === nl.id)
-            );
-            
-            if (availableNewsletters.length === 0) {
-              return prev;
-            }
-            
-            // Pick a random newsletter from available ones
-            const randomIndex = Math.floor(Math.random() * availableNewsletters.length);
-            const newNewsletter = availableNewsletters[randomIndex];
-            
-            // Create a new array with the updated newsletter at the changing index
-            const newNewsletters = [...prev];
-            newNewsletters[indexToChange] = newNewsletter;
-            
-            return newNewsletters;
-          });
-          
-          // Start fade in
-          setFadeOut(false);
-        }, 300); // Fade out duration
-      }, 5000); // Change one newsletter every 5 seconds
+          setAnimationComplete(true);
+        }, 1500); // Animation takes 1.5 seconds
+      }
+    }, { threshold: 0.2 });
+    
+    const section = document.getElementById('featured-newsletters-section');
+    if (section) {
+      observer.observe(section);
     }
     
-    // Cleanup interval on unmount or when newsletters change
     return () => {
-      if (intervalRef.current !== null) {
-        window.clearInterval(intervalRef.current);
+      if (section) {
+        observer.unobserve(section);
       }
     };
-  }, [loading, newsletters]);
+  }, [animationStarted]);
 
   const handleSeeMoreClick = () => {
     navigate('/search');
@@ -83,7 +63,7 @@ const FeaturedNewsletters = () => {
   
   return (
     <>
-      <section className="py-12 bg-black overflow-hidden">
+      <section id="featured-newsletters-section" className="py-12 bg-black overflow-hidden relative">
         <div className="container px-4 md:px-6 mx-auto">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <h2 className="text-2xl font-bold text-white">Utforskede nyhetsbrev</h2>
@@ -95,27 +75,26 @@ const FeaturedNewsletters = () => {
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+          {animationStarted && !animationComplete && (
+            <div className="newsletter-data-stream">
+              <Mail className="data-stream-icon" />
+            </div>
+          )}
+          
+          <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 ${animationComplete ? 'fade-in-grid' : 'opacity-0'}`}>
             {loading ? (
               // Loading state
               Array(4).fill(null).map((_, i) => (
                 <div key={i} className="animate-pulse bg-muted/20 h-24 md:h-[400px] rounded-lg"></div>
               ))
             ) : visibleNewsletters.length > 0 ? (
-              // Display newsletters with subtle transition for the changing one
-              visibleNewsletters.map((newsletter, index) => (
-                <div 
-                  key={newsletter.id} 
-                  className={`transition-opacity duration-300 ${
-                    changingIndex === index && fadeOut ? 'opacity-0' : 'opacity-100'
-                  }`}
-                >
-                  <div className="h-full">
-                    <NewsletterItem
-                      newsletter={newsletter}
-                      onClick={() => handleNewsletterClick(newsletter)}
-                    />
-                  </div>
+              // Display newsletters
+              visibleNewsletters.map((newsletter) => (
+                <div key={newsletter.id} className="h-full">
+                  <NewsletterItem
+                    newsletter={newsletter}
+                    onClick={() => handleNewsletterClick(newsletter)}
+                  />
                 </div>
               ))
             ) : (
