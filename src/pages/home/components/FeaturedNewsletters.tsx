@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from 'lucide-react';
 import LogoSection from './LogoSection';
 import CategoryFilter from './newsletter/CategoryFilter';
-import NewsletterGrid from './newsletter/NewsletterGrid';
 import { useNewsletters } from './newsletter/useNewsletters';
 import { Newsletter } from '@/lib/supabase/types';
 import { navigateToNewsletter } from '@/lib/utils/newsletterNavigation';
+import NewsletterItem from '@/components/search/NewsletterItem';
 
 const FeaturedNewsletters = () => {
   const navigate = useNavigate();
@@ -115,9 +115,9 @@ const FeaturedNewsletters = () => {
                   }}
                 >
                   <div className="h-full">
-                    <NewsletterCard 
-                      newsletter={newsletter} 
-                      onClick={handleNewsletterClick} 
+                    <NewsletterItem
+                      newsletter={newsletter}
+                      onClick={() => handleNewsletterClick(newsletter)}
                     />
                   </div>
                 </div>
@@ -141,52 +141,6 @@ const FeaturedNewsletters = () => {
       
       <LogoSection />
     </>
-  );
-};
-
-// Helper component to maintain the same structure
-const NewsletterCard = ({ newsletter, onClick }: { newsletter: Newsletter, onClick: (newsletter: Newsletter) => void }) => {
-  return (
-    <div 
-      onClick={() => onClick(newsletter)} 
-      className="h-full cursor-pointer rounded-lg overflow-hidden bg-dark-300 border border-dark-500 hover:border-blue/50 transition-all duration-300 glow-effect"
-    >
-      {newsletter.image_url ? (
-        <div className="h-40 bg-dark-400 overflow-hidden">
-          <img 
-            src={newsletter.image_url} 
-            alt={newsletter.title} 
-            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" 
-          />
-        </div>
-      ) : (
-        <div className="h-40 bg-gradient-to-br from-dark-400 to-dark-500 flex items-center justify-center">
-          <div className="text-4xl text-blue-light opacity-30">{newsletter.title.charAt(0)}</div>
-        </div>
-      )}
-      
-      <div className="p-4">
-        <h3 className="font-medium text-white mb-2 line-clamp-2 h-12">{newsletter.title}</h3>
-        
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-400 mb-1">{newsletter.sender_name || newsletter.sender_email}</p>
-            
-            {newsletter.categories && (
-              <span 
-                className="inline-block px-2 py-1 text-xs rounded-full" 
-                style={{ 
-                  backgroundColor: newsletter.categories.color || '#3a6ffb',
-                  color: 'white'
-                }}
-              >
-                {newsletter.categories.name}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
   );
 };
 
