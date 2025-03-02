@@ -1,4 +1,3 @@
-
 import { Newsletter } from "@/lib/supabase/types";
 import NewsletterItem from "@/components/search/NewsletterItem";
 import { motion, AnimatePresence } from "framer-motion";
@@ -154,32 +153,22 @@ const NewsletterDisplay = ({
             </div>
           </div>
           
-          {/* Featured in logos */}
+          {/* Updated branded logos section */}
           <div className="mt-8 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-500 text-center mb-4">Som sett i</p>
-            <div className="flex justify-center items-center space-x-8 flex-wrap">
-              <div className="opacity-70 hover:opacity-100 transition-opacity">
-                <svg width="120" viewBox="0 0 120 30" className="h-6">
-                  <text x="0" y="20" fontSize="16" fontWeight="bold" fill="#333">TheVerge</text>
-                </svg>
-              </div>
-              <div className="opacity-70 hover:opacity-100 transition-opacity">
-                <svg width="120" viewBox="0 0 120 30" className="h-6">
-                  <circle cx="15" cy="15" r="15" fill="#333" />
-                  <text x="35" y="20" fontSize="14" fontWeight="bold" fill="#333">The Information</text>
-                </svg>
-              </div>
-              <div className="opacity-70 hover:opacity-100 transition-opacity">
-                <svg width="60" viewBox="0 0 60 30" className="h-6">
-                  <text x="0" y="20" fontSize="16" fontWeight="bold" fill="#333">TechCrunch</text>
-                </svg>
-              </div>
-              <div className="opacity-70 hover:opacity-100 transition-opacity">
-                <svg width="60" viewBox="0 0 60 30" className="h-6">
-                  <circle cx="15" cy="15" r="10" fill="#333" />
-                  <text x="30" y="20" fontSize="12" fontWeight="bold" fill="#333">Product Hunt</text>
-                </svg>
-              </div>
+            <p className="text-sm text-white text-center mb-4 bg-transparent">Loved by 5,000+ Brands & Agencies</p>
+            <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold tracking-wide">TRUE CLASSIC</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-light">AGI</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-medium">VAYNERMEDIA</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold">THE RIDGE</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-light italic">PARAMOUNT</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-medium tracking-wide">TUBESCIENCE</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold tracking-widest">JONES ROAD</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-light italic">JAMBYS</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-medium">KETTLE & FIRE</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold">BACARDI</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-medium">MAGIC SPOON</span>
+              <span className="text-white opacity-80 hover:opacity-100 transition-opacity font-bold tracking-wider">HEXCLAD</span>
             </div>
           </div>
         </div>
