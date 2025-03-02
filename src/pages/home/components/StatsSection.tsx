@@ -1,4 +1,3 @@
-
 import { Mail, Users, BarChart, Calendar, TrendingUp, PieChart, LineChart } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { useState } from "react";
@@ -34,8 +33,8 @@ const StatsSection = () => {
 
   // Define the sections
   const brandLogosSection = (
-    <div className="pb-16 mb-5 pt-4">
-      <h3 className="text-center text-sm md:text-base text-gray-400 mb-8">Loved by 5,000+ Brands & Agencies</h3>
+    <div className="pb-12 mb-4 pt-0">
+      <h3 className="text-center text-sm md:text-base text-gray-400 mb-6">Loved by 5,000+ Brands & Agencies</h3>
       
       <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
         {logos.map((logo, index) => (
@@ -208,7 +207,7 @@ const StatsSection = () => {
   };
 
   return (
-    <section className="py-6 bg-black">
+    <section className="py-4 bg-black">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Render sections based on their order */}
         {sectionsList.map((section) => (
