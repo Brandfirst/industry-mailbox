@@ -133,35 +133,51 @@ const FeaturedNewsletters = () => {
                   
                   <div className="relative flex-1 w-full overflow-hidden">
                     {newsletter.content ? (
-                      <div className="absolute inset-0">
+                      <div 
+                        className="absolute inset-0"
+                        style={{ pointerEvents: 'none' }}
+                      >
                         <iframe
                           srcDoc={`
                             <html>
                               <head>
                                 <style>
-                                  body {
+                                  html, body {
                                     margin: 0;
                                     padding: 0;
                                     overflow: hidden;
                                     height: 100%;
                                     width: 100%;
                                   }
+                                  body {
+                                    zoom: 0.5;
+                                    -moz-transform: scale(0.5);
+                                    -moz-transform-origin: 0 0;
+                                    -o-transform: scale(0.5);
+                                    -o-transform-origin: 0 0;
+                                    -webkit-transform: scale(0.5);
+                                    -webkit-transform-origin: 0 0;
+                                    transform: scale(0.5);
+                                    transform-origin: 0 0;
+                                  }
+                                  a {
+                                    pointer-events: none;
+                                  }
                                   * {
                                     max-width: 100%;
                                     box-sizing: border-box;
                                   }
                                 </style>
-                                <base target="_parent">
                               </head>
                               <body>${newsletter.content}</body>
                             </html>
                           `}
                           title={newsletter.title || "Newsletter Content"}
                           className="w-full h-full border-0"
-                          sandbox="allow-same-origin allow-scripts allow-popups"
+                          sandbox="allow-same-origin"
                           style={{ 
-                            height: "100%",
-                            width: "100%",
+                            height: "200%",
+                            width: "200%",
                           }}
                         />
                       </div>
@@ -170,6 +186,12 @@ const FeaturedNewsletters = () => {
                         <p className="text-gray-500">No content available</p>
                       </div>
                     )}
+                    {/* Add an overlay div to ensure the entire area is clickable */}
+                    <div 
+                      className="absolute inset-0 z-10 cursor-pointer" 
+                      onClick={() => handleNewsletterClick(newsletter.id)}
+                      aria-label={`View ${newsletter.title || 'newsletter'} details`}
+                    />
                   </div>
                 </div>
               ))}
