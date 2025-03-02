@@ -1,89 +1,73 @@
+import { useEffect, useState } from "react";
+import AnnouncementBar, { HomeHeader } from "./components/AnnouncementBar";
+import HeroSection from "./components/HeroSection";
+import StatsSection from "./components/StatsSection";
+import FeaturesSection from "./components/FeaturesSection";
+import TestimonialsSection from "./components/TestimonialsSection";
+import PricingSection from "./components/PricingSection";
+import NewsletterSubscriptionSection from "./components/NewsletterSubscriptionSection";
+import FAQSection from "./components/FAQSection";
+import CTASection from "./components/CTASection";
+import FooterSection from "./components/FooterSection";
+import { DebugEdgeFunction } from "@/components/DebugEdgeFunction";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Bug } from "lucide-react";
+import { EditModeProvider } from "./contexts/EditModeContext";
+import EditModeToggle from "./components/EditModeToggle";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import Search from "./pages/Search";
-import Admin from "./pages/Admin";
-import Auth from "./pages/Auth";
-import Saved from "./pages/Saved";
-import Account from "./pages/Account";
-import NotFound from "./pages/NotFound";
-import NewsletterDetail from "./pages/NewsletterDetail";
-import SenderNewsletters from "./pages/SenderNewsletters";
-import { AuthProvider } from "./contexts/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Navbar from "./components/Navbar";
+function App() {
+  const [isDebugMode, setIsDebugMode] = useState(false);
 
-const queryClient = new QueryClient();
-
-const AppLayout = () => {
+  useEffect(() => {
+    document.title = "NewsletterHub - Norges største nyhetsbrev arkiv";
+    
+    // Check if debug mode is enabled via URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    setIsDebugMode(urlParams.get('debug') === 'true');
+  }, []);
+  
   return (
-    <>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/newsletter/:id" element={<NewsletterDetail />} />
-        {/* New URL formats */}
-        <Route path="/:sender/:titleId" element={<NewsletterDetail />} />
-        <Route path="/sender/:senderSlug" element={<SenderNewsletters />} />
-        <Route path="/admin" element={
-          <ProtectedRoute requireAuth requireAdmin>
-            <Admin />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/:tab" element={
-          <ProtectedRoute requireAuth requireAdmin>
-            <Admin />
-          </ProtectedRoute>
-        } />
-        <Route 
-          path="/auth" 
-          element={
-            <ProtectedRoute requireAuth={false}>
-              <Auth />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/saved" 
-          element={
-            <ProtectedRoute>
-              <Saved />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/account" 
-          element={
-            <ProtectedRoute>
-              <Account />
-            </ProtectedRoute>
-          } 
-        />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </>
+    <EditModeProvider>
+      {/* Only render HomeHeader (null component) */}
+      <HomeHeader />
+      
+      {/* Debug dialog (only visible in debug mode or with keyboard shortcut) */}
+      {isDebugMode && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="bg-black/50 border-[#FF5722]/20 hover:bg-black/70">
+                <Bug className="h-4 w-4 mr-2" />
+                Debug Tools
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Developer Debug Tools</DialogTitle>
+              </DialogHeader>
+              <DebugEdgeFunction />
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+      
+      {/* Main content sections - HeroSection contains the AnnouncementBar now */}
+      <div className="relative">
+        <AnnouncementBar />
+        <HeroSection />
+      </div>
+      <StatsSection />
+      <FeaturesSection />
+      <TestimonialsSection />
+      <PricingSection />
+      <NewsletterSubscriptionSection />
+      <FAQSection />
+      <CTASection />
+      <FooterSection />
+      <EditModeToggle />
+    </EditModeProvider>
   );
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <div className="min-h-screen bg-background">
-            <AppLayout />
-          </div>
-        </TooltipProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+}
 
 export default App;
