@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,16 +8,16 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-type SenderAnalyticsProps = {
-  senders: NewsletterSenderStats[];
-  loading: boolean;
-  frequencyData: SenderFrequencyData[] | null;
-};
-
 export type SenderFrequencyData = {
   date: string;
   sender: string;
   count: number;
+};
+
+type SenderAnalyticsProps = {
+  senders: NewsletterSenderStats[];
+  loading: boolean;
+  frequencyData: SenderFrequencyData[] | null;
 };
 
 const SenderAnalytics = ({ senders, loading, frequencyData }: SenderAnalyticsProps) => {

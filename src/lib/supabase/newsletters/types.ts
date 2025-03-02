@@ -42,7 +42,7 @@ export interface NewsletterSenderStats {
  * Newsletter sender frequency data for analytics
  */
 export interface SenderFrequencyAnalytics {
-  sender_email: string;
+  sender: string;  // Changed from sender_email to sender for consistency
   date: string;
   count: number;
 }

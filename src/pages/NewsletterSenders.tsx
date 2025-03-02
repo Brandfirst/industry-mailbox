@@ -12,10 +12,24 @@ import { supabase } from "@/integrations/supabase/client";
 import SenderList from "@/components/newsletter-senders/SenderList";
 import SenderAnalytics from "@/components/newsletter-senders/components/SenderAnalytics";
 import { ArrowUpDown, RefreshCw, Search } from "lucide-react";
-import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
+import { NewsletterSenderStats, SenderFrequencyAnalytics } from "@/lib/supabase/newsletters/types";
 import { toast } from "sonner";
 import { updateSenderCategory, updateSenderBrand } from "@/lib/supabase/newsletters";
-import { SenderFrequencyData } from "@/components/newsletter-senders/components/SenderAnalytics";
+
+// Define a type mapping function to convert between the API and component types
+function mapToSenderFrequencyData(data: SenderFrequencyAnalytics[]): SenderFrequencyData[] {
+  return data.map(item => ({
+    date: item.date,
+    sender: item.sender,
+    count: item.count
+  }));
+}
+
+export type SenderFrequencyData = {
+  date: string;
+  sender: string;
+  count: number;
+};
 
 export default function NewsletterSenders() {
   const { user } = useAuth();
@@ -51,7 +65,7 @@ export default function NewsletterSenders() {
         setSenders(senderStats);
         
         const frequencyData = await getSenderFrequencyData(user.id, 30);
-        setFrequencyData(frequencyData);
+        setFrequencyData(mapToSenderFrequencyData(frequencyData));
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to load sender data");
@@ -75,7 +89,7 @@ export default function NewsletterSenders() {
       setSenders(refreshedStats);
       
       const freshFrequencyData = await getSenderFrequencyData(user.id, 30);
-      setFrequencyData(freshFrequencyData);
+      setFrequencyData(mapToSenderFrequencyData(freshFrequencyData));
       
       toast.success("Sender statistics refreshed");
     } catch (error) {

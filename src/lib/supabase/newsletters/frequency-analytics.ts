@@ -118,7 +118,7 @@ export async function getTopSendersFrequency(userId: string, limit: number = 5, 
         count: sender.totalCount,
         date: days.toString(), // Using the time period as date for this aggregated data
         frequency: sender.totalCount / sender.dates.size // Calculate average newsletters per day
-      }));
+      })) as SenderFrequencyAnalytics[];
     
     return topSenders;
   } catch (error) {
