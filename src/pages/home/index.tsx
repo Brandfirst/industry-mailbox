@@ -4,7 +4,6 @@ import AnnouncementBar, { HomeHeader } from "./components/AnnouncementBar";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
 import FeaturesSection from "./components/FeaturesSection";
-import TestimonialsSection from "./components/TestimonialsSection";
 import PricingSection from "./components/PricingSection";
 import NewsletterSubscriptionSection from "./components/NewsletterSubscriptionSection";
 import FAQSection from "./components/FAQSection";
@@ -58,7 +57,6 @@ const HomePage = () => {
       </div>
       <StatsSection />
       <FeaturesSection />
-      <TestimonialsSection />
       <PricingSection />
       <NewsletterSubscriptionSection />
       <FAQSection />
