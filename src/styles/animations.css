@@ -1,4 +1,3 @@
-
 /* Gradient background animations */
 .mesh-gradient {
   background: linear-gradient(140deg, #000000, #091134, #0e1550);
@@ -205,4 +204,32 @@
   background: rgba(58, 111, 251, 0.5);
   transform-origin: center;
   animation: underline-slide 0.5s ease-out forwards;
+}
+
+/* Announcement Button Glow Effect */
+.announcement-glow-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.announcement-glow-effect {
+  position: absolute;
+  inset: -2px;
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 60deg,
+    rgba(255, 87, 34, 0.8) 120deg,
+    rgba(255, 87, 34, 0.6) 180deg,
+    rgba(255, 87, 34, 0.4) 240deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  border-radius: 9999px;
+  animation: glow-rotate 4s linear infinite, glow-opacity 2s ease-in-out infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 15px rgba(255, 87, 34, 0.15);
 }

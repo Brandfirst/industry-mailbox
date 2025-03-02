@@ -10,16 +10,17 @@ const AnnouncementBar = () => {
   return (
     <div className="absolute top-20 left-0 right-0 z-20 flex justify-center">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger className="inline-flex items-center gap-2 px-4 py-1.5 bg-black rounded-full border border-[#FF5722]/30 shadow-md hover:shadow-[#FF5722]/20 transition-all">
+        <PopoverTrigger className="inline-flex items-center gap-2 px-4 py-1.5 bg-black rounded-full border border-[#FF5722]/30 shadow-md hover:shadow-[#FF5722]/20 transition-all relative announcement-glow-container overflow-hidden">
+          <div className="absolute inset-0 announcement-glow-effect"></div>
           <span className="relative flex h-2 w-2 mr-1">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF5722] opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF5722]"></span>
           </span>
-          <span className="text-sm font-medium text-white">Nytt! Newsletter 2.0 er nå tilgjengelig!</span>
+          <span className="text-sm font-medium text-white relative z-10">Nytt! Newsletter 2.0 er nå tilgjengelig!</span>
           {isOpen ? (
-            <ChevronDown className="h-4 w-4 text-[#FF5722] ml-1" />
+            <ChevronDown className="h-4 w-4 text-[#FF5722] ml-1 relative z-10" />
           ) : (
-            <ChevronRight className="h-4 w-4 text-[#FF5722] ml-1" />
+            <ChevronRight className="h-4 w-4 text-[#FF5722] ml-1 relative z-10" />
           )}
         </PopoverTrigger>
         
