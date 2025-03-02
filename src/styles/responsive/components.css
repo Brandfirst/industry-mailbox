@@ -1,0 +1,43 @@
+
+/* Component-specific responsive styles */
+@media (min-width: 1024px) {
+  .carousel-container {
+    max-width: 90%;
+    padding: 1.5rem 0;
+    margin: 2rem auto;
+  }
+  
+  .testimonial-card {
+    max-width: 90%;
+    margin: 0 auto;
+  }
+}
+
+/* XL Desktop optimizations */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+  
+  h1 {
+    font-size: 5rem;
+  }
+  
+  .testimonial-card {
+    padding: 2rem;
+  }
+  
+  .stat-card {
+    padding: 2rem;
+  }
+  
+  .stat-value {
+    font-size: 2.25rem;
+  }
+}

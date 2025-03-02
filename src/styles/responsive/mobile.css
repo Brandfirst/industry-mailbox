@@ -1,0 +1,46 @@
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  .stat-value {
+    font-size: 1.25rem;
+  }
+  
+  .testimonial-card {
+    padding: 0.5rem;
+  }
+  
+  .testimonial-text {
+    font-size: 0.75rem;
+  }
+  
+  .app-preview {
+    transform: scale(0.9);
+    margin-top: -1rem;
+    margin-bottom: -1rem;
+  }
+  
+  .newsletter-card-mobile {
+    height: auto;
+    max-height: 100px;
+  }
+  
+  /* Card stack for mobile */
+  .card-stack {
+    width: 90%;
+    max-width: 350px;
+    margin: 0 auto;
+  }
+}
