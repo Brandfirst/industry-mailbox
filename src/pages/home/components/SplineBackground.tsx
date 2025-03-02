@@ -1,6 +1,7 @@
 
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import SplineCanvas from './SplineCanvas';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type SplineBackgroundProps = {
   position?: 'top' | 'center' | 'bottom';
@@ -18,6 +19,8 @@ const SplineBackground = memo(({
   zIndex = -1,
   className = '',
 }: SplineBackgroundProps) => {
+  const isMobile = useIsMobile();
+  
   // Calculate position style based on the position prop
   const getPositionStyle = () => {
     switch (position) {
@@ -36,6 +39,8 @@ const SplineBackground = memo(({
       style={{ 
         opacity, 
         zIndex,
+        // Applying a transform to move the Spline up on mobile
+        transform: isMobile ? 'translateY(-15%)' : 'none'
       }}
     >
       {/* Lightweight gradient background as fallback */}

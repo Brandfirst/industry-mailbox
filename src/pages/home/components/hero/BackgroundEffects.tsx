@@ -1,10 +1,12 @@
 
 import { useState, useEffect, useRef, memo } from 'react';
 import SplineCanvas from '../SplineCanvas';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const BackgroundEffects = memo(() => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const mouseMoveThrottleRef = useRef(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -33,7 +35,9 @@ const BackgroundEffects = memo(() => {
 
   return (
     <>
-      <div className="absolute inset-0 z-0 w-full h-[120%] bg-black">
+      <div className="absolute inset-0 z-0 w-full h-[120%] bg-black" style={{
+        transform: isMobile ? 'translateY(-20%)' : 'none'
+      }}>
         {/* Spline implementation with full visibility */}
         <div className="absolute inset-0">
           <SplineCanvas />
