@@ -7,7 +7,7 @@ interface EditableTextProps {
   text: string;
   onSave: (newText: string) => void;
   className?: string;
-  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'p' | 'span';
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'p' | 'span' | 'div';
 }
 
 const EditableText: React.FC<EditableTextProps> = ({ 
@@ -71,7 +71,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   return (
     <Component 
       onClick={handleClick} 
-      className={`${className} ${isEditMode ? 'cursor-pointer relative group' : ''}`}
+      className={`${className} ${isEditMode ? 'editable-highlight cursor-pointer relative group' : ''}`}
     >
       {text}
       {isEditMode && (

@@ -1,3 +1,4 @@
+
 .glass-card {
   @apply bg-card/80 backdrop-blur-sm border border-white/10 shadow-glass;
 }
@@ -92,4 +93,59 @@
 
 .editable-area:hover .editable-area-controls {
   opacity: 1;
+}
+
+/* Additional styles for the editable components */
+.edit-mode-active .editable-highlight {
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.edit-mode-active .editable-highlight:hover {
+  background-color: rgba(255, 87, 34, 0.05);
+}
+
+.edit-mode-container {
+  position: relative;
+}
+
+/* Transition effects for editable elements */
+.editable-highlight {
+  transition: all 0.2s ease;
+}
+
+.editable-highlight::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: rgba(255, 87, 34, 0);
+  transition: background 0.2s ease;
+}
+
+.editable-highlight:hover::after {
+  background: rgba(255, 87, 34, 0.5);
+}
+
+/* Styling for the text editor while editing */
+textarea.editable-text-editor {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #FF5722;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  width: 100%;
+  min-height: 2.5em;
+  resize: vertical;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  transition: all 0.2s ease;
+}
+
+textarea.editable-text-editor:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.3);
 }
