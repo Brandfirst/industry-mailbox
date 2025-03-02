@@ -15,6 +15,18 @@
   animation: slide-in-right 0.3s ease-out forwards;
 }
 
+.animate-data-stream {
+  animation: data-stream 2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.animate-number-count {
+  animation: number-count 0.5s ease-out forwards;
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
 .testimonial-card {
   @apply backdrop-blur-sm bg-white/5 border border-white/10 rounded-xl p-6;
 }
