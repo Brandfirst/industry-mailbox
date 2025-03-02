@@ -36,7 +36,7 @@ const HomePage = () => {
         <div className="fixed bottom-4 right-4 z-50">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="bg-black/50 border-white/20 hover:bg-black/70">
+              <Button variant="outline" size="sm" className="bg-black/50 border-[#FF5722]/20 hover:bg-black/70">
                 <Bug className="h-4 w-4 mr-2" />
                 Debug Tools
               </Button>
@@ -58,7 +58,6 @@ const HomePage = () => {
       </div>
       <StatsSection />
       <FeaturesSection />
-      {/* FeaturedNewsletters section removed as requested */}
       <TestimonialsSection />
       <PricingSection />
       <NewsletterSubscriptionSection />

@@ -7,7 +7,7 @@ const FAQSection = () => {
     <section className="py-20 bg-gradient-to-b from-[#FF5722]/20 to-black">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ofte stilte spørsmål</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Ofte stilte spørsmål</h2>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
             Få svar på de vanligste spørsmålene om NewsletterHub.
           </p>
@@ -16,7 +16,7 @@ const FAQSection = () => {
         <div className="space-y-4">
           <Collapsible className="bg-[#FF5722]/10 rounded-lg border border-[#FF5722]/10">
             <CollapsibleTrigger className="w-full px-6 py-4 flex justify-between items-center">
-              <span className="text-lg font-medium">Hva er NewsletterHub?</span>
+              <span className="text-lg font-medium text-white">Hva er NewsletterHub?</span>
               <ChevronDown className="h-5 w-5 text-[#FF8A50] transition-transform ui-open:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-6 pb-4 text-gray-300">
@@ -26,7 +26,7 @@ const FAQSection = () => {
           
           <Collapsible className="bg-[#FF5722]/10 rounded-lg border border-[#FF5722]/10">
             <CollapsibleTrigger className="w-full px-6 py-4 flex justify-between items-center">
-              <span className="text-lg font-medium">Hvordan fungerer tjenesten?</span>
+              <span className="text-lg font-medium text-white">Hvordan fungerer tjenesten?</span>
               <ChevronDown className="h-5 w-5 text-[#FF8A50] transition-transform ui-open:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-6 pb-4 text-gray-300">
@@ -36,7 +36,7 @@ const FAQSection = () => {
           
           <Collapsible className="bg-[#FF5722]/10 rounded-lg border border-[#FF5722]/10">
             <CollapsibleTrigger className="w-full px-6 py-4 flex justify-between items-center">
-              <span className="text-lg font-medium">Hvor ofte oppdateres databasen?</span>
+              <span className="text-lg font-medium text-white">Hvor ofte oppdateres databasen?</span>
               <ChevronDown className="h-5 w-5 text-[#FF8A50] transition-transform ui-open:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-6 pb-4 text-gray-300">
@@ -46,7 +46,7 @@ const FAQSection = () => {
           
           <Collapsible className="bg-[#FF5722]/10 rounded-lg border border-[#FF5722]/10">
             <CollapsibleTrigger className="w-full px-6 py-4 flex justify-between items-center">
-              <span className="text-lg font-medium">Kan jeg prøve tjenesten før jeg kjøper?</span>
+              <span className="text-lg font-medium text-white">Kan jeg prøve tjenesten før jeg kjøper?</span>
               <ChevronDown className="h-5 w-5 text-[#FF8A50] transition-transform ui-open:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent className="px-6 pb-4 text-gray-300">

@@ -7,7 +7,7 @@ const CTASection = () => {
     <section className="py-20 bg-gradient-to-b from-black to-[#FF5722]/10">
       <div className="container mx-auto px-4 text-center max-w-4xl">
         <div className="bg-gradient-to-br from-[#FF5722]/30 to-[#FF5722]/10 rounded-2xl border border-[#FF5722]/20 p-8 md:p-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Klar til å forbedre dine nyhetsbrev?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Klar til å forbedre dine nyhetsbrev?</h2>
           <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
             Start 14-dagers gratis prøveperiode i dag og få tilgang til markedets beste nyhetsbrev-database.
           </p>

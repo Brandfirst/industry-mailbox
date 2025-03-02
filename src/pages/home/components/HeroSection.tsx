@@ -61,21 +61,21 @@ const HeroSection = () => {
         <div className="pt-10"></div>
         
         <div className="animate-slide-down max-w-5xl mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-ebgaramond tracking-tight mb-6 text-white">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-ebgaramond tracking-tight mb-6">
             <span className="block text-white mb-2">Norges største</span>
-            <span className="block">database</span>
-            <span className="block mt-2">
-              av <span className="text-white">nyhetsbrev</span>
+            <span className="block text-white">database</span>
+            <span className="block mt-2 text-white">
+              av <span className="text-[#FF5722]">nyhetsbrev</span>
             </span>
           </h1>
           
           <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
             Utforsk mer enn 
-            <span className="text-primary font-bold mx-2">
+            <span className="text-[#FF5722] font-bold mx-2">
               <CountUpAnimation endValue={70350} />
             </span>
             nyhetsbrev fra 
-            <span className="text-primary font-bold mx-2">
+            <span className="text-[#FF5722] font-bold mx-2">
               <CountUpAnimation endValue={1750} />
             </span>
             varemerker. 
@@ -103,35 +103,35 @@ const HeroSection = () => {
             <div className="flex flex-wrap justify-center gap-3 my-8">
               <Button 
                 variant="outline" 
-                className="bg-black text-white border-primary hover:bg-black/90 rounded-lg"
+                className="bg-black/40 text-white border-[#FF5722]/30 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
               >
                 Alle kategorier
               </Button>
               
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-primary/10 backdrop-blur-sm rounded-lg"
+                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
               >
                 Business
               </Button>
               
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-primary/10 backdrop-blur-sm rounded-lg"
+                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
               >
                 Education
               </Button>
               
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-primary/10 backdrop-blur-sm rounded-lg"
+                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
               >
                 Finance
               </Button>
               
               <Button 
                 variant="outline" 
-                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-primary/10 backdrop-blur-sm rounded-lg"
+                className="bg-black/40 text-gray-300 border-gray-700 hover:bg-[#FF5722]/10 backdrop-blur-sm rounded-lg"
               >
                 Health
               </Button>
@@ -143,13 +143,13 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-0 opacity-10">
         <div className="absolute inset-0 grid grid-cols-12 grid-rows-6">
           {Array(72).fill(null).map((_, i) => (
-            <div key={i} className="border-t border-l border-primary/20"></div>
+            <div key={i} className="border-t border-l border-[#FF5722]/20"></div>
           ))}
         </div>
       </div>
       
-      <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-1/2 h-40 bg-primary/10 rounded-full blur-3xl"></div>
-      <div className="absolute -top-20 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+      <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 w-1/2 h-40 bg-[#FF5722]/10 rounded-full blur-3xl"></div>
+      <div className="absolute -top-20 right-0 w-40 h-40 bg-[#FF5722]/5 rounded-full blur-3xl"></div>
     </section>
   );
 };
