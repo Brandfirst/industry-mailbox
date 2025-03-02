@@ -43,4 +43,9 @@
     max-width: 350px;
     margin: 0 auto;
   }
+  
+  /* Adjustment for the hero section to add more top space */
+  .mobile-announcement {
+    top: 8px !important;
+  }
 }

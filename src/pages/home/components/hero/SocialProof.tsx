@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 
 const SocialProof = () => {
@@ -33,8 +32,8 @@ const SocialProof = () => {
         ))}
       </div>
       
-      {/* Text */}
-      <p className="text-sm font-medium text-white">
+      {/* Text - added whitespace-nowrap to keep on one line */}
+      <p className="text-sm font-medium text-white whitespace-nowrap">
         500+ markedsførere bruker verktøyet akkurat nå
       </p>
     </div>

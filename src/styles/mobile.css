@@ -5,4 +5,16 @@
     height: auto;
     max-height: 100px;
   }
+  
+  .mobile-announcement {
+    top: 10px !important;
+  }
 }
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .mobile-announcement {
+    top: 8px !important;
+  }
+}
+

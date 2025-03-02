@@ -8,7 +8,7 @@ const AnnouncementBar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="absolute top-20 left-0 right-0 z-20 flex justify-center">
+    <div className="absolute top-20 left-0 right-0 z-20 flex justify-center sm:top-20 md:top-20 xs:top-12 mobile-announcement">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger className="inline-flex items-center gap-2 px-4 py-1.5 bg-black rounded-full border border-[#FF5722]/30 shadow-md hover:shadow-[#FF5722]/20 transition-all relative announcement-glow-container overflow-hidden">
           <div className="absolute inset-0 announcement-glow-effect"></div>
@@ -44,7 +44,9 @@ const AnnouncementBar = () => {
   );
 };
 
-// Export a null component to prevent rendering a second navbar
-export const HomeHeader = () => null;
-
 export default AnnouncementBar;
+
+// Export a component for the HomeHeader, not a null function
+export const HomeHeader = () => {
+  return null;
+};
