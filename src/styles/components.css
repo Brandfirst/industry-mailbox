@@ -1,0 +1,149 @@
+
+/* Smooth transitions for all interactive elements */
+.feature-card, 
+.testimonial-card,
+.btn-transition {
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover,
+.testimonial-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.3);
+}
+
+/* CSS class for smaller "byråer" text */
+.smaller-text {
+  font-size: 0.75em;
+}
+
+/* Stats section styling - Enhanced for desktop */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.stat-card {
+  background-color: rgba(17, 24, 39, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.5);
+  background-color: rgba(30, 41, 59, 0.7);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #60a5fa;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+/* Custom styles for the new design */
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Collapsible animation */
+[data-state='open'] > [data-collapsible-trigger-icon] {
+  transform: rotate(180deg);
+}
+
+/* Rotating arrows for FAQ */
+.ui-open\:rotate-180[data-state='open'] {
+  transform: rotate(180deg);
+}
+
+/* Shadow for app preview */
+.shadow-glass {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Custom styles for buttons */
+.btn-primary {
+  @apply bg-[#3a6ffb] hover:bg-[#3a6ffb]/90 text-white font-medium py-2.5 px-5 rounded-lg transition-all;
+}
+
+.btn-outline {
+  @apply border border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium py-2.5 px-5 rounded-lg transition-all;
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(58,111,251,0.2);
+}
+
+.glow-effect {
+  box-shadow: 0 0 20px rgba(59,130,246,0.15);
+  @apply transition-all duration-300;
+}
+
+.glow-effect:hover {
+  box-shadow: 0 0 30px rgba(59,130,246,0.3);
+}
+
+.gradient-button {
+  @apply relative overflow-hidden bg-gradient-to-r from-[#3a6ffb] to-[#2a58dd] text-white font-medium py-3 px-6 rounded-lg transition-all;
+}
+
+.gradient-button:hover {
+  @apply from-[#2a58dd] to-[#1a48cd];
+}
+
+.glass-card {
+  @apply bg-card/80 backdrop-blur-sm border border-white/10 shadow-glass;
+}
+
+.glass-effect {
+  @apply bg-card/70 backdrop-blur-sm border border-white/10;
+}
+
+.btn-hover-effect {
+  @apply relative overflow-hidden transition-all duration-300;
+}
+
+.btn-hover-effect::after {
+  @apply content-[''] absolute inset-0 scale-x-0 origin-left transition-transform duration-300 ease-out bg-white/10;
+}
+
+.btn-hover-effect:hover::after {
+  @apply scale-x-100;
+}
+
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600;
+}
+
+.hero-gradient {
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.feature-card {
+  @apply transition-all duration-300 hover:translate-y-[-5px] hover:shadow-lg;
+}
+
+.mesh-gradient {
+  background: radial-gradient(circle at 50% 50%, rgba(59,130,246,0.1), transparent 50%),
+              radial-gradient(circle at 30% 80%, rgba(59,130,246,0.05), transparent 40%);
+}
+
+/* Brand logos */
+.brand-logo {
+  @apply text-gray-300 hover:text-white transition-colors duration-300;
+}

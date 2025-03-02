@@ -1,0 +1,32 @@
+
+/* Improved dark theme colors for the app UI preview */
+.bg-dark-300 {
+  background-color: #0f172a;
+}
+
+.bg-dark-400 {
+  background-color: #1e293b;
+}
+
+.bg-dark-500 {
+  background-color: #334155;
+}
+
+/* Improved mesh gradient */
+.mesh-gradient {
+  background: linear-gradient(140deg, #000000, #060b21, #0d1441);
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.animate-enter {
+  @apply transition-all duration-300 ease-out;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-medium tracking-tight;
+}
