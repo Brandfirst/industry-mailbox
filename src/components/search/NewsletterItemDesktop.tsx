@@ -40,12 +40,14 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate }: Newsle
       </div>
       
       <div className="relative flex-1 overflow-hidden bg-white">
-        <NewsletterPreview 
-          content={newsletter.content} 
-          title={newsletter.title}
-          previewHeight="200%"
-          previewWidth="200%"
-        />
+        <div className="absolute inset-0">
+          <NewsletterPreview 
+            content={newsletter.content} 
+            title={newsletter.title}
+            previewHeight="200%"
+            previewWidth="200%"
+          />
+        </div>
       </div>
     </div>
   );

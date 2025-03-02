@@ -51,8 +51,8 @@ const NewsletterPreview = ({
               -webkit-transform-origin: 0 0;
               transform: scale(0.5);
               transform-origin: 0 0;
-              width: 200%;
-              height: 200%;
+              width: ${previewWidth};
+              height: ${previewHeight};
             }
             a {
               pointer-events: none;
@@ -88,8 +88,8 @@ const NewsletterPreview = ({
         className="w-full h-full border-0"
         sandbox="allow-same-origin"
         style={{ 
-          height: previewHeight,
-          width: previewWidth,
+          height: "200%",
+          width: "200%",
           pointerEvents: "none",
           transform: "scale(0.5)",
           transformOrigin: "0 0",

@@ -13,7 +13,7 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate }: Newslet
   return (
     <div className="md:hidden flex" onClick={onClick}>
       <div className="w-1/3 h-24 bg-white overflow-hidden">
-        <div className="h-full w-full">
+        <div className="absolute inset-0 h-24 w-full">
           <NewsletterPreview 
             content={newsletter.content} 
             title={newsletter.title}
