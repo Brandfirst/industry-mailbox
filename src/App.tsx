@@ -26,6 +26,8 @@ const AppLayout = () => {
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<Search />} />
         <Route path="/newsletter/:id" element={<NewsletterDetail />} />
+        {/* New URL format */}
+        <Route path="/:sender/:titleId" element={<NewsletterDetail />} />
         <Route path="/admin" element={
           <ProtectedRoute requireAuth requireAdmin>
             <Admin />

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -23,7 +22,7 @@ const FeaturedNewsletters = () => {
         .from('categories')
         .select('*')
         .order('name')
-        .limit(4); // Limit to 4 categories
+        .limit(4);
       
       if (error) {
         console.error('Error fetching categories:', error);
@@ -66,8 +65,20 @@ const FeaturedNewsletters = () => {
     return format(new Date(dateString), 'MMM d');
   };
 
-  const handleNewsletterClick = (id: number) => {
-    navigate(`/newsletter/${id}`);
+  const handleNewsletterClick = (newsletter) => {
+    if (!newsletter) return;
+    
+    const senderSlug = newsletter.sender 
+      ? newsletter.sender.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : 'unknown';
+    
+    const titleSlug = newsletter.title 
+      ? newsletter.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : 'untitled';
+    
+    const titleId = `${titleSlug}-${newsletter.id}`;
+    
+    navigate(`/${senderSlug}/${titleId}`);
   };
   
   return (
@@ -112,7 +123,7 @@ const FeaturedNewsletters = () => {
               {newsletters.map((newsletter) => (
                 <div 
                   key={newsletter.id}
-                  onClick={() => handleNewsletterClick(newsletter.id)}
+                  onClick={() => handleNewsletterClick(newsletter)}
                   className="cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm border flex flex-col h-[500px] hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center p-3 border-b">
@@ -186,10 +197,9 @@ const FeaturedNewsletters = () => {
                         <p className="text-gray-500">No content available</p>
                       </div>
                     )}
-                    {/* Add an overlay div to ensure the entire area is clickable */}
                     <div 
                       className="absolute inset-0 z-10 cursor-pointer" 
-                      onClick={() => handleNewsletterClick(newsletter.id)}
+                      onClick={() => handleNewsletterClick(newsletter)}
                       aria-label={`View ${newsletter.title || 'newsletter'} details`}
                     />
                   </div>
