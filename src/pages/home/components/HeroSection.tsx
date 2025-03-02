@@ -135,8 +135,8 @@ const HeroSection = () => {
           <div className="mt-16 mb-20">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-5xl mx-auto px-4">
               {sampleNewsletters.map((newsletter) => (
-                <div key={newsletter.id} className="bg-black/40 backdrop-blur-sm border border-[#FF5722]/20 rounded-lg overflow-hidden h-44 md:h-64 transform transition-all hover:scale-105 hover:border-[#FF5722]/40 hover:shadow-glow">
-                  <div className="p-2 border-b border-[#FF5722]/20 bg-black/60 flex items-center">
+                <div key={newsletter.id} className="bg-black/40 backdrop-blur-sm border-2 border-[#FF5722] rounded-xl overflow-hidden h-44 md:h-64 transform transition-all hover:scale-105 hover:border-[#FF5722] hover:shadow-glow">
+                  <div className="p-2 border-b border-[#FF5722] bg-black/60 flex items-center">
                     <div className="h-6 w-6 bg-[#FF5722]/20 rounded-full flex items-center justify-center text-white text-xs">
                       {newsletter.sender.charAt(0)}
                     </div>
