@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Newsletter, NewsletterCategory } from '@/lib/supabase/types';
 import { searchNewsletters } from '@/lib/supabase/newsletters';
 import { useNavigate } from 'react-router-dom';
+import { navigateToNewsletter } from '@/lib/utils/newsletterNavigation';
 
 export const useSearchNewsletters = () => {
   const navigate = useNavigate();
@@ -75,19 +75,7 @@ export const useSearchNewsletters = () => {
   };
 
   const handleNewsletterClick = (newsletter: Newsletter) => {
-    if (!newsletter) return;
-    
-    const senderSlug = newsletter.sender 
-      ? newsletter.sender.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      : 'unknown';
-    
-    const titleSlug = newsletter.title 
-      ? newsletter.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      : 'untitled';
-    
-    const titleId = `${titleSlug}-${newsletter.id}`;
-    
-    navigate(`/${senderSlug}/${titleId}`);
+    navigateToNewsletter(newsletter, navigate);
   };
 
   return {

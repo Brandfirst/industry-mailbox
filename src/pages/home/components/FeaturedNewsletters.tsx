@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from 'lucide-react';
@@ -6,6 +5,8 @@ import LogoSection from './LogoSection';
 import CategoryFilter from './newsletter/CategoryFilter';
 import NewsletterGrid from './newsletter/NewsletterGrid';
 import { useNewsletters } from './newsletter/useNewsletters';
+import { Newsletter } from '@/lib/supabase/types';
+import { navigateToNewsletter } from '@/lib/utils/newsletterNavigation';
 
 const FeaturedNewsletters = () => {
   const navigate = useNavigate();
@@ -15,20 +16,8 @@ const FeaturedNewsletters = () => {
     navigate('/search');
   };
 
-  const handleNewsletterClick = (newsletter: any) => {
-    if (!newsletter) return;
-    
-    const senderSlug = newsletter.sender 
-      ? newsletter.sender.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      : 'unknown';
-    
-    const titleSlug = newsletter.title 
-      ? newsletter.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      : 'untitled';
-    
-    const titleId = `${titleSlug}-${newsletter.id}`;
-    
-    navigate(`/${senderSlug}/${titleId}`);
+  const handleNewsletterClick = (newsletter: Newsletter) => {
+    navigateToNewsletter(newsletter, navigate);
   };
   
   return (
