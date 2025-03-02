@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
@@ -10,8 +11,6 @@ interface FilterButtonsProps {
 
 const FilterButtons = ({ 
   toggleMobileFilters, 
-  toggleDesktopFilters, 
-  isDesktopFiltersOpen 
 }: FilterButtonsProps) => {
   return (
     <div className="flex justify-between items-center mb-4">

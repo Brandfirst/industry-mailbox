@@ -46,7 +46,6 @@ const DesktopFilterSidebar = ({
       >
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <span className="font-medium">Sender Profile</span>
-          {/* Filter button in header removed */}
         </div>
         
         <CollapsibleContent className="w-80 p-4">
