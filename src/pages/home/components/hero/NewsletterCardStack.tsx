@@ -1,7 +1,6 @@
 
 import { Newsletter } from "@/lib/supabase/types";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import NewsletterPreview from "@/components/search/NewsletterPreview";
 
@@ -55,18 +54,30 @@ const NewsletterCardStack = ({
       {newsletters.map((newsletter, index) => {
         // Calculate if this card should be visible based on index
         const isCurrentCard = index === currentIndex;
-        const isPreviousCard = index === (currentIndex + 1) % newsletters.length;
-        const isNextCard = index === (currentIndex - 1 + newsletters.length) % newsletters.length;
+        const isPreviousCard = index === (currentIndex - 1 + newsletters.length) % newsletters.length;
+        const isNextCard = index === (currentIndex + 1) % newsletters.length;
         
         // Only render current card and adjacent cards for performance
         if (!isCurrentCard && !isPreviousCard && !isNextCard && newsletters.length > 3) {
           return null;
         }
         
-        // Determine z-index and position
-        const zIndex = newsletters.length - index;
-        const offset = isCurrentCard ? 0 : (isPreviousCard ? -5 : 5);
-        const scale = isCurrentCard ? 1 : 0.95;
+        // Determine positioning and styling
+        const zIndex = isCurrentCard ? 30 : (isPreviousCard ? 20 : 10);
+        
+        // Position adjustments based on card status
+        const xOffset = isCurrentCard 
+          ? 0 
+          : (isPreviousCard ? -60 : 60); // Move previous card left, next card right
+        
+        const yOffset = isCurrentCard ? 0 : 10;
+        
+        // Rotation and scaling
+        const rotation = isCurrentCard 
+          ? 0 
+          : (isPreviousCard ? -6 : 6); // Tilt previous card left, next card right
+        
+        const scale = isCurrentCard ? 1 : 0.92;
         const opacity = isCurrentCard ? 1 : 0.7;
         
         return (
@@ -77,9 +88,10 @@ const NewsletterCardStack = ({
             animate={{ 
               scale,
               opacity,
-              x: offset,
-              y: isCurrentCard ? 0 : 10,
-              zIndex: isCurrentCard ? 30 : (isPreviousCard ? 20 : 10)
+              x: xOffset,
+              y: yOffset,
+              zIndex,
+              rotateZ: rotation
             }}
             transition={{ duration: 0.3 }}
             drag={isCurrentCard ? "x" : false}
@@ -132,22 +144,6 @@ const NewsletterCardStack = ({
           </motion.div>
         );
       })}
-      
-      {/* Navigation arrows for card swiping */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4 z-40">
-        <button 
-          onClick={() => swipeCard(-1)}
-          className="bg-transparent border border-[#FF5722]/50 rounded-full p-2 hover:bg-[#FF5722]/20 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
-        <button 
-          onClick={() => swipeCard(1)}
-          className="bg-transparent border border-[#FF5722]/50 rounded-full p-2 hover:bg-[#FF5722]/20 transition-colors"
-        >
-          <ArrowRight className="w-5 h-5 text-white" />
-        </button>
-      </div>
     </div>
   );
 };
