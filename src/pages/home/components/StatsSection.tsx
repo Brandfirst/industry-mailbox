@@ -33,8 +33,8 @@ const StatsSection = () => {
 
   // Define the sections
   const brandLogosSection = (
-    <div className="pb-12 mb-4 pt-0">
-      <h3 className="text-center text-sm md:text-base text-gray-400 mb-6">Loved by 5,000+ Brands & Agencies</h3>
+    <div className="pb-8 mb-0 pt-0 -mt-8">
+      <h3 className="text-center text-sm md:text-base text-gray-400 mb-4">Loved by 5,000+ Brands & Agencies</h3>
       
       <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12">
         {logos.map((logo, index) => (
@@ -190,7 +190,7 @@ const StatsSection = () => {
     </div>
   );
 
-  // Define initial sections
+  // Define initial sections - moving brandLogos to be first
   const initialSections: Section[] = [
     { id: "brandLogos", title: "Brand Logos", component: brandLogosSection },
     { id: "statsGrid", title: "Stats Grid", component: statsGridSection },
@@ -207,7 +207,7 @@ const StatsSection = () => {
   };
 
   return (
-    <section className="py-4 bg-black">
+    <section className="py-2 bg-black">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Render sections based on their order */}
         {sectionsList.map((section) => (
