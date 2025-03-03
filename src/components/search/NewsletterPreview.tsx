@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 interface NewsletterPreviewProps {
   content: string | null;
@@ -8,6 +8,8 @@ interface NewsletterPreviewProps {
 }
 
 const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPreviewProps) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  
   const getIframeContent = () => {
     if (!content) {
       return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><p>No content available</p></body></html>`;
@@ -32,10 +34,11 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               width: 100%;
               background-color: white;
               border-radius: 12px;
+              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             }
             body {
               ${isMobile ? 'zoom: 0.2;' : ''}
-              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+              padding: 10px;
             }
             a {
               pointer-events: none;
@@ -55,6 +58,16 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
       </html>`;
   };
 
+  // Handle iframe load to ensure proper character encoding
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentDocument) {
+      const doc = iframeRef.current.contentDocument;
+      doc.open();
+      doc.write(getIframeContent());
+      doc.close();
+    }
+  }, [content, isMobile]);
+
   if (!content) {
     return (
       <div className="w-full h-full bg-gray-100 flex items-center justify-center rounded-xl">
@@ -66,6 +79,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
   return (
     <div className="w-full h-full overflow-hidden bg-white rounded-xl">
       <iframe
+        ref={iframeRef}
         srcDoc={getIframeContent()}
         title={title || "Newsletter Content"}
         className="w-full h-full border-0 rounded-xl"

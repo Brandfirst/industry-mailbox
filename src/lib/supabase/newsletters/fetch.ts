@@ -8,11 +8,18 @@ export async function getNewsletterById(id: string | number) {
   // Convert string ID to number if it's a string
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
   
-  return supabase
+  // Fetch the newsletter and ensure we get categories
+  const { data, error } = await supabase
     .from('newsletters')
     .select('*, categories:category_id(*)')
     .eq('id', numericId)
     .single();
+    
+  if (error) {
+    console.error('Error fetching newsletter by ID:', error);
+  }
+  
+  return { data, error };
 }
 
 // Get newsletters from a specific email account

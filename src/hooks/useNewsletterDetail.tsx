@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,7 +40,24 @@ export const useNewsletterDetail = () => {
           .single();
         
         if (error) {
+          console.error('Error fetching newsletter:', error);
           throw error;
+        }
+        
+        if (data && data.content) {
+          if (typeof data.content !== 'string') {
+            console.warn('Newsletter content is not a string, converting:', data.content);
+            data.content = String(data.content);
+          }
+          
+          try {
+            const encoder = new TextEncoder();
+            const decoder = new TextDecoder('utf-8', { fatal: true });
+            const encoded = encoder.encode(data.content);
+            data.content = decoder.decode(encoded);
+          } catch (e) {
+            console.error('Error decoding content:', e);
+          }
         }
         
         setNewsletter(data);

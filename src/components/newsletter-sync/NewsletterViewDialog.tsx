@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Eye, X, Mail, Calendar, UserCircle, Tag, MapPin, FileCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
+import { useRef, useEffect } from "react";
 
 type NewsletterViewDialogProps = {
   newsletter: Newsletter;
 };
 
 export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  
   // Format the date if it exists
   const formattedDate = newsletter.published_at 
     ? formatDistanceToNow(new Date(newsletter.published_at), { addSuffix: true })
@@ -47,6 +50,36 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         <body>${content}</body>
       </html>`;
   };
+  
+  // Handle iframe load to ensure proper character encoding
+  useEffect(() => {
+    const handleDialogChange = (open: boolean) => {
+      if (open && iframeRef.current && iframeRef.current.contentDocument) {
+        const content = getIframeContent();
+        if (content) {
+          const doc = iframeRef.current.contentDocument;
+          doc.open();
+          doc.write(content);
+          doc.close();
+        }
+      }
+    };
+
+    // Initial render
+    if (iframeRef.current && iframeRef.current.contentDocument) {
+      const content = getIframeContent();
+      if (content) {
+        const doc = iframeRef.current.contentDocument;
+        doc.open();
+        doc.write(content);
+        doc.close();
+      }
+    }
+
+    return () => {
+      // Cleanup if needed
+    };
+  }, [newsletter.content]);
   
   return (
     <Dialog>
@@ -136,7 +169,7 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         <div className="overflow-auto flex-1 h-[calc(90vh-220px)] bg-white dark:bg-gray-800 rounded-b-md">
           {newsletter.content ? (
             <iframe
-              srcDoc={getIframeContent()}
+              ref={iframeRef}
               title={newsletter.title || "Newsletter Content"}
               className="w-full h-full border-0"
               sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
