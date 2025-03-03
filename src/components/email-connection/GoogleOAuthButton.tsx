@@ -1,8 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { RefreshCw, PlusCircle } from "lucide-react";
-import { useGoogleAuth } from "./oauth/useGoogleAuth";
 import { useEffect } from "react";
+import { useGoogleOAuthButton } from "./hooks/useGoogleOAuthButton";
 
 interface GoogleOAuthButtonProps {
   isConnecting: boolean;
@@ -17,7 +17,7 @@ export const GoogleOAuthButton = ({
   variant = "default",
   className = ""
 }: GoogleOAuthButtonProps) => {
-  const { isConnecting: authConnecting, initiateGoogleOAuth } = useGoogleAuth(isConnecting);
+  const { isConnecting: authConnecting, initiateGoogleOAuth } = useGoogleOAuthButton(isConnecting);
   
   // Log when the button is clicked to help with debugging
   const handleClick = () => {

@@ -1,9 +1,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useRateLimitedConnection } from "./useRateLimitedConnection";
 
-export const useGoogleAuth = (externalConnecting: boolean) => {
+export const useGoogleOAuthButton = (externalConnecting: boolean) => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const { initiateConnection } = useRateLimitedConnection();
   
   // Clear any stale OAuth state on mount
   useEffect(() => {
@@ -37,6 +39,11 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
   };
   
   const initiateGoogleOAuth = useCallback(() => {
+    // First check if we can initiate a connection (rate limiting)
+    if (!initiateConnection()) {
+      return;
+    }
+    
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     
     try {
@@ -158,7 +165,7 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
       
       setIsConnecting(false);
     }
-  }, []);
+  }, [initiateConnection]);
   
   return { isConnecting, initiateGoogleOAuth };
 };
