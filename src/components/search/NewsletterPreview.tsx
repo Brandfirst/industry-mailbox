@@ -107,12 +107,8 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         
         observer.observe(doc.body, { childList: true, subtree: true, characterData: true });
         
-        // Set correct charset on document if possible
-        try {
-          doc.characterSet = "UTF-8";
-        } catch (e) {
-          console.log('Could not set characterSet directly, relying on meta tags');
-        }
+        // Removed: Set correct charset on document if possible
+        // This was causing the error since characterSet is read-only
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);

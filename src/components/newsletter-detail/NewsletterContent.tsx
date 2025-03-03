@@ -108,12 +108,8 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
             }
           }
           
-          // Try to force the charset if not already set
-          try {
-            doc.characterSet = "UTF-8";
-          } catch (e) {
-            console.log('Could not set characterSet directly, relying on meta tags');
-          }
+          // Removed: Try to force the charset if not already set
+          // This was causing the error since characterSet is read-only
           
           // Adjust height after content is loaded
           setTimeout(() => {
