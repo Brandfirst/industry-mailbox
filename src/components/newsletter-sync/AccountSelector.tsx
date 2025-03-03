@@ -1,49 +1,54 @@
 
 import { EmailAccount } from "@/lib/supabase";
-import { Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDistanceToNow } from "date-fns";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 
-type AccountSelectorProps = {
+interface AccountSelectorProps {
   accounts: EmailAccount[];
   selectedAccount: string | null;
   onSelectAccount: (accountId: string) => void;
   isDisabled?: boolean;
-};
+}
 
-export function AccountSelector({ accounts, selectedAccount, onSelectAccount, isDisabled }: AccountSelectorProps) {
-  const getLastSyncTime = () => {
-    if (!selectedAccount) return "Never";
-    
-    const account = accounts.find(acc => acc.id === selectedAccount);
-    if (!account || !account.last_sync) return "Never";
-    
-    return formatDistanceToNow(new Date(account.last_sync), { addSuffix: true });
-  };
-
+export function AccountSelector({
+  accounts,
+  selectedAccount,
+  onSelectAccount,
+  isDisabled = false
+}: AccountSelectorProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-      <Select
-        value={selectedAccount || "no-account"}
-        onValueChange={onSelectAccount}
-        disabled={isDisabled}
-      >
-        <SelectTrigger className="w-full sm:w-72">
-          <SelectValue placeholder="Select email account" />
-        </SelectTrigger>
-        <SelectContent>
-          {accounts.map((account) => (
-            <SelectItem key={account.id} value={account.id}>
-              {account.email} ({account.provider})
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      <div className="text-sm text-muted-foreground">
-        <Calendar className="inline-block mr-1 h-4 w-4" />
-        Last synced: {getLastSyncTime()}
+    <Card className="p-4 bg-card border shadow-sm">
+      <div className="space-y-2">
+        <Label htmlFor="email-account" className="text-sm font-medium">
+          Select Email Account
+        </Label>
+        <Select
+          value={selectedAccount || ""}
+          onValueChange={onSelectAccount}
+          disabled={isDisabled || accounts.length === 0}
+        >
+          <SelectTrigger
+            id="email-account"
+            className="w-full bg-white border-input text-foreground"
+          >
+            <SelectValue placeholder="Select an email account" />
+          </SelectTrigger>
+          <SelectContent className="bg-white border-input shadow-md">
+            {accounts.length === 0 ? (
+              <SelectItem value="no-accounts" disabled>
+                No email accounts connected
+              </SelectItem>
+            ) : (
+              accounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.email} ({account.provider})
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
       </div>
-    </div>
+    </Card>
   );
 }

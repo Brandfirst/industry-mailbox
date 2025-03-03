@@ -1,20 +1,20 @@
 
-/* Admin Portal Dark Mode Theme */
+/* Admin Portal Light Mode Theme */
 :root.admin-theme {
-  /* Dark backgrounds */
-  --admin-bg-primary: #121212;
-  --admin-bg-secondary: #1E1E1E;
-  --admin-bg-tertiary: #252525;
-  --admin-bg-elevated: #2A2A2A;
+  /* Light backgrounds */
+  --admin-bg-primary: #FFFFFF;
+  --admin-bg-secondary: #F9F9F9;
+  --admin-bg-tertiary: #F5F5F5;
+  --admin-bg-elevated: #EFEFEF;
   
   /* Text colors */
-  --admin-text-primary: #FFFFFF;
-  --admin-text-secondary: #AAAAAA;
+  --admin-text-primary: #333333;
+  --admin-text-secondary: #555555;
   --admin-text-muted: #777777;
   
   /* Border colors */
-  --admin-border-subtle: rgba(255, 255, 255, 0.1);
-  --admin-border-strong: rgba(255, 255, 255, 0.2);
+  --admin-border-subtle: rgba(0, 0, 0, 0.1);
+  --admin-border-strong: rgba(0, 0, 0, 0.2);
   
   /* Accent colors */
   --admin-accent: #FF5722;
@@ -27,7 +27,7 @@
   --admin-info: #2196F3;
 }
 
-/* Admin Layout Dark Mode Styles */
+/* Admin Layout Light Mode Styles */
 .admin-theme .admin-layout {
   background-color: var(--admin-bg-primary);
   color: var(--admin-text-primary);
@@ -60,7 +60,7 @@
   background-color: var(--admin-bg-elevated);
 }
 
-/* Button styling for admin dark theme */
+/* Button styling for admin light theme */
 .admin-theme .admin-button-primary {
   background-color: var(--admin-accent);
   color: white;

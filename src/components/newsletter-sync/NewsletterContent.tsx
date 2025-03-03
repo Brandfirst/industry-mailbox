@@ -45,7 +45,7 @@ export function NewsletterContent({
 }: NewsletterContentProps) {
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-white p-4 rounded-lg">
       <AlertMessages 
         errorMessage={errorMessage} 
         warningMessage={warningMessage}

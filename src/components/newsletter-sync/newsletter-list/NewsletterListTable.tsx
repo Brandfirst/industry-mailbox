@@ -41,9 +41,9 @@ export function NewsletterListTable({
   };
   
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border bg-white">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-gray-50">
           <TableRow>
             <TableHead className="w-[50px]">
               <Checkbox 
@@ -63,7 +63,7 @@ export function NewsletterListTable({
                     <TooltipTrigger asChild>
                       <Info className="h-4 w-4 text-muted-foreground" />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
+                    <TooltipContent className="max-w-xs bg-white">
                       <p>Categories are managed in the Newsletter Senders section</p>
                     </TooltipContent>
                   </Tooltip>
@@ -85,6 +85,7 @@ export function NewsletterListTable({
               <TableRow 
                 key={newsletter.id}
                 isSelected={isSelected(newsletter.id)}
+                className={isSelected(newsletter.id) ? "bg-primary/5" : ""}
               >
                 <TableCell>
                   <Checkbox 

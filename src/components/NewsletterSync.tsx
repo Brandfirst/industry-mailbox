@@ -30,8 +30,8 @@ export default function NewsletterSync() {
   } = useNewsletterSync(user?.id);
 
   return (
-    <Card className="shadow-md">
-      <CardHeader>
+    <Card className="shadow-md bg-white">
+      <CardHeader className="bg-white">
         <SyncHeader 
           isSyncing={isSyncing}
           selectedAccount={selectedAccount}
@@ -48,7 +48,7 @@ export default function NewsletterSync() {
           </AlertDescription>
         </Alert>
       </CardHeader>
-      <CardContent>
+      <CardContent className="bg-white">
         <div className="mb-4 text-sm text-muted-foreground font-medium">
           {displayRange}
         </div>

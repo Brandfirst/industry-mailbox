@@ -2,118 +2,100 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { 
-  Newsletter,
-  syncEmailAccountNewsletters,
-  updateNewsletterCategories,
-  deleteNewsletters
+  deleteNewsletters as deleteNewslettersApi,
+  syncEmailAccount,
+  getNewslettersFromEmailAccount,
+  updateNewsletterCategory
 } from "@/lib/supabase";
 
 export function useNewsletterOperations(
   selectedAccount: string | null,
-  currentPage: number,
-  setNewsletters: React.Dispatch<React.SetStateAction<Newsletter[]>>,
+  page: number,
+  setNewsletters: React.Dispatch<React.SetStateAction<any[]>>,
   setTotalCount: React.Dispatch<React.SetStateAction<number>>,
-  setErrorMessage: (message: string | null) => void,
-  setWarningMessage: (message: string | null) => void
+  setErrorMessage: React.Dispatch<React.SetStateAction<string | null>>,
+  setWarningMessage: React.Dispatch<React.SetStateAction<string | null>>
 ) {
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Function to sync newsletters from selected email account
+  // Sync emails from the selected account
   const handleSync = useCallback(async () => {
     if (!selectedAccount) {
-      toast.error("No email account selected");
+      toast.error("Please select an email account first");
       return;
     }
 
     setIsSyncing(true);
     setErrorMessage(null);
     setWarningMessage(null);
-
+    
     try {
-      const result = await syncEmailAccountNewsletters(selectedAccount);
+      console.log(`Starting sync for account ${selectedAccount}...`);
+      const result = await syncEmailAccount(selectedAccount);
+      
       console.log("Sync result:", result);
-
+      
       if (result.success) {
-        // If we're on page 1, refresh the data
-        if (currentPage === 1) {
-          // We'll let the useEffect in the parent component handle the refresh
-          // This is to make sure we have the latest filters applied
-        }
+        toast.success("Successfully synced newsletters");
         
-        toast.success(
-          result.count > 0
-            ? `Successfully synced ${result.count} newsletter(s)`
-            : "No new newsletters found"
-        );
+        // Refresh the newsletters list
+        const { data, error, total } = await getNewslettersFromEmailAccount(selectedAccount, page);
         
-        if (result.count > 0) {
-          // Increment total count
-          setTotalCount(prevCount => prevCount + result.count);
-        }
-        
-        if (result.warnings && result.warnings.length > 0) {
-          setWarningMessage(result.warnings.join(". "));
+        if (error) {
+          console.error("Error refreshing newsletters after sync:", error);
+          setWarningMessage("Sync completed, but there was an issue loading the updated list.");
+        } else {
+          console.log(`Refreshed newsletters: ${data?.length || 0} items loaded`);
+          setNewsletters(data || []);
+          setTotalCount(total || 0);
+          
+          if (data?.length === 0) {
+            setWarningMessage("Sync completed, but no newsletters were found. This could mean there are no newsletters in your account, or they didn't match our filter criteria.");
+          }
         }
       } else {
-        toast.error("Failed to sync newsletters");
-        setErrorMessage(result.error || "An unknown error occurred");
+        console.error("Sync failed:", result.error);
+        setErrorMessage(`Failed to sync: ${result.error}`);
+        toast.error("Failed to sync");
       }
     } catch (error) {
-      console.error("Error syncing newsletters:", error);
-      toast.error("Error syncing newsletters");
-      setErrorMessage("Failed to sync newsletters. Please try again later.");
+      console.error("Exception during sync:", error);
+      setErrorMessage("An unexpected error occurred during sync");
+      toast.error("An error occurred during sync");
     } finally {
       setIsSyncing(false);
     }
-  }, [selectedAccount, currentPage, setErrorMessage, setWarningMessage, setTotalCount]);
+  }, [selectedAccount, page, setNewsletters, setTotalCount, setErrorMessage, setWarningMessage]);
 
-  // Function to update newsletter categories
-  const handleCategoryChange = useCallback(async (updatedNewsletters: Newsletter[], applySenderWide: boolean) => {
-    if (!updatedNewsletters || updatedNewsletters.length === 0) return;
-
+  // Handle changing the category of a newsletter
+  const handleCategoryChange = useCallback(async (newsletterId: number, categoryId: number | null) => {
+    if (!selectedAccount) return;
+    
     try {
-      // Update local state immediately for UI responsiveness
-      setNewsletters(prevNewsletters => {
-        const updatedIds = new Set(updatedNewsletters.map(n => n.id));
-        return prevNewsletters.map(newsletter => 
-          updatedIds.has(newsletter.id) 
-            ? updatedNewsletters.find(n => n.id === newsletter.id) || newsletter 
-            : newsletter
-        );
-      });
-
-      // Map the updates for the API call
-      const updates = updatedNewsletters.map(newsletter => ({
-        id: newsletter.id,
-        category_id: newsletter.category_id
-      }));
-
-      // Send updates to API
-      await updateNewsletterCategories(updates, applySenderWide);
+      await updateNewsletterCategory(newsletterId, categoryId);
+      
+      // Update the newsletters list to reflect the change
+      const { data, total } = await getNewslettersFromEmailAccount(selectedAccount, page);
+      setNewsletters(data || []);
+      setTotalCount(total || 0);
+      
+      toast.success("Category updated");
     } catch (error) {
-      console.error("Error updating newsletter categories:", error);
-      toast.error("Failed to update categories");
-      
-      // Revert the local state change on error
-      // This would require fetching fresh data from the server
-      // For simplicity, we'll just show an error message
+      console.error("Error updating category:", error);
+      toast.error("Failed to update category");
     }
-  }, [setNewsletters]);
+  }, [selectedAccount, page, setNewsletters, setTotalCount]);
 
-  // Function to delete newsletters
+  // Handle deleting newsletters
   const handleDeleteNewsletters = useCallback(async (ids: number[]) => {
-    if (!ids || ids.length === 0) return;
-
+    if (!ids.length) return;
+    
     try {
-      const result = await deleteNewsletters(ids);
-      
-      if (result.success) {
-        return result;
-      } else {
-        throw new Error("Failed to delete newsletters");
-      }
+      await deleteNewslettersApi(ids);
+      toast.success(`${ids.length} newsletter(s) deleted`);
     } catch (error) {
       console.error("Error deleting newsletters:", error);
+      toast.error("Failed to delete newsletters");
       throw error;
     }
   }, []);

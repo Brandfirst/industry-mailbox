@@ -85,12 +85,24 @@ export function useNewsletterFetching(
           newsLetterFilters
         );
         
-        console.log(`Newsletter data loaded: ${data.length} items, total count: ${total}`);
+        console.log(`Newsletter data loaded: ${data?.length || 0} items, total count: ${total || 0}`);
         
-        setNewsletters(data);
-        setTotalCount(total || 0);
+        if (error) {
+          console.error("Error fetching newsletters:", error);
+          setErrorMessage(`Failed to load newsletters: ${error.message}`);
+          setNewsletters([]);
+          setTotalCount(0);
+        } else {
+          setNewsletters(data || []);
+          setTotalCount(total || 0);
+          
+          // Add a warning message if no newsletters found
+          if ((!data || data.length === 0) && page === 1) {
+            setWarningMessage("No newsletters found. You may need to sync this account first by clicking the 'Sync' button.");
+          }
+        }
       } catch (error) {
-        console.error("Error loading newsletters:", error);
+        console.error("Exception loading newsletters:", error);
         setNewsletters([]);
         setTotalCount(0);
         setErrorMessage("Failed to load newsletters. There may be a database issue or the account is not properly connected.");
