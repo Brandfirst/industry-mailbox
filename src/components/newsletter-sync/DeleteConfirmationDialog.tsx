@@ -18,20 +18,20 @@ export function DeleteConfirmationDialog({
 }: DeleteConfirmationDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="bg-destructive">
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogTitle className="text-white">Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription className="text-white">
             This will permanently delete the selected {count} newsletter(s).
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel className="bg-white text-destructive hover:bg-gray-100">Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm} 
             disabled={isDeleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-white text-destructive hover:bg-gray-100 border border-white"
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>

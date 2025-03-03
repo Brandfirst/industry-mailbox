@@ -92,17 +92,24 @@ export function useNewsletterOperations(
 
   // Handle deleting newsletters
   const handleDeleteNewsletters = useCallback(async (ids: number[]) => {
-    if (!ids.length) return;
+    if (!ids.length || !selectedAccount) return;
     
     try {
+      // Delete the newsletters through the API
       await deleteNewslettersApi(ids);
+      
+      // Refresh the newsletters list after deletion
+      const { data, total } = await getNewslettersFromEmailAccount(selectedAccount, page, {});
+      setNewsletters(data || []);
+      setTotalCount(total || 0);
+      
       toast.success(`${ids.length} email(s) deleted`);
     } catch (error) {
       console.error("Error deleting emails:", error);
       toast.error("Failed to delete emails");
       throw error;
     }
-  }, []);
+  }, [selectedAccount, page, setNewsletters, setTotalCount]);
 
   return {
     isSyncing,
