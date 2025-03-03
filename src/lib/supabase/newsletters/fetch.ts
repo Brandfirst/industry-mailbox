@@ -5,10 +5,13 @@ import { NewsletterFilterOptions } from "./types";
 
 // Get a single newsletter by ID
 export async function getNewsletterById(id: string | number) {
+  // Convert string ID to number if it's a string
+  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+  
   return supabase
     .from('newsletters')
     .select('*, categories:category_id(*)')
-    .eq('id', id)
+    .eq('id', numericId)
     .single();
 }
 

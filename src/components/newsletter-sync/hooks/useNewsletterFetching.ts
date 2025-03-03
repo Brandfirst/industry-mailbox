@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { 
   Newsletter,
+  // Import getNewslettersFromEmailAccount from newsletters which gets it from fetch.ts
   getNewslettersFromEmailAccount
 } from "@/lib/supabase";
 import { FiltersState } from "../FilterToolbar";
