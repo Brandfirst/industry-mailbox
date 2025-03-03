@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Newsletter } from '@/lib/supabase/types';
 import { getNewsletterById } from '@/lib/supabase/newsletters/fetch';
+import { ensureUtf8Encoding } from '@/lib/utils/sanitizeContent';
 
 export const useNewsletterDetail = () => {
   const { id, sender, titleId } = useParams<{ id?: string; sender?: string; titleId?: string }>();
@@ -46,18 +47,22 @@ export const useNewsletterDetail = () => {
         }
         
         if (data) {
-          // Ensure we have content as a string
+          // Ensure we have content as a properly encoded string
           if (data.content) {
             console.log('CONTENT DATA TYPE:', typeof data.content);
             console.log('CONTENT SAMPLE (first 100 chars):', data.content.substring(0, 100));
             
-            // Normalize content encoding
-            const textEncoder = new TextEncoder();
-            const textDecoder = new TextDecoder('utf-8', { fatal: false });
-            const bytes = textEncoder.encode(data.content);
-            const decodedContent = textDecoder.decode(bytes);
+            // Apply our ensureUtf8Encoding function for consistent UTF-8 handling
+            data.content = ensureUtf8Encoding(data.content);
             
-            data.content = decodedContent;
+            // Also ensure title and preview are properly encoded
+            if (data.title) {
+              data.title = ensureUtf8Encoding(data.title);
+            }
+            
+            if (data.preview) {
+              data.preview = ensureUtf8Encoding(data.preview);
+            }
             
             // Search for nordic characters after processing
             const nordicChars = (data.content.match(/[ØÆÅøæå]/g) || []).join('');

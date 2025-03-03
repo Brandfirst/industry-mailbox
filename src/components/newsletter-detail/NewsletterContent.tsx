@@ -1,7 +1,7 @@
 
 import { Newsletter } from "@/lib/supabase/types";
 import { useEffect, useRef, useState } from "react";
-import { sanitizeNewsletterContent, getSystemFontCSS } from "@/lib/utils/sanitizeContent";
+import { sanitizeNewsletterContent, getSystemFontCSS, ensureUtf8Encoding } from "@/lib/utils/sanitizeContent";
 
 interface NewsletterContentProps {
   newsletter: Newsletter;
@@ -17,15 +17,25 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     
     console.log('PREPARING CONTENT FOR IFRAME (first 100 chars):', newsletter.content.substring(0, 100));
     
+    // First ensure UTF-8 encoding
+    const utf8Content = ensureUtf8Encoding(newsletter.content);
+    
     // Check for Nordic characters before processing
-    const nordicChars = (newsletter.content.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS IN CONTENT COMPONENT:', nordicChars || 'None found');
+    const nordicChars = (utf8Content.match(/[ØÆÅøæå]/g) || []).join('');
+    console.log('NORDIC CHARACTERS IN CONTENT COMPONENT BEFORE SANITIZE:', nordicChars || 'None found');
     
     // Sanitize content to prevent CORS issues with fonts
-    let content = sanitizeNewsletterContent(newsletter.content);
+    let content = sanitizeNewsletterContent(utf8Content);
     
     // Force HTTPS
     content = content.replace(/http:\/\//g, 'https://');
+    
+    // Re-check for Nordic characters after sanitization
+    const nordicCharsAfter = (content.match(/[ØÆÅøæå]/g) || []).join('');
+    console.log('NORDIC CHARACTERS IN CONTENT COMPONENT AFTER SANITIZE:', nordicCharsAfter || 'None found');
+    
+    // Add data attribute if it has Nordic characters for special font handling
+    const hasNordicAttribute = nordicCharsAfter ? 'data-has-nordic-chars="true"' : '';
     
     // Ensure content has proper HTML structure with UTF-8 encoding
     return `<!DOCTYPE html>
@@ -45,7 +55,7 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
                   * { box-sizing: border-box; }
                 </style>
               </head>
-              <body>${content}</body>
+              <body ${hasNordicAttribute}>${content}</body>
             </html>`;
   };
   
@@ -75,6 +85,12 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
           // Log charset after setting
           const metaCharset = doc.querySelector('meta[charset]');
           console.log('CONTENT IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
+          
+          // Check for Nordic characters in the document
+          const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
+          if (nordicChars.length > 0) {
+            console.log('NORDIC CHARS FOUND IN IFRAME DOCUMENT:', nordicChars.join(''));
+          }
           
           // Adjust height after content is loaded
           setTimeout(() => {

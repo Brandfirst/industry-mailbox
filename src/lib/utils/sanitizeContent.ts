@@ -14,6 +14,10 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
   // Convert content to string if it's not already
   let htmlContent = String(content);
   
+  // Check for Nordic characters before processing
+  const nordicChars = (htmlContent.match(/[ØÆÅøæå]/g) || []).join('');
+  console.log('NORDIC CHARACTERS BEFORE SANITIZATION:', nordicChars || 'None found');
+  
   // Replace problematic @font-face declarations
   htmlContent = htmlContent.replace(
     /@font-face\s*{[^}]*}/gi,
@@ -44,8 +48,29 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
     '<!-- Scripts removed for security -->'
   );
   
+  // Ensure content has proper UTF-8 meta tags if it's HTML
+  if (htmlContent.includes('<html') && !htmlContent.includes('<meta charset="utf-8">')) {
+    if (htmlContent.includes('<head')) {
+      // Add charset meta to head if not present
+      htmlContent = htmlContent.replace(
+        /<head[^>]*>/i,
+        '$&<meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
+      );
+    } else if (htmlContent.includes('<html')) {
+      // Add head with charset meta if no head exists
+      htmlContent = htmlContent.replace(
+        /<html[^>]*>/i,
+        '$&<head><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>'
+      );
+    }
+  }
+  
+  // Check for Nordic characters after processing
+  const nordicCharsAfter = (htmlContent.match(/[ØÆÅøæå]/g) || []).join('');
+  console.log('NORDIC CHARACTERS AFTER SANITIZATION:', nordicCharsAfter || 'None found');
+  
   // Log that we've sanitized the content
-  console.log('Newsletter content sanitized to prevent CORS issues with fonts');
+  console.log('Newsletter content sanitized to prevent CORS issues with fonts, UTF-8 encoding preserved');
   
   return htmlContent;
 };
@@ -56,7 +81,7 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
  */
 export const getSystemFontCSS = (): string => {
   return `
-    /* System font fallbacks */
+    /* System font fallbacks with UTF-8 character support */
     * {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
     }
@@ -69,6 +94,11 @@ export const getSystemFontCSS = (): string => {
     
     /* Preserve special characters styling */
     .preserve-nordic {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+    }
+    
+    /* Make sure UTF-8 Nordic characters display properly */
+    [data-has-nordic-chars] {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
     }
     
@@ -87,4 +117,30 @@ export const getSystemFontCSS = (): string => {
       font-style: normal;
     }
   `;
+};
+
+/**
+ * Ensures that a string is properly UTF-8 encoded
+ * Particularly useful for Nordic characters like ØÆÅøæå
+ */
+export const ensureUtf8Encoding = (text: string | null): string => {
+  if (!text) return '';
+  
+  // Convert to string if it's not already
+  const content = String(text);
+  
+  try {
+    // Use TextEncoder/TextDecoder for proper UTF-8 handling
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    
+    // Encode and then decode to normalize UTF-8
+    const bytes = encoder.encode(content);
+    const normalizedText = decoder.decode(bytes);
+    
+    return normalizedText;
+  } catch (error) {
+    console.error('Error ensuring UTF-8 encoding:', error);
+    return content; // Return original if encoding fails
+  }
 };
