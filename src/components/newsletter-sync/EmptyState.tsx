@@ -1,5 +1,6 @@
 
-import { FileX, RefreshCw } from "lucide-react";
+import { FileX, RefreshCw, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export type EmptyStateProps = {
   selectedAccount: string | null;
@@ -18,6 +19,14 @@ export function EmptyState({ selectedAccount, isSyncing }: EmptyStateProps) {
           ? "No newsletters have been synced from this email account yet. Click the sync button to import newsletters."
           : "Select an email account to view and manage newsletters."}
       </p>
+      {selectedAccount && (
+        <Alert variant="default" className="mt-4 bg-blue-50/50 border-blue-200 max-w-md mx-auto">
+          <Info className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-sm text-blue-700">
+            If you know there are newsletters in your account but none appear after syncing, they may not match the system's criteria for newsletters. Currently, we look for email messages that appear to be newsletters based on their content and format.
+          </AlertDescription>
+        </Alert>
+      )}
       {isSyncing && (
         <div className="flex justify-center items-center mt-4 text-primary">
           <RefreshCw className="h-4 w-4 mr-2 animate-spin" />

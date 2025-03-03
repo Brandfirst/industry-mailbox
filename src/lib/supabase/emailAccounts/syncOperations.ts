@@ -12,8 +12,26 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     // Add more detailed logging
     console.log(`Invoking sync-emails function with accountId: ${accountId}`);
     
+    // Add diagnostics about the account before syncing
+    const { data: accountInfo, error: accountError } = await supabase
+      .from('email_accounts')
+      .select('email, provider, last_sync')
+      .eq('id', accountId)
+      .single();
+    
+    if (accountInfo) {
+      console.log(`Account details: Email=${accountInfo.email}, Provider=${accountInfo.provider}, Last sync=${accountInfo.last_sync || 'Never'}`);
+    } else if (accountError) {
+      console.log(`Error fetching account info: ${accountError.message}`);
+    }
+    
+    // Invoke the function with more debug options
     const response = await supabase.functions.invoke("sync-emails", {
-      body: { accountId },
+      body: { 
+        accountId,
+        debug: true,  // Request debug info from the function
+        verbose: true // Request verbose logging
+      },
     });
 
     console.log("Sync-emails raw response:", response);
@@ -66,6 +84,20 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         statusCode: 200,
         timestamp: Date.now() // Add timestamp to match SyncResult type
       };
+    }
+    
+    // Log what was synced in detail
+    if (response.data.synced && response.data.synced.length) {
+      console.log(`Synced ${response.data.synced.length} newsletters: `, 
+        response.data.synced.map(n => ({
+          subject: n.subject || n.title,
+          sender: n.sender || n.sender_email,
+          date: n.date || n.published_at
+        }))
+      );
+    } else {
+      console.log("No newsletters were synced. Function returned success but empty array.");
+      console.log("Debug info:", response.data.debugInfo || "No debug info available");
     }
 
     // If we reach here, the sync was successful
