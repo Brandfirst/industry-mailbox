@@ -191,15 +191,18 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         }, true);
         
         // Override console.error in iframe to hide tracking errors
-        if (iframe.contentWindow?.console) {
-          const originalConsoleError = iframe.contentWindow.console.error;
-          iframe.contentWindow.console.error = function() {
-            const args = Array.from(arguments);
+        if (iframe.contentWindow) {
+          // Use type assertion to access console
+          const win = iframe.contentWindow as (Window & typeof globalThis);
+          const originalConsoleError = win.console.error;
+          
+          // Assign the new console.error function
+          win.console.error = function(...args: any[]) {
             const errorString = args.join(' ');
             
             // Only pass through non-tracking errors
             if (!shouldSuppressError(errorString)) {
-              originalConsoleError.apply(iframe.contentWindow!.console, args);
+              originalConsoleError.apply(win.console, args);
             }
           };
         }
