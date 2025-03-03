@@ -19,18 +19,23 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     // Check if content already has proper HTML structure
     if (!content.trim().toLowerCase().startsWith('<!doctype')) {
       content = `<!DOCTYPE html>
-                <html>
+                <html lang="en">
                   <head>
                     <meta charset="utf-8">
                     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <style>
+                      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
                       body {
-                        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
                         padding: 20px;
+                        line-height: 1.6;
                       }
                       img { max-width: 100%; height: auto; }
                       * { box-sizing: border-box; }
+                      p, h1, h2, h3, h4, h5, h6, span, div { 
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                      }
                     </style>
                   </head>
                   <body>${content}</body>
@@ -45,6 +50,12 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
             <meta charset="utf-8">
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+              body, p, h1, h2, h3, h4, h5, h6, span, div { 
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+              }
+            </style>
             ${headMatch[1]}
           </head>`
         );
@@ -56,11 +67,28 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
   
   // Handle iframe load to ensure proper character encoding
   useEffect(() => {
-    if (iframeRef.current && iframeRef.current.contentDocument) {
-      const doc = iframeRef.current.contentDocument;
-      doc.open();
-      doc.write(getSafeHtmlContent());
-      doc.close();
+    if (iframeRef.current) {
+      // Clear any previous content
+      if (iframeRef.current.contentDocument) {
+        iframeRef.current.contentDocument.open();
+        iframeRef.current.contentDocument.close();
+      }
+      
+      // Wait for iframe to be ready
+      setTimeout(() => {
+        if (iframeRef.current && iframeRef.current.contentDocument) {
+          // Get the content with UTF-8 encoding ensured
+          const content = getSafeHtmlContent();
+          
+          // Write directly to the document to avoid encoding issues
+          const doc = iframeRef.current.contentDocument;
+          doc.open();
+          doc.write(content);
+          doc.close();
+          
+          console.log("Newsletter content loaded into iframe with UTF-8 encoding");
+        }
+      }, 100);
     }
   }, [newsletter.content]);
   
@@ -69,14 +97,13 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
       {newsletter.content ? (
         <iframe
           ref={iframeRef}
-          srcDoc={getSafeHtmlContent()}
           title={newsletter.title || "Newsletter Content"}
           className="w-full min-h-[500px] border-0"
           sandbox="allow-same-origin"
           style={{
             display: "block",
             width: "100%",
-            height: "100%",
+            height: "100vh", // Make it taller to show more content
           }}
         />
       ) : (

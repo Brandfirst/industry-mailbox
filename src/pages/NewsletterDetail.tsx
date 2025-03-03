@@ -30,6 +30,10 @@ const NewsletterDetail = () => {
       newContentTypeMeta.setAttribute('content', 'text/html; charset=utf-8');
       document.head.appendChild(newContentTypeMeta);
     }
+    
+    // Force the page to use UTF-8
+    document.documentElement.lang = 'en';
+    document.documentElement.setAttribute('encoding', 'UTF-8');
   }, []);
   
   return (

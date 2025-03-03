@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,24 +45,35 @@ export const useNewsletterDetail = () => {
           throw error;
         }
         
-        if (data && data.content) {
-          if (typeof data.content !== 'string') {
-            console.warn('Newsletter content is not a string, converting:', data.content);
-            data.content = String(data.content);
+        if (data) {
+          // Ensure content is properly handled as UTF-8
+          if (data.content) {
+            // Log the raw content to debug encoding issues
+            console.log('Raw content from DB (first 100 chars):', data.content.substring(0, 100));
+            
+            if (typeof data.content !== 'string') {
+              console.warn('Newsletter content is not a string, converting:', data.content);
+              data.content = String(data.content);
+            }
+            
+            // Force explicit UTF-8 encoding for the content
+            try {
+              // This technique ensures proper UTF-8 handling
+              const encoder = new TextEncoder();
+              const decoder = new TextDecoder('utf-8', { fatal: true });
+              const encoded = encoder.encode(data.content);
+              data.content = decoder.decode(encoded);
+              
+              // Log the processed content to verify encoding
+              console.log('Processed content (first 100 chars):', data.content.substring(0, 100));
+            } catch (e) {
+              console.error('Error with UTF-8 encoding/decoding:', e);
+            }
           }
           
-          try {
-            const encoder = new TextEncoder();
-            const decoder = new TextDecoder('utf-8', { fatal: true });
-            const encoded = encoder.encode(data.content);
-            data.content = decoder.decode(encoded);
-          } catch (e) {
-            console.error('Error decoding content:', e);
-          }
+          setNewsletter(data);
+          document.title = `${data?.title || 'Newsletter'} | NewsletterHub`;
         }
-        
-        setNewsletter(data);
-        document.title = `${data?.title || 'Newsletter'} | NewsletterHub`;
       } catch (error) {
         console.error('Error fetching newsletter:', error);
       } finally {

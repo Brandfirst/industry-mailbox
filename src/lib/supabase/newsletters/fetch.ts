@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter, NewsletterFilters } from "../types";
 import { NewsletterFilterOptions } from "./types";
@@ -17,6 +16,27 @@ export async function getNewsletterById(id: string | number) {
     
   if (error) {
     console.error('Error fetching newsletter by ID:', error);
+  }
+  
+  // Process content to ensure UTF-8 encoding
+  if (data && data.content) {
+    try {
+      // Log the raw content for debugging
+      console.log('Raw content from getNewsletterById (first 100 chars):', 
+        data.content.substring(0, 100));
+      
+      // Use TextEncoder/TextDecoder to ensure UTF-8 encoding
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      const encoded = encoder.encode(data.content);
+      data.content = decoder.decode(encoded);
+      
+      // Log the processed content
+      console.log('Processed content (first 100 chars):', 
+        data.content.substring(0, 100));
+    } catch (e) {
+      console.error('Error processing UTF-8 content in getNewsletterById:', e);
+    }
   }
   
   return { data, error };
