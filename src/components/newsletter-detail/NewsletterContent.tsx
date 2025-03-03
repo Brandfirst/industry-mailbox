@@ -1,3 +1,4 @@
+
 import { Newsletter } from "@/lib/supabase/types";
 import { useEffect, useRef, useState } from "react";
 import { 
@@ -42,6 +43,12 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     // Force HTTPS
     content = content.replace(/http:\/\//g, 'https://');
     
+    // Remove external tracking pixels and scripts that cause errors
+    content = content.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
+    
+    // Remove any script tags
+    content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
+    
     // Add data attribute if it has Nordic characters for special font handling
     const hasNordicAttribute = nordicChars ? 'data-has-nordic-chars="true"' : '';
     
@@ -57,7 +64,7 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
                 <meta charset="utf-8">
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none';">
+                <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none';">
                 <style>
                   ${getSystemFontCSS()}
                   body {
@@ -95,32 +102,16 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
           doc.write(htmlContent);
           doc.close();
           
+          // Add a handler to catch and stop further errors in the iframe
+          iframe.contentWindow?.addEventListener('error', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return true; // Prevents the error from bubbling up
+          }, true);
+          
           // Log charset after setting
           const metaCharset = doc.querySelector('meta[charset]');
           debugLog('CONTENT IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
-          
-          // Check for Nordic characters in the document
-          const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
-          if (nordicChars.length > 0) {
-            debugLog('NORDIC CHARS FOUND IN IFRAME DOCUMENT:', nordicChars.join(''));
-            
-            // Add special styling for Nordic characters if needed
-            const style = doc.createElement('style');
-            style.textContent = `
-              body {
-                font-family: 'SystemNordic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-              }
-            `;
-            doc.head.appendChild(style);
-          } else {
-            debugLog('NO NORDIC CHARS FOUND IN FINAL IFRAME DOCUMENT');
-            
-            // Perform a deeper check for encoded characters
-            const potentialDoubleEncoded = doc.body.innerHTML.match(/Ã[…†˜¦ø¸]/g);
-            if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
-              debugLog('Potential double-encoded characters found in iframe:', potentialDoubleEncoded.join(', '));
-            }
-          }
           
           // Adjust height after content is loaded
           setTimeout(() => {

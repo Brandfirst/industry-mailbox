@@ -13,7 +13,7 @@ import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import NewsletterDetail from "./pages/NewsletterDetail";
 import SenderNewsletters from "./pages/SenderNewsletters";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/auth/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 

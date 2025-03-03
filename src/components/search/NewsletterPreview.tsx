@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { 
   sanitizeNewsletterContent, 
@@ -41,6 +42,9 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     // Replace all http:// with https:// to prevent mixed content warnings
     secureContent = secureContent.replace(/http:\/\//g, 'https://');
     
+    // Remove external tracking pixels and scripts that cause errors
+    secureContent = secureContent.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
+    
     // Remove any script tags to prevent sandbox warnings
     secureContent = secureContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
     
@@ -57,7 +61,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none';">
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none';">
           <style>
             ${getSystemFontCSS()}
             html, body {
@@ -109,15 +113,12 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         const metaCharset = doc.querySelector('meta[charset]');
         debugLog('PREVIEW IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
         
-        // Add event listener to check if DOM gets mutated which might affect encoding
-        const observer = new MutationObserver(() => {
-          const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
-          if (nordicChars.length > 0) {
-            debugLog('NORDIC CHARS FOUND IN IFRAME AFTER DOM MUTATION:', nordicChars.join(''));
-          }
-        });
-        
-        observer.observe(doc.body, { childList: true, subtree: true, characterData: true });
+        // Add a handler to catch and stop further errors in the iframe
+        iframe.contentWindow?.addEventListener('error', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          return true; // Prevents the error from bubbling up
+        }, true);
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);

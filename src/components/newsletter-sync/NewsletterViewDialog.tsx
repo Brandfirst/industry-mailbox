@@ -44,6 +44,12 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
     // Replace http:// with https:// for security
     content = content.replace(/http:\/\//g, 'https://');
     
+    // Remove external tracking pixels and scripts that cause errors
+    content = content.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
+    
+    // Remove any script tags to prevent sandbox warnings
+    content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
+    
     // Add data attribute if has Nordic characters for special font handling
     const hasNordicAttribute = nordicChars ? 'data-has-nordic-chars="true"' : '';
     
@@ -52,7 +58,7 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none';">
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none';">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
           <style>
             ${getSystemFontCSS()}
@@ -80,13 +86,12 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
           doc.write(content);
           doc.close();
           
-          // Check for Nordic characters in the final iframe
-          const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
-          if (nordicChars.length > 0) {
-            debugLog('NORDIC CHARS FOUND IN DIALOG IFRAME:', nordicChars.join(''));
-          } else {
-            debugLog('NO NORDIC CHARS FOUND IN DIALOG IFRAME');
-          }
+          // Add error handler to catch and prevent iframe errors
+          iframeRef.current.contentWindow?.addEventListener('error', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return true;
+          }, true);
         }
       }
     };
@@ -100,13 +105,12 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         doc.write(content);
         doc.close();
         
-        // Check for Nordic characters in the final iframe
-        const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
-        if (nordicChars.length > 0) {
-          debugLog('NORDIC CHARS FOUND IN DIALOG IFRAME:', nordicChars.join(''));
-        } else {
-          debugLog('NO NORDIC CHARS FOUND IN DIALOG IFRAME');
-        }
+        // Add error handler to catch and prevent iframe errors
+        iframeRef.current.contentWindow?.addEventListener('error', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          return true;
+        }, true);
       }
     }
 
