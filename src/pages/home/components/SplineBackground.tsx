@@ -55,7 +55,7 @@ const SplineBackground = memo(({
       </div>
       
       {/* Add gradient overlay at the bottom for better content visibility */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10"></div>
+      <div className={`absolute bottom-0 left-0 right-0 h-32 ${theme === 'light' ? 'bg-gradient-to-t from-[#f8f9fa] to-transparent' : 'bg-gradient-to-t from-black to-transparent'} z-10`}></div>
     </div>
   );
 });

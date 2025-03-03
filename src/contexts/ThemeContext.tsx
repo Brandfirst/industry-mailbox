@@ -24,7 +24,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Remove previous theme classes
     root.classList.remove("dark", "light");
     
-    // Add current theme class
+    // Add current theme class to html element
     root.classList.add(theme);
     
     // Update body class for specific styling

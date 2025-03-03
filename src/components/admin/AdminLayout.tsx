@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogoutHandler } from "@/components/navbar/LogoutHandler";
+import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -27,8 +29,9 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const { user, isAdmin } = useAuth();
+  const { theme } = useTheme();
   
-  // Add admin-theme class to root when component mounts
+  // Update admin theme but preserve user's light/dark preference
   useEffect(() => {
     document.documentElement.classList.add('admin-theme');
     
@@ -59,7 +62,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
   };
 
   return (
-    <div className="min-h-screen bg-background dark text-foreground admin-layout">
+    <div className={`min-h-screen bg-background ${theme} text-foreground admin-layout`}>
       <div className="bg-dark-200/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50 w-full admin-header">
         <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
           <div className="flex items-center gap-2">
@@ -70,6 +73,11 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
           </div>
           
           <div className="flex items-center space-x-4">
+            <ThemeToggle 
+              variant="ghost"
+              className={`bg-dark-400 hover:bg-dark-500 border-[#FF5722]/30`} 
+            />
+            
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

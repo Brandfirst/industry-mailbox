@@ -103,3 +103,22 @@ body.light-mode {
 .light-mode .shadow-glow {
   box-shadow: 0 0 20px rgba(255, 87, 34, 0.3);
 }
+
+/* Admin specific light mode adjustments */
+.light-mode.admin-theme .admin-layout {
+  background-color: var(--admin-bg-primary);
+  color: var(--admin-text-primary);
+}
+
+.light-mode.admin-theme .admin-header {
+  background-color: var(--admin-bg-secondary);
+  color: var(--admin-text-primary);
+}
+
+.light-mode.admin-theme .admin-header a {
+  color: var(--admin-text-primary);
+}
+
+.light-mode.admin-theme .admin-header a:hover {
+  color: var(--admin-accent);
+}
