@@ -51,11 +51,11 @@ export async function getNewslettersFromEmailAccount(
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
     
-    // Build base query - note we're using gmail_message_id or email_id, not message_id
+    // Build base query - use email_id to get emails imported for this account
     let query = supabase
       .from('newsletters')
       .select('*, categories:category_id(*)', { count: 'exact' })
-      .eq('sender_email', account.email)
+      .eq('email_id', accountId)
       .order('published_at', { ascending: false });
     
     // Apply filters
@@ -90,6 +90,8 @@ export async function getNewslettersFromEmailAccount(
       console.error("Error fetching newsletters:", error);
       return { data: [], error, total: 0 };
     }
+    
+    console.log(`Retrieved ${data?.length || 0} newsletters for account ${accountId}`);
     
     return { 
       data: data as Newsletter[], 

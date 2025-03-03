@@ -98,6 +98,141 @@ const isLikelyNewsletter = (email: any, verbose = false) => {
   return false;
 };
 
+async function fetchGmailEmails(accessToken, verbose = false) {
+  if (verbose) {
+    console.log(`Fetching emails from Gmail API with token: ${accessToken.substring(0, 10)}...`);
+  }
+  
+  try {
+    // First, let's get the user's email address
+    const userInfoResponse = await fetch('https://www.googleapis.com/gmail/v1/users/me/profile', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    
+    if (!userInfoResponse.ok) {
+      const errorData = await userInfoResponse.json();
+      console.error('Error fetching Gmail user profile:', errorData);
+      throw new Error(`Gmail API profile error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+    
+    const userInfo = await userInfoResponse.json();
+    if (verbose) {
+      console.log(`Fetching emails for Gmail user: ${userInfo.emailAddress}`);
+    }
+    
+    // Get list of message IDs
+    const listResponse = await fetch(
+      'https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50&q=category:promotions OR category:updates OR is:newsletter OR unsubscribe', 
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    );
+    
+    if (!listResponse.ok) {
+      const errorData = await listResponse.json();
+      console.error('Error fetching Gmail message list:', errorData);
+      throw new Error(`Gmail API list error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+    
+    const messageList = await listResponse.json();
+    
+    if (!messageList.messages || messageList.messages.length === 0) {
+      if (verbose) {
+        console.log('No messages found in Gmail');
+      }
+      return [];
+    }
+    
+    if (verbose) {
+      console.log(`Found ${messageList.messages.length} messages, fetching details`);
+    }
+    
+    // Fetch details for each message
+    const emails = [];
+    
+    for (const message of messageList.messages.slice(0, 20)) { // Limit to 20 messages to avoid rate limits
+      const messageResponse = await fetch(
+        `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`, 
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
+      );
+      
+      if (!messageResponse.ok) {
+        console.error(`Error fetching details for message ${message.id}`, await messageResponse.text());
+        continue;
+      }
+      
+      const messageData = await messageResponse.json();
+      
+      // Extract headers
+      const headers = messageData.payload.headers.reduce((acc, header) => {
+        acc[header.name.toLowerCase()] = header.value;
+        return acc;
+      }, {});
+      
+      // Extract body
+      let html = '';
+      let plainText = '';
+      
+      if (messageData.payload.parts) {
+        for (const part of messageData.payload.parts) {
+          if (part.mimeType === 'text/html' && part.body.data) {
+            html = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+          } else if (part.mimeType === 'text/plain' && part.body.data) {
+            plainText = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+          } else if (part.parts) {
+            // Handle nested parts
+            for (const subpart of part.parts) {
+              if (subpart.mimeType === 'text/html' && subpart.body.data) {
+                html = atob(subpart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+              } else if (subpart.mimeType === 'text/plain' && subpart.body.data) {
+                plainText = atob(subpart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+              }
+            }
+          }
+        }
+      } else if (messageData.payload.body && messageData.payload.body.data) {
+        // Handle single-part messages
+        if (messageData.payload.mimeType === 'text/html') {
+          html = atob(messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+        } else if (messageData.payload.mimeType === 'text/plain') {
+          plainText = atob(messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+        }
+      }
+      
+      const email = {
+        id: messageData.id,
+        threadId: messageData.threadId,
+        subject: headers.subject || '',
+        sender: headers.from || '',
+        sender_email: headers.from ? headers.from.match(/<(.+)>/) ? headers.from.match(/<(.+)>/)[1] : headers.from : '',
+        date: new Date(parseInt(messageData.internalDate)).toISOString(),
+        html: html,
+        snippet: messageData.snippet || plainText.substring(0, 200),
+        labelIds: messageData.labelIds || [],
+      };
+      
+      emails.push(email);
+    }
+    
+    if (verbose) {
+      console.log(`Successfully fetched ${emails.length} emails from Gmail API`);
+    }
+    
+    return emails;
+  } catch (error) {
+    console.error('Error fetching emails from Gmail API:', error);
+    throw error;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -107,7 +242,7 @@ serve(async (req) => {
   try {
     // Parse request body
     const requestData = await req.json();
-    const { accountId, debug = false, verbose = false } = requestData;
+    const { accountId, debug = false, verbose = false, import_all_emails = false } = requestData;
     
     if (!accountId) {
       console.error('No accountId provided');
@@ -157,61 +292,26 @@ serve(async (req) => {
       .update({ last_sync: new Date().toISOString() })
       .eq('id', accountId);
     
-    // For demo/testing, simulate fetching emails
-    // In a real app, you would use the account's access_token to fetch real emails
-    // from the provider's API (Gmail, Outlook, etc.)
-    
-    // Default emails to be fetched (can be replaced with actual API call)
-    if (verbose) {
-      console.log(`Fetching emails for ${accountData.email}`);
-    }
-
-    // In real implementation, call Gmail API using the access token
-    // For this demo, we're using mock data
+    // Fetch emails from the actual Gmail API
     let emails = [];
     let errorFetchingEmails = null;
     
     try {
       if (accountData.provider === 'gmail') {
-        // In a real implementation, fetch emails from Gmail API
-        // For now, use some mock data
-        emails = [
-          {
-            id: '123',
-            subject: 'Your Weekly Tech Newsletter',
-            sender: 'tech-news@example.com',
-            date: new Date().toISOString(),
-            html: '<div>Some newsletter content</div>',
-            snippet: 'Latest tech news and updates...'
-          },
-          {
-            id: '124',
-            subject: 'Daily News Digest',
-            sender: 'news@daily.com',
-            date: new Date().toISOString(),
-            html: '<div>Some more newsletter content</div>',
-            snippet: 'Top stories of the day...'
-          },
-          {
-            id: '125',
-            subject: 'Marketing Tips',
-            sender: 'marketing@tips.com',
-            date: new Date().toISOString(),
-            html: '<div>Marketing newsletter content</div>',
-            snippet: 'Improve your marketing strategy...'
-          },
-          // Fetch real emails from Gmail API here
-        ];
+        // Use the access token to fetch emails from Gmail API
+        emails = await fetchGmailEmails(accountData.access_token, verbose);
         
-        // In a real implementation, we would fetch actual emails:
-        // 1. Use accountData.access_token to authenticate to Gmail API
-        // 2. Fetch messages with labels like CATEGORY_PROMOTIONS or matching search criteria
-        // 3. Process each message to extract needed data
-
         if (verbose) {
-          console.log(`Would normally fetch emails from Gmail API using access token: ${accountData.access_token.substring(0, 10)}...`);
-          console.log(`For testing, using ${emails.length} mock newsletter emails`);
+          console.log(`Fetched ${emails.length} emails from Gmail API for ${accountData.email}`);
         }
+      } else {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: `Provider ${accountData.provider} is not supported` 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
     } catch (error) {
       console.error('Error fetching emails:', error);
@@ -228,12 +328,15 @@ serve(async (req) => {
       );
     }
     
-    // Filter for newsletters based on content/sender
+    // Filter for newsletters based on content/sender or import all if requested
     if (verbose) {
-      console.log(`Filtering ${emails.length} emails for newsletters`);
+      console.log(`Filtering ${emails.length} emails for newsletters (import_all_emails=${import_all_emails})`);
     }
     
-    const newsletters = emails.filter(email => isLikelyNewsletter(email, verbose));
+    let newsletters = emails;
+    if (!import_all_emails) {
+      newsletters = emails.filter(email => isLikelyNewsletter(email, verbose));
+    }
     
     if (verbose) {
       console.log(`Found ${newsletters.length} newsletters out of ${emails.length} emails`);
@@ -268,8 +371,9 @@ serve(async (req) => {
         const newsletterData = {
           email_id: accountId,
           gmail_message_id: newsletter.id,
+          gmail_thread_id: newsletter.threadId,
           title: newsletter.subject,
-          sender_email: newsletter.sender,
+          sender_email: newsletter.sender_email,
           sender: newsletter.sender,
           content: newsletter.html || newsletter.snippet || '',
           published_at: newsletter.date,
@@ -336,7 +440,7 @@ serve(async (req) => {
           timestamp: new Date().toISOString(),
           accountId,
           emailsProcessed: emails.length,
-          mock: true // For demo purposes
+          mock: false
         } : null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

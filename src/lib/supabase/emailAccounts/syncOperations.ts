@@ -25,13 +25,13 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
       console.log(`Error fetching account info: ${accountError.message}`);
     }
     
-    // Invoke the function with import_all_emails=true to bypass newsletter filtering
+    // Invoke the function with production settings
     const response = await supabase.functions.invoke("sync-emails", {
       body: { 
         accountId,
-        import_all_emails: true,  // This flag tells the function to import all emails
-        debug: true,              // Request debug info from the function
-        verbose: true             // Request verbose logging
+        import_all_emails: false,  // Don't import all emails, only newsletters
+        debug: true,               // Request debug info from the function
+        verbose: true              // Request verbose logging
       },
     });
 
@@ -99,9 +99,6 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     } else {
       console.log("No emails were synced. Function returned success but empty array.");
       console.log("Debug info:", response.data.debugInfo || "No debug info available");
-      
-      // Add more diagnostic info about what might be wrong
-      console.log("Account is using mock data in demo mode, but in production would use Gmail API");
     }
 
     // If we reach here, the sync was successful

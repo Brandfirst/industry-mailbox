@@ -25,7 +25,12 @@ export const EmailAccountsList = ({ emailAccounts, onRefresh }: EmailAccountsLis
       console.log("Sync result:", result);
       
       if (result.success) {
-        toast.success("Successfully synced emails");
+        if (result.count > 0) {
+          toast.success(`Successfully synced ${result.count} emails`);
+        } else {
+          toast.success("Sync completed, but no new emails were found");
+        }
+        
         await onRefresh(); // Refresh the accounts list
         return result;
       } else {
