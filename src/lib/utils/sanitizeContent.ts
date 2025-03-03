@@ -1,4 +1,3 @@
-
 /**
  * Utility for cleaning up HTML content before displaying in iframes
  * to prevent CORS issues with external resources
@@ -83,45 +82,29 @@ export const getSystemFontCSS = (): string => {
   return `
     /* System font fallbacks with UTF-8 character support */
     * {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+      font-family: inherit;
     }
     
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
       margin: 0;
       padding: 10px;
     }
     
-    /* Enhanced Nordic character support */
+    /* Enhanced Nordic character support - keep original font */
     @font-face {
       font-family: 'SystemNordic';
       src: local('Arial Unicode MS'), local('Arial'), local('Helvetica');
       unicode-range: U+00C5, U+00C6, U+00D8, U+00E5, U+00E6, U+00F8; /* ÅÆØåæø */
     }
     
-    /* Preserve special characters styling */
+    /* Instead of forcing a specific font, we only apply fallbacks */
     .preserve-nordic, [data-has-nordic-chars] * {
-      font-family: 'SystemNordic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+      font-family: inherit, 'SystemNordic', Arial Unicode MS, Arial, sans-serif;
     }
     
-    /* Make sure UTF-8 Nordic characters display properly */
+    /* Make sure UTF-8 Nordic characters display properly without changing font */
     [data-has-nordic-chars] {
-      font-family: 'SystemNordic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-    }
-    
-    /* Override any external font to ensure everything renders */
-    @font-face {
-      font-family: 'ABCFavorit-Medium';
-      src: local('SystemNordic'), local('-apple-system');
-      font-weight: normal;
-      font-style: normal;
-    }
-    
-    @font-face {
-      font-family: 'ABCFavorit-Bold';
-      src: local('SystemNordic'), local('-apple-system');
-      font-weight: bold;
-      font-style: normal;
+      font-family: inherit, 'SystemNordic', Arial Unicode MS, Arial, sans-serif;
     }
   `;
 };

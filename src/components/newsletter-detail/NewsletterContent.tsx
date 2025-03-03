@@ -46,6 +46,7 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     console.log('NORDIC CHARACTERS IN CONTENT COMPONENT AFTER SANITIZE:', nordicCharsAfter || 'None found');
     
     // Ensure content has proper HTML structure with UTF-8 encoding
+    // but preserve original styling
     return `<!DOCTYPE html>
             <html lang="en">
               <head>
