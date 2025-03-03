@@ -17,12 +17,20 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     
     console.log('PREPARING CONTENT FOR IFRAME (first 100 chars):', newsletter.content.substring(0, 100));
     
-    // First ensure UTF-8 encoding
+    // First ensure UTF-8 encoding with our enhanced function
     const utf8Content = ensureUtf8Encoding(newsletter.content);
     
     // Check for Nordic characters before processing
     const nordicChars = (utf8Content.match(/[ØÆÅøæå]/g) || []).join('');
     console.log('NORDIC CHARACTERS IN CONTENT COMPONENT BEFORE SANITIZE:', nordicChars || 'None found');
+    
+    // If no Nordic characters found, search for potential mis-encoded sequences
+    if (!nordicChars) {
+      const potentialDoubleEncoded = utf8Content.match(/Ã[…†˜¦ø¸]/g);
+      if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
+        console.log('Potential double-encoded characters found:', potentialDoubleEncoded.join(', '));
+      }
+    }
     
     // Sanitize content to prevent CORS issues with fonts
     let content = sanitizeNewsletterContent(utf8Content);
@@ -90,6 +98,21 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
           const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
           if (nordicChars.length > 0) {
             console.log('NORDIC CHARS FOUND IN IFRAME DOCUMENT:', nordicChars.join(''));
+          } else {
+            console.log('NO NORDIC CHARS FOUND IN FINAL IFRAME DOCUMENT');
+            
+            // Perform a deeper check for encoded characters
+            const potentialDoubleEncoded = doc.body.innerHTML.match(/Ã[…†˜¦ø¸]/g);
+            if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
+              console.log('Potential double-encoded characters found in iframe:', potentialDoubleEncoded.join(', '));
+            }
+          }
+          
+          // Try to force the charset if not already set
+          try {
+            doc.characterSet = "UTF-8";
+          } catch (e) {
+            console.log('Could not set characterSet directly, relying on meta tags');
           }
           
           // Adjust height after content is loaded

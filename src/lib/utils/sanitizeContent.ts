@@ -92,27 +92,34 @@ export const getSystemFontCSS = (): string => {
       padding: 10px;
     }
     
+    /* Enhanced Nordic character support */
+    @font-face {
+      font-family: 'SystemNordic';
+      src: local('Arial Unicode MS'), local('Arial'), local('Helvetica');
+      unicode-range: U+00C5, U+00C6, U+00D8, U+00E5, U+00E6, U+00F8; /* ÅÆØåæø */
+    }
+    
     /* Preserve special characters styling */
-    .preserve-nordic {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+    .preserve-nordic, [data-has-nordic-chars] * {
+      font-family: 'SystemNordic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
     }
     
     /* Make sure UTF-8 Nordic characters display properly */
     [data-has-nordic-chars] {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+      font-family: 'SystemNordic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
     }
     
     /* Override any external font to ensure everything renders */
     @font-face {
       font-family: 'ABCFavorit-Medium';
-      src: local('-apple-system');
+      src: local('SystemNordic'), local('-apple-system');
       font-weight: normal;
       font-style: normal;
     }
     
     @font-face {
       font-family: 'ABCFavorit-Bold';
-      src: local('-apple-system');
+      src: local('SystemNordic'), local('-apple-system');
       font-weight: bold;
       font-style: normal;
     }
@@ -127,16 +134,46 @@ export const ensureUtf8Encoding = (text: string | null): string => {
   if (!text) return '';
   
   // Convert to string if it's not already
-  const content = String(text);
+  let content = String(text);
   
   try {
-    // Use TextEncoder/TextDecoder for proper UTF-8 handling
+    // Check if we need to decode/fix a potential encoding issue
+    if (!/[ØÆÅøæå]/.test(content) && /[\u00c3][\u00b8\u00a6\u0085\u00a5\u00b6\u00f8]/.test(content)) {
+      // This might be double-encoded UTF-8, try to fix it
+      console.log('Detected possible double-encoded UTF-8, attempting to fix...');
+      
+      // Try to decode as if it were Latin-1 (ISO-8859-1) first
+      const decoder = new TextDecoder('iso-8859-1');
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(content);
+      content = decoder.decode(bytes);
+      
+      console.log('After ISO-8859-1 decoding attempt:', content.substring(0, 100));
+    }
+    
+    // Handle potential UTF-8 sequence issues
+    content = content
+      // Fix for Æ - might appear as Ã† in some encodings
+      .replace(/Ã†/g, 'Æ')
+      .replace(/Ã¦/g, 'æ')
+      // Fix for Ø - might appear as Ã˜ in some encodings
+      .replace(/Ã˜/g, 'Ø')
+      .replace(/Ã¸/g, 'ø')
+      // Fix for Å - might appear as Ã… in some encodings
+      .replace(/Ã…/g, 'Å')
+      .replace(/Ã¥/g, 'å');
+      
+    // Now use TextEncoder/TextDecoder for proper UTF-8 handling
     const encoder = new TextEncoder();
     const decoder = new TextDecoder('utf-8', { fatal: false });
     
     // Encode and then decode to normalize UTF-8
     const bytes = encoder.encode(content);
     const normalizedText = decoder.decode(bytes);
+    
+    // Check if we found any Nordic characters after fixing
+    const nordicChars = (normalizedText.match(/[ØÆÅøæå]/g) || []).join('');
+    console.log('NORDIC CHARACTERS AFTER UTF-8 NORMALIZATION:', nordicChars || 'None found');
     
     return normalizedText;
   } catch (error) {

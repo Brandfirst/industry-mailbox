@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter, NewsletterFilters } from "../types";
 import { NewsletterFilterOptions } from "./types";
@@ -25,6 +26,16 @@ export async function getNewsletterById(id: string | number) {
     // Check for Nordic characters in the raw data
     const nordicCharsInRaw = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
     console.log('NORDIC CHARACTERS IN RAW DB DATA:', nordicCharsInRaw || 'None found');
+    
+    // If no Nordic characters found, log potential encoding issues
+    if (!nordicCharsInRaw) {
+      // Check for potentially double-encoded sequences
+      const potentialDoubleEncoded = data.content.match(/Ã[…†˜¦ø¸]/g);
+      if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
+        console.log('Potential double-encoded characters found in DB data:', 
+                    potentialDoubleEncoded.join(', '));
+      }
+    }
     
     // Convert content to UTF-8 string, ensuring proper encoding
     data.content = String(data.content);

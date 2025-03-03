@@ -47,21 +47,44 @@ export const useNewsletterDetail = () => {
         }
         
         if (data) {
-          // Ensure we have content as a properly encoded string
+          // Check for raw Nordic characters in the data
           if (data.content) {
+            const rawNordicChars = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
+            console.log('NORDIC CHARACTERS IN RAW DB DATA:', rawNordicChars || 'None found');
+            
+            // Look for potential double-encoded characters
+            const potentialDoubleEncoded = data.content.match(/Ã[…†˜¦ø¸]/g);
+            if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
+              console.log('Potential double-encoded characters found:', potentialDoubleEncoded.join(', '));
+            }
+            
             console.log('CONTENT DATA TYPE:', typeof data.content);
             console.log('CONTENT SAMPLE (first 100 chars):', data.content.substring(0, 100));
             
-            // Apply our ensureUtf8Encoding function for consistent UTF-8 handling
+            // Apply our enhanced ensureUtf8Encoding function
             data.content = ensureUtf8Encoding(data.content);
+            
+            // Hex dump of the first few characters for debugging encoding issues
+            const hexDump = Array.from(data.content.substring(0, 20))
+              .map(char => `${char} (0x${char.charCodeAt(0).toString(16)})`)
+              .join(', ');
+            console.log('HEX DUMP OF FIRST 20 CHARS:', hexDump);
             
             // Also ensure title and preview are properly encoded
             if (data.title) {
+              const titleNordicBefore = (data.title.match(/[ØÆÅøæå]/g) || []).join('');
+              console.log('NORDIC CHARS IN TITLE BEFORE:', titleNordicBefore || 'None found');
               data.title = ensureUtf8Encoding(data.title);
+              const titleNordicAfter = (data.title.match(/[ØÆÅøæå]/g) || []).join('');
+              console.log('NORDIC CHARS IN TITLE AFTER:', titleNordicAfter || 'None found');
             }
             
             if (data.preview) {
+              const previewNordicBefore = (data.preview.match(/[ØÆÅøæå]/g) || []).join('');
+              console.log('NORDIC CHARS IN PREVIEW BEFORE:', previewNordicBefore || 'None found');
               data.preview = ensureUtf8Encoding(data.preview);
+              const previewNordicAfter = (data.preview.match(/[ØÆÅøæå]/g) || []).join('');
+              console.log('NORDIC CHARS IN PREVIEW AFTER:', previewNordicAfter || 'None found');
             }
             
             // Search for nordic characters after processing

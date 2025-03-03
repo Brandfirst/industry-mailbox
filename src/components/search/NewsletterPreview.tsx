@@ -16,7 +16,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
       return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><p>No content available</p></body></html>`;
     }
     
-    // Ensure UTF-8 encoding of content
+    // Ensure UTF-8 encoding of content with our enhanced function
     let encodedContent = ensureUtf8Encoding(content);
     
     // Check for Nordic characters
@@ -106,6 +106,13 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         });
         
         observer.observe(doc.body, { childList: true, subtree: true, characterData: true });
+        
+        // Set correct charset on document if possible
+        try {
+          doc.characterSet = "UTF-8";
+        } catch (e) {
+          console.log('Could not set characterSet directly, relying on meta tags');
+        }
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);
