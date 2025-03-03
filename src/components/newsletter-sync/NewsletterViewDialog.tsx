@@ -1,10 +1,11 @@
+
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Eye, X, Mail, Calendar, UserCircle, Tag, MapPin, FileCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { 
   sanitizeNewsletterContent, 
   getSystemFontCSS, 
@@ -18,6 +19,7 @@ type NewsletterViewDialogProps = {
 
 export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [hasErrors, setHasErrors] = useState(false);
   
   // Format the date if it exists
   const formattedDate = newsletter.published_at 
@@ -44,11 +46,14 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
     // Replace http:// with https:// for security
     content = content.replace(/http:\/\//g, 'https://');
     
-    // Remove external tracking pixels and scripts that cause errors
-    content = content.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
+    // More aggressive tracking pixel and analytics removal
+    content = content.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics|track|open|beacon|wf|ea|stat)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
     
     // Remove any script tags to prevent sandbox warnings
     content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
+    
+    // Remove problematic link tags that could cause certificate errors
+    content = content.replace(/<link[^>]*?href=['"]https?:\/\/(?:[^'"]+)\.(?:analytics|track|click|mail|open)[^'"]*['"][^>]*>/gi, '<!-- problematic link removed -->');
     
     // Add data attribute if has Nordic characters for special font handling
     const hasNordicAttribute = nordicChars ? 'data-has-nordic-chars="true"' : '';
@@ -58,7 +63,7 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none';">
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none'; frame-src 'none';">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
           <style>
             ${getSystemFontCSS()}
@@ -69,9 +74,50 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
             }
             img { max-width: 100%; height: auto; }
             * { max-width: 100%; box-sizing: border-box; }
+            
+            /* Error message styling */
+            .error-overlay {
+              display: none;
+              padding: 10px;
+              margin: 10px 0;
+              background-color: #f8f9fa;
+              border-left: 4px solid #dc3545;
+              color: #333;
+            }
+            .has-error .error-overlay {
+              display: block;
+            }
           </style>
+          <script>
+            // Suppress all errors to prevent console warnings
+            window.addEventListener('error', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Check if this is a certificate error or tracking pixel
+              const isTrackingError = e.message && (
+                e.message.includes('certificate') || 
+                e.message.includes('tracking') || 
+                e.message.includes('analytics') ||
+                e.message.includes('ERR_CERT') ||
+                e.message.includes('net::')
+              );
+              
+              if (!isTrackingError) {
+                // Only show error for non-tracking issues
+                document.body.classList.add('has-error');
+              }
+              
+              return true; // Prevents the error from bubbling up
+            }, true);
+          </script>
         </head>
-        <body ${hasNordicAttribute}>${content}</body>
+        <body ${hasNordicAttribute}>
+          <div class="error-overlay">
+            <p>Some content in this newsletter could not be displayed properly. This is usually due to security restrictions.</p>
+          </div>
+          ${content}
+        </body>
       </html>`;
   };
   
@@ -90,6 +136,21 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
           iframeRef.current.contentWindow?.addEventListener('error', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Check if this is a certificate error or tracking pixel
+            const isTrackingError = e.message && (
+              e.message.includes('certificate') || 
+              e.message.includes('tracking') || 
+              e.message.includes('analytics') ||
+              e.message.includes('ERR_CERT') ||
+              e.message.includes('net::')
+            );
+            
+            if (!isTrackingError) {
+              setHasErrors(true);
+              doc.body.classList.add('has-error');
+            }
+            
             return true;
           }, true);
         }
@@ -109,6 +170,21 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         iframeRef.current.contentWindow?.addEventListener('error', (e) => {
           e.preventDefault();
           e.stopPropagation();
+          
+          // Check if this is a certificate error or tracking pixel
+          const isTrackingError = e.message && (
+            e.message.includes('certificate') || 
+            e.message.includes('tracking') || 
+            e.message.includes('analytics') ||
+            e.message.includes('ERR_CERT') ||
+            e.message.includes('net::')
+          );
+          
+          if (!isTrackingError) {
+            setHasErrors(true);
+            doc.body.classList.add('has-error');
+          }
+          
           return true;
         }, true);
       }
@@ -205,6 +281,12 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         </DialogHeader>
 
         <div className="overflow-auto flex-1 h-[calc(90vh-220px)] bg-white dark:bg-gray-800 rounded-b-md">
+          {hasErrors && (
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 m-4 text-sm">
+              <p className="text-amber-700">Some content in this newsletter could not be displayed properly due to security restrictions.</p>
+            </div>
+          )}
+          
           {newsletter.content ? (
             <iframe
               ref={iframeRef}

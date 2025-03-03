@@ -42,11 +42,14 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     // Replace all http:// with https:// to prevent mixed content warnings
     secureContent = secureContent.replace(/http:\/\//g, 'https://');
     
-    // Remove external tracking pixels and scripts that cause errors
-    secureContent = secureContent.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
+    // More aggressive tracking pixel and analytics removal
+    secureContent = secureContent.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics|track|open|beacon|wf|ea|stat)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
     
     // Remove any script tags to prevent sandbox warnings
     secureContent = secureContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
+    
+    // Remove problematic link tags that could cause certificate errors
+    secureContent = secureContent.replace(/<link[^>]*?href=['"]https?:\/\/(?:[^'"]+)\.(?:analytics|track|click|mail|open)[^'"]*['"][^>]*>/gi, '<!-- problematic link removed -->');
     
     // Re-check Nordic characters after sanitizing
     const nordicCharsAfter = (secureContent.match(/[ØÆÅøæå]/g) || []).join('');
@@ -61,7 +64,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none';">
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none'; frame-src 'none';">
           <style>
             ${getSystemFontCSS()}
             html, body {
@@ -89,9 +92,53 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               max-width: 100%;
               box-sizing: border-box;
             }
+            /* Error message styling */
+            .error-overlay {
+              display: none;
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background-color: rgba(255,255,255,0.9);
+              justify-content: center;
+              align-items: center;
+              z-index: 100;
+              text-align: center;
+              padding: 20px;
+            }
+            .has-error .error-overlay {
+              display: flex;
+            }
           </style>
+          <script>
+            // Suppress all errors to prevent console warnings
+            window.addEventListener('error', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Check if this is a certificate error or tracking pixel
+              const isTrackingError = e.message && (
+                e.message.includes('certificate') || 
+                e.message.includes('tracking') || 
+                e.message.includes('analytics') ||
+                e.message.includes('ERR_CERT') ||
+                e.message.includes('net::')
+              );
+              
+              // If it's a tracking error, just silently ignore
+              return true;
+            }, true);
+          </script>
         </head>
-        <body ${hasNordicAttribute}>${secureContent}</body>
+        <body ${hasNordicAttribute}>
+          ${secureContent}
+          <div class="error-overlay">
+            <div>
+              <p>Some content couldn't be displayed properly.</p>
+            </div>
+          </div>
+        </body>
       </html>`;
   };
 
@@ -109,14 +156,26 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         doc.write(content);
         doc.close();
         
-        // Debug: Check if charset meta is present after creation
-        const metaCharset = doc.querySelector('meta[charset]');
-        debugLog('PREVIEW IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
-        
         // Add a handler to catch and stop further errors in the iframe
         iframe.contentWindow?.addEventListener('error', (e) => {
+          // Prevent the error from showing in console
           e.preventDefault();
           e.stopPropagation();
+          
+          // Don't show error UI for tracking/analytics errors
+          const isTrackingError = e.message && (
+            e.message.includes('certificate') || 
+            e.message.includes('tracking') || 
+            e.message.includes('analytics') ||
+            e.message.includes('ERR_CERT') ||
+            e.message.includes('net::')
+          );
+          
+          if (!isTrackingError) {
+            // Add error class to show error message for non-tracking errors
+            doc.body.classList.add('has-error');
+          }
+          
           return true; // Prevents the error from bubbling up
         }, true);
       }

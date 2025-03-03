@@ -15,6 +15,7 @@ interface NewsletterContentProps {
 const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeHeight, setIframeHeight] = useState("100vh");
+  const [hasErrors, setHasErrors] = useState(false);
   
   // Create formatted HTML content with enhanced debugging
   const getFormattedHtmlContent = () => {
@@ -43,11 +44,14 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     // Force HTTPS
     content = content.replace(/http:\/\//g, 'https://');
     
-    // Remove external tracking pixels and scripts that cause errors
-    content = content.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
+    // More aggressive tracking pixel and analytics removal
+    content = content.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics|track|open|beacon|wf|ea|stat)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
     
     // Remove any script tags
     content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
+    
+    // Remove problematic link tags that could cause certificate errors
+    content = content.replace(/<link[^>]*?href=['"]https?:\/\/(?:[^'"]+)\.(?:analytics|track|click|mail|open)[^'"]*['"][^>]*>/gi, '<!-- problematic link removed -->');
     
     // Add data attribute if it has Nordic characters for special font handling
     const hasNordicAttribute = nordicChars ? 'data-has-nordic-chars="true"' : '';
@@ -64,7 +68,7 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
                 <meta charset="utf-8">
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none';">
+                <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none'; frame-src 'none';">
                 <style>
                   ${getSystemFontCSS()}
                   body {
@@ -73,9 +77,50 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
                   }
                   img { max-width: 100%; height: auto; }
                   * { box-sizing: border-box; }
+                  
+                  /* Error message styling */
+                  .error-overlay {
+                    display: none;
+                    padding: 10px;
+                    margin: 10px 0;
+                    background-color: #f8f9fa;
+                    border-left: 4px solid #dc3545;
+                    color: #333;
+                  }
+                  .has-error .error-overlay {
+                    display: block;
+                  }
                 </style>
+                <script>
+                  // Suppress all errors to prevent console warnings
+                  window.addEventListener('error', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Don't show error UI for tracking/analytics errors
+                    const isTrackingError = e.message && (
+                      e.message.includes('certificate') || 
+                      e.message.includes('tracking') || 
+                      e.message.includes('analytics') ||
+                      e.message.includes('ERR_CERT') ||
+                      e.message.includes('net::')
+                    );
+                    
+                    if (!isTrackingError) {
+                      // For serious errors, show the error message
+                      document.body.classList.add('has-error');
+                    }
+                    
+                    return true; // Prevents the error from bubbling up
+                  }, true);
+                </script>
               </head>
-              <body ${hasNordicAttribute}>${content}</body>
+              <body ${hasNordicAttribute}>
+                <div class="error-overlay">
+                  <p>Some content in this newsletter could not be displayed properly. This is usually because of external resources that can't be loaded due to security restrictions.</p>
+                </div>
+                ${content}
+              </body>
             </html>`;
   };
   
@@ -104,8 +149,25 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
           
           // Add a handler to catch and stop further errors in the iframe
           iframe.contentWindow?.addEventListener('error', (e) => {
+            // Stop error propagation
             e.preventDefault();
             e.stopPropagation();
+            
+            // Check if this is a certificate or tracking error
+            const isTrackingError = e.message && (
+              e.message.includes('certificate') || 
+              e.message.includes('tracking') || 
+              e.message.includes('analytics') ||
+              e.message.includes('ERR_CERT') ||
+              e.message.includes('net::')
+            );
+            
+            if (!isTrackingError) {
+              setHasErrors(true);
+              // Add error class to show error message
+              doc.body.classList.add('has-error');
+            }
+            
             return true; // Prevents the error from bubbling up
           }, true);
           
@@ -123,6 +185,7 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
           }, 500);
         } catch (error) {
           console.error("Error writing to iframe:", error);
+          setHasErrors(true);
         }
       };
       
@@ -132,24 +195,32 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
       
     } catch (error) {
       console.error("Error setting up iframe:", error);
+      setHasErrors(true);
     }
   }, [newsletter.content]);
   
   return (
     <div className="border rounded-lg overflow-hidden bg-white p-6">
       {newsletter.content ? (
-        <iframe
-          ref={iframeRef}
-          title={newsletter.title || "Newsletter Content"}
-          className="w-full border-0"
-          sandbox="allow-same-origin"
-          style={{
-            display: "block",
-            width: "100%",
-            height: iframeHeight,
-            overflow: "hidden"
-          }}
-        />
+        <>
+          {hasErrors && (
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 text-sm">
+              <p className="text-amber-700">Some content in this newsletter could not be displayed properly due to security restrictions.</p>
+            </div>
+          )}
+          <iframe
+            ref={iframeRef}
+            title={newsletter.title || "Newsletter Content"}
+            className="w-full border-0"
+            sandbox="allow-same-origin"
+            style={{
+              display: "block",
+              width: "100%",
+              height: iframeHeight,
+              overflow: "hidden"
+            }}
+          />
+        </>
       ) : (
         <div className="text-center py-12">
           <p className="text-gray-500">No content available</p>
