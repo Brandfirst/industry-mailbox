@@ -13,17 +13,17 @@ export function EmptyState({ selectedAccount, isSyncing }: EmptyStateProps) {
       <div className="flex justify-center">
         <FileX className="h-12 w-12 text-gray-600" />
       </div>
-      <h3 className="text-lg font-medium text-gray-800">No newsletters found</h3>
+      <h3 className="text-lg font-medium text-gray-800">No emails found</h3>
       <p className="text-gray-600 max-w-md mx-auto">
         {selectedAccount
-          ? "No newsletters have been synced from this email account yet. Click the sync button to import newsletters."
-          : "Select an email account to view and manage newsletters."}
+          ? "No emails have been synced from this email account yet. Click the sync button to import emails."
+          : "Select an email account to view and manage emails."}
       </p>
       {selectedAccount && (
         <Alert variant="default" className="mt-4 bg-blue-50/50 border-blue-200 max-w-md mx-auto">
           <Info className="h-4 w-4 text-blue-500" />
           <AlertDescription className="text-sm text-blue-700">
-            If you know there are newsletters in your account but none appear after syncing, they may not match the system's criteria for newsletters. Currently, we look for email messages that appear to be newsletters based on their content and format.
+            The sync function will now attempt to import all emails from your account, without filtering for just newsletters.
             <br /><br />
             Note: The demo version uses mock data. In production, it would connect to the Gmail API to fetch your actual emails.
           </AlertDescription>
@@ -32,7 +32,7 @@ export function EmptyState({ selectedAccount, isSyncing }: EmptyStateProps) {
       {isSyncing && (
         <div className="flex justify-center items-center mt-4 text-primary">
           <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-          <span>Syncing newsletters...</span>
+          <span>Syncing emails...</span>
         </div>
       )}
     </div>

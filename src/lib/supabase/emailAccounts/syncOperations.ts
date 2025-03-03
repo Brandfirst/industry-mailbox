@@ -25,12 +25,13 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
       console.log(`Error fetching account info: ${accountError.message}`);
     }
     
-    // Invoke the function with more debug options
+    // Invoke the function with import_all_emails=true to bypass newsletter filtering
     const response = await supabase.functions.invoke("sync-emails", {
       body: { 
         accountId,
-        debug: true,  // Request debug info from the function
-        verbose: true // Request verbose logging
+        import_all_emails: true,  // This flag tells the function to import all emails
+        debug: true,              // Request debug info from the function
+        verbose: true             // Request verbose logging
       },
     });
 
@@ -79,7 +80,7 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         count: response.data.count || 0,
         synced: response.data.synced || [],
         failed: response.data.failed || [],
-        warning: "Some newsletters failed to sync",
+        warning: "Some emails failed to sync",
         details: response.data.details,
         statusCode: 200,
         timestamp: Date.now()
@@ -88,7 +89,7 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     
     // Log what was synced in detail
     if (response.data.synced && response.data.synced.length) {
-      console.log(`Synced ${response.data.synced.length} newsletters: `, 
+      console.log(`Synced ${response.data.synced.length} emails: `, 
         response.data.synced.map(n => ({
           subject: n.subject || n.title,
           sender: n.sender || n.sender_email,
@@ -96,11 +97,10 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         }))
       );
     } else {
-      console.log("No newsletters were synced. Function returned success but empty array.");
+      console.log("No emails were synced. Function returned success but empty array.");
       console.log("Debug info:", response.data.debugInfo || "No debug info available");
       
       // Add more diagnostic info about what might be wrong
-      console.log("The edge function may not be recognizing emails as newsletters.");
       console.log("Account is using mock data in demo mode, but in production would use Gmail API");
     }
 
