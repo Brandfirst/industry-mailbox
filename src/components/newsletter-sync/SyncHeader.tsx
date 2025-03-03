@@ -24,7 +24,7 @@ export function SyncHeader({ isSyncing, selectedAccount, emailAccounts, onSync }
 
   return (
     <CardTitle className="flex items-center justify-between text-gray-800">
-      <span>Newsletter Sync</span>
+      <span>Email Sync</span>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

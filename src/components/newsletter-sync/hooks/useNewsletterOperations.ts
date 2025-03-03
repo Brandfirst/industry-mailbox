@@ -36,21 +36,21 @@ export function useNewsletterOperations(
       console.log("Sync result:", result);
       
       if (result.success) {
-        toast.success("Successfully synced newsletters");
+        toast.success("Successfully synced emails");
         
         // Refresh the newsletters list - passing empty filters as third argument
         const { data, error, total } = await getNewslettersFromEmailAccount(selectedAccount, page, {});
         
         if (error) {
-          console.error("Error refreshing newsletters after sync:", error);
+          console.error("Error refreshing emails after sync:", error);
           setWarningMessage("Sync completed, but there was an issue loading the updated list.");
         } else {
-          console.log(`Refreshed newsletters: ${data?.length || 0} items loaded`);
+          console.log(`Refreshed emails: ${data?.length || 0} items loaded`);
           setNewsletters(data || []);
           setTotalCount(total || 0);
           
           if (data?.length === 0) {
-            setWarningMessage("Sync completed, but no newsletters were found. This could mean there are no newsletters in your account, or they didn't match our filter criteria.");
+            setWarningMessage("Sync completed, but no emails were found. This is likely because the demo version is using mock data.");
           }
         }
       } else {
@@ -96,10 +96,10 @@ export function useNewsletterOperations(
     
     try {
       await deleteNewslettersApi(ids);
-      toast.success(`${ids.length} newsletter(s) deleted`);
+      toast.success(`${ids.length} email(s) deleted`);
     } catch (error) {
-      console.error("Error deleting newsletters:", error);
-      toast.error("Failed to delete newsletters");
+      console.error("Error deleting emails:", error);
+      toast.error("Failed to delete emails");
       throw error;
     }
   }, []);

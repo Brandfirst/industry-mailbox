@@ -68,7 +68,7 @@ export function useNewsletterFetching(
       setWarningMessage(null);
       
       try {
-        console.log(`Loading newsletters for account ${selectedAccount}`, { page, filters });
+        console.log(`Loading emails for account ${selectedAccount}`, { page, filters });
         
         // Convert filters from FiltersState to NewsletterFilters
         const newsLetterFilters = {
@@ -85,11 +85,11 @@ export function useNewsletterFetching(
           newsLetterFilters
         );
         
-        console.log(`Newsletter data loaded: ${data?.length || 0} items, total count: ${total || 0}`);
+        console.log(`Email data loaded: ${data?.length || 0} items, total count: ${total || 0}`);
         
         if (error) {
-          console.error("Error fetching newsletters:", error);
-          setErrorMessage(`Failed to load newsletters: ${error.message}`);
+          console.error("Error fetching emails:", error);
+          setErrorMessage(`Failed to load emails: ${error.message}`);
           setNewsletters([]);
           setTotalCount(0);
         } else {
@@ -98,15 +98,15 @@ export function useNewsletterFetching(
           
           // Add a warning message if no newsletters found
           if ((!data || data.length === 0) && page === 1) {
-            setWarningMessage("No newsletters found. You may need to sync this account first by clicking the 'Sync' button.");
+            setWarningMessage("No emails found. You may need to sync this account first by clicking the 'Sync' button.");
           }
         }
       } catch (error) {
-        console.error("Exception loading newsletters:", error);
+        console.error("Exception loading emails:", error);
         setNewsletters([]);
         setTotalCount(0);
-        setErrorMessage("Failed to load newsletters. There may be a database issue or the account is not properly connected.");
-        toast.error("Failed to load newsletters");
+        setErrorMessage("Failed to load emails. There may be a database issue or the account is not properly connected.");
+        toast.error("Failed to load emails");
       } finally {
         setIsLoading(false);
         isLoadingRef.current = false;

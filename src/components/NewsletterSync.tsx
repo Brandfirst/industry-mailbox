@@ -39,7 +39,7 @@ export default function NewsletterSync() {
           onSync={handleSync}
         />
         <CardDescription>
-          Import newsletters from your connected email accounts
+          Import emails from your connected email accounts
         </CardDescription>
         <Alert variant="default" className="mt-4 bg-blue-50/10 border-blue-200">
           <InfoIcon className="h-4 w-4 text-blue-500" />
