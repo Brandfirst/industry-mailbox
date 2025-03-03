@@ -23,6 +23,14 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     const nordicChars = (encodedContent.match(/[ØÆÅøæå]/g) || []).join('');
     console.log('NORDIC CHARACTERS IN PREVIEW BEFORE SANITIZE:', nordicChars || 'None found');
     
+    // If no Nordic characters found but potential double-encoded sequences exist, log them
+    if (!nordicChars) {
+      const potentialDoubleEncoded = encodedContent.match(/Ã[…†˜¦ø¸]/g);
+      if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
+        console.log('Potential double-encoded characters in preview:', potentialDoubleEncoded.join(', '));
+      }
+    }
+    
     // Sanitize content to prevent CORS issues with fonts
     let secureContent = sanitizeNewsletterContent(encodedContent);
     

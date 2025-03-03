@@ -137,45 +137,75 @@ export const ensureUtf8Encoding = (text: string | null): string => {
   let content = String(text);
   
   try {
-    // Check if we need to decode/fix a potential encoding issue
-    if (!/[ØÆÅøæå]/.test(content) && /[\u00c3][\u00b8\u00a6\u0085\u00a5\u00b6\u00f8]/.test(content)) {
-      // This might be double-encoded UTF-8, try to fix it
+    // Check for double-encoded UTF-8 sequences - these are common when data is 
+    // double-encoded or when Latin-1 is interpreted as UTF-8
+    if (content.includes('Ã¸') || content.includes('Ã¦') || content.includes('Ã…') || 
+        content.includes('Ã˜') || content.includes('Ã†') || content.includes('Ã¥')) {
       console.log('Detected possible double-encoded UTF-8, attempting to fix...');
       
-      // Try to decode as if it were Latin-1 (ISO-8859-1) first
-      const decoder = new TextDecoder('iso-8859-1');
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(content);
-      content = decoder.decode(bytes);
+      // Replace all known problematic sequences directly
+      content = content
+        // Fix for ø (small o with stroke)
+        .replace(/Ã¸/g, 'ø')
+        // Fix for æ (small ae)
+        .replace(/Ã¦/g, 'æ')
+        // Fix for å (small a with ring)
+        .replace(/Ã¥/g, 'å')
+        // Fix for Ø (capital O with stroke)
+        .replace(/Ã˜/g, 'Ø')
+        // Fix for Æ (capital AE)
+        .replace(/Ã†/g, 'Æ')
+        // Fix for Å (capital A with ring)
+        .replace(/Ã…/g, 'Å');
       
-      console.log('After ISO-8859-1 decoding attempt:', content.substring(0, 100));
+      // If we still don't detect Nordic characters after direct replacement,
+      // try a more aggressive approach with TextDecoder
+      if (!/[ØÆÅøæå]/.test(content)) {
+        try {
+          // Try decoding as ISO-8859-1, which often works for Nordic characters
+          const decoder = new TextDecoder('iso-8859-1');
+          const encoder = new TextEncoder();
+          const bytes = encoder.encode(content);
+          content = decoder.decode(bytes);
+          
+          console.log('After ISO-8859-1 decoding attempt:', content.substring(0, 100));
+        } catch (e) {
+          console.error('Error using TextDecoder with ISO-8859-1:', e);
+        }
+      }
     }
     
-    // Handle potential UTF-8 sequence issues
+    // Additional manual replacements for common encoding issues with Nordic chars
+    // Sometimes they appear with HTML entities or in other forms
     content = content
-      // Fix for Æ - might appear as Ã† in some encodings
-      .replace(/Ã†/g, 'Æ')
-      .replace(/Ã¦/g, 'æ')
-      // Fix for Ø - might appear as Ã˜ in some encodings
-      .replace(/Ã˜/g, 'Ø')
-      .replace(/Ã¸/g, 'ø')
-      // Fix for Å - might appear as Ã… in some encodings
-      .replace(/Ã…/g, 'Å')
-      .replace(/Ã¥/g, 'å');
-      
-    // Now use TextEncoder/TextDecoder for proper UTF-8 handling
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder('utf-8', { fatal: false });
+      // HTML entities for Nordic characters
+      .replace(/&oslash;/g, 'ø')
+      .replace(/&aelig;/g, 'æ')
+      .replace(/&aring;/g, 'å')
+      .replace(/&Oslash;/g, 'Ø')
+      .replace(/&AElig;/g, 'Æ')
+      .replace(/&Aring;/g, 'Å')
+      // Numeric HTML entities
+      .replace(/&#248;/g, 'ø')
+      .replace(/&#230;/g, 'æ')
+      .replace(/&#229;/g, 'å')
+      .replace(/&#216;/g, 'Ø')
+      .replace(/&#198;/g, 'Æ')
+      .replace(/&#197;/g, 'Å');
     
-    // Encode and then decode to normalize UTF-8
-    const bytes = encoder.encode(content);
-    const normalizedText = decoder.decode(bytes);
+    // Check for any remaining encoding anomalies and log them
+    const doubleEncodedPattern = /Ã[…†˜¦ø¸]/g;
+    const remainingDoubleEncoded = content.match(doubleEncodedPattern);
+    if (remainingDoubleEncoded && remainingDoubleEncoded.length > 0) {
+      console.log('Remaining potentially double-encoded sequences:', 
+                  [...new Set(remainingDoubleEncoded)].join(', '));
+    }
     
     // Check if we found any Nordic characters after fixing
-    const nordicChars = (normalizedText.match(/[ØÆÅøæå]/g) || []).join('');
+    const nordicChars = (content.match(/[ØÆÅøæå]/g) || []).join('');
     console.log('NORDIC CHARACTERS AFTER UTF-8 NORMALIZATION:', nordicChars || 'None found');
     
-    return normalizedText;
+    return content;
   } catch (error) {
     console.error('Error ensuring UTF-8 encoding:', error);
     return content; // Return original if encoding fails

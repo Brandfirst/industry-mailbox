@@ -6,7 +6,7 @@ import { Eye, X, Mail, Calendar, UserCircle, Tag, MapPin, FileCode } from "lucid
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { useRef, useEffect } from "react";
-import { sanitizeNewsletterContent, getSystemFontCSS } from "@/lib/utils/sanitizeContent";
+import { sanitizeNewsletterContent, getSystemFontCSS, ensureUtf8Encoding } from "@/lib/utils/sanitizeContent";
 
 type NewsletterViewDialogProps = {
   newsletter: Newsletter;
@@ -27,11 +27,21 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
   const getIframeContent = () => {
     if (!newsletter.content) return null;
     
+    // First ensure proper UTF-8 encoding
+    const utf8Content = ensureUtf8Encoding(newsletter.content);
+    
+    // Check for Nordic characters
+    const nordicChars = (utf8Content.match(/[ØÆÅøæå]/g) || []).join('');
+    console.log('NORDIC CHARACTERS IN DIALOG BEFORE SANITIZE:', nordicChars || 'None found');
+    
     // Sanitize content to prevent CORS issues
-    let content = sanitizeNewsletterContent(newsletter.content);
+    let content = sanitizeNewsletterContent(utf8Content);
     
     // Replace http:// with https:// for security
     content = content.replace(/http:\/\//g, 'https://');
+    
+    // Add data attribute if has Nordic characters for special font handling
+    const hasNordicAttribute = nordicChars ? 'data-has-nordic-chars="true"' : '';
     
     return `<!DOCTYPE html>
       <html>
@@ -51,7 +61,7 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
             * { max-width: 100%; box-sizing: border-box; }
           </style>
         </head>
-        <body>${content}</body>
+        <body ${hasNordicAttribute}>${content}</body>
       </html>`;
   };
   
@@ -65,6 +75,14 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
           doc.open();
           doc.write(content);
           doc.close();
+          
+          // Check for Nordic characters in the final iframe
+          const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
+          if (nordicChars.length > 0) {
+            console.log('NORDIC CHARS FOUND IN DIALOG IFRAME:', nordicChars.join(''));
+          } else {
+            console.log('NO NORDIC CHARS FOUND IN DIALOG IFRAME');
+          }
         }
       }
     };
@@ -77,6 +95,14 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         doc.open();
         doc.write(content);
         doc.close();
+        
+        // Check for Nordic characters in the final iframe
+        const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
+        if (nordicChars.length > 0) {
+          console.log('NORDIC CHARS FOUND IN DIALOG IFRAME:', nordicChars.join(''));
+        } else {
+          console.log('NO NORDIC CHARS FOUND IN DIALOG IFRAME');
+        }
       }
     }
 

@@ -11,7 +11,7 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeHeight, setIframeHeight] = useState("100vh");
   
-  // Create formatted HTML content
+  // Create formatted HTML content with enhanced debugging
   const getFormattedHtmlContent = () => {
     if (!newsletter.content) return '';
     
@@ -38,12 +38,12 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     // Force HTTPS
     content = content.replace(/http:\/\//g, 'https://');
     
+    // Add data attribute if it has Nordic characters for special font handling
+    const hasNordicAttribute = nordicChars ? 'data-has-nordic-chars="true"' : '';
+    
     // Re-check for Nordic characters after sanitization
     const nordicCharsAfter = (content.match(/[ØÆÅøæå]/g) || []).join('');
     console.log('NORDIC CHARACTERS IN CONTENT COMPONENT AFTER SANITIZE:', nordicCharsAfter || 'None found');
-    
-    // Add data attribute if it has Nordic characters for special font handling
-    const hasNordicAttribute = nordicCharsAfter ? 'data-has-nordic-chars="true"' : '';
     
     // Ensure content has proper HTML structure with UTF-8 encoding
     return `<!DOCTYPE html>
@@ -98,6 +98,15 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
           const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
           if (nordicChars.length > 0) {
             console.log('NORDIC CHARS FOUND IN IFRAME DOCUMENT:', nordicChars.join(''));
+            
+            // Add special styling for Nordic characters if needed
+            const style = doc.createElement('style');
+            style.textContent = `
+              body {
+                font-family: 'SystemNordic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+              }
+            `;
+            doc.head.appendChild(style);
           } else {
             console.log('NO NORDIC CHARS FOUND IN FINAL IFRAME DOCUMENT');
             
