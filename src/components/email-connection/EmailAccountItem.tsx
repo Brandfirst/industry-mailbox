@@ -3,11 +3,21 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SyncIcon, RefreshCw, TrashIcon, AlertTriangle } from "lucide-react";
+import { RotateCw, RefreshCw, TrashIcon, AlertTriangle } from "lucide-react";
 import { syncEmailAccount, disconnectEmailAccount } from "@/lib/supabase/emailAccounts";
-import { EmailAccountItemProps } from "./types";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+
+export interface EmailAccountItemProps {
+  account: {
+    id: string;
+    email: string;
+    last_sync: string | null;
+    provider: string;
+  };
+  onDelete?: (id: string) => void;
+  onRefresh?: () => Promise<void>;
+}
 
 export const EmailAccountItem = ({
   account,
@@ -136,7 +146,7 @@ export const EmailAccountItem = ({
               {isSyncing ? (
                 <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
               ) : (
-                <SyncIcon className="h-4 w-4 mr-1" />
+                <RotateCw className="h-4 w-4 mr-1" />
               )}
               Sync
             </Button>
