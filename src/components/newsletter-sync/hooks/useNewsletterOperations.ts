@@ -5,7 +5,7 @@ import {
   deleteNewsletters as deleteNewslettersApi,
   syncEmailAccount,
   getNewslettersFromEmailAccount,
-  updateNewsletterCategory
+  updateNewsletterCategories
 } from "@/lib/supabase";
 
 export function useNewsletterOperations(
@@ -72,7 +72,11 @@ export function useNewsletterOperations(
     if (!selectedAccount) return;
     
     try {
-      await updateNewsletterCategory(newsletterId, categoryId);
+      // Create the update object with the expected format
+      const updates = [{ id: newsletterId, category_id: categoryId }];
+      
+      // Set the third parameter (applySenderWide) to false
+      await updateNewsletterCategories(updates, false);
       
       // Update the newsletters list to reflect the change
       const { data, total } = await getNewslettersFromEmailAccount(selectedAccount, page);
