@@ -34,6 +34,20 @@ export const useNewsletterDetail = () => {
           throw new Error('No newsletter identifier provided');
         }
         
+        // Get the raw content with no transform to see what's in the database
+        const { data: rawData, error: rawError } = await supabase
+          .from('newsletters')
+          .select('content')
+          .eq('id', newsletterId)
+          .single();
+          
+        if (rawData?.content) {
+          console.log('RAW DB CONTENT (first 200 chars):', rawData.content.substring(0, 200));
+          // Log special characters to check encoding
+          const specialChars = (rawData.content.match(/[ØÆÅøæå]/g) || []).join('');
+          console.log('Special characters in raw content:', specialChars || 'None found');
+        }
+        
         const { data, error } = await supabase
           .from('newsletters')
           .select('*, categories(name, color)')
@@ -46,28 +60,22 @@ export const useNewsletterDetail = () => {
         }
         
         if (data) {
-          // Ensure content is properly handled as UTF-8
+          // Process content for proper UTF-8 encoding
           if (data.content) {
-            // Log the raw content to debug encoding issues
-            console.log('Raw content from DB (first 100 chars):', data.content.substring(0, 100));
+            console.log('Original content (first 200 chars):', data.content.substring(0, 200));
             
+            // Log any special Nordic characters to check encoding
+            const specialChars = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
+            console.log('Special characters in content:', specialChars || 'None found');
+            
+            // Ensure content is a string
             if (typeof data.content !== 'string') {
-              console.warn('Newsletter content is not a string, converting:', data.content);
               data.content = String(data.content);
             }
             
-            // Force explicit UTF-8 encoding for the content
-            try {
-              // This technique ensures proper UTF-8 handling
-              const encoder = new TextEncoder();
-              const decoder = new TextDecoder('utf-8', { fatal: true });
-              const encoded = encoder.encode(data.content);
-              data.content = decoder.decode(encoded);
-              
-              // Log the processed content to verify encoding
-              console.log('Processed content (first 100 chars):', data.content.substring(0, 100));
-            } catch (e) {
-              console.error('Error with UTF-8 encoding/decoding:', e);
+            // Add explicit UTF-8 header if HTML
+            if (!data.content.includes('charset=utf-8') && data.content.includes('<html')) {
+              data.content = data.content.replace('<head>', '<head><meta charset="utf-8">');
             }
           }
           

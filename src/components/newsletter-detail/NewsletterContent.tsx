@@ -13,10 +13,13 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
   const getSafeHtmlContent = () => {
     if (!newsletter.content) return '';
     
+    // Log raw content to debug character encoding issues
+    console.log('Raw content (first 100 chars):', newsletter.content.substring(0, 100));
+    
     // Replace http:// with https:// for security
     let content = newsletter.content.replace(/http:\/\//g, 'https://');
     
-    // Check if content already has proper HTML structure
+    // Ensure content has HTML5 doctype and proper UTF-8 encoding
     if (!content.trim().toLowerCase().startsWith('<!doctype')) {
       content = `<!DOCTYPE html>
                 <html lang="en">
@@ -68,27 +71,29 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
   // Handle iframe load to ensure proper character encoding
   useEffect(() => {
     if (iframeRef.current) {
-      // Clear any previous content
-      if (iframeRef.current.contentDocument) {
-        iframeRef.current.contentDocument.open();
-        iframeRef.current.contentDocument.close();
-      }
+      const content = getSafeHtmlContent();
       
-      // Wait for iframe to be ready
-      setTimeout(() => {
-        if (iframeRef.current && iframeRef.current.contentDocument) {
-          // Get the content with UTF-8 encoding ensured
-          const content = getSafeHtmlContent();
-          
-          // Write directly to the document to avoid encoding issues
-          const doc = iframeRef.current.contentDocument;
-          doc.open();
+      // Use document.write to directly inject content with correct encoding
+      // This helps preserve special characters like ØÆÅ
+      try {
+        const doc = iframeRef.current.contentDocument;
+        if (doc) {
+          doc.open('text/html', 'replace');
           doc.write(content);
           doc.close();
           
-          console.log("Newsletter content loaded into iframe with UTF-8 encoding");
+          // Additional check to ensure the document is using UTF-8
+          const meta = doc.createElement('meta');
+          meta.setAttribute('charset', 'utf-8');
+          if (doc.head && !doc.head.querySelector('meta[charset]')) {
+            doc.head.insertBefore(meta, doc.head.firstChild);
+          }
+          
+          console.log("Newsletter content loaded with UTF-8 encoding");
         }
-      }, 100);
+      } catch (error) {
+        console.error("Error writing to iframe document:", error);
+      }
     }
   }, [newsletter.content]);
   
