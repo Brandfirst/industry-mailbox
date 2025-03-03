@@ -1,4 +1,3 @@
-
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
@@ -250,7 +249,7 @@ serve(async (req) => {
           .from('newsletters')
           .select('id')
           .eq('email_id', accountId)
-          .eq('message_id', newsletter.id)
+          .eq('gmail_message_id', newsletter.id)  // CHANGED: Use gmail_message_id instead of message_id
           .maybeSingle();
         
         if (existingData) {
@@ -263,11 +262,13 @@ serve(async (req) => {
         // Prepare newsletter data
         const newsletterData = {
           email_id: accountId,
-          message_id: newsletter.id,
+          gmail_message_id: newsletter.id,  // CHANGED: Use gmail_message_id instead of message_id
           title: newsletter.subject,
           sender_email: newsletter.sender,
+          sender: newsletter.sender,  // Add this for display name
           content: newsletter.html || newsletter.snippet || '',
           published_at: newsletter.date,
+          preview: newsletter.snippet || '',  // Add preview field
           // Add more fields as needed
         };
         
