@@ -11,7 +11,9 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
       {newsletter.content ? (
         <div 
           className="newsletter-content prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: newsletter.content }}
+          dangerouslySetInnerHTML={{ 
+            __html: newsletter.content 
+          }}
         />
       ) : (
         <div className="text-center py-12">

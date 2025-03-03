@@ -107,7 +107,25 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         <div className="overflow-auto flex-1 h-[calc(90vh-220px)] bg-white dark:bg-gray-800 rounded-b-md">
           {newsletter.content ? (
             <iframe
-              srcDoc={newsletter.content}
+              srcDoc={`<!DOCTYPE html>
+                <html>
+                  <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+                    <style>
+                      body {
+                        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                        margin: 0;
+                        padding: 1rem;
+                        color: #333;
+                      }
+                      img { max-width: 100%; height: auto; }
+                      * { max-width: 100%; box-sizing: border-box; }
+                    </style>
+                  </head>
+                  <body>${newsletter.content}</body>
+                </html>`}
               title={newsletter.title || "Newsletter Content"}
               className="w-full h-full border-0"
               sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"

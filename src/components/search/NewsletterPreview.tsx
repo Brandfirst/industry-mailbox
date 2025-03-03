@@ -10,7 +10,7 @@ interface NewsletterPreviewProps {
 const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPreviewProps) => {
   const getIframeContent = () => {
     if (!content) {
-      return `<!DOCTYPE html><html><head></head><body><p>No content available</p></body></html>`;
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><p>No content available</p></body></html>`;
     }
     
     // Replace all http:// with https:// to prevent mixed content warnings
