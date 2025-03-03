@@ -42,7 +42,7 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         success: false, 
         error: response.error.message || "Error connecting to sync service",
         statusCode: response.error ? 500 : 400,
-        timestamp: Date.now() // Add timestamp to match SyncResult type
+        timestamp: Date.now()
       };
     }
 
@@ -53,7 +53,7 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         success: false, 
         error: "Empty response from server", 
         statusCode: 400,
-        timestamp: Date.now() // Add timestamp to match SyncResult type
+        timestamp: Date.now()
       };
     }
 
@@ -65,7 +65,7 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         error: response.data.error || "Failed to sync emails",
         details: response.data.details || null,
         statusCode: response.data.statusCode || 400,
-        timestamp: Date.now() // Add timestamp to match SyncResult type
+        timestamp: Date.now()
       };
     }
 
@@ -82,7 +82,7 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         warning: "Some newsletters failed to sync",
         details: response.data.details,
         statusCode: 200,
-        timestamp: Date.now() // Add timestamp to match SyncResult type
+        timestamp: Date.now()
       };
     }
     
@@ -98,6 +98,10 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     } else {
       console.log("No newsletters were synced. Function returned success but empty array.");
       console.log("Debug info:", response.data.debugInfo || "No debug info available");
+      
+      // Add more diagnostic info about what might be wrong
+      console.log("The edge function may not be recognizing emails as newsletters.");
+      console.log("Account is using mock data in demo mode, but in production would use Gmail API");
     }
 
     // If we reach here, the sync was successful
@@ -108,14 +112,14 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
       synced: response.data.synced || [],
       count: response.data.count || 0,
       statusCode: 200,
-      timestamp: Date.now() // Add timestamp to match SyncResult type
+      timestamp: Date.now()
     };
   } catch (error) {
     console.error("Exception in syncEmailAccount:", error);
     return { 
       success: false, 
       error: error.message || String(error),
-      timestamp: Date.now() // Add timestamp to match SyncResult type
+      timestamp: Date.now()
     };
   }
 }

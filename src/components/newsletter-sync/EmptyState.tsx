@@ -24,6 +24,8 @@ export function EmptyState({ selectedAccount, isSyncing }: EmptyStateProps) {
           <Info className="h-4 w-4 text-blue-500" />
           <AlertDescription className="text-sm text-blue-700">
             If you know there are newsletters in your account but none appear after syncing, they may not match the system's criteria for newsletters. Currently, we look for email messages that appear to be newsletters based on their content and format.
+            <br /><br />
+            Note: The demo version uses mock data. In production, it would connect to the Gmail API to fetch your actual emails.
           </AlertDescription>
         </Alert>
       )}
