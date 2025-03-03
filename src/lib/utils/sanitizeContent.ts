@@ -26,6 +26,24 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
     '<!-- External font links removed to prevent CORS issues -->'
   );
   
+  // Remove all direct font references in styles to prevent CORS issues
+  htmlContent = htmlContent.replace(
+    /url\(['"]?https?:\/\/[^)]*\.(woff2?|ttf|otf|eot)['"]?\)/gi,
+    "url('')"
+  );
+  
+  // Replace any references to fonts in inline styles
+  htmlContent = htmlContent.replace(
+    /font-family:[^;]*(google|googleapis|cloudfront|storage\.googleapis)/gi,
+    'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+  );
+  
+  // Remove script tags to prevent sandbox warnings
+  htmlContent = htmlContent.replace(
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, 
+    '<!-- Scripts removed for security -->'
+  );
+  
   // Log that we've sanitized the content
   console.log('Newsletter content sanitized to prevent CORS issues with fonts');
   
@@ -52,6 +70,21 @@ export const getSystemFontCSS = (): string => {
     /* Preserve special characters styling */
     .preserve-nordic {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+    }
+    
+    /* Override any external font to ensure everything renders */
+    @font-face {
+      font-family: 'ABCFavorit-Medium';
+      src: local('-apple-system');
+      font-weight: normal;
+      font-style: normal;
+    }
+    
+    @font-face {
+      font-family: 'ABCFavorit-Bold';
+      src: local('-apple-system');
+      font-weight: bold;
+      font-style: normal;
     }
   `;
 };

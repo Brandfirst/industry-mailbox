@@ -16,6 +16,24 @@ export const cleanLocalStorage = (): void => {
     // First try to clear known problematic items
     safeRemoveFromLocalStorage('professional');
     
+    // Try to fix corrupted "professional" item
+    try {
+      const professionalItem = localStorage.getItem('professional');
+      if (professionalItem) {
+        try {
+          // Try to parse it to verify it's valid JSON
+          JSON.parse(professionalItem);
+        } catch (parseError) {
+          // If parsing fails, it's corrupted. Try to reset it
+          localStorage.setItem('professional', 'null');
+          localStorage.removeItem('professional');
+          console.log("Fixed corrupted 'professional' item");
+        }
+      }
+    } catch (e) {
+      console.warn("Error checking/fixing 'professional' item:", e);
+    }
+    
     // Clean any Supabase-related items
     try {
       const keysToRemove = [];
@@ -27,7 +45,24 @@ export const cleanLocalStorage = (): void => {
       }
       
       // Remove the collected keys
-      keysToRemove.forEach(key => safeRemoveFromLocalStorage(key));
+      keysToRemove.forEach(key => {
+        try {
+          // Try to parse the item to check if it's valid JSON (if expected to be)
+          const item = localStorage.getItem(key);
+          if (item && (key.includes('token') || key === 'professional')) {
+            try {
+              JSON.parse(item);
+            } catch (e) {
+              // Item is corrupted, remove it
+              console.log(`Removing corrupted localStorage item: ${key}`);
+              safeRemoveFromLocalStorage(key);
+            }
+          }
+        } catch (checkError) {
+          // Error checking the item, so we'll try to remove it
+          safeRemoveFromLocalStorage(key);
+        }
+      });
       
       console.log("Local storage cleared successfully");
     } catch (e) {
@@ -49,6 +84,12 @@ export const checkLocalStorageCorruption = (): void => {
           JSON.parse(professionalItem);
         } catch (e) {
           console.warn("Found corrupted 'professional' item in localStorage, removing it");
+          // Try to fix it by setting to null first, then removing
+          try {
+            localStorage.setItem('professional', 'null');
+          } catch (setError) {
+            console.warn("Could not reset 'professional' item:", setError);
+          }
           safeRemoveFromLocalStorage('professional');
         }
       }
@@ -66,6 +107,12 @@ export const checkLocalStorageCorruption = (): void => {
             JSON.parse(item);
           } catch (e) {
             console.warn(`Found corrupted '${key}' item in localStorage, removing it`);
+            try {
+              // For token items, try to set to valid JSON first
+              localStorage.setItem(key, '{"currentSession":null,"expiresAt":0}');
+            } catch (setError) {
+              console.warn(`Could not reset '${key}' item:`, setError);
+            }
             safeRemoveFromLocalStorage(key);
           }
         }

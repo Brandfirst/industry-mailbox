@@ -22,6 +22,9 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     // Replace all http:// with https:// to prevent mixed content warnings
     secureContent = secureContent.replace(/http:\/\//g, 'https://');
     
+    // Remove any script tags to prevent sandbox warnings
+    secureContent = secureContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
+    
     // Debug nordic characters for troubleshooting
     const nordicChars = (secureContent.match(/[ØÆÅøæå]/g) || []).join('');
     console.log('NORDIC CHARACTERS IN PREVIEW COMPONENT:', nordicChars || 'None found');
@@ -32,7 +35,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none';">
           <style>
             ${getSystemFontCSS()}
             html, body {

@@ -1,3 +1,4 @@
+
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none';">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
           <style>
             ${getSystemFontCSS()}
@@ -175,7 +176,7 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
               ref={iframeRef}
               title={newsletter.title || "Newsletter Content"}
               className="w-full h-full border-0"
-              sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+              sandbox="allow-same-origin"
             />
           ) : (
             <div className="text-center py-12">
