@@ -16,8 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogoutHandler } from "@/components/navbar/LogoutHandler";
-import ThemeToggle from "@/components/ThemeToggle";
-import { useTheme } from "@/contexts/ThemeContext";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -29,9 +27,8 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const { user, isAdmin } = useAuth();
-  const { theme } = useTheme();
   
-  // Update admin theme but preserve user's light/dark preference
+  // Add admin-theme class to root when component mounts
   useEffect(() => {
     document.documentElement.classList.add('admin-theme');
     
@@ -54,7 +51,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
         variant="ghost" 
         size="icon" 
         onClick={toggleMobileSidebar}
-        className={`lg:hidden absolute left-4 top-4 z-20 ${theme === 'light' ? 'text-gray-800' : 'text-white'}`}
+        className="lg:hidden text-white absolute left-4 top-4 z-20"
       >
         <Menu className="h-6 w-6" />
       </Button>
@@ -62,41 +59,36 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
   };
 
   return (
-    <div className={`min-h-screen admin-layout ${theme === 'light' ? 'bg-gray-100' : 'bg-dark-200'}`}>
-      <div className={`${theme === 'light' ? 'bg-white border-gray-200' : 'bg-dark-200/80 border-white/10'} backdrop-blur-sm border-b sticky top-0 z-50 w-full admin-header`}>
+    <div className="min-h-screen bg-background dark text-foreground admin-layout">
+      <div className="bg-dark-200/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50 w-full admin-header">
         <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
           <div className="flex items-center gap-2">
-            <Link to="/" className={`flex items-center ${theme === 'light' ? 'text-gray-800 hover:text-[#FF5722]' : 'text-white hover:text-[#FF5722]'} transition-colors`}>
+            <Link to="/" className="flex items-center text-white hover:text-[#FF5722] transition-colors">
               <ChevronLeft className="w-5 h-5 mr-1" />
               <span>Back to site</span>
             </Link>
           </div>
           
           <div className="flex items-center space-x-4">
-            <ThemeToggle 
-              variant="ghost"
-              className={`${theme === 'light' ? 'bg-gray-100 hover:bg-gray-200 border-gray-300' : 'bg-dark-400 hover:bg-dark-500 border-[#FF5722]/30'}`} 
-            />
-            
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`rounded-full ${theme === 'light' ? 'bg-gray-100 hover:bg-gray-200' : 'bg-dark-400 hover:bg-dark-500'}`}>
-                    <User className={`w-5 h-5 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`} />
+                  <Button variant="ghost" size="icon" className="rounded-full bg-dark-400 hover:bg-dark-500">
+                    <User className="w-5 h-5 text-gray-300" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className={`${theme === 'light' ? 'bg-white border-gray-200' : 'bg-dark-300 border-white/10'}`}>
-                  <DropdownMenuLabel className={theme === 'light' ? 'text-gray-900' : 'text-gray-100'}>
+                <DropdownMenuContent align="end" className="bg-dark-300 border-white/10">
+                  <DropdownMenuLabel className="text-gray-100">
                     {user.user_metadata?.firstName || user.email}
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className={theme === 'light' ? 'bg-gray-200' : 'bg-white/10'} />
-                  <DropdownMenuItem onClick={() => window.location.href = '/'} className={`${theme === 'light' ? 'hover:bg-gray-100 text-gray-800' : 'hover:bg-dark-400 text-gray-200'}`}>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem onClick={() => window.location.href = '/'} className="hover:bg-dark-400 text-gray-200">
                     Home Page
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => window.location.href = '/account'} className={`${theme === 'light' ? 'hover:bg-gray-100 text-gray-800' : 'hover:bg-dark-400 text-gray-200'}`}>
+                  <DropdownMenuItem onClick={() => window.location.href = '/account'} className="hover:bg-dark-400 text-gray-200">
                     My Account
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className={theme === 'light' ? 'bg-gray-200' : 'bg-white/10'} />
+                  <DropdownMenuSeparator className="bg-white/10" />
                   <DropdownMenuItem className="p-0">
                     <LogoutHandler className="w-full flex items-center px-2 py-1.5 cursor-default" />
                   </DropdownMenuItem>
@@ -116,7 +108,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
       
       {renderMobileMenuButton()}
       
-      <div className={`${isMobile ? 'ml-0 px-4 pt-16' : 'ml-64 p-8'} ${theme === 'light' ? 'text-gray-900 bg-gray-100' : 'text-white bg-dark-200'} min-h-screen`}>
+      <div className={`${isMobile ? 'ml-0 px-4 pt-16' : 'ml-64 p-8'} text-white bg-dark-200 min-h-screen`}>
         {children}
       </div>
     </div>

@@ -1,5 +1,5 @@
 
-/* Admin Portal Theme */
+/* Admin Portal Dark Mode Theme */
 :root.admin-theme {
   /* Dark backgrounds */
   --admin-bg-primary: #121212;
@@ -27,25 +27,7 @@
   --admin-info: #2196F3;
 }
 
-/* Light mode overrides for admin theme */
-:root.admin-theme.light {
-  /* Light backgrounds */
-  --admin-bg-primary: #F8F9FA;
-  --admin-bg-secondary: #FFFFFF;
-  --admin-bg-tertiary: #F1F3F5;
-  --admin-bg-elevated: #E9ECEF;
-  
-  /* Text colors */
-  --admin-text-primary: #212529;
-  --admin-text-secondary: #495057;
-  --admin-text-muted: #6C757D;
-  
-  /* Border colors */
-  --admin-border-subtle: rgba(0, 0, 0, 0.1);
-  --admin-border-strong: rgba(0, 0, 0, 0.2);
-}
-
-/* Admin Layout Styles */
+/* Admin Layout Dark Mode Styles */
 .admin-theme .admin-layout {
   background-color: var(--admin-bg-primary);
   color: var(--admin-text-primary);
@@ -78,7 +60,7 @@
   background-color: var(--admin-bg-elevated);
 }
 
-/* Button styling for admin theme */
+/* Button styling for admin dark theme */
 .admin-theme .admin-button-primary {
   background-color: var(--admin-accent);
   color: white;

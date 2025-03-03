@@ -2,7 +2,6 @@
 import { memo, useEffect, useState } from 'react';
 import SplineCanvas from './SplineCanvas';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTheme } from '@/contexts/ThemeContext';
 
 type SplineBackgroundProps = {
   position?: 'top' | 'center' | 'bottom';
@@ -21,7 +20,6 @@ const SplineBackground = memo(({
   className = '',
 }: SplineBackgroundProps) => {
   const isMobile = useIsMobile();
-  const { theme } = useTheme();
   
   // Calculate position style based on the position prop
   const getPositionStyle = () => {
@@ -35,15 +33,11 @@ const SplineBackground = memo(({
     }
   };
 
-  const getThemeOpacity = () => {
-    return theme === 'light' ? 0.15 : opacity;
-  };
-
   return (
     <div 
-      className={`absolute inset-0 w-full h-[150%] overflow-hidden spline-background ${getPositionStyle()} ${className}`}
+      className={`absolute inset-0 w-full h-[150%] overflow-hidden ${getPositionStyle()} ${className}`}
       style={{ 
-        opacity: getThemeOpacity(), 
+        opacity, 
         zIndex,
         // Applying a transform to move the Spline up on mobile
         transform: isMobile ? 'translateY(-15%)' : 'none'
@@ -59,7 +53,7 @@ const SplineBackground = memo(({
       </div>
       
       {/* Add gradient overlay at the bottom for better content visibility */}
-      <div className={`absolute bottom-0 left-0 right-0 h-32 ${theme === 'light' ? 'bg-gradient-to-t from-[#f8f9fa] to-transparent' : 'bg-gradient-to-t from-black to-transparent'} z-10`}></div>
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10"></div>
     </div>
   );
 });

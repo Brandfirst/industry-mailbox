@@ -5,24 +5,7 @@ body.dark-mode {
   color: #FFFFFF;
 }
 
-/* Global containers and sections in dark mode */
-.dark-mode .bg-background,
-.dark-mode section,
-.dark-mode .container-section,
-.dark-mode .bg-black {
-  background-color: #121212;
-  color: #FFFFFF;
-}
-
-/* Navbar styling for dark mode */
-.dark-mode nav {
-  background-color: #000000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Dark mode background overrides */
-.dark-mode .bg-white,
-.dark-mode .bg-light {
+.dark-mode .bg-white {
   background-color: #1E1E1E;
 }
 
@@ -61,7 +44,6 @@ body.dark-mode {
   background-color: #333333;
 }
 
-/* Form elements in dark mode */
 .dark-mode input,
 .dark-mode select,
 .dark-mode textarea {
@@ -74,17 +56,6 @@ body.dark-mode {
 .dark-mode select:focus,
 .dark-mode textarea:focus {
   border-color: #FF5722;
-}
-
-/* Button styles in dark mode */
-.dark-mode button:not(.gradient-button):not(.glass-button) {
-  background-color: #1E1E1E;
-  color: #FFFFFF;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-mode button:not(.gradient-button):not(.glass-button):hover {
-  background-color: #333333;
 }
 
 /* Search specific components */
@@ -114,71 +85,4 @@ body.dark-mode {
 
 .dark-mode .load-more-button:hover {
   background-color: rgba(255, 255, 255, 0.05);
-}
-
-/* Admin specific dark mode adjustments */
-.dark-mode.admin-theme .admin-layout {
-  background-color: var(--admin-bg-primary);
-  color: var(--admin-text-primary);
-}
-
-.dark-mode.admin-theme .admin-header {
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
-}
-
-/* Additional component styles */
-.dark-mode .glass-card {
-  background-color: rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-mode .feature-card {
-  background-color: #1E1E1E;
-  border-color: rgba(255, 255, 255, 0.05);
-}
-
-.dark-mode .bg-card {
-  background-color: #1A1A1A;
-}
-
-.dark-mode .bg-popover {
-  background-color: #1E1E1E;
-}
-
-.dark-mode .testimonial-card {
-  background-color: rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-mode .border-border {
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Button styles */
-.dark-mode .glass-button {
-  background-color: rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 87, 34, 0.2);
-  color: white;
-}
-
-.dark-mode .gradient-button {
-  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.15);
-}
-
-/* CTA and Newsletter subscription sections */
-.dark-mode .cta-section,
-.dark-mode .newsletter-section {
-  background-color: #121212;
-}
-
-/* Specific homepage sections */
-.dark-mode .hero-section,
-.dark-mode .stats-section,
-.dark-mode .features-section,
-.dark-mode .pricing-section,
-.dark-mode .faq-section,
-.dark-mode .footer-section {
-  background-color: #121212;
-  color: #FFFFFF;
 }

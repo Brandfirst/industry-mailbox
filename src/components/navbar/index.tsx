@@ -8,41 +8,37 @@ import { NavigationLinks } from "./NavigationLinks";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 import { AuthButtons } from "./AuthButtons";
-import ThemeToggle from "@/components/ThemeToggle";
-import { useTheme } from "@/contexts/ThemeContext";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isPremium, isAdmin } = useAuth();
-  const { theme } = useTheme();
 
   useEffect(() => {
     console.log('Navbar Auth Debug:', {
       user: user?.email,
       isAdmin: isAdmin,
       userMetadata: user?.user_metadata,
-      role: user?.user_metadata?.role,
-      currentTheme: theme
+      role: user?.user_metadata?.role
     });
-  }, [user, isAdmin, theme]);
+  }, [user, isAdmin]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const activeLink = "text-[#FF5722] font-medium";
-  const inactiveLink = `${theme === 'light' ? 'text-gray-600' : 'text-gray-400'} ${theme === 'light' ? 'hover:text-gray-900' : 'hover:text-white'} transition-colors`;
+  const inactiveLink = "text-gray-400 hover:text-white transition-colors";
 
   // Don't show navbar on admin pages
   const isAdminRoute = location.pathname.startsWith('/admin');
   if (isAdminRoute) return null;
 
   return (
-    <nav className={`sticky top-0 z-50 w-full ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-black border-white/10'} backdrop-blur-sm border-b`}>
+    <nav className="sticky top-0 z-50 w-full bg-black backdrop-blur-sm">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2">
-            <Mail className={`w-6 h-6 text-[#FF5722]`} />
-            <span className={`text-xl font-medium tracking-tight ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Nyhetsbrevo</span>
+            <Mail className="w-6 h-6 text-[#FF5722]" />
+            <span className="text-xl font-medium tracking-tight text-white">Nyhetsbrevo</span>
           </Link>
         </div>
         
@@ -54,26 +50,20 @@ const Navbar = () => {
             inactiveLink={inactiveLink} 
           />
           
-          <div className="flex items-center gap-3">
-            <ThemeToggle className={theme === 'light' ? 'border-gray-300' : 'border-[#FF5722]/30'} />
-            
-            {user ? (
-              <UserMenu user={user} isAdmin={isAdmin} isPremium={isPremium} />
-            ) : (
-              <AuthButtons />
-            )}
-          </div>
+          {user ? (
+            <UserMenu user={user} isAdmin={isAdmin} isPremium={isPremium} />
+          ) : (
+            <AuthButtons />
+          )}
         </div>
 
-        <div className="flex md:hidden items-center gap-2">
-          <ThemeToggle className={theme === 'light' ? 'border-gray-300' : 'border-[#FF5722]/30'} />
-          
+        <div className="flex md:hidden">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={toggleMenu}
             aria-label="Toggle menu"
-            className={theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
+            className="text-gray-400"
           >
             {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>

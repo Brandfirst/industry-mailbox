@@ -1,13 +1,10 @@
-
 import DynamicCounter from "../DynamicCounter";
 import { ArrowLeft, ArrowRight, Star } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { useTheme } from "@/contexts/ThemeContext";
 
 const HeroHeading = () => {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const testimonialContainerRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
 
   const testimonials = [
     {
@@ -48,13 +45,13 @@ const HeroHeading = () => {
   return (
     <div className="animate-slide-down max-w-5xl mx-auto">
       <h1 className="text-4xl md:text-5xl lg:text-6xl font-ebgaramond tracking-tight mb-6">
-        <span className={`block ${theme === 'light' ? 'text-gray-900' : 'text-white'} mb-2`}>Norges største database</span>
-        <span className={`block mt-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+        <span className="block text-white mb-2">Norges største database</span>
+        <span className="block mt-2 text-white">
           av <span className="text-[#FF5722]">nyhetsbrev</span>
         </span>
       </h1>
       
-      <p className={`text-lg md:text-xl ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'} max-w-3xl mx-auto mb-8`}>
+      <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">
         Utforsk mer enn 
         <DynamicCounter 
           startValue={70350} 
