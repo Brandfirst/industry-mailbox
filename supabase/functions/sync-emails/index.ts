@@ -18,14 +18,14 @@ async function refreshGoogleToken(refresh_token, accountId, supabase) {
   }
 
   try {
-    console.log(`Attempting to refresh token for account ${accountId}`);
+    console.log(`Attempting to refresh token for account ${accountId} with refresh token: ${refresh_token.substring(0, 10)}...`);
     
     // Get Google client credentials from env
     const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
     const clientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET");
     
     if (!clientId || !clientSecret) {
-      throw new Error('Google credentials not configured');
+      throw new Error('Google credentials not configured: ' + (!clientId ? 'Missing client ID' : 'Missing client secret'));
     }
     
     // Exchange refresh token for a new access token
@@ -42,18 +42,25 @@ async function refreshGoogleToken(refresh_token, accountId, supabase) {
       }),
     });
     
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error('Error refreshing Google token, HTTP status:', tokenResponse.status, 'Response:', errorText);
+      try {
+        const tokenData = JSON.parse(errorText);
+        throw new Error(`Failed to refresh token: ${tokenData.error_description || tokenData.error || 'Unknown error'}`);
+      } catch (parseError) {
+        throw new Error(`Failed to refresh token: HTTP ${tokenResponse.status} - ${errorText || 'No response details'}`);
+      }
+    }
+    
     const tokenData = await tokenResponse.json();
     
-    if (!tokenResponse.ok) {
-      console.error('Error refreshing Google token:', tokenData);
-      throw new Error(`Failed to refresh token: ${tokenData.error_description || tokenData.error || 'Unknown error'}`);
+    if (!tokenData.access_token) {
+      console.error('No access token in refresh response:', tokenData);
+      throw new Error('No access token in refresh response');
     }
     
     const { access_token, expires_in } = tokenData;
-    
-    if (!access_token) {
-      throw new Error('No access token in refresh response');
-    }
     
     // Update the account with the new access token
     const { error: updateError } = await supabase
@@ -70,7 +77,7 @@ async function refreshGoogleToken(refresh_token, accountId, supabase) {
       throw new Error('Failed to save refreshed token');
     }
     
-    console.log(`Successfully refreshed token for account ${accountId}`);
+    console.log(`Successfully refreshed token for account ${accountId}. New token starts with: ${access_token.substring(0, 10)}...`);
     return access_token;
   } catch (error) {
     console.error('Token refresh error:', error);
@@ -80,66 +87,80 @@ async function refreshGoogleToken(refresh_token, accountId, supabase) {
 
 async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, verbose = false) {
   if (verbose) {
-    console.log(`Fetching emails from Gmail API with token: ${accessToken.substring(0, 10)}...`);
+    console.log(`Fetching emails from Gmail API with token: ${accessToken ? accessToken.substring(0, 10) + '...' : 'NO TOKEN'}`);
+    console.log(`Refresh token available: ${refreshToken ? 'Yes' : 'No'}`);
+  }
+  
+  if (!accessToken) {
+    console.error('No access token provided to fetchGmailEmails');
+    throw new Error('Missing access token for Gmail API');
+  }
+  
+  async function makeGmailApiRequest(url, token) {
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.status === 401) {
+      // Return a special object indicating we need to refresh the token
+      return { needsRefresh: true, response };
+    }
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`Gmail API error (${url}):`, errorData);
+      throw new Error(`Gmail API error: ${errorData.error?.message || `HTTP ${response.status}`}`);
+    }
+    
+    return { data: await response.json(), needsRefresh: false };
   }
   
   try {
     // First, let's get the user's email address
-    let userResponse = await fetch('https://www.googleapis.com/gmail/v1/users/me/profile', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      }
-    });
+    let currentToken = accessToken;
+    let result = await makeGmailApiRequest('https://www.googleapis.com/gmail/v1/users/me/profile', currentToken);
     
     // Check if token is invalid and needs refresh
-    if (userResponse.status === 401) {
+    if (result.needsRefresh) {
       console.log('Access token expired, attempting to refresh...');
       if (!refreshToken) {
         throw new Error('Token expired and no refresh token available');
       }
       
       // Refresh the token
-      const newAccessToken = await refreshGoogleToken(refreshToken, accountId, supabase);
+      currentToken = await refreshGoogleToken(refreshToken, accountId, supabase);
       
       // Retry the request with the new token
-      userResponse = await fetch('https://www.googleapis.com/gmail/v1/users/me/profile', {
-        headers: {
-          'Authorization': `Bearer ${newAccessToken}`
-        }
-      });
+      result = await makeGmailApiRequest('https://www.googleapis.com/gmail/v1/users/me/profile', currentToken);
       
-      // Update the access token for future requests
-      accessToken = newAccessToken;
+      if (result.needsRefresh) {
+        throw new Error('Still getting 401 after token refresh. Authentication issue persists.');
+      }
     }
     
-    if (!userResponse.ok) {
-      const errorData = await userResponse.json();
-      console.error('Error fetching Gmail user profile:', errorData);
-      throw new Error(`Gmail API profile error: ${errorData.error?.message || 'Unknown error'}`);
-    }
-    
-    const userInfo = await userResponse.json();
+    const userInfo = result.data;
     if (verbose) {
       console.log(`Fetching emails for Gmail user: ${userInfo.emailAddress}`);
     }
     
-    // Get list of message IDs - removed filters to get all emails
-    const listResponse = await fetch(
+    // Get list of message IDs - modified to get up to 50 messages
+    result = await makeGmailApiRequest(
       'https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50', 
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      }
+      currentToken
     );
     
-    if (!listResponse.ok) {
-      const errorData = await listResponse.json();
-      console.error('Error fetching Gmail message list:', errorData);
-      throw new Error(`Gmail API list error: ${errorData.error?.message || 'Unknown error'}`);
+    if (result.needsRefresh) {
+      // This shouldn't happen if we just refreshed, but handle it anyway
+      currentToken = await refreshGoogleToken(refreshToken, accountId, supabase);
+      result = await makeGmailApiRequest(
+        'https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50', 
+        currentToken
+      );
     }
     
-    const messageList = await listResponse.json();
+    const messageList = result.data;
     
     if (!messageList.messages || messageList.messages.length === 0) {
       if (verbose) {
@@ -156,21 +177,21 @@ async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, 
     const emails = [];
     
     for (const message of messageList.messages.slice(0, 20)) { // Limit to 20 messages to avoid rate limits
-      const messageResponse = await fetch(
+      result = await makeGmailApiRequest(
         `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`, 
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`
-          }
-        }
+        currentToken
       );
       
-      if (!messageResponse.ok) {
-        console.error(`Error fetching details for message ${message.id}`, await messageResponse.text());
-        continue;
+      if (result.needsRefresh) {
+        // This shouldn't happen if we just refreshed, but handle it anyway
+        currentToken = await refreshGoogleToken(refreshToken, accountId, supabase);
+        result = await makeGmailApiRequest(
+          `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`, 
+          currentToken
+        );
       }
       
-      const messageData = await messageResponse.json();
+      const messageData = result.data;
       
       // Extract headers
       const headers = messageData.payload.headers.reduce((acc, header) => {
@@ -285,9 +306,31 @@ serve(async (req) => {
     
     if (verbose) {
       console.log(`Found account: ${accountData.email} (${accountData.provider})`);
-      console.log(`Access token: ${accountData.access_token ? (accountData.access_token.substring(0, 10) + '...') : 'None'}`);
-      console.log(`Refresh token available: ${Boolean(accountData.refresh_token)}`);
+      console.log(`Access token available: ${accountData.access_token ? 'Yes' : 'No'}`);
+      console.log(`Refresh token available: ${accountData.refresh_token ? 'Yes' : 'No'}`);
       console.log(`Last token refresh: ${accountData.last_token_refresh || 'Never'}`);
+    }
+    
+    // Check if the access token needs to be refreshed based on time since last refresh
+    let accessToken = accountData.access_token;
+    const refreshToken = accountData.refresh_token;
+    
+    if (!accessToken && refreshToken) {
+      try {
+        console.log(`No access token available for ${accountData.email}, attempting to refresh`);
+        accessToken = await refreshGoogleToken(refreshToken, accountId, supabase);
+        console.log('Successfully refreshed token');
+      } catch (refreshError) {
+        console.error('Error refreshing token:', refreshError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: `Failed to refresh authentication: ${refreshError.message}`,
+            details: { requiresReauthentication: true }
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
     
     // Update last_sync timestamp to show we're attempting a sync
@@ -304,8 +347,8 @@ serve(async (req) => {
       if (accountData.provider === 'gmail') {
         // Use the access token to fetch emails from Gmail API
         emails = await fetchGmailEmails(
-          accountData.access_token, 
-          accountData.refresh_token, 
+          accessToken, 
+          refreshToken, 
           accountId, 
           supabase, 
           verbose
@@ -326,6 +369,23 @@ serve(async (req) => {
     } catch (error) {
       console.error('Error fetching emails:', error);
       errorFetchingEmails = error.message;
+      
+      // Check if this is an authentication error that might be fixed by re-authenticating
+      const isAuthError = error.message.includes('authentication') || 
+                          error.message.includes('credential') || 
+                          error.message.includes('token') ||
+                          error.message.includes('auth');
+                          
+      if (isAuthError) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Authentication error: ${error.message}`,
+            details: { requiresReauthentication: true }
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
     
     if (errorFetchingEmails) {

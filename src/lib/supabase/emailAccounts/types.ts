@@ -23,6 +23,7 @@ export interface SyncResult {
   details?: any;
   statusCode?: number;
   timestamp: number;
+  requiresReauthentication?: boolean;
 }
 
 export interface DisconnectResult {

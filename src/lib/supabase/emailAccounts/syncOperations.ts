@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SyncResult } from "./types";
+import { toast } from "sonner";
 
 /**
  * Syncs emails for a specific account
@@ -55,6 +56,24 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         success: false, 
         error: "Empty response from server", 
         statusCode: 400,
+        timestamp: Date.now()
+      };
+    }
+
+    // Check if we need to re-authenticate
+    if (response.data.details?.requiresReauthentication) {
+      console.warn("Authentication error - account requires re-authentication");
+      
+      // Show a toast message for the user
+      toast.error("Gmail authentication expired. Please disconnect and reconnect your account.", {
+        duration: 6000,
+      });
+      
+      return {
+        success: false,
+        error: response.data.error || "Authentication expired",
+        requiresReauthentication: true,
+        statusCode: 401,
         timestamp: Date.now()
       };
     }
