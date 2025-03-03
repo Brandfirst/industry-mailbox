@@ -4,6 +4,7 @@
  * to prevent CORS issues with external resources
  */
 import { debugLog } from './debugUtils';
+import { removeTrackingPixels } from './trackingFilter';
 
 /**
  * Removes external font imports or replaces them with system fonts
@@ -18,6 +19,9 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
   // Check for Nordic characters before processing
   const nordicChars = (htmlContent.match(/[ØÆÅøæå]/g) || []).join('');
   debugLog('NORDIC CHARACTERS BEFORE SANITIZATION:', nordicChars || 'None found');
+  
+  // Apply our comprehensive tracking pixel and analytics removal
+  htmlContent = removeTrackingPixels(htmlContent);
   
   // Replace problematic @font-face declarations
   htmlContent = htmlContent.replace(
@@ -47,6 +51,12 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
   htmlContent = htmlContent.replace(
     /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, 
     '<!-- Scripts removed for security -->'
+  );
+  
+  // Remove event handlers that might try to execute script
+  htmlContent = htmlContent.replace(
+    /\s(on\w+)="[^"]*"/gi,
+    ' data-removed-$1="blocked-for-security"'
   );
   
   // Ensure content has proper UTF-8 meta tags if it's HTML

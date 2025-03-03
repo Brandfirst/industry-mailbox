@@ -6,6 +6,11 @@ import {
   ensureUtf8Encoding,
   debugLog
 } from '@/lib/utils/content-sanitization';
+import {
+  removeTrackingPixels,
+  shouldSuppressError,
+  getSecureCSP
+} from '@/lib/utils/content-sanitization/trackingFilter';
 
 interface NewsletterPreviewProps {
   content: string | null;
@@ -42,8 +47,8 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     // Replace all http:// with https:// to prevent mixed content warnings
     secureContent = secureContent.replace(/http:\/\//g, 'https://');
     
-    // More aggressive tracking pixel and analytics removal
-    secureContent = secureContent.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics|track|open|beacon|wf|ea|stat)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
+    // Use our enhanced tracking pixel removal
+    secureContent = removeTrackingPixels(secureContent);
     
     // Remove any script tags to prevent sandbox warnings
     secureContent = secureContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
@@ -64,7 +69,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none'; frame-src 'none';">
+          <meta http-equiv="Content-Security-Policy" content="${getSecureCSP()}">
           <style>
             ${getSystemFontCSS()}
             html, body {
@@ -112,23 +117,37 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             }
           </style>
           <script>
-            // Suppress all errors to prevent console warnings
+            // Comprehensive error handler
             window.addEventListener('error', function(e) {
+              // Always prevent default error behavior
               e.preventDefault();
               e.stopPropagation();
               
-              // Check if this is a certificate error or tracking pixel
-              const isTrackingError = e.message && (
-                e.message.includes('certificate') || 
-                e.message.includes('tracking') || 
-                e.message.includes('analytics') ||
-                e.message.includes('ERR_CERT') ||
-                e.message.includes('net::')
-              );
+              // Check if this is a security-related error that should be suppressed
+              const errorMsg = e.message || '';
+              const isTrackingError = ${shouldSuppressError.toString()}(errorMsg);
               
               // If it's a tracking error, just silently ignore
-              return true;
+              // Only show error UI for non-tracking errors
+              if (!isTrackingError) {
+                document.body.classList.add('has-error');
+                console.log('Non-tracking error occurred:', errorMsg);
+              }
+              
+              return true; // Prevents the error from bubbling up
             }, true);
+            
+            // Suppress console errors too
+            const originalConsoleError = console.error;
+            console.error = function() {
+              const args = Array.from(arguments);
+              const errorString = args.join(' ');
+              
+              // Only pass through non-tracking errors
+              if (!${shouldSuppressError.toString()}(errorString)) {
+                originalConsoleError.apply(console, args);
+              }
+            };
           </script>
         </head>
         <body ${hasNordicAttribute}>
@@ -162,22 +181,28 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           e.preventDefault();
           e.stopPropagation();
           
-          // Don't show error UI for tracking/analytics errors
-          const isTrackingError = e.message && (
-            e.message.includes('certificate') || 
-            e.message.includes('tracking') || 
-            e.message.includes('analytics') ||
-            e.message.includes('ERR_CERT') ||
-            e.message.includes('net::')
-          );
-          
-          if (!isTrackingError) {
+          // Use our utility to determine if this is a tracking error
+          if (!shouldSuppressError(e)) {
             // Add error class to show error message for non-tracking errors
             doc.body.classList.add('has-error');
           }
           
           return true; // Prevents the error from bubbling up
         }, true);
+        
+        // Override console.error in iframe to hide tracking errors
+        if (iframe.contentWindow?.console) {
+          const originalConsoleError = iframe.contentWindow.console.error;
+          iframe.contentWindow.console.error = function() {
+            const args = Array.from(arguments);
+            const errorString = args.join(' ');
+            
+            // Only pass through non-tracking errors
+            if (!shouldSuppressError(errorString)) {
+              originalConsoleError.apply(iframe.contentWindow!.console, args);
+            }
+          };
+        }
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);
