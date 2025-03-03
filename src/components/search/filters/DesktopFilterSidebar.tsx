@@ -1,4 +1,3 @@
-
 import React, { memo, useState } from 'react';
 import { NewsletterCategory } from '@/lib/supabase/types';
 import { Button } from "@/components/ui/button";
@@ -55,16 +54,16 @@ const DesktopFilterSidebar = ({
   return (
     <div className="hidden md:block">
       {isOpen ? (
-        <div className="w-80 p-4 border-r">
+        <div className="w-80 p-4 border-r bg-white">
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h3 className="font-semibold">Filtre</h3>
+              <h3 className="font-semibold text-gray-900">Filtre</h3>
               {hasActiveFilters && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={clearAllFilters}
-                  className="h-8 px-2"
+                  className="h-8 px-2 text-gray-700"
                 >
                   <X className="h-4 w-4 mr-1" />
                   Nullstill alle
@@ -74,9 +73,9 @@ const DesktopFilterSidebar = ({
             
             <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
               <div className="flex justify-between items-center">
-                <h3 className="font-medium mb-2">Kategorier</h3>
+                <h3 className="font-medium mb-2 text-gray-800">Kategorier</h3>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
                     {categoryOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>
@@ -92,9 +91,9 @@ const DesktopFilterSidebar = ({
             
             <Collapsible open={dateOpen} onOpenChange={setDateOpen}>
               <div className="flex justify-between items-center">
-                <h3 className="font-medium mb-2">Dato</h3>
+                <h3 className="font-medium mb-2 text-gray-800">Dato</h3>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
                     {dateOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>
@@ -109,9 +108,9 @@ const DesktopFilterSidebar = ({
             
             <Collapsible open={senderOpen} onOpenChange={setSenderOpen}>
               <div className="flex justify-between items-center">
-                <h3 className="font-medium mb-2">Avsender</h3>
+                <h3 className="font-medium mb-2 text-gray-800">Avsender</h3>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
                     {senderOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>
@@ -134,7 +133,7 @@ const DesktopFilterSidebar = ({
           </div>
         </div>
       ) : (
-        <div className="w-12 flex flex-col items-center py-4 border-r">
+        <div className="w-12 flex flex-col items-center py-4 border-r bg-white">
           {/* We'll keep this minimal when collapsed */}
         </div>
       )}

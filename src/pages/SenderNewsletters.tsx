@@ -13,6 +13,15 @@ const SenderNewsletters = () => {
   const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(true);
   const navigate = useNavigate();
   
+  // Add light mode class
+  useEffect(() => {
+    document.body.classList.add('light-mode');
+    
+    return () => {
+      document.body.classList.remove('light-mode');
+    };
+  }, []);
+  
   const {
     newsletters,
     categories,
@@ -68,10 +77,10 @@ const SenderNewsletters = () => {
   )?.sender_name || senderSlug;
   
   return (
-    <div className="container py-8 md:py-12 px-4 md:px-6">
+    <div className="container py-8 md:py-12 px-4 md:px-6 bg-white">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Nyhetsbrev fra {senderName}</h1>
-        <p className="text-muted-foreground">Se alle nyhetsbrev fra denne avsenderen</p>
+        <h1 className="text-3xl font-bold mb-2 text-gray-900">Nyhetsbrev fra {senderName}</h1>
+        <p className="text-gray-600">Se alle nyhetsbrev fra denne avsenderen</p>
       </div>
       
       <SearchLayout

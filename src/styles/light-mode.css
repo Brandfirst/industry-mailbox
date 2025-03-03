@@ -1,0 +1,134 @@
+
+/* Light Mode Styling for Search Page */
+body.light-mode {
+  background-color: #FFFFFF;
+  color: #121212;
+}
+
+.light-mode .bg-white {
+  background-color: #FFFFFF;
+}
+
+.light-mode .text-black {
+  color: #121212;
+}
+
+.light-mode .bg-gray-50,
+.light-mode .bg-gray-100 {
+  background-color: #F5F5F5;
+}
+
+.light-mode .border-gray-200,
+.light-mode .border-gray-300 {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .text-gray-500,
+.light-mode .text-gray-600 {
+  color: #666666;
+}
+
+.light-mode .text-gray-700,
+.light-mode .text-gray-800,
+.light-mode .text-gray-900 {
+  color: #121212;
+}
+
+.light-mode .shadow-md,
+.light-mode .shadow-lg {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .hover\:bg-gray-50:hover,
+.light-mode .hover\:bg-gray-100:hover {
+  background-color: #EEEEEE;
+}
+
+.light-mode input,
+.light-mode select,
+.light-mode textarea {
+  background-color: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #121212;
+}
+
+.light-mode input:focus,
+.light-mode select:focus,
+.light-mode textarea:focus {
+  border-color: #FF5722;
+}
+
+/* Search specific components */
+.light-mode .newsletter-item {
+  border-color: rgba(255, 87, 34, 0.2);
+  background-color: #FFFFFF;
+}
+
+.light-mode .filter-sidebar {
+  background-color: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .category-pill {
+  background-color: #F0F0F0;
+  color: #333333;
+}
+
+.light-mode .category-pill.active {
+  background-color: rgba(255, 87, 34, 0.1);
+  color: #FF5722;
+}
+
+.light-mode .load-more-button {
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #333333;
+}
+
+.light-mode .load-more-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Override specific dark mode components */
+.light-mode .glass-button {
+  background-color: rgba(255, 255, 255, 0.5);
+  color: #333333;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .glass-button:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Desktop filter sidebar */
+.light-mode .w-80.p-4.border-r {
+  background-color: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile filter drawer */
+.light-mode .bg-background.p-4 {
+  background-color: #FFFFFF;
+}
+
+/* Button styling */
+.light-mode .btn-primary {
+  background-color: #FF5722;
+  color: #FFFFFF;
+}
+
+.light-mode .btn-secondary {
+  background-color: #F0F0F0;
+  color: #333333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Newsletter results */
+.light-mode .newsletter-result-item {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .newsletter-result-item:hover {
+  border-color: rgba(255, 87, 34, 0.5);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}

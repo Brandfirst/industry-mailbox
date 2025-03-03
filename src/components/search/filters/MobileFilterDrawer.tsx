@@ -60,12 +60,12 @@ const MobileFilterDrawer = ({
     <div className="md:hidden fixed inset-0 z-50">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black/30"
         onClick={toggleMobileFilters}
       ></div>
       
       {/* Sidebar */}
-      <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs bg-background p-4 overflow-y-auto animate-slide-in-right">
+      <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs bg-white p-4 overflow-y-auto animate-slide-in-right">
         <FilterHeader toggleMobileFilters={toggleMobileFilters} title="Filtre" />
         
         <div className="space-y-6">
@@ -74,7 +74,7 @@ const MobileFilterDrawer = ({
               variant="ghost" 
               size="sm" 
               onClick={clearAllFilters}
-              className="h-8 flex items-center"
+              className="h-8 flex items-center text-gray-700"
             >
               <X className="h-4 w-4 mr-1" />
               Nullstill alle filtre
@@ -83,9 +83,9 @@ const MobileFilterDrawer = ({
           
           <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
             <div className="flex justify-between items-center">
-              <h3 className="font-medium mb-2">Kategorier</h3>
+              <h3 className="font-medium mb-2 text-gray-800">Kategorier</h3>
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
                   {categoryOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
               </CollapsibleTrigger>
@@ -101,9 +101,9 @@ const MobileFilterDrawer = ({
           
           <Collapsible open={dateOpen} onOpenChange={setDateOpen}>
             <div className="flex justify-between items-center">
-              <h3 className="font-medium mb-2">Dato</h3>
+              <h3 className="font-medium mb-2 text-gray-800">Dato</h3>
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
                   {dateOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
               </CollapsibleTrigger>
@@ -118,9 +118,9 @@ const MobileFilterDrawer = ({
           
           <Collapsible open={senderOpen} onOpenChange={setSenderOpen}>
             <div className="flex justify-between items-center">
-              <h3 className="font-medium mb-2">Avsender</h3>
+              <h3 className="font-medium mb-2 text-gray-800">Avsender</h3>
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
                   {senderOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
               </CollapsibleTrigger>
