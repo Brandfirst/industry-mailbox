@@ -30,7 +30,7 @@ const Navbar = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const activeLink = "text-[#FF5722] font-medium";
-  const inactiveLink = "text-gray-400 hover:text-white transition-colors";
+  const inactiveLink = `${theme === 'light' ? 'text-gray-600' : 'text-gray-400'} ${theme === 'light' ? 'hover:text-gray-900' : 'hover:text-white'} transition-colors`;
 
   // Don't show navbar on admin pages
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -73,7 +73,7 @@ const Navbar = () => {
             size="icon" 
             onClick={toggleMenu}
             aria-label="Toggle menu"
-            className="text-gray-400"
+            className={theme === 'light' ? 'text-gray-600' : 'text-gray-400'}
           >
             {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>

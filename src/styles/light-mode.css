@@ -122,3 +122,100 @@ body.light-mode {
 .light-mode.admin-theme .admin-header a:hover {
   color: var(--admin-accent);
 }
+
+/* Additional elements for light mode */
+.light-mode .bg-black {
+  background-color: #ffffff;
+}
+
+.light-mode .text-white {
+  color: #333333;
+}
+
+.light-mode .bg-dark-200 {
+  background-color: #f1f1f1;
+}
+
+.light-mode .bg-black\/80, 
+.light-mode .bg-black\/90 {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.light-mode .bg-black\/40, 
+.light-mode .bg-black\/30 {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.light-mode .newsletter-header {
+  background-color: #ffffff;
+  color: #333333;
+}
+
+.light-mode .newsletter-item {
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* CTA section and other sections */
+.light-mode .gradient-button {
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.2);
+}
+
+.light-mode .glass-effect {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Cards and other container components */
+.light-mode .glass-card {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #333333;
+}
+
+.light-mode .feature-card {
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.light-mode .testimonial-card {
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .testimonial-text,
+.light-mode .testimonial-name {
+  color: #333333;
+}
+
+.light-mode .testimonial-company {
+  color: #666666;
+}
+
+/* Form elements */
+.light-mode input,
+.light-mode select,
+.light-mode textarea {
+  background-color: #ffffff;
+  color: #333333;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.light-mode input:focus,
+.light-mode select:focus,
+.light-mode textarea:focus {
+  border-color: #FF5722;
+}
+
+/* Additional components from ui/ */
+.light-mode .bg-card {
+  background-color: #ffffff;
+}
+
+.light-mode .bg-popover {
+  background-color: #ffffff;
+}
+
+.light-mode .border-border {
+  border-color: rgba(0, 0, 0, 0.1);
+}

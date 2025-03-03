@@ -17,7 +17,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return savedTheme || "dark";
   });
 
-  // Effect to apply theme to body when theme changes
+  // Effect to apply theme to document when theme changes
   useEffect(() => {
     const root = document.documentElement;
     
@@ -31,9 +31,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (theme === "light") {
       document.body.classList.add("light-mode");
       document.body.classList.remove("dark-mode");
+
+      // For admin theme
+      if (root.classList.contains('admin-theme')) {
+        root.classList.add('light');
+        root.classList.remove('dark');
+      }
     } else {
       document.body.classList.add("dark-mode");
       document.body.classList.remove("light-mode");
+      
+      // For admin theme
+      if (root.classList.contains('admin-theme')) {
+        root.classList.add('dark');
+        root.classList.remove('light');
+      }
     }
     
     // Store in localStorage
