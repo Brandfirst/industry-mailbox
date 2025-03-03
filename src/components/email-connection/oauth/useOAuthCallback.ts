@@ -1,10 +1,10 @@
 
-import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
-import { OAuthCallbackResult } from "./types";
 import { toast } from "sonner";
+import { useOAuthState } from "./useOAuthState";
+import { useOAuthParams } from "./useOAuthParams";
+import { useOAuthAPI } from "./useOAuthAPI";
 
 export const useOAuthCallback = (
   redirectUri: string,
@@ -12,32 +12,22 @@ export const useOAuthCallback = (
   onError: (error: string, details?: any, debugInfo?: any) => void,
   setIsConnecting: (isConnecting: boolean) => void
 ) => {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const processedRef = useRef(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const attemptedRef = useRef(false);
-  const timeoutRef = useRef<number | null>(null);
+  const { 
+    isProcessing, 
+    setIsProcessing, 
+    processedRef, 
+    attemptedRef, 
+    timeoutRef,
+    clearUrlParams,
+    cleanupOAuthState,
+    handleOAuthError
+  } = useOAuthState(setIsConnecting);
   
-  // Clear the URL params after successful processing
-  const clearUrlParams = () => {
-    if (location.search && (location.search.includes('code=') || location.search.includes('error='))) {
-      console.log("[OAUTH CALLBACK] Clearing URL parameters after processing");
-      // Use replace to avoid adding to browser history
-      navigate(location.pathname, { replace: true });
-    }
-  };
-
-  // Cleanup function for OAuth state
-  const cleanupOAuthState = () => {
-    console.log("[OAUTH CALLBACK] Cleaning up OAuth state");
-    sessionStorage.removeItem('gmailOAuthInProgress');
-    sessionStorage.removeItem('oauth_nonce');
-    sessionStorage.removeItem('oauth_start_time');
-    setIsConnecting(false);
-  };
+  const { getOAuthParams, logOAuthState } = useOAuthParams();
+  const { exchangeCodeForTokens } = useOAuthAPI();
   
+  // Set a safety timeout
   useEffect(() => {
     // Set a safety timeout to prevent getting stuck in connecting state
     timeoutRef.current = window.setTimeout(() => {
@@ -56,6 +46,7 @@ export const useOAuthCallback = (
     };
   }, []);
   
+  // Process the OAuth callback
   useEffect(() => {
     const processOAuthCallback = async () => {
       // Don't process the same callback multiple times
@@ -63,53 +54,24 @@ export const useOAuthCallback = (
         console.log("[OAUTH CALLBACK] Already processed this callback or currently processing");
         return;
       }
-
-      const searchParams = new URLSearchParams(location.search);
-      const code = searchParams.get('code');
-      const state = searchParams.get('state');
-      const error = searchParams.get('error');
-      const errorDescription = searchParams.get('error_description');
       
-      const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress') === 'true';
-      const startTime = sessionStorage.getItem('oauth_start_time');
-      const timeElapsed = startTime ? `${((Date.now() - parseInt(startTime)) / 1000).toFixed(1)}s` : 'unknown';
-      const savedNonce = sessionStorage.getItem('oauth_nonce');
-      
-      // Debug logging for callback state
-      console.log("[OAUTH CALLBACK] Component state:", {
-        processed: processedRef.current,
-        isProcessing,
-        hasUser: !!user,
-        userId: user?.id,
-        location: location.pathname + location.search,
-        hasCode: !!code,
-        codeLength: code ? code.length : 0,
-        state,
-        savedNonce,
-        error,
-        oauthInProgress,
-        timeElapsed,
-        redirectUri,
-        timestamp: new Date().toISOString()
-      });
+      // Get and log the OAuth parameters
+      const params = logOAuthState(user?.id, isProcessing);
       
       // Check if we were redirected from Google auth without any parameters
       // This happens sometimes when Google auth fails silently
-      if (oauthInProgress && !code && !error && !attemptedRef.current) {
+      if (params.oauthInProgress && !params.code && !params.error && !attemptedRef.current) {
         console.warn("[OAUTH CALLBACK] Possible failed silent redirect without parameters");
         const message = "OAuth flow was interrupted or failed silently. Please try again.";
-        toast.error(message);
+        handleOAuthError(message, { silentFailure: true }, { timeElapsed: params.timeElapsed });
         
-        // Clean up OAuth state
         cleanupOAuthState();
-        
-        onError(message, { silentFailure: true }, { timeElapsed });
         attemptedRef.current = true;
         return;
       }
       
       // Only process if we have a code and state is 'gmail_connect'
-      if (code && state === 'gmail_connect') {
+      if (params.code && params.state === 'gmail_connect') {
         console.log("[OAUTH CALLBACK] Processing OAuth callback with code");
         setIsProcessing(true);
         
@@ -123,7 +85,7 @@ export const useOAuthCallback = (
             { missingUser: true, storedUserId }, 
             { 
               userId: storedUserId,
-              timeElapsed,
+              timeElapsed: params.timeElapsed,
               timestamp: new Date().toISOString()
             }
           );
@@ -137,42 +99,25 @@ export const useOAuthCallback = (
         }
         
         try {
-          console.log(`[OAUTH CALLBACK] Sending code to connect-gmail function, redirectUri: ${redirectUri}`);
+          // Exchange the code for tokens
+          const result = await exchangeCodeForTokens(
+            params.code, 
+            redirectUri, 
+            user.id, 
+            params.savedNonce
+          );
           
-          // Store user ID in session storage as a fallback
-          sessionStorage.setItem('auth_user_id', user.id);
-          
-          // Show a toast to indicate processing
-          toast.loading("Processing Gmail connection...");
-          
-          // Call the edge function to exchange the code for tokens
-          const { data, error } = await supabase.functions.invoke('connect-gmail', {
-            method: 'POST',
-            body: { 
-              code, 
-              redirectUri,
-              userId: user.id,
-              nonce: savedNonce,
-              timestamp: new Date().toISOString()
-            }
-          });
-          
-          console.log("[OAUTH CALLBACK] Edge function response:", data);
-          
-          if (error) {
-            console.error("[OAUTH CALLBACK] Edge function error:", error);
+          if (!result.success) {
             onError(
-              `Failed to connect Gmail: ${error.message}`, 
-              error, 
-              { redirectUri, code: code.substring(0, 10) + "...", timeElapsed }
+              result.error || "Failed to connect Gmail", 
+              result.errorDetails, 
+              { redirectUri, code: params.code.substring(0, 10) + "...", timeElapsed: params.timeElapsed }
             );
-            toast.dismiss();
-            toast.error(`Failed to connect Gmail: ${error.message}`);
             processedRef.current = true;
           } else {
-            const result = data as OAuthCallbackResult;
+            const apiResult = result.data;
             
-            if (result.success) {
+            if (apiResult.success) {
               console.log("[OAUTH CALLBACK] Gmail connection successful");
               // Clear the OAuth in progress flag
               cleanupOAuthState();
@@ -183,14 +128,14 @@ export const useOAuthCallback = (
               await onSuccess();
               clearUrlParams();
             } else {
-              console.error("[OAUTH CALLBACK] Gmail connection failed:", result.error);
+              console.error("[OAUTH CALLBACK] Gmail connection failed:", apiResult.error);
               toast.dismiss();
-              toast.error(result.error || "Failed to connect Gmail");
+              toast.error(apiResult.error || "Failed to connect Gmail");
               
               onError(
-                result.error || "Failed to connect Gmail", 
-                result.details, 
-                { ...result.debugInfo, timeElapsed }
+                apiResult.error || "Failed to connect Gmail", 
+                apiResult.details, 
+                { ...apiResult.debugInfo, timeElapsed: params.timeElapsed }
               );
               
               // Clean up OAuth state on error too
@@ -206,7 +151,7 @@ export const useOAuthCallback = (
           onError(
             "Exception occurred during Gmail connection", 
             { error: error instanceof Error ? error.message : String(error) },
-            { redirectUri, code: code.substring(0, 10) + "...", timeElapsed }
+            { redirectUri, code: params.code.substring(0, 10) + "...", timeElapsed: params.timeElapsed }
           );
           processedRef.current = true;
           cleanupOAuthState();
@@ -216,21 +161,21 @@ export const useOAuthCallback = (
           setIsProcessing(false);
           clearUrlParams();
         }
-      } else if (error) {
-        console.error(`[OAUTH CALLBACK] OAuth error: ${error}, description: ${errorDescription}`);
-        toast.error(`OAuth error: ${error}${errorDescription ? `: ${errorDescription}` : ''}`);
+      } else if (params.error) {
+        console.error(`[OAUTH CALLBACK] OAuth error: ${params.error}, description: ${params.errorDescription}`);
+        toast.error(`OAuth error: ${params.error}${params.errorDescription ? `: ${params.errorDescription}` : ''}`);
         
         onError(
-          `OAuth error: ${error}${errorDescription ? `: ${errorDescription}` : ''}`,
-          { error, errorDescription },
-          { location: location.pathname + location.search, timeElapsed }
+          `OAuth error: ${params.error}${params.errorDescription ? `: ${params.errorDescription}` : ''}`,
+          { error: params.error, errorDescription: params.errorDescription },
+          { location: location.pathname + location.search, timeElapsed: params.timeElapsed }
         );
         
         cleanupOAuthState();
         processedRef.current = true;
         setIsProcessing(false);
         clearUrlParams();
-      } else if (oauthInProgress && !code && !error && !attemptedRef.current) {
+      } else if (params.oauthInProgress && !params.code && !params.error && !attemptedRef.current) {
         // This is a case where the OAuth flow was started but interrupted
         console.log("[OAUTH CALLBACK] OAuth flow was interrupted");
         toast.error("OAuth flow was interrupted. Please try again.");
@@ -244,13 +189,13 @@ export const useOAuthCallback = (
           user: !!user,
           pathname: location.pathname,
           search: location.search,
-          oauthInProgress
+          oauthInProgress: params.oauthInProgress
         });
       }
     };
     
     processOAuthCallback();
-  }, [location, user, onSuccess, onError, redirectUri, setIsConnecting, navigate, isProcessing]);
+  }, [location, user, onSuccess, onError, redirectUri, setIsConnecting, isProcessing]);
   
   return { isProcessing };
 };
