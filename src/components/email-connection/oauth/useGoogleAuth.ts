@@ -67,7 +67,8 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
       console.log(`[GOOGLE AUTH] Using redirect URI: ${redirectUri}`);
       
       // Build Google OAuth URL
-      const scope = encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly');
+      // FIX: Don't use encodeURIComponent here as the URLSearchParams will handle encoding
+      const scope = 'https://www.googleapis.com/auth/gmail.readonly';
       const responseType = 'code';
       const accessType = 'offline';
       const prompt = 'consent';
