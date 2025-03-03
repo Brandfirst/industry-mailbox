@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,76 +15,86 @@ export interface EmailAccountItemProps {
     provider: string;
   };
   onDelete?: (id: string) => void;
-  onRefresh?: () => Promise<void>;
+  onSync?: (id: string) => Promise<any>;
+  isSyncing?: boolean;
+  isDisconnecting?: boolean;
 }
 
 export const EmailAccountItem = ({
   account,
   onDelete,
-  onRefresh
+  onSync,
+  isSyncing = false,
+  isDisconnecting = false
 }: EmailAccountItemProps) => {
-  const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [needsReauth, setNeedsReauth] = useState(false);
   
   const handleSync = async () => {
-    setIsSyncing(true);
+    if (isSyncing) return; // Prevent multiple syncs
+    
     setSyncError(null);
     setNeedsReauth(false);
     
     try {
       toast.loading(`Syncing emails from ${account.email}...`);
       
-      const result = await syncEmailAccount(account.id);
-      
-      if (result.success) {
-        toast.dismiss();
-        toast.success(`Successfully synced ${result.count || 0} emails`);
-        
-        if (result.partial) {
-          toast.warning(`${result.failed?.length || 0} emails failed to sync`);
-        }
-        
-        setSyncError(null);
-      } else {
+      // If component has onSync prop, use it
+      if (onSync) {
+        const result = await onSync(account.id);
         toast.dismiss();
         
-        // Check if this is an authentication error
-        if (result.requiresReauthentication) {
+        if (result?.requiresReauthentication) {
           setNeedsReauth(true);
           setSyncError("Authentication expired. Please reconnect your account.");
-          toast.error("Authentication expired. Please disconnect and reconnect your account.");
-        } else {
-          setSyncError(result.error || "Failed to sync emails");
-          toast.error(`Sync failed: ${result.error || "Unknown error"}`);
         }
-      }
-      
-      // Always call onRefresh after a sync attempt, even if it failed
-      if (onRefresh) {
-        await onRefresh();
+      } else {
+        // Otherwise use direct sync method
+        const result = await syncEmailAccount(account.id);
+        toast.dismiss();
+        
+        if (result.success) {
+          toast.success(`Successfully synced ${result.count || 0} emails`);
+          
+          if (result.partial) {
+            toast.warning(`${result.failed?.length || 0} emails failed to sync`);
+          }
+          
+          setSyncError(null);
+        } else {
+          // Check if this is an authentication error
+          if (result.requiresReauthentication) {
+            setNeedsReauth(true);
+            setSyncError("Authentication expired. Please reconnect your account.");
+            toast.error("Authentication expired. Please disconnect and reconnect your account.");
+          } else {
+            setSyncError(result.error || "Failed to sync emails");
+            toast.error(`Sync failed: ${result.error || "Unknown error"}`);
+          }
+        }
       }
     } catch (error) {
       toast.dismiss();
       toast.error(`Error syncing emails: ${error.message}`);
       setSyncError(error.message);
-    } finally {
-      setIsSyncing(false);
     }
   };
   
   const handleDelete = async () => {
+    if (isDisconnecting) return;
+    
     if (window.confirm(`Are you sure you want to disconnect ${account.email}?`)) {
       try {
-        const result = await disconnectEmailAccount(account.id);
-        
-        if (result.success) {
-          toast.success(`Successfully disconnected ${account.email}`);
-          if (onDelete) {
-            onDelete(account.id);
-          }
+        if (onDelete) {
+          onDelete(account.id);
         } else {
-          toast.error(`Failed to disconnect account: ${result.error}`);
+          const result = await disconnectEmailAccount(account.id);
+          
+          if (result.success) {
+            toast.success(`Successfully disconnected ${account.email}`);
+          } else {
+            toast.error(`Failed to disconnect account: ${result.error}`);
+          }
         }
       } catch (error) {
         toast.error(`Error disconnecting account: ${error.message}`);
@@ -155,7 +164,7 @@ export const EmailAccountItem = ({
               variant="outline"
               size="sm"
               onClick={handleDelete}
-              disabled={isSyncing}
+              disabled={isSyncing || isDisconnecting}
             >
               <TrashIcon className="h-4 w-4" />
             </Button>

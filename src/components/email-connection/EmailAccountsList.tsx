@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { EmailAccountItem } from "./EmailAccountItem";
-import { EmailAccount } from "./types";
+import { EmailAccount } from "@/lib/supabase/types";
 import { disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -75,8 +75,13 @@ export const EmailAccountsList = ({ emailAccounts, onRefresh }: EmailAccountsLis
       {emailAccounts.map((account) => (
         <EmailAccountItem 
           key={account.id}
-          account={account}
-          onDisconnect={handleDisconnect}
+          account={{
+            id: account.id,
+            email: account.email,
+            last_sync: account.last_sync,
+            provider: account.provider || 'unknown' // Provide a default value if provider is undefined
+          }}
+          onDelete={handleDisconnect}
           onSync={handleSync}
           isSyncing={syncingAccount === account.id}
           isDisconnecting={disconnectingAccount === account.id}
