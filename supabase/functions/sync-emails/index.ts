@@ -63,18 +63,22 @@ async function refreshGoogleToken(refresh_token, accountId, supabase) {
     const { access_token, expires_in } = tokenData;
     
     // Update the account with the new access token
+    // Make sure we only update the columns we have in the table
+    const updatePayload = { 
+      access_token,
+      last_token_refresh: new Date().toISOString()
+    };
+    
+    console.log(`Updating token for account ${accountId}. Token updated payload prepared.`);
+    
     const { error: updateError } = await supabase
       .from('email_accounts')
-      .update({ 
-        access_token,
-        // Don't overwrite refresh_token as it's not always returned
-        last_token_refresh: new Date().toISOString()
-      })
+      .update(updatePayload)
       .eq('id', accountId);
       
     if (updateError) {
       console.error('Error updating access token in database:', updateError);
-      throw new Error('Failed to save refreshed token');
+      throw new Error(`Failed to save refreshed token: ${updateError.message}`);
     }
     
     console.log(`Successfully refreshed token for account ${accountId}. New token starts with: ${access_token.substring(0, 10)}...`);
@@ -518,3 +522,4 @@ serve(async (req) => {
     );
   }
 })
+

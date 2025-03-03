@@ -74,6 +74,7 @@ export type Database = {
           id: string
           is_connected: boolean | null
           last_sync: string | null
+          last_token_refresh: string | null
           provider: string
           refresh_token: string | null
           user_id: string
@@ -85,6 +86,7 @@ export type Database = {
           id?: string
           is_connected?: boolean | null
           last_sync?: string | null
+          last_token_refresh?: string | null
           provider: string
           refresh_token?: string | null
           user_id: string
@@ -96,6 +98,7 @@ export type Database = {
           id?: string
           is_connected?: boolean | null
           last_sync?: string | null
+          last_token_refresh?: string | null
           provider?: string
           refresh_token?: string | null
           user_id?: string
