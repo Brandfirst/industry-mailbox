@@ -2,6 +2,7 @@
 import { memo, useEffect, useState } from 'react';
 import SplineCanvas from './SplineCanvas';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type SplineBackgroundProps = {
   position?: 'top' | 'center' | 'bottom';
@@ -20,6 +21,7 @@ const SplineBackground = memo(({
   className = '',
 }: SplineBackgroundProps) => {
   const isMobile = useIsMobile();
+  const { theme } = useTheme();
   
   // Calculate position style based on the position prop
   const getPositionStyle = () => {
@@ -37,7 +39,7 @@ const SplineBackground = memo(({
     <div 
       className={`absolute inset-0 w-full h-[150%] overflow-hidden spline-background ${getPositionStyle()} ${className}`}
       style={{ 
-        opacity, 
+        opacity: theme === 'light' ? 0.3 : opacity, 
         zIndex,
         // Applying a transform to move the Spline up on mobile
         transform: isMobile ? 'translateY(-15%)' : 'none'

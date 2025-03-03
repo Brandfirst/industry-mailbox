@@ -11,7 +11,7 @@ interface ThemeToggleProps {
 
 const ThemeToggle: React.FC<ThemeToggleProps> = ({ 
   className = "", 
-  variant = "ghost" 
+  variant = "outline" 
 }) => {
   const { theme, toggleTheme } = useTheme();
   
@@ -20,13 +20,13 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
       variant={variant}
       size="icon"
       onClick={toggleTheme}
-      className={`rounded-full ${className}`}
+      className={`rounded-full border-[#FF5722]/30 hover:border-[#FF5722]/60 ${className}`}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
       {theme === "dark" ? (
-        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all text-[#FF5722]" />
       ) : (
-        <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+        <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all text-[#FF5722]" />
       )}
     </Button>
   );

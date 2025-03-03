@@ -9,20 +9,23 @@ import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 import { AuthButtons } from "./AuthButtons";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isPremium, isAdmin } = useAuth();
+  const { theme } = useTheme();
 
   useEffect(() => {
     console.log('Navbar Auth Debug:', {
       user: user?.email,
       isAdmin: isAdmin,
       userMetadata: user?.user_metadata,
-      role: user?.user_metadata?.role
+      role: user?.user_metadata?.role,
+      currentTheme: theme
     });
-  }, [user, isAdmin]);
+  }, [user, isAdmin, theme]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -34,12 +37,12 @@ const Navbar = () => {
   if (isAdminRoute) return null;
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-black backdrop-blur-sm">
+    <nav className={`sticky top-0 z-50 w-full ${theme === 'light' ? 'bg-white' : 'bg-black'} backdrop-blur-sm`}>
       <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2">
-            <Mail className="w-6 h-6 text-[#FF5722]" />
-            <span className="text-xl font-medium tracking-tight text-white">Nyhetsbrevo</span>
+            <Mail className={`w-6 h-6 text-[#FF5722]`} />
+            <span className={`text-xl font-medium tracking-tight ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Nyhetsbrevo</span>
           </Link>
         </div>
         
@@ -52,7 +55,7 @@ const Navbar = () => {
           />
           
           <div className="flex items-center gap-3">
-            <ThemeToggle />
+            <ThemeToggle className="border border-[#FF5722]/30" />
             
             {user ? (
               <UserMenu user={user} isAdmin={isAdmin} isPremium={isPremium} />
@@ -63,7 +66,7 @@ const Navbar = () => {
         </div>
 
         <div className="flex md:hidden items-center gap-2">
-          <ThemeToggle />
+          <ThemeToggle className="border border-[#FF5722]/30" />
           
           <Button 
             variant="ghost" 

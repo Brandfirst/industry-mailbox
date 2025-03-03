@@ -33,7 +33,7 @@ export const MobileMenu = ({
   
   return (
     <div className="md:hidden animate-slide-down">
-      <div className="flex flex-col px-4 pt-2 pb-4 space-y-4 border-t border-white/10 bg-dark-300">
+      <div className={`flex flex-col px-4 pt-2 pb-4 space-y-4 border-t border-white/10 ${theme === 'light' ? 'bg-white' : 'bg-dark-300'}`}>
         <NavigationLinks 
           isAdmin={isAdmin} 
           user={user} 
@@ -44,10 +44,10 @@ export const MobileMenu = ({
         
         <div className="flex items-center justify-between pt-2 border-t border-white/10">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">
+            <span className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
               {theme === "dark" ? "Dark Mode" : "Light Mode"}
             </span>
-            <ThemeToggle />
+            <ThemeToggle className="border border-[#FF5722]/30" />
           </div>
         </div>
         
@@ -61,7 +61,7 @@ export const MobileMenu = ({
             
             <Button 
               variant="default" 
-              className="w-full bg-dark-400 text-white hover:bg-dark-500"
+              className={`w-full ${theme === 'light' ? 'bg-gray-100 text-gray-800' : 'bg-dark-400 text-white'} hover:bg-dark-500`}
               onClick={() => {
                 navigate('/account');
                 toggleMenu();
@@ -73,7 +73,7 @@ export const MobileMenu = ({
             {isAdmin && (
               <Button 
                 variant="outline" 
-                className="w-full text-gray-300 border-white/10 hover:bg-dark-400"
+                className={`w-full ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'} border-white/10 hover:bg-dark-400`}
                 onClick={() => {
                   navigate('/admin');
                   toggleMenu();
@@ -91,7 +91,7 @@ export const MobileMenu = ({
         ) : (
           <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
             <Link to="/auth?mode=signin" className="w-full" onClick={toggleMenu}>
-              <Button variant="outline" className="w-full text-gray-300 border-white/10 hover:bg-dark-400">Logg inn</Button>
+              <Button variant="outline" className={`w-full ${theme === 'light' ? 'text-gray-700 border-gray-300' : 'text-gray-300 border-white/10'} hover:bg-dark-400`}>Logg inn</Button>
             </Link>
             <Link to="/auth?mode=signup" className="w-full" onClick={toggleMenu}>
               <Button className="w-full bg-blue-500 text-white hover:bg-blue-600">Registrer</Button>
