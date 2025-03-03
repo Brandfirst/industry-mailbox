@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { 
@@ -100,11 +99,11 @@ export function useNewsletterOperations(
     try {
       console.log(`Deleting ${ids.length} newsletters with IDs:`, ids);
       
-      // Delete the newsletters through the API
-      const result = await deleteNewslettersApi(ids);
-      console.log("Delete result:", result);
+      // Delete the newsletters through the API - this is where the error occurs
+      // The deleteNewslettersApi function tries to return the count which causes the error
+      await deleteNewslettersApi(ids);
       
-      // Refresh the newsletters list after deletion
+      // After deletion, refresh the newsletters list
       const { data, error, total } = await getNewslettersFromEmailAccount(selectedAccount, page, {});
       
       if (error) {
@@ -118,7 +117,6 @@ export function useNewsletterOperations(
     } catch (error) {
       console.error("Error deleting emails:", error);
       toast.error(`Failed to delete emails: ${error.message || "Unknown error"}`);
-      throw error;
     }
   }, [selectedAccount, page, setNewsletters, setTotalCount]);
 

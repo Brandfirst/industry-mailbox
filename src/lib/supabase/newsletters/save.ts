@@ -104,11 +104,10 @@ export async function deleteNewsletters(ids: number[]): Promise<{ success: boole
 
     console.log(`Deleting ${ids.length} newsletters`);
     
-    const { error, count } = await supabase
+    const { error } = await supabase
       .from("newsletters")
       .delete()
-      .in("id", ids)
-      .select("count");
+      .in("id", ids);
     
     if (error) {
       console.error("Error deleting newsletters:", error);
@@ -117,7 +116,7 @@ export async function deleteNewsletters(ids: number[]): Promise<{ success: boole
     
     return { 
       success: true, 
-      count: count || ids.length
+      count: ids.length
     };
   } catch (error) {
     console.error("Error in deleteNewsletters:", error);
