@@ -38,8 +38,8 @@ export function useNewsletterOperations(
       if (result.success) {
         toast.success("Successfully synced newsletters");
         
-        // Refresh the newsletters list
-        const { data, error, total } = await getNewslettersFromEmailAccount(selectedAccount, page);
+        // Refresh the newsletters list - passing empty filters as third argument
+        const { data, error, total } = await getNewslettersFromEmailAccount(selectedAccount, page, {});
         
         if (error) {
           console.error("Error refreshing newsletters after sync:", error);
@@ -78,8 +78,8 @@ export function useNewsletterOperations(
       // Set the third parameter (applySenderWide) to false
       await updateNewsletterCategories(updates, false);
       
-      // Update the newsletters list to reflect the change
-      const { data, total } = await getNewslettersFromEmailAccount(selectedAccount, page);
+      // Update the newsletters list to reflect the change - passing empty filters as third argument
+      const { data, total } = await getNewslettersFromEmailAccount(selectedAccount, page, {});
       setNewsletters(data || []);
       setTotalCount(total || 0);
       
