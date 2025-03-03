@@ -37,7 +37,7 @@ const Navbar = () => {
   if (isAdminRoute) return null;
 
   return (
-    <nav className={`sticky top-0 z-50 w-full ${theme === 'light' ? 'bg-white' : 'bg-black'} backdrop-blur-sm`}>
+    <nav className={`sticky top-0 z-50 w-full ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-black border-white/10'} backdrop-blur-sm border-b`}>
       <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2">
@@ -55,7 +55,7 @@ const Navbar = () => {
           />
           
           <div className="flex items-center gap-3">
-            <ThemeToggle className="border border-[#FF5722]/30" />
+            <ThemeToggle className={theme === 'light' ? 'border-gray-300' : 'border-[#FF5722]/30'} />
             
             {user ? (
               <UserMenu user={user} isAdmin={isAdmin} isPremium={isPremium} />
@@ -66,7 +66,7 @@ const Navbar = () => {
         </div>
 
         <div className="flex md:hidden items-center gap-2">
-          <ThemeToggle className="border border-[#FF5722]/30" />
+          <ThemeToggle className={theme === 'light' ? 'border-gray-300' : 'border-[#FF5722]/30'} />
           
           <Button 
             variant="ghost" 

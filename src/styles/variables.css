@@ -69,5 +69,19 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222 47% 11%;
+    
+    /* Admin theme light mode variables */
+    --admin-bg-primary: #f8f9fa;
+    --admin-bg-secondary: #ffffff;
+    --admin-text-primary: #333333;
+    --admin-accent: #FF5722;
+  }
+  
+  .dark {
+    /* Admin theme dark mode variables */
+    --admin-bg-primary: #121212;
+    --admin-bg-secondary: #1A1A1A;
+    --admin-text-primary: #FFFFFF;
+    --admin-accent: #FF5722;
   }
 }

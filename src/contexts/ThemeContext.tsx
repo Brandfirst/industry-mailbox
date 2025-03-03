@@ -19,33 +19,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Effect to apply theme to document when theme changes
   useEffect(() => {
-    const root = document.documentElement;
+    // Apply theme to html element which will cascade through the app
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(theme);
     
-    // Remove previous theme classes
-    root.classList.remove("dark", "light");
+    // Update body classes for global styling
+    document.body.classList.remove("dark-mode", "light-mode");
+    document.body.classList.add(`${theme}-mode`);
     
-    // Add current theme class to html element
-    root.classList.add(theme);
-    
-    // Update body class for specific styling
-    if (theme === "light") {
-      document.body.classList.add("light-mode");
-      document.body.classList.remove("dark-mode");
-
-      // For admin theme
-      if (root.classList.contains('admin-theme')) {
-        root.classList.add('light');
-        root.classList.remove('dark');
-      }
-    } else {
-      document.body.classList.add("dark-mode");
-      document.body.classList.remove("light-mode");
-      
-      // For admin theme
-      if (root.classList.contains('admin-theme')) {
-        root.classList.add('dark');
-        root.classList.remove('light');
-      }
+    // Special handling for admin theme
+    if (document.documentElement.classList.contains('admin-theme')) {
+      document.documentElement.classList.remove('dark', 'light');
+      document.documentElement.classList.add(theme);
     }
     
     // Store in localStorage

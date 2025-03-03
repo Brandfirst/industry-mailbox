@@ -35,11 +35,15 @@ const SplineBackground = memo(({
     }
   };
 
+  const getThemeOpacity = () => {
+    return theme === 'light' ? 0.15 : opacity;
+  };
+
   return (
     <div 
       className={`absolute inset-0 w-full h-[150%] overflow-hidden spline-background ${getPositionStyle()} ${className}`}
       style={{ 
-        opacity: theme === 'light' ? 0.3 : opacity, 
+        opacity: getThemeOpacity(), 
         zIndex,
         // Applying a transform to move the Spline up on mobile
         transform: isMobile ? 'translateY(-15%)' : 'none'

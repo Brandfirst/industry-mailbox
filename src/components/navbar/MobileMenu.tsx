@@ -33,7 +33,7 @@ export const MobileMenu = ({
   
   return (
     <div className="md:hidden animate-slide-down">
-      <div className={`flex flex-col px-4 pt-2 pb-4 space-y-4 border-t border-white/10 ${theme === 'light' ? 'bg-white' : 'bg-dark-300'}`}>
+      <div className={`flex flex-col px-4 pt-2 pb-4 space-y-4 border-t ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-dark-300 border-white/10'}`}>
         <NavigationLinks 
           isAdmin={isAdmin} 
           user={user} 
@@ -47,7 +47,7 @@ export const MobileMenu = ({
             <span className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
               {theme === "dark" ? "Dark Mode" : "Light Mode"}
             </span>
-            <ThemeToggle className="border border-[#FF5722]/30" />
+            <ThemeToggle className={theme === 'light' ? 'border-gray-300' : 'border-[#FF5722]/30'} />
           </div>
         </div>
         
@@ -61,7 +61,7 @@ export const MobileMenu = ({
             
             <Button 
               variant="default" 
-              className={`w-full ${theme === 'light' ? 'bg-gray-100 text-gray-800' : 'bg-dark-400 text-white'} hover:bg-dark-500`}
+              className={`w-full ${theme === 'light' ? 'bg-gray-100 text-gray-800 hover:bg-gray-200' : 'bg-dark-400 text-white hover:bg-dark-500'}`}
               onClick={() => {
                 navigate('/account');
                 toggleMenu();
@@ -73,7 +73,7 @@ export const MobileMenu = ({
             {isAdmin && (
               <Button 
                 variant="outline" 
-                className={`w-full ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'} border-white/10 hover:bg-dark-400`}
+                className={`w-full ${theme === 'light' ? 'text-gray-700 border-gray-300' : 'text-gray-300 border-white/10'} hover:bg-dark-400`}
                 onClick={() => {
                   navigate('/admin');
                   toggleMenu();

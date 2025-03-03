@@ -26,7 +26,13 @@ export const UserMenu = ({ user, isAdmin, isPremium }: UserMenuProps) => {
   return (
     <div className="flex items-center gap-4">
       {!isPremium && (
-        <Button variant="outline" className="btn-hover-effect border-blue-400 text-blue-400 hover:bg-blue-400/10">
+        <Button 
+          variant="outline" 
+          className={`btn-hover-effect ${theme === 'light' 
+            ? 'border-blue-400 text-blue-500 hover:bg-blue-50' 
+            : 'border-blue-400 text-blue-400 hover:bg-blue-400/10'
+          }`}
+        >
           Oppgrader
         </Button>
       )}

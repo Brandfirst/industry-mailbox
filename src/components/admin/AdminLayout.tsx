@@ -54,7 +54,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
         variant="ghost" 
         size="icon" 
         onClick={toggleMobileSidebar}
-        className="lg:hidden text-white absolute left-4 top-4 z-20"
+        className={`lg:hidden absolute left-4 top-4 z-20 ${theme === 'light' ? 'text-gray-800' : 'text-white'}`}
       >
         <Menu className="h-6 w-6" />
       </Button>
@@ -62,8 +62,8 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
   };
 
   return (
-    <div className={`min-h-screen bg-background ${theme} text-foreground admin-layout`}>
-      <div className={`${theme === 'light' ? 'bg-white/80' : 'bg-dark-200/80'} backdrop-blur-sm border-b ${theme === 'light' ? 'border-gray-200' : 'border-white/10'} sticky top-0 z-50 w-full admin-header`}>
+    <div className={`min-h-screen admin-layout ${theme === 'light' ? 'bg-gray-100' : 'bg-dark-200'}`}>
+      <div className={`${theme === 'light' ? 'bg-white border-gray-200' : 'bg-dark-200/80 border-white/10'} backdrop-blur-sm border-b sticky top-0 z-50 w-full admin-header`}>
         <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
           <div className="flex items-center gap-2">
             <Link to="/" className={`flex items-center ${theme === 'light' ? 'text-gray-800 hover:text-[#FF5722]' : 'text-white hover:text-[#FF5722]'} transition-colors`}>
@@ -75,7 +75,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
           <div className="flex items-center space-x-4">
             <ThemeToggle 
               variant="ghost"
-              className={`${theme === 'light' ? 'bg-gray-100 hover:bg-gray-200' : 'bg-dark-400 hover:bg-dark-500'} border-[#FF5722]/30`} 
+              className={`${theme === 'light' ? 'bg-gray-100 hover:bg-gray-200 border-gray-300' : 'bg-dark-400 hover:bg-dark-500 border-[#FF5722]/30'}`} 
             />
             
             {user && (
@@ -85,7 +85,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
                     <User className={`w-5 h-5 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`} />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className={`${theme === 'light' ? 'bg-white' : 'bg-dark-300'} ${theme === 'light' ? 'border-gray-200' : 'border-white/10'}`}>
+                <DropdownMenuContent align="end" className={`${theme === 'light' ? 'bg-white border-gray-200' : 'bg-dark-300 border-white/10'}`}>
                   <DropdownMenuLabel className={theme === 'light' ? 'text-gray-900' : 'text-gray-100'}>
                     {user.user_metadata?.firstName || user.email}
                   </DropdownMenuLabel>
