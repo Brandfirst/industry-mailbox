@@ -21,7 +21,7 @@ const FilterButtons = ({
           variant="outline" 
           size="sm" 
           onClick={toggleMobileFilters}
-          className="flex items-center gap-2 backdrop-blur-sm bg-black/30 border-[#FF5722]/30"
+          className="flex items-center gap-2 filter-button"
         >
           <Filter className="h-4 w-4" /> Filtre
         </Button>
@@ -33,7 +33,7 @@ const FilterButtons = ({
             variant="outline"
             size="sm"
             onClick={toggleDesktopFilters}
-            className="flex items-center gap-2 backdrop-blur-sm bg-black/30 border-[#FF5722]/30"
+            className="flex items-center gap-2 filter-button"
           >
             {isDesktopFiltersOpen ? (
               <ChevronLeft className="h-4 w-4" />

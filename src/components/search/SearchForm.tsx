@@ -29,13 +29,18 @@ const SearchForm = ({
             <Input
               type="search"
               placeholder="Søk etter nyhetsbrev..."
-              className="w-full pl-10 bg-black/30 backdrop-blur-sm border-primary/20 rounded-xl"
+              className="w-full pl-10 bg-white border-gray-300 rounded-xl"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           
-          <Button type="submit" className="gradient-button">Søk</Button>
+          <Button 
+            type="submit" 
+            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+          >
+            Søk
+          </Button>
         </div>
       </form>
     </div>
