@@ -18,9 +18,9 @@ export function AccountSelector({
   isDisabled = false
 }: AccountSelectorProps) {
   return (
-    <Card className="p-4 bg-card border shadow-sm">
+    <Card className="p-4 bg-white border shadow-sm">
       <div className="space-y-2">
-        <Label htmlFor="email-account" className="text-sm font-medium">
+        <Label htmlFor="email-account" className="text-sm font-medium text-gray-800">
           Select Email Account
         </Label>
         <Select
@@ -30,11 +30,11 @@ export function AccountSelector({
         >
           <SelectTrigger
             id="email-account"
-            className="w-full bg-white border-input text-foreground"
+            className="w-full bg-white border-input text-gray-800"
           >
             <SelectValue placeholder="Select an email account" />
           </SelectTrigger>
-          <SelectContent className="bg-white border-input shadow-md">
+          <SelectContent className="bg-white border-input shadow-md text-gray-800">
             {accounts.length === 0 ? (
               <SelectItem value="no-accounts" disabled>
                 No email accounts connected

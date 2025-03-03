@@ -31,8 +31,8 @@ const AdminSidebar = ({
     <NavLink
       to={`/admin/${label.toLowerCase().replace(' ', '-')}`}
       className={({ isActive }) => cn(
-        "flex items-center space-x-2 rounded-md p-2 hover:bg-secondary",
-        isActive ? "bg-secondary text-foreground font-medium" : "text-muted-foreground"
+        "flex items-center space-x-2 rounded-md p-2 hover:bg-gray-200",
+        isActive ? "bg-gray-200 text-gray-800 font-medium" : "text-gray-600"
       )}
       onClick={onClick}
     >
@@ -43,17 +43,17 @@ const AdminSidebar = ({
 
   return (
     <aside className={cn(
-      "bg-card min-h-screen w-64 border-r shadow-sm fixed top-0 bottom-0 left-0 z-30 transition-transform duration-300 md:translate-x-0",
+      "bg-white min-h-screen w-64 border-r shadow-sm fixed top-0 bottom-0 left-0 z-30 transition-transform duration-300 md:translate-x-0",
       isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
     )}>
       <div className="p-6">
-        <h2 className="text-xl font-semibold mb-6">Admin Panel</h2>
+        <h2 className="text-xl font-semibold mb-6 text-gray-800">Admin Panel</h2>
         <nav>
           <ul className="space-y-2">
             <li>
               <AdminSidebarLink 
                 label="Dashboard" 
-                icon={<LayoutDashboard className="h-5 w-5" />} 
+                icon={<LayoutDashboard className="h-5 w-5 text-gray-600" />} 
                 isActive={activeTab === "dashboard"} 
                 onClick={() => handleTabChange("dashboard")} 
               />
@@ -61,7 +61,7 @@ const AdminSidebar = ({
             <li>
               <AdminSidebarLink 
                 label="Newsletters" 
-                icon={<Mail className="h-5 w-5" />} 
+                icon={<Mail className="h-5 w-5 text-gray-600" />} 
                 isActive={activeTab === "newsletters"} 
                 onClick={() => handleTabChange("newsletters")} 
               />
@@ -69,7 +69,7 @@ const AdminSidebar = ({
             <li>
               <AdminSidebarLink 
                 label="Newsletter Senders" 
-                icon={<Users className="h-5 w-5" />} 
+                icon={<Users className="h-5 w-5 text-gray-600" />} 
                 isActive={activeTab === "newsletter-senders"} 
                 onClick={() => handleTabChange("newsletter-senders")} 
               />
@@ -77,7 +77,7 @@ const AdminSidebar = ({
             <li>
               <AdminSidebarLink 
                 label="Categories" 
-                icon={<Tags className="h-5 w-5" />} 
+                icon={<Tags className="h-5 w-5 text-gray-600" />} 
                 isActive={activeTab === "categories"} 
                 onClick={() => handleTabChange("categories")} 
               />
@@ -85,7 +85,7 @@ const AdminSidebar = ({
             <li>
               <AdminSidebarLink 
                 label="Users" 
-                icon={<UserCircle className="h-5 w-5" />} 
+                icon={<UserCircle className="h-5 w-5 text-gray-600" />} 
                 isActive={activeTab === "users"} 
                 onClick={() => handleTabChange("users")} 
               />
@@ -93,7 +93,7 @@ const AdminSidebar = ({
             <li>
               <AdminSidebarLink 
                 label="Settings" 
-                icon={<Settings className="h-5 w-5" />} 
+                icon={<Settings className="h-5 w-5 text-gray-600" />} 
                 isActive={activeTab === "settings"} 
                 onClick={() => handleTabChange("settings")} 
               />

@@ -59,7 +59,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
   };
 
   return (
-    <div className="min-h-screen bg-background dark text-foreground admin-layout">
+    <div className="min-h-screen bg-background admin-layout">
       <div className="bg-dark-200/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50 w-full admin-header">
         <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
           <div className="flex items-center gap-2">
@@ -77,18 +77,18 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
                     <User className="w-5 h-5 text-gray-300" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-dark-300 border-white/10">
-                  <DropdownMenuLabel className="text-gray-100">
+                <DropdownMenuContent align="end" className="bg-white border text-gray-800">
+                  <DropdownMenuLabel className="text-gray-800">
                     {user.user_metadata?.firstName || user.email}
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-white/10" />
-                  <DropdownMenuItem onClick={() => window.location.href = '/'} className="hover:bg-dark-400 text-gray-200">
+                  <DropdownMenuSeparator className="bg-gray-200" />
+                  <DropdownMenuItem onClick={() => window.location.href = '/'} className="hover:bg-gray-100 text-gray-800">
                     Home Page
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => window.location.href = '/account'} className="hover:bg-dark-400 text-gray-200">
+                  <DropdownMenuItem onClick={() => window.location.href = '/account'} className="hover:bg-gray-100 text-gray-800">
                     My Account
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuSeparator className="bg-gray-200" />
                   <DropdownMenuItem className="p-0">
                     <LogoutHandler className="w-full flex items-center px-2 py-1.5 cursor-default" />
                   </DropdownMenuItem>
@@ -108,7 +108,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
       
       {renderMobileMenuButton()}
       
-      <div className={`${isMobile ? 'ml-0 px-4 pt-16' : 'ml-64 p-8'} text-white bg-dark-200 min-h-screen`}>
+      <div className={`${isMobile ? 'ml-0 px-4 pt-16' : 'ml-64 p-8'} bg-white text-gray-800 min-h-screen`}>
         {children}
       </div>
     </div>

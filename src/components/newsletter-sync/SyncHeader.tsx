@@ -23,7 +23,7 @@ export function SyncHeader({ isSyncing, selectedAccount, emailAccounts, onSync }
   };
 
   return (
-    <CardTitle className="flex items-center justify-between">
+    <CardTitle className="flex items-center justify-between text-gray-800">
       <span>Newsletter Sync</span>
       <TooltipProvider>
         <Tooltip>
@@ -33,13 +33,13 @@ export function SyncHeader({ isSyncing, selectedAccount, emailAccounts, onSync }
               size="sm" 
               onClick={onSync}
               disabled={isSyncing || !selectedAccount}
-              className="backdrop-blur-sm bg-black/30 border-[#FF5722]/30"
+              className="bg-white border-[#FF5722]/30 text-gray-800"
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
               Sync Now
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent className="bg-white text-gray-800">
             <p>Last synced: {getLastSyncTime()}</p>
           </TooltipContent>
         </Tooltip>

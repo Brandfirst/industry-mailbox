@@ -10,10 +10,10 @@ export function EmptyState({ selectedAccount, isSyncing }: EmptyStateProps) {
   return (
     <div className="text-center py-10 space-y-3 bg-white border rounded-md p-8 shadow-sm">
       <div className="flex justify-center">
-        <FileX className="h-12 w-12 text-muted-foreground" />
+        <FileX className="h-12 w-12 text-gray-600" />
       </div>
       <h3 className="text-lg font-medium text-gray-800">No newsletters found</h3>
-      <p className="text-muted-foreground max-w-md mx-auto">
+      <p className="text-gray-600 max-w-md mx-auto">
         {selectedAccount
           ? "No newsletters have been synced from this email account yet. Click the sync button to import newsletters."
           : "Select an email account to view and manage newsletters."}

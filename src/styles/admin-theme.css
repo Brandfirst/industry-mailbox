@@ -99,3 +99,36 @@
 .admin-theme .admin-status-info {
   color: var(--admin-info);
 }
+
+/* Newsletter content styles */
+.admin-theme .bg-white {
+  color: var(--admin-text-primary);
+}
+
+/* Card and dialog styling */
+.admin-theme .card,
+.admin-theme .dialog {
+  color: var(--admin-text-primary);
+}
+
+/* Ensure icons are properly colored */
+.admin-theme .icon {
+  color: var(--admin-text-primary);
+}
+
+/* Make sure inputs and selects have proper contrast */
+.admin-theme select,
+.admin-theme input {
+  color: var(--admin-text-primary);
+  background-color: var(--admin-bg-primary);
+}
+
+/* Fix text colors in sidebar navigation */
+.admin-theme .admin-sidebar a {
+  color: var(--admin-text-secondary);
+}
+
+.admin-theme .admin-sidebar a.active,
+.admin-theme .admin-sidebar a:hover {
+  color: var(--admin-text-primary);
+}
