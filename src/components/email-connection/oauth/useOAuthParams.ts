@@ -1,5 +1,6 @@
 
 import { useLocation } from "react-router-dom";
+import { debugLog } from "@/lib/utils/content-sanitization/debugUtils";
 
 /**
  * Hook to extract and validate OAuth callback parameters
@@ -35,7 +36,7 @@ export const useOAuthParams = () => {
   const logOAuthState = (userId: string | undefined, isProcessing: boolean) => {
     const params = getOAuthParams();
     
-    console.log("[OAUTH PARAMS] Component state:", {
+    debugLog("OAuth Parameters:", {
       isProcessing,
       hasUser: !!userId,
       userId,

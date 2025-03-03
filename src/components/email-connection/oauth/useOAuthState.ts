@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate, useLocation } from "react-router-dom";
+import { debugLog } from "@/lib/utils/content-sanitization/debugUtils";
 
 /**
  * Hook to manage OAuth callback state
@@ -17,7 +18,7 @@ export const useOAuthState = (setIsConnecting: (isConnecting: boolean) => void) 
   // Clear the URL params after successful processing
   const clearUrlParams = () => {
     if (location.search && (location.search.includes('code=') || location.search.includes('error='))) {
-      console.log("[OAUTH STATE] Clearing URL parameters after processing");
+      debugLog("Clearing URL parameters after processing");
       // Use replace to avoid adding to browser history
       navigate(location.pathname, { replace: true });
     }
@@ -25,7 +26,7 @@ export const useOAuthState = (setIsConnecting: (isConnecting: boolean) => void) 
 
   // Cleanup function for OAuth state
   const cleanupOAuthState = () => {
-    console.log("[OAUTH STATE] Cleaning up OAuth state");
+    debugLog("Cleaning up OAuth state");
     sessionStorage.removeItem('gmailOAuthInProgress');
     sessionStorage.removeItem('oauth_nonce');
     sessionStorage.removeItem('oauth_start_time');

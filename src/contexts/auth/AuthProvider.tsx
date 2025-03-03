@@ -1,9 +1,9 @@
-
 import { createContext, useState, useEffect, ReactNode, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Session, User } from "@supabase/supabase-js";
 import { AuthContextType, ADMIN_EMAILS } from "./types";
 import { cleanLocalStorage, checkLocalStorageCorruption } from "./utils";
+import { debugLog } from "@/lib/utils/content-sanitization/debugUtils";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -14,21 +14,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profileRole, setProfileRole] = useState<string | null>(null);
   const [authInitialized, setAuthInitialized] = useState(false);
   
-  // Use refs to track state without causing re-renders
   const profileRoleFetchAttempted = useRef(false);
   const debugLogged = useRef(false);
   const sessionCheckAttempted = useRef(false);
   const authChangeHandlers = useRef<NodeJS.Timeout[]>([]);
 
-  // Derive admin status from multiple sources
   const isPremium = user?.user_metadata?.premium === true;
   const isAdmin = 
     user?.user_metadata?.role === 'admin' || 
     profileRole === 'admin' ||
     (user?.email && ADMIN_EMAILS.includes(user.email));
 
+  useEffect(() => {
+    if (isAdmin) {
+      localStorage.setItem('user_is_admin', 'true');
+    } else {
+      localStorage.removeItem('user_is_admin');
+    }
+  }, [isAdmin]);
+
   const fetchProfileRole = useCallback(async (userId: string) => {
-    // If we've already attempted to fetch the profile role, don't try again
     if (profileRoleFetchAttempted.current) {
       return null;
     }
@@ -54,11 +59,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Log auth state once and only when it actually changes
   useEffect(() => {
-    // Skip repeated logs with same values
     if (!debugLogged.current) {
-      console.log("Auth Debug (INITIAL):", {
+      debugLog("Auth Debug (INITIAL):", {
         userExists: !!user,
         isAdmin,
         userMetadata: user?.user_metadata ? "[User metadata exists]" : undefined,
@@ -72,7 +75,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, isAdmin, profileRole, isLoading, authInitialized]);
 
-  // Clean up corrupted localStorage on startup
   useEffect(() => {
     checkLocalStorageCorruption();
   }, []);
@@ -80,16 +82,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Function to ensure loading state gets cleared
     const ensureLoadingCleared = () => {
       if (mounted && isLoading) {
-        console.log("Ensuring loading state is cleared");
+        debugLog("Ensuring loading state is cleared");
         setIsLoading(false);
         setAuthInitialized(true);
       }
     };
 
-    // Initial session check - only performed once
     const checkSession = async () => {
       if (sessionCheckAttempted.current) return;
       sessionCheckAttempted.current = true;
@@ -97,7 +97,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         setIsLoading(true);
         
-        // Short timeout to prevent getting stuck in loading state (1.5 seconds)
         const timeoutId = setTimeout(() => {
           if (mounted) {
             console.warn("Initial session check timed out, forcing completion");
@@ -105,7 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         }, 1500);
         
-        // Ultra-safe backup timeout (3 seconds)
         const backupTimeoutId = setTimeout(() => {
           if (mounted && isLoading) {
             console.warn("BACKUP TIMEOUT: Forcing auth loading to complete");
@@ -115,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        // Clear timeout as we got a response
         clearTimeout(timeoutId);
         
         if (!mounted) {
@@ -136,7 +133,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           if (session.user) {
             try {
-              // Don't wait for profile role to set loading to false
               fetchProfileRole(session.user.id).then(role => {
                 if (mounted) {
                   setProfileRole(role);
@@ -150,7 +146,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         }
         
-        // Always ensure loading is completed after getting session
         ensureLoadingCleared();
         clearTimeout(backupTimeoutId);
       } catch (error) {
@@ -161,19 +156,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     checkSession();
 
-    // Listen for auth changes with major debouncing
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Only log significant auth events
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
         console.log("Auth state changed:", event, session ? "session exists" : "no session");
       }
       
       if (!mounted) return;
       
-      // Clean up any pending timeouts
       authChangeHandlers.current.forEach(timeout => clearTimeout(timeout));
       
-      // Use a single debounced handler
       const timeoutId = setTimeout(() => {
         if (!mounted) return;
         
@@ -181,7 +172,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user && !profileRoleFetchAttempted.current) {
-          // Only fetch profile role if we haven't attempted it yet
           fetchProfileRole(session.user.id).then(role => {
             if (mounted) {
               setProfileRole(role);
@@ -193,21 +183,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setProfileRole(null);
         }
         
-        // Ensure auth is initialized and not loading
         if (!authInitialized) {
           setAuthInitialized(true);
         }
         
-        // For sign-in events, ensure loading is cleared
         if (event === 'SIGNED_IN' && isLoading) {
           setIsLoading(false);
         }
-      }, 500); // 500ms debounce
+      }, 500);
       
       authChangeHandlers.current.push(timeoutId);
     });
 
-    // Extra safety measure: force isLoading to false after component mount
     const forceLoadingFalse = setTimeout(() => {
       if (isLoading) {
         console.warn('Forcing isLoading to false after 2s component mount');
@@ -286,36 +273,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Sign out initiated");
       
-      // First clean localStorage of any corrupted items
       cleanLocalStorage();
       
-      // Clear local state
       setUser(null);
       setSession(null);
       setProfileRole(null);
       
       try {
-        // Try to sign out with Supabase
         await supabase.auth.signOut();
         console.log("Sign out complete, redirecting...");
       } catch (signOutError) {
         console.error("Error during Supabase signOut:", signOutError);
-        // Even if Supabase sign out fails, continue with redirect
       }
       
-      // Force redirect to the home page
       window.location.href = '/';
-      
     } catch (error) {
       console.error("Sign out error:", error);
       
-      // Even on error, clear state to ensure the user is logged out locally
       setUser(null);
       setSession(null);
       setProfileRole(null);
       cleanLocalStorage();
       
-      // Force redirect on error
       window.location.href = '/';
     }
   };

@@ -2,13 +2,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter, NewsletterFilters } from "../types";
 import { NewsletterFilterOptions } from "./types";
+import { debugLog } from "@/lib/utils/content-sanitization/debugUtils";
 
 // Get a single newsletter by ID
 export async function getNewsletterById(id: string | number) {
   // Convert string ID to number if it's a string
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
   
-  console.log('Fetching newsletter with ID:', numericId);
+  debugLog('Fetching newsletter with ID:', numericId);
   
   // Fetch the newsletter and ensure we get categories
   const { data, error } = await supabase
@@ -25,14 +26,14 @@ export async function getNewsletterById(id: string | number) {
   if (data && data.content) {
     // Check for Nordic characters in the raw data
     const nordicCharsInRaw = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS IN RAW DB DATA:', nordicCharsInRaw || 'None found');
+    debugLog('NORDIC CHARACTERS IN RAW DB DATA:', nordicCharsInRaw || 'None found');
     
     // If no Nordic characters found, log potential encoding issues
     if (!nordicCharsInRaw) {
       // Check for potentially double-encoded sequences
       const potentialDoubleEncoded = data.content.match(/Ã[…†˜¦ø¸]/g);
       if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
-        console.log('Potential double-encoded characters found in DB data:', 
+        debugLog('Potential double-encoded characters found in DB data:', 
                     potentialDoubleEncoded.join(', '));
       }
     }

@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { debugLog } from "@/lib/utils/content-sanitization/debugUtils";
 
 export const useDebugMode = (emailAccountsLength: number, redirectUri: string) => {
   const location = useLocation();
@@ -17,10 +18,10 @@ export const useDebugMode = (emailAccountsLength: number, redirectUri: string) =
     setShowDebug(debug === 'true' || isAdmin);
     
     if (debug === 'true' || isAdmin) {
-      console.log("[DEBUG MODE] Email connection debugging enabled");
-      console.log("[DEBUG INFO] Current redirect URI:", redirectUri);
-      console.log("[DEBUG INFO] VITE_GOOGLE_CLIENT_ID exists:", !!import.meta.env.VITE_GOOGLE_CLIENT_ID);
-      console.log("[DEBUG INFO] Email accounts count:", emailAccountsLength);
+      debugLog("Email connection debugging enabled");
+      debugLog("Current redirect URI:", redirectUri);
+      debugLog("VITE_GOOGLE_CLIENT_ID exists:", !!import.meta.env.VITE_GOOGLE_CLIENT_ID);
+      debugLog("Email accounts count:", emailAccountsLength);
     }
   }, [location.search, redirectUri, emailAccountsLength]);
   

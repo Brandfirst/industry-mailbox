@@ -11,10 +11,12 @@ export const isInDebugMode = (): boolean => {
   const urlParams = new URLSearchParams(window.location.search);
   const debugParam = urlParams.get('debug');
   
-  // Additional ways to check for admin status could be added here
-  // For example, checking a user context or role from auth
+  // Additional ways to check for admin status
+  // For this app, we'll check for a user_is_admin flag in localStorage
+  // This should be set by the auth system when a user with admin privileges logs in
+  const isAdminUser = localStorage.getItem('user_is_admin') === 'true';
   
-  return debugParam === 'true';
+  return debugParam === 'true' || isAdminUser;
 };
 
 /**
@@ -30,3 +32,4 @@ export const debugLog = (message: string, data?: any): void => {
     console.log(`[DEBUG] ${message}`);
   }
 };
+
