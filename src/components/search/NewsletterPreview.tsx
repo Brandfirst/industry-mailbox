@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 interface NewsletterPreviewProps {
   content: string | null;
@@ -20,7 +20,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     
     // Debug nordic characters for troubleshooting
     const nordicChars = (secureContent.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS IN PREVIEW:', nordicChars || 'None found');
+    console.log('NORDIC CHARACTERS IN PREVIEW COMPONENT:', nordicChars || 'None found');
     
     return `<!DOCTYPE html>
       <html lang="en">
@@ -64,22 +64,39 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
 
   // Handle iframe load to ensure proper UTF-8 encoding
   useEffect(() => {
-    if (iframeRef.current) {
+    if (!iframeRef.current) return;
+    
+    const iframe = iframeRef.current;
+    const content = getIframeContent();
+    
+    try {
+      const doc = iframe.contentDocument;
+      if (doc) {
+        doc.open("text/html", "replace");
+        doc.write(content);
+        doc.close();
+        
+        // Debug: Check if charset meta is present after creation
+        const metaCharset = doc.querySelector('meta[charset]');
+        console.log('PREVIEW IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
+      }
+    } catch (error) {
+      console.error("Error writing to preview iframe:", error);
+    }
+    
+    // Also set content when iframe loads
+    iframe.onload = () => {
       try {
-        const doc = iframeRef.current.contentDocument;
+        const doc = iframe.contentDocument;
         if (doc) {
           doc.open("text/html", "replace");
-          doc.write(getIframeContent());
+          doc.write(content);
           doc.close();
-          
-          // Debug: Check if charset meta is present after creation
-          const metaCharset = doc.querySelector('meta[charset]');
-          console.log('PREVIEW IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
         }
       } catch (error) {
-        console.error("Error writing to preview iframe:", error);
+        console.error("Error in iframe onload:", error);
       }
-    }
+    };
   }, [content, isMobile]);
 
   if (!content) {

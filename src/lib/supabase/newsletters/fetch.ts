@@ -7,6 +7,8 @@ export async function getNewsletterById(id: string | number) {
   // Convert string ID to number if it's a string
   const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
   
+  console.log('Fetching newsletter with ID:', numericId);
+  
   // Fetch the newsletter and ensure we get categories
   const { data, error } = await supabase
     .from('newsletters')
@@ -20,23 +22,12 @@ export async function getNewsletterById(id: string | number) {
   
   // Process content to ensure UTF-8 encoding
   if (data && data.content) {
-    try {
-      // Log the raw content for debugging
-      console.log('Raw content from getNewsletterById (first 100 chars):', 
-        data.content.substring(0, 100));
-      
-      // Use TextEncoder/TextDecoder to ensure UTF-8 encoding
-      const encoder = new TextEncoder();
-      const decoder = new TextDecoder('utf-8', { fatal: false });
-      const encoded = encoder.encode(data.content);
-      data.content = decoder.decode(encoded);
-      
-      // Log the processed content
-      console.log('Processed content (first 100 chars):', 
-        data.content.substring(0, 100));
-    } catch (e) {
-      console.error('Error processing UTF-8 content in getNewsletterById:', e);
-    }
+    // Check for Nordic characters in the raw data
+    const nordicCharsInRaw = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
+    console.log('NORDIC CHARACTERS IN RAW DB DATA:', nordicCharsInRaw || 'None found');
+    
+    // Convert content to UTF-8 string, ensuring proper encoding
+    data.content = String(data.content);
   }
   
   return { data, error };

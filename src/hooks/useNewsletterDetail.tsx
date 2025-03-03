@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Newsletter } from '@/lib/supabase/types';
+import { getNewsletterById } from '@/lib/supabase/newsletters/fetch';
 
 export const useNewsletterDetail = () => {
   const { id, sender, titleId } = useParams<{ id?: string; sender?: string; titleId?: string }>();
@@ -34,14 +35,10 @@ export const useNewsletterDetail = () => {
           throw new Error('No newsletter identifier provided');
         }
         
-        // Directly fetch the raw content for testing
-        console.log('Fetching newsletter with ID:', newsletterId);
+        console.log('REQUESTING newsletter with ID:', newsletterId);
         
-        const { data, error } = await supabase
-          .from('newsletters')
-          .select('*, categories(name, color)')
-          .eq('id', newsletterId)
-          .single();
+        // Use the fetch utility instead of direct Supabase call
+        const { data, error } = await getNewsletterById(newsletterId);
         
         if (error) {
           console.error('Error fetching newsletter:', error);
@@ -49,38 +46,22 @@ export const useNewsletterDetail = () => {
         }
         
         if (data) {
-          // Debug raw content immediately after fetch
-          console.log('FETCHED RAW CONTENT (first 100 chars):', data.content?.substring(0, 100));
-          console.log('CONTENT TYPE:', typeof data.content);
-          
-          // Check for Nordic characters
+          // Ensure we have content as a string
           if (data.content) {
+            console.log('CONTENT DATA TYPE:', typeof data.content);
+            console.log('CONTENT SAMPLE (first 100 chars):', data.content.substring(0, 100));
+            
+            // Normalize content encoding
+            const textEncoder = new TextEncoder();
+            const textDecoder = new TextDecoder('utf-8', { fatal: false });
+            const bytes = textEncoder.encode(data.content);
+            const decodedContent = textDecoder.decode(bytes);
+            
+            data.content = decodedContent;
+            
+            // Search for nordic characters after processing
             const nordicChars = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
-            console.log('NORDIC CHARACTERS IN RAW CONTENT:', nordicChars || 'None found');
-            
-            // Ensure content is a string
-            if (typeof data.content !== 'string') {
-              data.content = String(data.content);
-            }
-            
-            // Try to fix encoding issues by normalizing to UTF-8
-            try {
-              // Force UTF-8 encoding by re-encoding the content
-              const textEncoder = new TextEncoder();
-              const textDecoder = new TextDecoder('utf-8', { fatal: false });
-              
-              // Encode to UTF-8 bytes and then decode back to string
-              const encodedContent = textEncoder.encode(data.content);
-              data.content = textDecoder.decode(encodedContent);
-              
-              console.log('RE-ENCODED CONTENT (first 100 chars):', data.content.substring(0, 100));
-              
-              // Check for Nordic characters after re-encoding
-              const nordicCharsAfter = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
-              console.log('NORDIC CHARACTERS AFTER RE-ENCODING:', nordicCharsAfter || 'None found');
-            } catch (encError) {
-              console.error('Error re-encoding content:', encError);
-            }
+            console.log('NORDIC CHARACTERS IN HOOK AFTER PROCESSING:', nordicChars || 'None found');
           }
           
           setNewsletter(data);
