@@ -30,6 +30,8 @@ const AppLayout = () => {
         {/* New URL formats */}
         <Route path="/:sender/:titleId" element={<NewsletterDetail />} />
         <Route path="/sender/:senderSlug" element={<SenderNewsletters />} />
+        
+        {/* Admin routes - make sure to handle with AND without query parameters */}
         <Route path="/admin" element={
           <ProtectedRoute requireAuth requireAdmin>
             <Admin />
@@ -40,6 +42,7 @@ const AppLayout = () => {
             <Admin />
           </ProtectedRoute>
         } />
+        
         <Route 
           path="/auth" 
           element={

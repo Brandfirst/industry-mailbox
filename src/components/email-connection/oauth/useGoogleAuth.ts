@@ -80,15 +80,17 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
       // Update state
       setIsConnecting(true);
       
-      // Create the redirect URI based on the current URL
-      // This ensures we redirect back to the same page we're on
-      const redirectUri = import.meta.env.VITE_REDIRECT_URI || 
-        window.location.origin + "/admin";
+      // Get the redirect URI from environment variables, falling back to window.origin + /admin
+      const envRedirectUri = import.meta.env.VITE_REDIRECT_URI;
+      const currentHost = window.location.origin;
+      
+      // Use environment variable if available, otherwise build it from current origin
+      const redirectUri = envRedirectUri || `${currentHost}/admin`;
       
       console.log(`[GOOGLE AUTH] Using redirect URI: ${redirectUri}`);
       
       // Build Google OAuth URL
-      // FIX: Don't use encodeURIComponent here as the URLSearchParams will handle encoding
+      // Do NOT use encodeURIComponent here as URLSearchParams will handle encoding
       const scope = 'https://www.googleapis.com/auth/gmail.readonly';
       const responseType = 'code';
       const accessType = 'offline';
@@ -107,6 +109,16 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
         nonce
       });
       
+      // Log debugging information
+      console.log('[GOOGLE AUTH] OAuth configuration:', {
+        clientId,
+        redirectUri,
+        envRedirectUri,
+        currentHost,
+        scope,
+        timestamp: new Date().toISOString()
+      });
+      
       // Set a brief timeout before redirecting to ensure UI updates
       setTimeout(() => {
         // Before redirect, verify that we're in connecting state
@@ -114,16 +126,6 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
           console.warn('[GOOGLE AUTH] OAuth state was cleared before redirect, aborting');
           return;
         }
-        
-        // Log everything before redirection
-        console.log('[GOOGLE AUTH] Preparing to redirect with params:', {
-          clientId: clientId,
-          redirectUri,
-          scope,
-          state,
-          nonce,
-          timestamp: new Date().toISOString()
-        });
         
         // Redirect to Google OAuth
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;

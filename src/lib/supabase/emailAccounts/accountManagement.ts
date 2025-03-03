@@ -26,8 +26,12 @@ export async function getUserEmailAccounts(userId) {
 export async function connectGoogleEmail(userId, code, redirectUri): Promise<GoogleOAuthResult> {
   try {
     // Get the redirect URI from env or use the provided one
-    const actualRedirectUri = redirectUri || import.meta.env.VITE_REDIRECT_URI || 
-      window.location.origin + "/admin";
+    const envRedirectUri = import.meta.env.VITE_REDIRECT_URI;
+    const currentHost = typeof window !== 'undefined' ? window.location.origin : '';
+    
+    // Try multiple options for redirect URI to ensure we match what Google expects
+    const actualRedirectUri = redirectUri || envRedirectUri || 
+      (currentHost ? `${currentHost}/admin` : null);
     
     console.log("Using redirect URI for connectGoogleEmail:", actualRedirectUri);
     console.log("Connecting Google Email for user:", userId);
@@ -47,13 +51,17 @@ export async function connectGoogleEmail(userId, code, redirectUri): Promise<Goo
       envRedirectUri: import.meta.env.VITE_REDIRECT_URI || 'not-set'
     });
     
+    if (!actualRedirectUri) {
+      throw new Error("Failed to determine redirect URI");
+    }
+    
     const response = await supabase.functions.invoke("connect-gmail", {
       body: { 
         code, 
         userId, 
         redirectUri: actualRedirectUri,
         timestamp: new Date().toISOString(), // Add timestamp to help with debugging
-        clientVersion: '1.0.1' // Add version to track client requests
+        clientVersion: '1.0.2' // Update version to track client requests
       },
     });
     

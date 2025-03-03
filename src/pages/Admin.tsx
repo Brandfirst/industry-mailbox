@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AdminHeader from "@/components/admin/AdminHeader";
 import DashboardContent from "@/components/admin/DashboardContent";
@@ -13,32 +13,46 @@ import UnderConstructionTab from "@/components/admin/UnderConstructionTab";
 const Admin = () => {
   const navigate = useNavigate();
   const { tab } = useParams();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(tab || "dashboard");
   
+  const isOAuthCallback = searchParams.has('code') && searchParams.has('state');
+  
   useEffect(() => {
-    if (!tab) {
+    console.log("[ADMIN] URL parameters:", {
+      tab,
+      hasCode: searchParams.has('code'),
+      hasState: searchParams.has('state'),
+      state: searchParams.get('state'),
+      isOAuthCallback,
+      fullUrl: window.location.href
+    });
+    
+    if (isOAuthCallback) {
+      console.log("[ADMIN] OAuth callback detected, ensuring we're on dashboard tab");
+      setActiveTab("dashboard");
+    } 
+    else if (!tab) {
       navigate("/admin/dashboard", { replace: true });
-    } else {
+    } 
+    else {
       setActiveTab(tab);
     }
-  }, [tab, navigate]);
+  }, [tab, navigate, searchParams, isOAuthCallback]);
   
   useEffect(() => {
     const validTabs = ["dashboard", "newsletters", "categories", "users", "settings", "newsletter-senders"];
-    if (tab && !validTabs.includes(tab)) {
+    if (tab && !validTabs.includes(tab) && !isOAuthCallback) {
       navigate("/admin/dashboard", { replace: true });
     }
-  }, [tab, navigate]);
+  }, [tab, navigate, isOAuthCallback]);
 
-  // Update document title
   useEffect(() => {
     document.title = `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} | Admin Dashboard`;
   }, [activeTab]);
   
-  // Create a unique key for the components
   const componentKey = `${activeTab}-${Date.now()}`;
   
-  // Create a unique key for email connection component
   const emailConnectionKey = `email-connection-${Date.now()}`;
   
   return (
