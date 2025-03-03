@@ -1,4 +1,3 @@
-
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
@@ -568,6 +567,37 @@ serve(async (req) => {
             title: emailData.title,
             sender: emailData.sender
           });
+        }
+        
+        // Pre-process content to remove tracking elements before saving to database
+        try {
+          // Simple tracking removal without dependencies - similar to client-side tracking filters
+          if (emailData.content) {
+            // Remove tracking pixels and analytics
+            emailData.content = emailData.content.replace(
+              /<img[^>]*?src=['"]([^'"]+)(analytics|track|click|mail|open|beacon|wf|ea|stat)[^'"]*['"][^>]*>/gi,
+              ''
+            );
+            
+            // Remove script tags
+            emailData.content = emailData.content.replace(
+              /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, 
+              ''
+            );
+            
+            // Strip inline event handlers
+            emailData.content = emailData.content.replace(
+              /\s(on\w+)=['"]([^'"]*)['"]/gi,
+              ''
+            );
+            
+            if (verbose) {
+              console.log('Tracking elements removed from email content before storage');
+            }
+          }
+        } catch (processingError) {
+          console.warn('Error processing tracking elements:', processingError);
+          // Continue with the original content if processing fails
         }
         
         // Insert email into database
