@@ -29,7 +29,7 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     const response = await supabase.functions.invoke("sync-emails", {
       body: { 
         accountId,
-        import_all_emails: false,  // Don't import all emails, only newsletters
+        import_all_emails: true,  // Changed to true to import all emails
         debug: true,               // Request debug info from the function
         verbose: true              // Request verbose logging
       },

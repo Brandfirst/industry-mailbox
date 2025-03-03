@@ -11,93 +11,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const NEWSLETTER_KEYWORDS = [
-  'newsletter', 'digest', 'update', 'bulletin', 'roundup', 'weekly', 'monthly', 
-  'insights', 'trends', 'news', 'briefing', 'report', 'summary', 'highlights',
-  'inbox', 'edition', 'latest', 'issue', 'special', 'exclusive'
-];
-
-// Updated to be more inclusive
-const isLikelyNewsletter = (email: any, verbose = false) => {
-  // Destructure with fallbacks for various email formats
-  const { 
-    subject = '',
-    title = '',
-    snippet = '',
-    html = '',
-    textBody = '',
-    bodyText = '',
-    sender = '',
-    from = '',
-    sender_email = '',
-    from_email = ''
-  } = email;
-  
-  const fullSubject = (subject || title || '').toLowerCase();
-  const bodyText1 = (snippet || textBody || bodyText || '').toLowerCase();
-  const bodyText2 = html ? html.toLowerCase() : '';
-  const senderEmail = (sender || from || sender_email || from_email || '').toLowerCase();
-  
-  if (verbose) {
-    console.log('Email details for newsletter detection:', {
-      subject: fullSubject,
-      senderEmail,
-      hasHtml: !!html,
-      bodySnippet: bodyText1.substring(0, 100) + '...',
-    });
-  }
-  
-  // 1. Check if the email appears to be a newsletter by keywords in subject
-  for (const keyword of NEWSLETTER_KEYWORDS) {
-    if (fullSubject.includes(keyword)) {
-      if (verbose) console.log(`Newsletter detected by subject keyword: ${keyword}`);
-      return true;
-    }
-  }
-  
-  // 2. Check if sender contains common newsletter indicators
-  if (
-    senderEmail.includes('newsletter') || 
-    senderEmail.includes('noreply') || 
-    senderEmail.includes('no-reply') ||
-    senderEmail.includes('updates') ||
-    senderEmail.includes('info@') ||
-    senderEmail.includes('news@') ||
-    senderEmail.includes('mail@')
-  ) {
-    if (verbose) console.log(`Newsletter detected by sender email pattern: ${senderEmail}`);
-    return true;
-  }
-  
-  // 3. Check body text for newsletter indicators
-  const bodyFullText = bodyText1 + ' ' + bodyText2;
-  
-  // Check for unsubscribe links which are common in newsletters
-  if (
-    bodyFullText.includes('unsubscribe') || 
-    bodyFullText.includes('opt out') || 
-    bodyFullText.includes('opt-out') ||
-    bodyFullText.includes('email preferences') ||
-    bodyFullText.includes('manage subscriptions')
-  ) {
-    if (verbose) console.log('Newsletter detected by unsubscribe text in body');
-    return true;
-  }
-  
-  // 4. If the email has HTML content and looks formatted (not just plain text)
-  if (html && (
-    html.includes('<table') || 
-    html.includes('<div style') || 
-    (html.match(/<img/g) || []).length > 1)  // Multiple images often indicate a newsletter
-  ) {
-    if (verbose) console.log('Newsletter detected by HTML formatting patterns');
-    return true;
-  }
-  
-  if (verbose) console.log('Not detected as a newsletter');
-  return false;
-};
-
 async function fetchGmailEmails(accessToken, verbose = false) {
   if (verbose) {
     console.log(`Fetching emails from Gmail API with token: ${accessToken.substring(0, 10)}...`);
@@ -122,9 +35,9 @@ async function fetchGmailEmails(accessToken, verbose = false) {
       console.log(`Fetching emails for Gmail user: ${userInfo.emailAddress}`);
     }
     
-    // Get list of message IDs
+    // Get list of message IDs - removed filters to get all emails
     const listResponse = await fetch(
-      'https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50&q=category:promotions OR category:updates OR is:newsletter OR unsubscribe', 
+      'https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50', 
       {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -242,7 +155,7 @@ serve(async (req) => {
   try {
     // Parse request body
     const requestData = await req.json();
-    const { accountId, debug = false, verbose = false, import_all_emails = false } = requestData;
+    const { accountId, debug = false, verbose = false, import_all_emails = true } = requestData;
     
     if (!accountId) {
       console.error('No accountId provided');
@@ -256,7 +169,7 @@ serve(async (req) => {
     }
     
     if (verbose) {
-      console.log(`Starting sync for account ${accountId} with debug=${debug}, verbose=${verbose}`);
+      console.log(`Starting sync for account ${accountId} with debug=${debug}, verbose=${verbose}, import_all_emails=${import_all_emails}`);
     }
     
     // Create Supabase client
@@ -328,89 +241,80 @@ serve(async (req) => {
       );
     }
     
-    // Filter for newsletters based on content/sender or import all if requested
+    // No filtering - process all emails
     if (verbose) {
-      console.log(`Filtering ${emails.length} emails for newsletters (import_all_emails=${import_all_emails})`);
+      console.log(`Processing all ${emails.length} emails`);
     }
     
-    let newsletters = emails;
-    if (!import_all_emails) {
-      newsletters = emails.filter(email => isLikelyNewsletter(email, verbose));
-    }
-    
-    if (verbose) {
-      console.log(`Found ${newsletters.length} newsletters out of ${emails.length} emails`);
-    }
-    
-    // Process and save newsletters
+    // Process and save all emails
     const synced = [];
     const failed = [];
     
-    for (const newsletter of newsletters) {
+    for (const email of emails) {
       try {
-        // Check if newsletter already exists to avoid duplicates
+        // Check if email already exists to avoid duplicates
         if (verbose) {
-          console.log(`Checking if newsletter ${newsletter.id} already exists...`);
+          console.log(`Checking if email ${email.id} already exists...`);
         }
         
         const { data: existingData } = await supabase
           .from('newsletters')
           .select('id')
           .eq('email_id', accountId)
-          .eq('gmail_message_id', newsletter.id)
+          .eq('gmail_message_id', email.id)
           .maybeSingle();
         
         if (existingData) {
           if (verbose) {
-            console.log(`Newsletter ${newsletter.id} already exists, skipping`);
+            console.log(`Email ${email.id} already exists, skipping`);
           }
           continue;
         }
         
-        // Prepare newsletter data
-        const newsletterData = {
+        // Prepare email data for saving
+        const emailData = {
           email_id: accountId,
-          gmail_message_id: newsletter.id,
-          gmail_thread_id: newsletter.threadId,
-          title: newsletter.subject,
-          sender_email: newsletter.sender_email,
-          sender: newsletter.sender,
-          content: newsletter.html || newsletter.snippet || '',
-          published_at: newsletter.date,
-          preview: newsletter.snippet || '',
+          gmail_message_id: email.id,
+          gmail_thread_id: email.threadId,
+          title: email.subject,
+          sender_email: email.sender_email,
+          sender: email.sender,
+          content: email.html || email.snippet || '',
+          published_at: email.date,
+          preview: email.snippet || '',
         };
         
         if (verbose) {
-          console.log(`Inserting newsletter:`, {
-            id: newsletter.id,
-            title: newsletterData.title,
-            sender: newsletterData.sender
+          console.log(`Inserting email:`, {
+            id: email.id,
+            title: emailData.title,
+            sender: emailData.sender
           });
         }
         
-        // Insert newsletter into database
+        // Insert email into database
         const { data, error } = await supabase
           .from('newsletters')
-          .insert(newsletterData)
+          .insert(emailData)
           .select()
           .single();
         
         if (error) {
-          console.error(`Error saving newsletter ${newsletter.id}:`, error);
+          console.error(`Error saving email ${email.id}:`, error);
           failed.push({
-            id: newsletter.id,
+            id: email.id,
             error: error.message
           });
         } else {
           if (verbose) {
-            console.log(`Saved newsletter: ${data.title}`);
+            console.log(`Saved email: ${data.title}`);
           }
           synced.push(data);
         }
       } catch (error) {
-        console.error(`Error processing newsletter ${newsletter.id}:`, error);
+        console.error(`Error processing email ${email.id}:`, error);
         failed.push({
-          id: newsletter.id,
+          id: email.id,
           error: error.message
         });
       }
@@ -427,12 +331,11 @@ serve(async (req) => {
         count: synced.length,
         synced,
         failed: failed.length > 0 ? failed : [],
-        warning: partial ? 'Some newsletters failed to sync' : null,
+        warning: partial ? 'Some emails failed to sync' : null,
         details: debug ? {
           accountEmail: accountData.email,
           provider: accountData.provider,
           totalEmails: emails.length,
-          newslettersFound: newsletters.length,
           syncedCount: synced.length,
           failedCount: failed.length
         } : null,
