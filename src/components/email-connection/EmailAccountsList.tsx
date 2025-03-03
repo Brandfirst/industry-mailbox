@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { EmailAccountItem } from "./EmailAccountItem";
-import { EmailAccount, SyncResult } from "./types";
+import { EmailAccount } from "./types";
 import { disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -22,6 +22,8 @@ export const EmailAccountsList = ({ emailAccounts, onRefresh }: EmailAccountsLis
     
     try {
       const result = await syncEmailAccount(accountId);
+      console.log("Sync result:", result);
+      
       if (result.success) {
         toast.success("Successfully synced emails");
         await onRefresh(); // Refresh the accounts list

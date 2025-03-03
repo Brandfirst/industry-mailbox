@@ -1,3 +1,4 @@
+
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
@@ -245,11 +246,15 @@ serve(async (req) => {
     for (const newsletter of newsletters) {
       try {
         // Check if newsletter already exists to avoid duplicates
+        if (verbose) {
+          console.log(`Checking if newsletter ${newsletter.id} already exists...`);
+        }
+        
         const { data: existingData } = await supabase
           .from('newsletters')
           .select('id')
           .eq('email_id', accountId)
-          .eq('gmail_message_id', newsletter.id)  // CHANGED: Use gmail_message_id instead of message_id
+          .eq('gmail_message_id', newsletter.id)
           .maybeSingle();
         
         if (existingData) {
@@ -262,15 +267,22 @@ serve(async (req) => {
         // Prepare newsletter data
         const newsletterData = {
           email_id: accountId,
-          gmail_message_id: newsletter.id,  // CHANGED: Use gmail_message_id instead of message_id
+          gmail_message_id: newsletter.id,
           title: newsletter.subject,
           sender_email: newsletter.sender,
-          sender: newsletter.sender,  // Add this for display name
+          sender: newsletter.sender,
           content: newsletter.html || newsletter.snippet || '',
           published_at: newsletter.date,
-          preview: newsletter.snippet || '',  // Add preview field
-          // Add more fields as needed
+          preview: newsletter.snippet || '',
         };
+        
+        if (verbose) {
+          console.log(`Inserting newsletter:`, {
+            id: newsletter.id,
+            title: newsletterData.title,
+            sender: newsletterData.sender
+          });
+        }
         
         // Insert newsletter into database
         const { data, error } = await supabase

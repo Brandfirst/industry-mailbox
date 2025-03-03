@@ -60,7 +60,11 @@ export async function getNewslettersFromEmailAccount(
     
     // Apply filters
     if (filters.category && filters.category !== 'all') {
-      query = query.eq('category_id', filters.category);
+      const categoryIdNum = typeof filters.category === 'string' 
+        ? parseInt(filters.category, 10) 
+        : filters.category;
+        
+      query = query.eq('category_id', categoryIdNum);
     }
     
     if (filters.fromDate) {

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Newsletter } from "../types";
 import { NewsletterFilterOptions } from "./types";
@@ -129,7 +128,6 @@ export async function deleteNewsletters(ids: number[]): Promise<{ success: boole
 // Functions for saved newsletters
 export async function saveNewsletter(newsletterId: number, userId: string) {
   try {
-    // Use email_id or gmail_message_id instead of message_id which doesn't exist
     const { error } = await supabase
       .from("saved_newsletters")
       .insert({ newsletter_id: newsletterId, user_id: userId });
