@@ -34,19 +34,8 @@ export const useNewsletterDetail = () => {
           throw new Error('No newsletter identifier provided');
         }
         
-        // Get the raw content with no transform to see what's in the database
-        const { data: rawData, error: rawError } = await supabase
-          .from('newsletters')
-          .select('content')
-          .eq('id', newsletterId)
-          .single();
-          
-        if (rawData?.content) {
-          console.log('RAW DB CONTENT (first 200 chars):', rawData.content.substring(0, 200));
-          // Log special characters to check encoding
-          const specialChars = (rawData.content.match(/[ØÆÅøæå]/g) || []).join('');
-          console.log('Special characters in raw content:', specialChars || 'None found');
-        }
+        // Directly fetch the raw content for testing
+        console.log('Fetching newsletter with ID:', newsletterId);
         
         const { data, error } = await supabase
           .from('newsletters')
@@ -60,22 +49,37 @@ export const useNewsletterDetail = () => {
         }
         
         if (data) {
-          // Process content for proper UTF-8 encoding
+          // Debug raw content immediately after fetch
+          console.log('FETCHED RAW CONTENT (first 100 chars):', data.content?.substring(0, 100));
+          console.log('CONTENT TYPE:', typeof data.content);
+          
+          // Check for Nordic characters
           if (data.content) {
-            console.log('Original content (first 200 chars):', data.content.substring(0, 200));
-            
-            // Log any special Nordic characters to check encoding
-            const specialChars = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
-            console.log('Special characters in content:', specialChars || 'None found');
+            const nordicChars = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
+            console.log('NORDIC CHARACTERS IN RAW CONTENT:', nordicChars || 'None found');
             
             // Ensure content is a string
             if (typeof data.content !== 'string') {
               data.content = String(data.content);
             }
             
-            // Add explicit UTF-8 header if HTML
-            if (!data.content.includes('charset=utf-8') && data.content.includes('<html')) {
-              data.content = data.content.replace('<head>', '<head><meta charset="utf-8">');
+            // Try to fix encoding issues by normalizing to UTF-8
+            try {
+              // Force UTF-8 encoding by re-encoding the content
+              const textEncoder = new TextEncoder();
+              const textDecoder = new TextDecoder('utf-8', { fatal: false });
+              
+              // Encode to UTF-8 bytes and then decode back to string
+              const encodedContent = textEncoder.encode(data.content);
+              data.content = textDecoder.decode(encodedContent);
+              
+              console.log('RE-ENCODED CONTENT (first 100 chars):', data.content.substring(0, 100));
+              
+              // Check for Nordic characters after re-encoding
+              const nordicCharsAfter = (data.content.match(/[ØÆÅøæå]/g) || []).join('');
+              console.log('NORDIC CHARACTERS AFTER RE-ENCODING:', nordicCharsAfter || 'None found');
+            } catch (encError) {
+              console.error('Error re-encoding content:', encError);
             }
           }
           
@@ -83,7 +87,7 @@ export const useNewsletterDetail = () => {
           document.title = `${data?.title || 'Newsletter'} | NewsletterHub`;
         }
       } catch (error) {
-        console.error('Error fetching newsletter:', error);
+        console.error('Error in fetchNewsletter:', error);
       } finally {
         setLoading(false);
       }

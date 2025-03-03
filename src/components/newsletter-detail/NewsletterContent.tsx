@@ -1,6 +1,6 @@
 
 import { Newsletter } from "@/lib/supabase/types";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface NewsletterContentProps {
   newsletter: Newsletter;
@@ -8,15 +8,20 @@ interface NewsletterContentProps {
 
 const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [iframeHeight, setIframeHeight] = useState("100vh");
   
-  // Create a safe HTML content with proper encoding
-  const getSafeHtmlContent = () => {
+  // Create a properly encoded HTML content
+  const getFormattedHtmlContent = () => {
     if (!newsletter.content) return '';
     
-    // Log raw content to debug character encoding issues
-    console.log('Raw content (first 100 chars):', newsletter.content.substring(0, 100));
+    // Log the raw content for debugging
+    console.log('PREPARING CONTENT FOR IFRAME (first 100 chars):', newsletter.content.substring(0, 100));
     
-    // Replace http:// with https:// for security
+    // Get Nordic characters for debugging
+    const nordicChars = (newsletter.content.match(/[ØÆÅøæå]/g) || []).join('');
+    console.log('NORDIC CHARACTERS BEFORE PROCESSING:', nordicChars || 'None found');
+    
+    // Force HTTPS
     let content = newsletter.content.replace(/http:\/\//g, 'https://');
     
     // Ensure content has HTML5 doctype and proper UTF-8 encoding
@@ -44,23 +49,25 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
                   <body>${content}</body>
                 </html>`;
     } else if (!content.includes('<meta charset="utf-8">')) {
-      // Add charset meta if missing but has HTML structure
-      const headMatch = content.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+      // Has HTML structure but missing charset meta - add it
+      const headRegex = /<head[^>]*>([\s\S]*?)<\/head>/i;
+      const headMatch = content.match(headRegex);
+      
       if (headMatch) {
+        const charset = '<meta charset="utf-8">\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
+        const viewportMeta = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+        const fontStyle = `<style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+          body, p, h1, h2, h3, h4, h5, h6, span, div { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+          }
+          img { max-width: 100%; height: auto; }
+        </style>`;
+        
+        // Replace the entire head with our updated version
         content = content.replace(
           headMatch[0],
-          `<head${headMatch[0].substring(5, headMatch[0].indexOf('>'))}>
-            <meta charset="utf-8">
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-              body, p, h1, h2, h3, h4, h5, h6, span, div { 
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-              }
-            </style>
-            ${headMatch[1]}
-          </head>`
+          `<head>\n${charset}\n${viewportMeta}\n${fontStyle}\n${headMatch[1]}\n</head>`
         );
       }
     }
@@ -68,33 +75,51 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     return content;
   };
   
-  // Handle iframe load to ensure proper character encoding
+  // Handle iframe content injection with UTF-8 enforcement
   useEffect(() => {
-    if (iframeRef.current) {
-      const content = getSafeHtmlContent();
+    const setupIframe = () => {
+      if (!iframeRef.current) return;
       
-      // Use document.write to directly inject content with correct encoding
-      // This helps preserve special characters like ØÆÅ
       try {
+        // Get the document object for the iframe
         const doc = iframeRef.current.contentDocument;
-        if (doc) {
-          doc.open('text/html', 'replace');
-          doc.write(content);
-          doc.close();
-          
-          // Additional check to ensure the document is using UTF-8
-          const meta = doc.createElement('meta');
-          meta.setAttribute('charset', 'utf-8');
-          if (doc.head && !doc.head.querySelector('meta[charset]')) {
-            doc.head.insertBefore(meta, doc.head.firstChild);
-          }
-          
-          console.log("Newsletter content loaded with UTF-8 encoding");
+        if (!doc) {
+          console.error("Could not access iframe document");
+          return;
         }
+        
+        // Get formatted content
+        const htmlContent = getFormattedHtmlContent();
+        
+        // Open document, write content with UTF-8 character set, and close
+        doc.open("text/html", "replace");
+        
+        // Critical step: Write a UTF-8 doctype and charset before anything else
+        doc.write(htmlContent);
+        doc.close();
+        
+        // Log iframe document charset after setting up
+        const metaCharset = doc.querySelector('meta[charset]');
+        console.log('IFRAME charset meta:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
+        
+        // Set up resize observer to adjust iframe height to content
+        setTimeout(() => {
+          try {
+            if (doc.body && iframeRef.current) {
+              const height = doc.body.scrollHeight;
+              setIframeHeight(`${height + 50}px`);
+              console.log(`Set iframe height to ${height + 50}px`);
+            }
+          } catch (e) {
+            console.error("Error adjusting iframe height:", e);
+          }
+        }, 300);
       } catch (error) {
-        console.error("Error writing to iframe document:", error);
+        console.error("Error setting up iframe:", error);
       }
-    }
+    };
+    
+    setupIframe();
   }, [newsletter.content]);
   
   return (
@@ -103,12 +128,13 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
         <iframe
           ref={iframeRef}
           title={newsletter.title || "Newsletter Content"}
-          className="w-full min-h-[500px] border-0"
+          className="w-full border-0"
           sandbox="allow-same-origin"
           style={{
             display: "block",
             width: "100%",
-            height: "100vh", // Make it taller to show more content
+            height: iframeHeight,
+            overflow: "hidden"
           }}
         />
       ) : (

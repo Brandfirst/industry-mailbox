@@ -12,33 +12,41 @@ const NewsletterDetail = () => {
   
   // Force UTF-8 character set for the whole page
   useEffect(() => {
-    // Ensure document's character set is UTF-8
+    // Set language
     document.documentElement.setAttribute('lang', 'en');
     
-    // Check and set charset meta tag
-    let meta = document.querySelector('meta[charset]');
-    if (meta) {
-      meta.setAttribute('charset', 'utf-8');
-    } else {
-      meta = document.createElement('meta');
-      meta.setAttribute('charset', 'utf-8');
-      document.head.insertBefore(meta, document.head.firstChild);
-    }
+    // Ensure charset meta tag exists and is set to UTF-8
+    const ensureMetaTag = (name: string, attributes: Record<string, string>) => {
+      let meta = document.querySelector(`meta[${name}="${attributes[name]}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        Object.entries(attributes).forEach(([key, value]) => {
+          meta!.setAttribute(key, value);
+        });
+        document.head.appendChild(meta);
+      } else if (name === 'charset') {
+        meta.setAttribute('charset', 'utf-8');
+      }
+      return meta;
+    };
     
-    // Also set Content-Type meta
-    let contentTypeMeta = document.querySelector('meta[http-equiv="Content-Type"]');
-    if (!contentTypeMeta) {
-      contentTypeMeta = document.createElement('meta');
-      contentTypeMeta.setAttribute('http-equiv', 'Content-Type');
-      contentTypeMeta.setAttribute('content', 'text/html; charset=utf-8');
-      document.head.appendChild(contentTypeMeta);
-    }
+    // Add or update charset meta tag
+    ensureMetaTag('charset', { charset: 'utf-8' });
     
-    // Force browsers to detect UTF-8
-    if (newsletter?.content) {
-      console.log('Newsletter content available. Setting UTF-8 for display.');
-    }
-  }, [newsletter]);
+    // Add or update Content-Type meta tag
+    ensureMetaTag('http-equiv', { 
+      'http-equiv': 'Content-Type', 
+      'content': 'text/html; charset=utf-8' 
+    });
+    
+    // Add viewport meta tag
+    ensureMetaTag('name', {
+      'name': 'viewport',
+      'content': 'width=device-width, initial-scale=1.0'
+    });
+    
+    console.log('Meta tags set for UTF-8 encoding on detail page');
+  }, []);
   
   return (
     <div className="container py-8 px-4 md:px-6">

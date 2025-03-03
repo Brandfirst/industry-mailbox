@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 interface NewsletterPreviewProps {
   content: string | null;
@@ -18,13 +18,17 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     // Replace all http:// with https:// to prevent mixed content warnings
     let secureContent = content.replace(/http:\/\//g, 'https://');
     
+    // Debug nordic characters for troubleshooting
+    const nordicChars = (secureContent.match(/[ØÆÅøæå]/g) || []).join('');
+    console.log('NORDIC CHARACTERS IN PREVIEW:', nordicChars || 'None found');
+    
     return `<!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
           <style>
             html, body {
               margin: 0;
@@ -58,13 +62,23 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
       </html>`;
   };
 
-  // Handle iframe load to ensure proper character encoding
+  // Handle iframe load to ensure proper UTF-8 encoding
   useEffect(() => {
-    if (iframeRef.current && iframeRef.current.contentDocument) {
-      const doc = iframeRef.current.contentDocument;
-      doc.open();
-      doc.write(getIframeContent());
-      doc.close();
+    if (iframeRef.current) {
+      try {
+        const doc = iframeRef.current.contentDocument;
+        if (doc) {
+          doc.open("text/html", "replace");
+          doc.write(getIframeContent());
+          doc.close();
+          
+          // Debug: Check if charset meta is present after creation
+          const metaCharset = doc.querySelector('meta[charset]');
+          console.log('PREVIEW IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
+        }
+      } catch (error) {
+        console.error("Error writing to preview iframe:", error);
+      }
     }
   }, [content, isMobile]);
 
@@ -80,7 +94,6 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     <div className="w-full h-full overflow-hidden bg-white rounded-xl">
       <iframe
         ref={iframeRef}
-        srcDoc={getIframeContent()}
         title={title || "Newsletter Content"}
         className="w-full h-full border-0 rounded-xl"
         sandbox="allow-same-origin"
