@@ -3,6 +3,7 @@
  * Text encoding utilities for handling special characters
  * Focuses on ensuring proper UTF-8 encoding for international content
  */
+import { debugLog } from './debugUtils';
 
 /**
  * Ensures that a string is properly UTF-8 encoded
@@ -19,7 +20,7 @@ export const ensureUtf8Encoding = (text: string | null): string => {
     // double-encoded or when Latin-1 is interpreted as UTF-8
     if (content.includes('Ã¸') || content.includes('Ã¦') || content.includes('Ã…') || 
         content.includes('Ã˜') || content.includes('Ã†') || content.includes('Ã¥')) {
-      console.log('Detected possible double-encoded UTF-8, attempting to fix...');
+      debugLog('Detected possible double-encoded UTF-8, attempting to fix...');
       
       // Replace all known problematic sequences directly
       content = content
@@ -46,7 +47,7 @@ export const ensureUtf8Encoding = (text: string | null): string => {
           const bytes = encoder.encode(content);
           content = decoder.decode(bytes);
           
-          console.log('After ISO-8859-1 decoding attempt:', content.substring(0, 100));
+          debugLog('After ISO-8859-1 decoding attempt:', content.substring(0, 100));
         } catch (e) {
           console.error('Error using TextDecoder with ISO-8859-1:', e);
         }
@@ -75,13 +76,13 @@ export const ensureUtf8Encoding = (text: string | null): string => {
     const doubleEncodedPattern = /Ã[…†˜¦ø¸]/g;
     const remainingDoubleEncoded = content.match(doubleEncodedPattern);
     if (remainingDoubleEncoded && remainingDoubleEncoded.length > 0) {
-      console.log('Remaining potentially double-encoded sequences:', 
+      debugLog('Remaining potentially double-encoded sequences:', 
                   [...new Set(remainingDoubleEncoded)].join(', '));
     }
     
     // Check if we found any Nordic characters after fixing
     const nordicChars = (content.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS AFTER UTF-8 NORMALIZATION:', nordicChars || 'None found');
+    debugLog('NORDIC CHARACTERS AFTER UTF-8 NORMALIZATION:', nordicChars || 'None found');
     
     return content;
   } catch (error) {

@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { 
   sanitizeNewsletterContent, 
   getSystemFontCSS, 
-  ensureUtf8Encoding 
+  ensureUtf8Encoding,
+  debugLog
 } from "@/lib/utils/content-sanitization";
 
 interface NewsletterContentProps {
@@ -18,20 +19,20 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
   const getFormattedHtmlContent = () => {
     if (!newsletter.content) return '';
     
-    console.log('PREPARING CONTENT FOR IFRAME (first 100 chars):', newsletter.content.substring(0, 100));
+    debugLog('PREPARING CONTENT FOR IFRAME (first 100 chars):', newsletter.content.substring(0, 100));
     
     // First ensure UTF-8 encoding with our enhanced function
     const utf8Content = ensureUtf8Encoding(newsletter.content);
     
     // Check for Nordic characters before processing
     const nordicChars = (utf8Content.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS IN CONTENT COMPONENT BEFORE SANITIZE:', nordicChars || 'None found');
+    debugLog('NORDIC CHARACTERS IN CONTENT COMPONENT BEFORE SANITIZE:', nordicChars || 'None found');
     
     // If no Nordic characters found, search for potential mis-encoded sequences
     if (!nordicChars) {
       const potentialDoubleEncoded = utf8Content.match(/Ã[…†˜¦ø¸]/g);
       if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
-        console.log('Potential double-encoded characters found:', potentialDoubleEncoded.join(', '));
+        debugLog('Potential double-encoded characters found:', potentialDoubleEncoded.join(', '));
       }
     }
     
@@ -46,7 +47,7 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     
     // Re-check for Nordic characters after sanitization
     const nordicCharsAfter = (content.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS IN CONTENT COMPONENT AFTER SANITIZE:', nordicCharsAfter || 'None found');
+    debugLog('NORDIC CHARACTERS IN CONTENT COMPONENT AFTER SANITIZE:', nordicCharsAfter || 'None found');
     
     // Ensure content has proper HTML structure with UTF-8 encoding
     // but preserve original styling
@@ -96,12 +97,12 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
           
           // Log charset after setting
           const metaCharset = doc.querySelector('meta[charset]');
-          console.log('CONTENT IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
+          debugLog('CONTENT IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
           
           // Check for Nordic characters in the document
           const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
           if (nordicChars.length > 0) {
-            console.log('NORDIC CHARS FOUND IN IFRAME DOCUMENT:', nordicChars.join(''));
+            debugLog('NORDIC CHARS FOUND IN IFRAME DOCUMENT:', nordicChars.join(''));
             
             // Add special styling for Nordic characters if needed
             const style = doc.createElement('style');
@@ -112,24 +113,21 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
             `;
             doc.head.appendChild(style);
           } else {
-            console.log('NO NORDIC CHARS FOUND IN FINAL IFRAME DOCUMENT');
+            debugLog('NO NORDIC CHARS FOUND IN FINAL IFRAME DOCUMENT');
             
             // Perform a deeper check for encoded characters
             const potentialDoubleEncoded = doc.body.innerHTML.match(/Ã[…†˜¦ø¸]/g);
             if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
-              console.log('Potential double-encoded characters found in iframe:', potentialDoubleEncoded.join(', '));
+              debugLog('Potential double-encoded characters found in iframe:', potentialDoubleEncoded.join(', '));
             }
           }
-          
-          // Removed: Try to force the charset if not already set
-          // This was causing the error since characterSet is read-only
           
           // Adjust height after content is loaded
           setTimeout(() => {
             if (doc.body && iframe) {
               const height = doc.body.scrollHeight;
               setIframeHeight(`${height + 50}px`);
-              console.log(`Set iframe height to ${height + 50}px`);
+              debugLog(`Set iframe height to ${height + 50}px`);
             }
           }, 500);
         } catch (error) {

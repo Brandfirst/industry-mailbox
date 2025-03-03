@@ -7,3 +7,4 @@
 export * from './sanitizeHtml';
 export * from './fontHandling';
 export * from './encodingUtils';
+export * from './debugUtils';

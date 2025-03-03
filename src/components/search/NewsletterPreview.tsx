@@ -2,7 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import { 
   sanitizeNewsletterContent, 
   getSystemFontCSS, 
-  ensureUtf8Encoding 
+  ensureUtf8Encoding,
+  debugLog
 } from '@/lib/utils/content-sanitization';
 
 interface NewsletterPreviewProps {
@@ -24,13 +25,13 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     
     // Check for Nordic characters
     const nordicChars = (encodedContent.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS IN PREVIEW BEFORE SANITIZE:', nordicChars || 'None found');
+    debugLog('NORDIC CHARACTERS IN PREVIEW BEFORE SANITIZE:', nordicChars || 'None found');
     
     // If no Nordic characters found but potential double-encoded sequences exist, log them
     if (!nordicChars) {
       const potentialDoubleEncoded = encodedContent.match(/Ã[…†˜¦ø¸]/g);
       if (potentialDoubleEncoded && potentialDoubleEncoded.length > 0) {
-        console.log('Potential double-encoded characters in preview:', potentialDoubleEncoded.join(', '));
+        debugLog('Potential double-encoded characters in preview:', potentialDoubleEncoded.join(', '));
       }
     }
     
@@ -45,7 +46,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
     
     // Re-check Nordic characters after sanitizing
     const nordicCharsAfter = (secureContent.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS IN PREVIEW AFTER SANITIZE:', nordicCharsAfter || 'None found');
+    debugLog('NORDIC CHARACTERS IN PREVIEW AFTER SANITIZE:', nordicCharsAfter || 'None found');
     
     // Add data attribute if has Nordic characters for special font handling
     const hasNordicAttribute = nordicCharsAfter ? 'data-has-nordic-chars="true"' : '';
@@ -106,20 +107,17 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         
         // Debug: Check if charset meta is present after creation
         const metaCharset = doc.querySelector('meta[charset]');
-        console.log('PREVIEW IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
+        debugLog('PREVIEW IFRAME CHARSET:', metaCharset ? metaCharset.getAttribute('charset') : 'Not found');
         
         // Add event listener to check if DOM gets mutated which might affect encoding
         const observer = new MutationObserver(() => {
           const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
           if (nordicChars.length > 0) {
-            console.log('NORDIC CHARS FOUND IN IFRAME AFTER DOM MUTATION:', nordicChars.join(''));
+            debugLog('NORDIC CHARS FOUND IN IFRAME AFTER DOM MUTATION:', nordicChars.join(''));
           }
         });
         
         observer.observe(doc.body, { childList: true, subtree: true, characterData: true });
-        
-        // Removed: Set correct charset on document if possible
-        // This was causing the error since characterSet is read-only
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);

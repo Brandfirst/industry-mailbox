@@ -8,7 +8,8 @@ import { useRef, useEffect } from "react";
 import { 
   sanitizeNewsletterContent, 
   getSystemFontCSS, 
-  ensureUtf8Encoding 
+  ensureUtf8Encoding,
+  debugLog 
 } from "@/lib/utils/content-sanitization";
 
 type NewsletterViewDialogProps = {
@@ -35,7 +36,7 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
     
     // Check for Nordic characters
     const nordicChars = (utf8Content.match(/[ØÆÅøæå]/g) || []).join('');
-    console.log('NORDIC CHARACTERS IN DIALOG BEFORE SANITIZE:', nordicChars || 'None found');
+    debugLog('NORDIC CHARACTERS IN DIALOG BEFORE SANITIZE:', nordicChars || 'None found');
     
     // Sanitize content to prevent CORS issues
     let content = sanitizeNewsletterContent(utf8Content);
@@ -82,9 +83,9 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
           // Check for Nordic characters in the final iframe
           const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
           if (nordicChars.length > 0) {
-            console.log('NORDIC CHARS FOUND IN DIALOG IFRAME:', nordicChars.join(''));
+            debugLog('NORDIC CHARS FOUND IN DIALOG IFRAME:', nordicChars.join(''));
           } else {
-            console.log('NO NORDIC CHARS FOUND IN DIALOG IFRAME');
+            debugLog('NO NORDIC CHARS FOUND IN DIALOG IFRAME');
           }
         }
       }
@@ -102,9 +103,9 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
         // Check for Nordic characters in the final iframe
         const nordicChars = doc.body.innerHTML.match(/[ØÆÅøæå]/g) || [];
         if (nordicChars.length > 0) {
-          console.log('NORDIC CHARS FOUND IN DIALOG IFRAME:', nordicChars.join(''));
+          debugLog('NORDIC CHARS FOUND IN DIALOG IFRAME:', nordicChars.join(''));
         } else {
-          console.log('NO NORDIC CHARS FOUND IN DIALOG IFRAME');
+          debugLog('NO NORDIC CHARS FOUND IN DIALOG IFRAME');
         }
       }
     }

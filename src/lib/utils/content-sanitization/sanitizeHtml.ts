@@ -3,6 +3,7 @@
  * Utility for cleaning up HTML content before displaying in iframes
  * to prevent CORS issues with external resources
  */
+import { debugLog } from './debugUtils';
 
 /**
  * Removes external font imports or replaces them with system fonts
@@ -16,7 +17,7 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
   
   // Check for Nordic characters before processing
   const nordicChars = (htmlContent.match(/[ØÆÅøæå]/g) || []).join('');
-  console.log('NORDIC CHARACTERS BEFORE SANITIZATION:', nordicChars || 'None found');
+  debugLog('NORDIC CHARACTERS BEFORE SANITIZATION:', nordicChars || 'None found');
   
   // Replace problematic @font-face declarations
   htmlContent = htmlContent.replace(
@@ -67,10 +68,10 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
   
   // Check for Nordic characters after processing
   const nordicCharsAfter = (htmlContent.match(/[ØÆÅøæå]/g) || []).join('');
-  console.log('NORDIC CHARACTERS AFTER SANITIZATION:', nordicCharsAfter || 'None found');
+  debugLog('NORDIC CHARACTERS AFTER SANITIZATION:', nordicCharsAfter || 'None found');
   
   // Log that we've sanitized the content
-  console.log('Newsletter content sanitized to prevent CORS issues with fonts, UTF-8 encoding preserved');
+  debugLog('Newsletter content sanitized to prevent CORS issues with fonts, UTF-8 encoding preserved');
   
   return htmlContent;
 };
