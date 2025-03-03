@@ -46,6 +46,27 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
         return;
       }
       
+      // First check if there's already an OAuth flow in progress
+      if (sessionStorage.getItem('gmailOAuthInProgress') === 'true') {
+        const startTime = sessionStorage.getItem('oauth_start_time');
+        if (startTime) {
+          const timeElapsed = (Date.now() - parseInt(startTime)) / 1000;
+          console.warn(`[GOOGLE AUTH] Attempting to start OAuth flow while one is already in progress (${timeElapsed.toFixed(1)}s)`);
+          
+          // If it's been less than 5 seconds, don't start a new flow
+          if (timeElapsed < 5) {
+            toast.error("OAuth flow already in progress. Please wait...");
+            return;
+          } else {
+            // If it's been more than 5 seconds, clear it and start a new one
+            console.log("[GOOGLE AUTH] Clearing stale OAuth state before starting new flow");
+            sessionStorage.removeItem('gmailOAuthInProgress');
+            sessionStorage.removeItem('oauth_nonce');
+            sessionStorage.removeItem('oauth_start_time');
+          }
+        }
+      }
+      
       // Generate and save a nonce for verification later
       const nonce = generateNonce();
       sessionStorage.setItem('oauth_nonce', nonce);
@@ -94,10 +115,34 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
           return;
         }
         
+        // Log everything before redirection
+        console.log('[GOOGLE AUTH] Preparing to redirect with params:', {
+          clientId: clientId,
+          redirectUri,
+          scope,
+          state,
+          nonce,
+          timestamp: new Date().toISOString()
+        });
+        
         // Redirect to Google OAuth
         const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
         console.log('[GOOGLE AUTH] Redirecting to Google OAuth:', googleAuthUrl);
-        window.location.href = googleAuthUrl;
+        
+        // This is sometimes blocked by popup blockers, so wrap in try/catch
+        try {
+          window.location.href = googleAuthUrl;
+        } catch (redirectError) {
+          console.error('[GOOGLE AUTH] Error during redirect:', redirectError);
+          toast.error('Browser blocked the redirect. Please try again and allow popups.');
+          
+          // Clean up OAuth state
+          sessionStorage.removeItem('gmailOAuthInProgress');
+          sessionStorage.removeItem('oauth_nonce');
+          sessionStorage.removeItem('oauth_start_time');
+          
+          setIsConnecting(false);
+        }
       }, 100);
       
     } catch (error) {

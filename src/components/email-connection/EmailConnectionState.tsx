@@ -19,6 +19,35 @@ export const useEmailConnectionState = () => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [connectionProcessed, setConnectionProcessed] = useState(false);
   const [recoveryAttempted, setRecoveryAttempted] = useState(false);
+  const [lastAttemptTime, setLastAttemptTime] = useState<number | null>(null);
+
+  // Check for page reload during OAuth flow
+  useEffect(() => {
+    const pageReloadHandler = () => {
+      // If there's an OAuth flow in progress, save that info to survive page reload
+      if (sessionStorage.getItem('gmailOAuthInProgress') === 'true') {
+        sessionStorage.setItem('oauth_page_reloaded', 'true');
+        console.log("EmailConnectionState: Page reload detected during OAuth flow");
+      }
+    };
+
+    // Listen for beforeunload events to detect page reloads
+    window.addEventListener('beforeunload', pageReloadHandler);
+    
+    // Check if we're recovering from a page reload
+    const pageReloaded = sessionStorage.getItem('oauth_page_reloaded') === 'true';
+    if (pageReloaded) {
+      console.log("EmailConnectionState: Recovering from page reload during OAuth flow");
+      sessionStorage.removeItem('oauth_page_reloaded');
+      
+      // Don't auto-clear the OAuth state since we're recovering
+      setIsConnecting(true);
+    }
+    
+    return () => {
+      window.removeEventListener('beforeunload', pageReloadHandler);
+    };
+  }, []);
 
   // Log state changes for debugging
   useEffect(() => {
@@ -28,6 +57,7 @@ export const useEmailConnectionState = () => {
       oauthError,
       connectionProcessed,
       recoveryAttempted,
+      lastAttemptTime: lastAttemptTime ? new Date(lastAttemptTime).toISOString() : null,
       timestamp: new Date().toISOString()
     });
     
@@ -61,7 +91,7 @@ export const useEmailConnectionState = () => {
         sessionStorage.removeItem('oauth_nonce');
       }
     }
-  }, [user, isConnecting, oauthError, connectionProcessed, recoveryAttempted]);
+  }, [user, isConnecting, oauthError, connectionProcessed, recoveryAttempted, lastAttemptTime]);
 
   // Fetch email accounts from the database
   const fetchEmailAccounts = useCallback(async () => {
@@ -147,6 +177,21 @@ export const useEmailConnectionState = () => {
     }
   }, [user, fetchEmailAccounts, recoveryAttempted]);
 
+  // Function to initiate connection with rate limiting
+  const initiateConnection = useCallback(() => {
+    const now = Date.now();
+    
+    // Add rate limiting to prevent multiple rapid connection attempts
+    if (lastAttemptTime && now - lastAttemptTime < 5000) { // 5 second cooldown
+      console.log("EmailConnectionState: Rate limiting connection attempt");
+      toast.error("Please wait a few seconds before trying again");
+      return;
+    }
+    
+    setLastAttemptTime(now);
+    setIsConnecting(true);
+  }, [lastAttemptTime]);
+
   return {
     emailAccounts,
     status,
@@ -160,6 +205,7 @@ export const useEmailConnectionState = () => {
     setOAuthError,
     setErrorDetails,
     setDebugInfo,
-    setConnectionProcessed
+    setConnectionProcessed,
+    initiateConnection
   };
 };

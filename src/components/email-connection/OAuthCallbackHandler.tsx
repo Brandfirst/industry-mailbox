@@ -61,6 +61,8 @@ export const OAuthCallbackHandler = ({
       sessionStorage.removeItem('gmailOAuthInProgress');
       sessionStorage.removeItem('oauth_nonce');
       sessionStorage.removeItem('oauth_start_time');
+      setIsConnecting(false);
+      toast.error("OAuth flow appears to be interrupted. Please try again.");
     }
     
     // Clean up on unmount
@@ -69,7 +71,7 @@ export const OAuthCallbackHandler = ({
         window.clearTimeout(toastTimeoutRef.current);
       }
     };
-  }, [redirectUri, isProcessing]);
+  }, [redirectUri, isProcessing, setIsConnecting]);
 
   return null; // This is a functional component with no UI
 };
