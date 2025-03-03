@@ -1,3 +1,4 @@
+
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
@@ -209,74 +210,146 @@ async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, 
       if (messageData.payload.parts) {
         for (const part of messageData.payload.parts) {
           if (part.mimeType === 'text/html' && part.body.data) {
-            // Properly decode base64 content with handling for special characters
+            // Improved Base64 decoding with proper handling for UTF-8
             const rawData = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
-            const decodedData = atob(rawData);
-            html = decodedData;
+            try {
+              // Use TextDecoder for proper UTF-8 handling
+              const decoded = atob(rawData);
+              const bytes = new Uint8Array(decoded.length);
+              for (let i = 0; i < decoded.length; i++) {
+                bytes[i] = decoded.charCodeAt(i);
+              }
+              const decoder = new TextDecoder('utf-8');
+              html = decoder.decode(bytes);
+            } catch (error) {
+              console.error("Error decoding HTML content:", error);
+              // Fallback to simple decoding
+              html = atob(rawData);
+            }
           } else if (part.mimeType === 'text/plain' && part.body.data) {
-            // Properly decode base64 content with handling for special characters
+            // Improved decoding for plain text
             const rawData = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
-            const decodedData = atob(rawData);
-            plainText = decodedData;
+            try {
+              // Use TextDecoder for proper UTF-8 handling
+              const decoded = atob(rawData);
+              const bytes = new Uint8Array(decoded.length);
+              for (let i = 0; i < decoded.length; i++) {
+                bytes[i] = decoded.charCodeAt(i);
+              }
+              const decoder = new TextDecoder('utf-8');
+              plainText = decoder.decode(bytes);
+            } catch (error) {
+              console.error("Error decoding plain text content:", error);
+              // Fallback to simple decoding
+              plainText = atob(rawData);
+            }
           } else if (part.parts) {
-            // Handle nested parts
+            // Handle nested parts with improved decoding
             for (const subpart of part.parts) {
               if (subpart.mimeType === 'text/html' && subpart.body.data) {
-                // Properly decode base64 content with handling for special characters
                 const rawData = subpart.body.data.replace(/-/g, '+').replace(/_/g, '/');
-                const decodedData = atob(rawData);
-                html = decodedData;
+                try {
+                  // Use TextDecoder for proper UTF-8 handling
+                  const decoded = atob(rawData);
+                  const bytes = new Uint8Array(decoded.length);
+                  for (let i = 0; i < decoded.length; i++) {
+                    bytes[i] = decoded.charCodeAt(i);
+                  }
+                  const decoder = new TextDecoder('utf-8');
+                  html = decoder.decode(bytes);
+                } catch (error) {
+                  console.error("Error decoding nested HTML content:", error);
+                  // Fallback to simple decoding
+                  html = atob(rawData);
+                }
               } else if (subpart.mimeType === 'text/plain' && subpart.body.data) {
-                // Properly decode base64 content with handling for special characters
                 const rawData = subpart.body.data.replace(/-/g, '+').replace(/_/g, '/');
-                const decodedData = atob(rawData);
-                plainText = decodedData;
+                try {
+                  // Use TextDecoder for proper UTF-8 handling
+                  const decoded = atob(rawData);
+                  const bytes = new Uint8Array(decoded.length);
+                  for (let i = 0; i < decoded.length; i++) {
+                    bytes[i] = decoded.charCodeAt(i);
+                  }
+                  const decoder = new TextDecoder('utf-8');
+                  plainText = decoder.decode(bytes);
+                } catch (error) {
+                  console.error("Error decoding nested plain text content:", error);
+                  // Fallback to simple decoding
+                  plainText = atob(rawData);
+                }
               }
             }
           }
         }
       } else if (messageData.payload.body && messageData.payload.body.data) {
-        // Handle single-part messages
+        // Handle single-part messages with improved decoding
         const rawData = messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/');
-        const decodedData = atob(rawData);
-        
-        if (messageData.payload.mimeType === 'text/html') {
-          html = decodedData;
-        } else if (messageData.payload.mimeType === 'text/plain') {
-          plainText = decodedData;
+        try {
+          // Use TextDecoder for proper UTF-8 handling
+          const decoded = atob(rawData);
+          const bytes = new Uint8Array(decoded.length);
+          for (let i = 0; i < decoded.length; i++) {
+            bytes[i] = decoded.charCodeAt(i);
+          }
+          const decoder = new TextDecoder('utf-8');
+          const content = decoder.decode(bytes);
+          
+          if (messageData.payload.mimeType === 'text/html') {
+            html = content;
+          } else if (messageData.payload.mimeType === 'text/plain') {
+            plainText = content;
+          }
+        } catch (error) {
+          console.error("Error decoding body content:", error);
+          // Fallback to simple decoding
+          const content = atob(rawData);
+          if (messageData.payload.mimeType === 'text/html') {
+            html = content;
+          } else if (messageData.payload.mimeType === 'text/plain') {
+            plainText = content;
+          }
         }
       }
       
-      // Ensure HTML has proper UTF-8 encoding meta tags
+      // Ensure HTML content has proper UTF-8 declarations
       if (html && !html.includes('<meta charset="utf-8">')) {
-        const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
-        if (headMatch) {
-          // Add meta charset tag to existing head
-          html = html.replace(
-            headMatch[0], 
-            `<head${headMatch[0].substring(5, headMatch[0].indexOf('>'))}>
-              <meta charset="utf-8">
-              ${headMatch[1]}
-            </head>`
-          );
-        } else if (html.includes('<html')) {
-          // Add head with meta charset if no head exists
-          html = html.replace(
-            /<html[^>]*>/i,
-            `$&<head><meta charset="utf-8"></head>`
-          );
-        } else {
-          // Wrap content in proper HTML if it's a fragment
+        // Check if HTML has a DOCTYPE declaration
+        if (!html.trim().toLowerCase().startsWith('<!doctype')) {
           html = `<!DOCTYPE html>
                   <html>
                     <head>
                       <meta charset="utf-8">
+                      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                     </head>
                     <body>${html}</body>
                   </html>`;
+        } else {
+          // If it has a doctype, check for head tags
+          const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+          if (headMatch) {
+            // Add meta charset tag to existing head if not present
+            if (!headMatch[1].includes('charset')) {
+              html = html.replace(
+                headMatch[0], 
+                `<head${headMatch[0].substring(5, headMatch[0].indexOf('>'))}>
+                  <meta charset="utf-8">
+                  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                  ${headMatch[1]}
+                </head>`
+              );
+            }
+          } else if (html.includes('<html')) {
+            // Add head with meta charset if no head exists
+            html = html.replace(
+              /<html[^>]*>/i,
+              `$&<head><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>`
+            );
+          }
         }
       }
       
+      // Create email object with properly decoded content
       const email = {
         id: messageData.id,
         threadId: messageData.threadId,
@@ -476,7 +549,7 @@ serve(async (req) => {
           continue;
         }
         
-        // Prepare email data for saving
+        // Prepare email data for saving with proper UTF-8 handling
         const emailData = {
           email_id: accountId,
           gmail_message_id: email.id,
