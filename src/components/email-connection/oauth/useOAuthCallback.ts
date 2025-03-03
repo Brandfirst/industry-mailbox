@@ -18,6 +18,7 @@ export const useOAuthCallback = (
   const processedRef = useRef(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const attemptedRef = useRef(false);
+  const timeoutRef = useRef<number | null>(null);
   
   // Clear the URL params after successful processing
   const clearUrlParams = () => {
@@ -27,6 +28,33 @@ export const useOAuthCallback = (
       navigate(location.pathname, { replace: true });
     }
   };
+
+  // Cleanup function for OAuth state
+  const cleanupOAuthState = () => {
+    console.log("[OAUTH CALLBACK] Cleaning up OAuth state");
+    sessionStorage.removeItem('gmailOAuthInProgress');
+    sessionStorage.removeItem('oauth_nonce');
+    sessionStorage.removeItem('oauth_start_time');
+    setIsConnecting(false);
+  };
+  
+  useEffect(() => {
+    // Set a safety timeout to prevent getting stuck in connecting state
+    timeoutRef.current = window.setTimeout(() => {
+      const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress') === 'true';
+      if (oauthInProgress && !processedRef.current) {
+        console.warn("[OAUTH CALLBACK] Safety timeout triggered - OAuth flow appears stuck");
+        toast.error("OAuth flow timed out. Please try again.");
+        cleanupOAuthState();
+      }
+    }, 30000); // 30 second safety timeout
+    
+    return () => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
   
   useEffect(() => {
     const processOAuthCallback = async () => {
@@ -73,11 +101,8 @@ export const useOAuthCallback = (
         toast.error(message);
         
         // Clean up OAuth state
-        sessionStorage.removeItem('gmailOAuthInProgress');
-        sessionStorage.removeItem('oauth_nonce');
-        sessionStorage.removeItem('oauth_start_time');
+        cleanupOAuthState();
         
-        setIsConnecting(false);
         onError(message, { silentFailure: true }, { timeElapsed });
         attemptedRef.current = true;
         return;
@@ -103,14 +128,9 @@ export const useOAuthCallback = (
             }
           );
           
-          setIsConnecting(false);
+          cleanupOAuthState();
           processedRef.current = true;
           setIsProcessing(false);
-          
-          // Clear OAuth session state
-          sessionStorage.removeItem('gmailOAuthInProgress');
-          sessionStorage.removeItem('oauth_nonce');
-          sessionStorage.removeItem('oauth_start_time');
           
           clearUrlParams();
           return;
@@ -155,9 +175,7 @@ export const useOAuthCallback = (
             if (result.success) {
               console.log("[OAUTH CALLBACK] Gmail connection successful");
               // Clear the OAuth in progress flag
-              sessionStorage.removeItem('gmailOAuthInProgress');
-              sessionStorage.removeItem('oauth_nonce');
-              sessionStorage.removeItem('oauth_start_time');
+              cleanupOAuthState();
               
               toast.dismiss();
               toast.success("Gmail account connected successfully!");
@@ -174,6 +192,9 @@ export const useOAuthCallback = (
                 result.details, 
                 { ...result.debugInfo, timeElapsed }
               );
+              
+              // Clean up OAuth state on error too
+              cleanupOAuthState();
             }
             processedRef.current = true;
           }
@@ -188,6 +209,7 @@ export const useOAuthCallback = (
             { redirectUri, code: code.substring(0, 10) + "...", timeElapsed }
           );
           processedRef.current = true;
+          cleanupOAuthState();
         } finally {
           // Always clear connecting state
           setIsConnecting(false);
@@ -204,11 +226,7 @@ export const useOAuthCallback = (
           { location: location.pathname + location.search, timeElapsed }
         );
         
-        sessionStorage.removeItem('gmailOAuthInProgress');
-        sessionStorage.removeItem('oauth_nonce');
-        sessionStorage.removeItem('oauth_start_time');
-        
-        setIsConnecting(false);
+        cleanupOAuthState();
         processedRef.current = true;
         setIsProcessing(false);
         clearUrlParams();
@@ -217,11 +235,7 @@ export const useOAuthCallback = (
         console.log("[OAUTH CALLBACK] OAuth flow was interrupted");
         toast.error("OAuth flow was interrupted. Please try again.");
         
-        sessionStorage.removeItem('gmailOAuthInProgress');
-        sessionStorage.removeItem('oauth_nonce');
-        sessionStorage.removeItem('oauth_start_time');
-        
-        setIsConnecting(false);
+        cleanupOAuthState();
         attemptedRef.current = true;
       } else {
         console.log("[OAUTH CALLBACK] No OAuth parameters found for processing", {

@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useOAuthCallback } from "./oauth/useOAuthCallback";
 import { OAuthCallbackHandlerProps } from "./oauth/types";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ export const OAuthCallbackHandler = ({
 }: OAuthCallbackHandlerProps) => {
   // Use the extracted hook to handle OAuth callback logic
   const { isProcessing } = useOAuthCallback(redirectUri, onSuccess, onError, setIsConnecting);
+  const toastTimeoutRef = useRef<number | null>(null);
 
   // Add additional logging for debugging
   useEffect(() => {
@@ -43,7 +44,11 @@ export const OAuthCallbackHandler = ({
       sessionStorage.setItem('toastShown', 'true');
       
       // Clear the toast flag after a short delay
-      setTimeout(() => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+      
+      toastTimeoutRef.current = window.setTimeout(() => {
         sessionStorage.removeItem('toastShown');
       }, 5000);
     }
@@ -57,6 +62,13 @@ export const OAuthCallbackHandler = ({
       sessionStorage.removeItem('oauth_nonce');
       sessionStorage.removeItem('oauth_start_time');
     }
+    
+    // Clean up on unmount
+    return () => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+    };
   }, [redirectUri, isProcessing]);
 
   return null; // This is a functional component with no UI
