@@ -8,6 +8,7 @@ import { NavigationLinks } from "./NavigationLinks";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 import { AuthButtons } from "./AuthButtons";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Navbar = () => {
   const location = useLocation();
@@ -50,14 +51,20 @@ const Navbar = () => {
             inactiveLink={inactiveLink} 
           />
           
-          {user ? (
-            <UserMenu user={user} isAdmin={isAdmin} isPremium={isPremium} />
-          ) : (
-            <AuthButtons />
-          )}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            
+            {user ? (
+              <UserMenu user={user} isAdmin={isAdmin} isPremium={isPremium} />
+            ) : (
+              <AuthButtons />
+            )}
+          </div>
         </div>
 
-        <div className="flex md:hidden">
+        <div className="flex md:hidden items-center gap-2">
+          <ThemeToggle />
+          
           <Button 
             variant="ghost" 
             size="icon" 

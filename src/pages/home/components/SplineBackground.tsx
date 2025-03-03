@@ -35,7 +35,7 @@ const SplineBackground = memo(({
 
   return (
     <div 
-      className={`absolute inset-0 w-full h-[150%] overflow-hidden ${getPositionStyle()} ${className}`}
+      className={`absolute inset-0 w-full h-[150%] overflow-hidden spline-background ${getPositionStyle()} ${className}`}
       style={{ 
         opacity, 
         zIndex,

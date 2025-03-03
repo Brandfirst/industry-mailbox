@@ -1,0 +1,100 @@
+
+/* Light Mode Styling */
+body.light-mode {
+  background-color: #f8f9fa;
+  color: #333333;
+}
+
+/* Navbar styling for light mode */
+.light-mode nav.sticky {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.light-mode nav .text-white {
+  color: #333333;
+}
+
+.light-mode nav .text-gray-400 {
+  color: #666666;
+}
+
+.light-mode nav .hover\:text-white:hover {
+  color: #FF5722;
+}
+
+/* Button styling for light mode */
+.light-mode .btn-hover-effect {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.light-mode .glass-button {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 87, 34, 0.2);
+  color: #333333;
+}
+
+.light-mode .glass-button:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Dropdown menu styling */
+.light-mode .bg-dark-300,
+.light-mode .bg-dark-400,
+.light-mode .bg-dark-500 {
+  background-color: #ffffff;
+}
+
+.light-mode .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .text-gray-100,
+.light-mode .text-gray-200,
+.light-mode .text-gray-300 {
+  color: #333333;
+}
+
+.light-mode .hover\:bg-dark-400:hover,
+.light-mode .hover\:bg-dark-500:hover {
+  background-color: #f1f1f1;
+}
+
+/* Keep Spline background dark even in light mode */
+.light-mode .spline-background {
+  opacity: 0.6;
+}
+
+/* Make border colors visible in light mode */
+.light-mode .border-\[\#FF5722\]\/30 {
+  border-color: rgba(255, 87, 34, 0.5);
+}
+
+.light-mode .border-\[\#FF5722\]\/50 {
+  border-color: rgba(255, 87, 34, 0.7);
+}
+
+/* Text colors for light mode */
+.light-mode .text-\[\#FF5722\] {
+  color: #FF5722;
+}
+
+.light-mode .bg-\[\#FF5722\]\/10 {
+  background-color: rgba(255, 87, 34, 0.1);
+}
+
+/* Hero section adjustments */
+.light-mode h1,
+.light-mode h2,
+.light-mode h3 {
+  color: #333333;
+}
+
+.light-mode p {
+  color: #555555;
+}
+
+/* Shadow effect adjustments */
+.light-mode .shadow-glow {
+  box-shadow: 0 0 20px rgba(255, 87, 34, 0.3);
+}

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
 import { NavigationLinks } from "./NavigationLinks";
 import { LogoutHandler } from "./LogoutHandler";
+import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -25,6 +27,7 @@ export const MobileMenu = ({
   toggleMenu 
 }: MobileMenuProps) => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   
   if (!isOpen) return null;
   
@@ -38,6 +41,15 @@ export const MobileMenu = ({
           inactiveLink={inactiveLink} 
           onClick={toggleMenu}
         />
+        
+        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-400">
+              {theme === "dark" ? "Dark Mode" : "Light Mode"}
+            </span>
+            <ThemeToggle />
+          </div>
+        </div>
         
         {user ? (
           <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
