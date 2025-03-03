@@ -15,12 +15,13 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     // Add diagnostics about the account before syncing
     const { data: accountInfo, error: accountError } = await supabase
       .from('email_accounts')
-      .select('email, provider, last_sync')
+      .select('email, provider, last_sync, access_token, refresh_token')
       .eq('id', accountId)
       .single();
     
     if (accountInfo) {
       console.log(`Account details: Email=${accountInfo.email}, Provider=${accountInfo.provider}, Last sync=${accountInfo.last_sync || 'Never'}`);
+      console.log(`Has access token: ${!!accountInfo.access_token}, Has refresh token: ${!!accountInfo.refresh_token}`);
     } else if (accountError) {
       console.log(`Error fetching account info: ${accountError.message}`);
     }
@@ -29,9 +30,9 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     const response = await supabase.functions.invoke("sync-emails", {
       body: { 
         accountId,
-        import_all_emails: true,  // Changed to true to import all emails
-        debug: true,               // Request debug info from the function
-        verbose: true              // Request verbose logging
+        import_all_emails: true,  // Import all emails
+        debug: true,              // Request debug info from the function
+        verbose: true             // Request verbose logging
       },
     });
 
