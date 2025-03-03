@@ -1,4 +1,4 @@
 
-import { EmailConnection } from "./EmailConnection";
+import { EmailConnection } from './EmailConnection';
 
 export default EmailConnection;

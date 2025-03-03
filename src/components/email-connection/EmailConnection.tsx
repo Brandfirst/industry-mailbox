@@ -9,12 +9,15 @@ import { OAuthErrorAlert } from "./OAuthErrorAlert";
 import { NoAccountsState } from "./NoAccountsState";
 import { OAuthCallbackHandler } from "./OAuthCallbackHandler";
 import { useEmailConnectionState } from "./EmailConnectionState";
+import { DebugInfo } from "./DebugInfo";
+import { ConnectionInProgressBanner } from "./ConnectionInProgressBanner";
+import { useOAuthFlowDetection } from "./hooks/useOAuthFlowDetection";
+import { useDebugMode } from "./hooks/useDebugMode";
 import { toast } from "sonner";
 
 export const EmailConnection = () => {
   const location = useLocation();
   const [connectAttempted, setConnectAttempted] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
   
   const { 
     emailAccounts,
@@ -36,19 +39,14 @@ export const EmailConnection = () => {
   const redirectUri = import.meta.env.VITE_REDIRECT_URI || 
     window.location.origin + "/admin";
   
-  // Enable debug mode if debug parameter is present
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const debug = searchParams.get('debug');
-    setShowDebug(debug === 'true');
-    
-    if (debug === 'true') {
-      console.log("[DEBUG MODE] Email connection debugging enabled");
-      console.log("[DEBUG INFO] Current redirect URI:", redirectUri);
-      console.log("[DEBUG INFO] VITE_GOOGLE_CLIENT_ID exists:", !!import.meta.env.VITE_GOOGLE_CLIENT_ID);
-      console.log("[DEBUG INFO] Email accounts count:", emailAccounts.length);
-    }
-  }, [location.search, redirectUri, emailAccounts.length]);
+  // Use our custom hooks
+  const showDebug = useDebugMode(emailAccounts.length, redirectUri);
+  
+  useOAuthFlowDetection(
+    setIsConnecting,
+    setConnectAttempted,
+    setOAuthError
+  );
   
   console.log("[EMAIL CONNECTION] Current state:", { 
     isConnecting, 
@@ -62,31 +60,6 @@ export const EmailConnection = () => {
     timestamp: new Date().toISOString()
   });
   
-  // Check for interrupted OAuth flow on mount or when URL changes
-  useEffect(() => {
-    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress') === 'true';
-    const startTime = sessionStorage.getItem('oauth_start_time');
-    const hasCallbackParams = location.search.includes('code=') || location.search.includes('error=');
-    
-    if (oauthInProgress && !hasCallbackParams) {
-      const timeElapsed = startTime ? (Date.now() - parseInt(startTime)) / 1000 : 0;
-      console.log(`[EMAIL CONNECTION] Detected OAuth in progress (${timeElapsed.toFixed(1)}s elapsed) but no callback parameters`);
-      
-      // If it's been more than 30 seconds, assume the flow was interrupted
-      if (timeElapsed > 30) {
-        console.warn("[EMAIL CONNECTION] OAuth flow appears to be interrupted, clearing state");
-        toast.error("OAuth flow was interrupted. Please try connecting again.");
-        
-        // Clean up OAuth state
-        sessionStorage.removeItem('gmailOAuthInProgress');
-        sessionStorage.removeItem('oauth_nonce');
-        sessionStorage.removeItem('oauth_start_time');
-        
-        setIsConnecting(false);
-      }
-    }
-  }, [location.search, setIsConnecting]);
-  
   // Fetch email accounts on mount and when connection is processed
   useEffect(() => {
     const fetchData = async () => {
@@ -98,26 +71,6 @@ export const EmailConnection = () => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionProcessed]);
-
-  // Check URL for OAuth callback parameters
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
-    const error = searchParams.get('error');
-    
-    if (code && state === 'gmail_connect') {
-      console.log("[EMAIL CONNECTION] Found OAuth callback in URL, connection in progress");
-      setIsConnecting(true);
-      setConnectAttempted(true);
-      toast.loading("Processing Google authentication...");
-    } else if (error) {
-      console.error("[EMAIL CONNECTION] OAuth error found in URL:", error);
-      setOAuthError(error);
-      setConnectAttempted(true);
-      toast.error(`Google authentication error: ${error}`);
-    }
-  }, [location.search, setIsConnecting, setOAuthError]);
 
   // Handle OAuth success
   const handleOAuthSuccess = async () => {
@@ -140,35 +93,6 @@ export const EmailConnection = () => {
 
   // Show a banner if trying to connect but still waiting
   const showConnectionInProgressBanner = isConnecting && !oauthError && connectAttempted && !connectionProcessed;
-  
-  // Show debug information if enabled
-  const renderDebugInfo = () => {
-    if (!showDebug) return null;
-    
-    return (
-      <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-xs font-mono overflow-auto max-h-60">
-        <h4 className="font-bold text-yellow-800 mb-1">Debug Information:</h4>
-        <pre>
-          {JSON.stringify({
-            redirectUri,
-            isConnecting,
-            oauthError,
-            hasGoogleClientId: !!import.meta.env.VITE_GOOGLE_CLIENT_ID,
-            connectAttempted,
-            connectionProcessed,
-            accountsCount: emailAccounts.length,
-            statusLoading: status.loading,
-            statusError: status.error,
-            currentPath: location.pathname + location.search,
-            hasDebugInfo: !!debugInfo,
-            hasErrorDetails: !!errorDetails,
-            oauthInProgress: sessionStorage.getItem('gmailOAuthInProgress'),
-            timestamp: new Date().toISOString()
-          }, null, 2)}
-        </pre>
-      </div>
-    );
-  };
 
   return (
     <Card className="w-full bg-card">
@@ -184,7 +108,18 @@ export const EmailConnection = () => {
 
       <CardContent>
         {/* Debug Information (only shown with ?debug=true) */}
-        {renderDebugInfo()}
+        <DebugInfo 
+          showDebug={showDebug}
+          redirectUri={redirectUri}
+          isConnecting={isConnecting}
+          oauthError={oauthError}
+          emailAccountsLength={emailAccounts.length}
+          status={status}
+          connectionProcessed={connectionProcessed}
+          connectAttempted={connectAttempted}
+          debugInfo={debugInfo}
+          errorDetails={errorDetails}
+        />
 
         {/* OAuth Callback Handler (invisible component) */}
         <OAuthCallbackHandler 
@@ -205,12 +140,7 @@ export const EmailConnection = () => {
           />
         )}
 
-        {showConnectionInProgressBanner && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 mb-4 rounded-md">
-            <p className="font-medium">Connecting your Gmail account...</p>
-            <p className="text-sm mt-1">This may take a moment. If nothing happens after 15 seconds, please try again.</p>
-          </div>
-        )}
+        <ConnectionInProgressBanner show={showConnectionInProgressBanner} />
 
         {status.loading && emailAccounts.length === 0 ? (
           <NoAccountsState 
