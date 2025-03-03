@@ -7,11 +7,11 @@ export const useGoogleAuth = (externalConnecting: boolean) => {
   
   // Clear any stale OAuth state on mount
   useEffect(() => {
-    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress') === 'true';
+    const oauthInProgress = sessionStorage.getItem('gmailOAuthInProgress');
     const startTime = sessionStorage.getItem('oauth_start_time');
     
     // If there's an oauth flow in progress but it's been over 2 minutes, clear it
-    if (oauthInProgress && startTime) {
+    if (oauthInProgress === 'true' && startTime) {
       const timeElapsed = (Date.now() - parseInt(startTime)) / 1000;
       
       if (timeElapsed > 120) {  // 2 minutes
