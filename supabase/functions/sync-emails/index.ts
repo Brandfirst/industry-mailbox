@@ -1,4 +1,3 @@
-
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
@@ -210,26 +209,71 @@ async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, 
       if (messageData.payload.parts) {
         for (const part of messageData.payload.parts) {
           if (part.mimeType === 'text/html' && part.body.data) {
-            html = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+            // Properly decode base64 content with handling for special characters
+            const rawData = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
+            const decodedData = atob(rawData);
+            html = decodedData;
           } else if (part.mimeType === 'text/plain' && part.body.data) {
-            plainText = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+            // Properly decode base64 content with handling for special characters
+            const rawData = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
+            const decodedData = atob(rawData);
+            plainText = decodedData;
           } else if (part.parts) {
             // Handle nested parts
             for (const subpart of part.parts) {
               if (subpart.mimeType === 'text/html' && subpart.body.data) {
-                html = atob(subpart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+                // Properly decode base64 content with handling for special characters
+                const rawData = subpart.body.data.replace(/-/g, '+').replace(/_/g, '/');
+                const decodedData = atob(rawData);
+                html = decodedData;
               } else if (subpart.mimeType === 'text/plain' && subpart.body.data) {
-                plainText = atob(subpart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+                // Properly decode base64 content with handling for special characters
+                const rawData = subpart.body.data.replace(/-/g, '+').replace(/_/g, '/');
+                const decodedData = atob(rawData);
+                plainText = decodedData;
               }
             }
           }
         }
       } else if (messageData.payload.body && messageData.payload.body.data) {
         // Handle single-part messages
+        const rawData = messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/');
+        const decodedData = atob(rawData);
+        
         if (messageData.payload.mimeType === 'text/html') {
-          html = atob(messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+          html = decodedData;
         } else if (messageData.payload.mimeType === 'text/plain') {
-          plainText = atob(messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+          plainText = decodedData;
+        }
+      }
+      
+      // Ensure HTML has proper UTF-8 encoding meta tags
+      if (html && !html.includes('<meta charset="utf-8">')) {
+        const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+        if (headMatch) {
+          // Add meta charset tag to existing head
+          html = html.replace(
+            headMatch[0], 
+            `<head${headMatch[0].substring(5, headMatch[0].indexOf('>'))}>
+              <meta charset="utf-8">
+              ${headMatch[1]}
+            </head>`
+          );
+        } else if (html.includes('<html')) {
+          // Add head with meta charset if no head exists
+          html = html.replace(
+            /<html[^>]*>/i,
+            `$&<head><meta charset="utf-8"></head>`
+          );
+        } else {
+          // Wrap content in proper HTML if it's a fragment
+          html = `<!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta charset="utf-8">
+                    </head>
+                    <body>${html}</body>
+                  </html>`;
         }
       }
       
@@ -522,4 +566,3 @@ serve(async (req) => {
     );
   }
 })
-

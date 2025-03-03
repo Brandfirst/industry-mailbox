@@ -22,6 +22,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+          <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
           <style>
             html, body {
               margin: 0;
@@ -34,6 +35,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             }
             body {
               ${isMobile ? 'zoom: 0.2;' : ''}
+              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             }
             a {
               pointer-events: none;
