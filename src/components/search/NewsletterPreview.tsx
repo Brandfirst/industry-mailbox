@@ -1,5 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
+import { sanitizeNewsletterContent, getSystemFontCSS } from '@/lib/utils/sanitizeContent';
 
 interface NewsletterPreviewProps {
   content: string | null;
@@ -15,8 +16,11 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
       return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><p>No content available</p></body></html>`;
     }
     
+    // Sanitize content to prevent CORS issues with fonts
+    let secureContent = sanitizeNewsletterContent(content);
+    
     // Replace all http:// with https:// to prevent mixed content warnings
-    let secureContent = content.replace(/http:\/\//g, 'https://');
+    secureContent = secureContent.replace(/http:\/\//g, 'https://');
     
     // Debug nordic characters for troubleshooting
     const nordicChars = (secureContent.match(/[ØÆÅøæå]/g) || []).join('');
@@ -30,6 +34,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
           <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
           <style>
+            ${getSystemFontCSS()}
             html, body {
               margin: 0;
               padding: 0;
@@ -38,7 +43,6 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               width: 100%;
               background-color: white;
               border-radius: 12px;
-              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             }
             body {
               ${isMobile ? 'zoom: 0.2;' : ''}

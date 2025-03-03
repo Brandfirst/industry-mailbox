@@ -1,6 +1,7 @@
 
 import { Newsletter } from "@/lib/supabase/types";
 import { useEffect, useRef, useState } from "react";
+import { sanitizeNewsletterContent, getSystemFontCSS } from "@/lib/utils/sanitizeContent";
 
 interface NewsletterContentProps {
   newsletter: Newsletter;
@@ -20,8 +21,11 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
     const nordicChars = (newsletter.content.match(/[ØÆÅøæå]/g) || []).join('');
     console.log('NORDIC CHARACTERS IN CONTENT COMPONENT:', nordicChars || 'None found');
     
+    // Sanitize content to prevent CORS issues with fonts
+    let content = sanitizeNewsletterContent(newsletter.content);
+    
     // Force HTTPS
-    let content = newsletter.content.replace(/http:\/\//g, 'https://');
+    content = content.replace(/http:\/\//g, 'https://');
     
     // Ensure content has proper HTML structure with UTF-8 encoding
     return `<!DOCTYPE html>
@@ -31,17 +35,13 @@ const NewsletterContent = ({ newsletter }: NewsletterContentProps) => {
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
-                  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+                  ${getSystemFontCSS()}
                   body {
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
                     padding: 20px;
                     line-height: 1.6;
                   }
                   img { max-width: 100%; height: auto; }
                   * { box-sizing: border-box; }
-                  p, h1, h2, h3, h4, h5, h6, span, div { 
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-                  }
                 </style>
               </head>
               <body>${content}</body>

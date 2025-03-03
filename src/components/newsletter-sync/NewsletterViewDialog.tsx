@@ -1,4 +1,3 @@
-
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Eye, X, Mail, Calendar, UserCircle, Tag, MapPin, FileCode } from "lucid
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { useRef, useEffect } from "react";
+import { sanitizeNewsletterContent, getSystemFontCSS } from "@/lib/utils/sanitizeContent";
 
 type NewsletterViewDialogProps = {
   newsletter: Newsletter;
@@ -26,8 +26,11 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
   const getIframeContent = () => {
     if (!newsletter.content) return null;
     
+    // Sanitize content to prevent CORS issues
+    let content = sanitizeNewsletterContent(newsletter.content);
+    
     // Replace http:// with https:// for security
-    let content = newsletter.content.replace(/http:\/\//g, 'https://');
+    content = content.replace(/http:\/\//g, 'https://');
     
     return `<!DOCTYPE html>
       <html>
@@ -37,8 +40,8 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
           <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
           <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
           <style>
+            ${getSystemFontCSS()}
             body {
-              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
               margin: 0;
               padding: 1rem;
               color: #333;
