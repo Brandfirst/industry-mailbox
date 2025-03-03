@@ -1,4 +1,3 @@
-
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,11 @@ import { Eye, X, Mail, Calendar, UserCircle, Tag, MapPin, FileCode } from "lucid
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { useRef, useEffect } from "react";
-import { sanitizeNewsletterContent, getSystemFontCSS, ensureUtf8Encoding } from "@/lib/utils/sanitizeContent";
+import { 
+  sanitizeNewsletterContent, 
+  getSystemFontCSS, 
+  ensureUtf8Encoding 
+} from "@/lib/utils/content-sanitization";
 
 type NewsletterViewDialogProps = {
   newsletter: Newsletter;

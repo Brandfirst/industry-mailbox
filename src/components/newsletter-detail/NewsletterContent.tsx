@@ -1,7 +1,10 @@
-
 import { Newsletter } from "@/lib/supabase/types";
 import { useEffect, useRef, useState } from "react";
-import { sanitizeNewsletterContent, getSystemFontCSS, ensureUtf8Encoding } from "@/lib/utils/sanitizeContent";
+import { 
+  sanitizeNewsletterContent, 
+  getSystemFontCSS, 
+  ensureUtf8Encoding 
+} from "@/lib/utils/content-sanitization";
 
 interface NewsletterContentProps {
   newsletter: Newsletter;

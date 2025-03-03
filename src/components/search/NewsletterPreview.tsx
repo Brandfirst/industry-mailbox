@@ -1,6 +1,9 @@
-
 import React, { useRef, useEffect } from 'react';
-import { sanitizeNewsletterContent, getSystemFontCSS, ensureUtf8Encoding } from '@/lib/utils/sanitizeContent';
+import { 
+  sanitizeNewsletterContent, 
+  getSystemFontCSS, 
+  ensureUtf8Encoding 
+} from '@/lib/utils/content-sanitization';
 
 interface NewsletterPreviewProps {
   content: string | null;
