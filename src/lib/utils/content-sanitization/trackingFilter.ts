@@ -125,6 +125,18 @@ export const removeTrackingElements = (content: string): string => {
     ''
   );
   
+  // 9. Remove specific problematic domains we've identified from console errors
+  cleanedContent = cleanedContent.replace(
+    new RegExp(`<[^>]*?(?:src|href)=['"]https?://(?:[^'"]*?)(${SPECIFIC_TRACKING_DOMAINS.join('|')})([^'"]*?)['"][^>]*>`, 'gi'),
+    ''
+  );
+  
+  // 10. Remove specific tracking patterns from JGZ2HocBug and wuGK4U8731
+  cleanedContent = cleanedContent.replace(
+    /<[^>]*?(?:src|href)=['"][^'"]*?(?:JGZ2HocBug|wuGK4U8731)[^'"]*?['"][^>]*>/gi,
+    ''
+  );
+  
   return cleanedContent;
 };
 

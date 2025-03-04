@@ -526,7 +526,7 @@ serve(async (req) => {
     // Process and save all emails
     const synced = [];
     const failed = [];
-    
+
     for (const email of emails) {
       try {
         // Check if email already exists to avoid duplicates
@@ -588,6 +588,19 @@ serve(async (req) => {
             // Strip inline event handlers
             emailData.content = emailData.content.replace(
               /\s(on\w+)=['"]([^'"]*)['"]/gi,
+              ''
+            );
+
+            // Remove specific problematic domains we've identified from console errors
+            const specificDomains = ['analytics.boozt.com', 'url2879.vitavenn.vita.no', 'vitavenn.vita.no'];
+            emailData.content = emailData.content.replace(
+              new RegExp(`<[^>]*?(?:src|href)=['"]https?://(?:[^'"]*?)(${specificDomains.join('|')})([^'"]*?)['"][^>]*>`, 'gi'),
+              ''
+            );
+            
+            // Remove specific tracking patterns from JGZ2HocBug and wuGK4U8731
+            emailData.content = emailData.content.replace(
+              /<[^>]*?(?:src|href)=['"][^'"]*?(?:JGZ2HocBug|wuGK4U8731)[^'"]*?['"][^>]*>/gi,
               ''
             );
             
