@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -13,15 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { getSyncLogs, SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
+import { supabase } from "@/integrations/supabase/client";
 
 type ScheduleOption = "hourly" | "daily" | "disabled";
-type SyncLogEntry = {
-  timestamp: string;
-  status: "success" | "failed";
-  accountId: string;
-  messageCount: number;
-  error?: string;
-};
 
 type ScheduledSyncSettingsProps = {
   selectedAccount: string | null;
@@ -33,29 +28,29 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
   const [isEnabled, setIsEnabled] = useState(false);
   const [syncLogs, setSyncLogs] = useState<SyncLogEntry[]>([]);
   const [showLogs, setShowLogs] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Mock sync logs for demo
-  const mockSyncLogs: SyncLogEntry[] = [
-    {
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      status: "success",
-      accountId: selectedAccount || "unknown",
-      messageCount: 15
-    },
-    {
-      timestamp: new Date(Date.now() - 7200000).toISOString(),
-      status: "failed",
-      accountId: selectedAccount || "unknown",
-      messageCount: 0,
-      error: "Connection timeout"
-    },
-    {
-      timestamp: new Date(Date.now() - 10800000).toISOString(),
-      status: "success",
-      accountId: selectedAccount || "unknown",
-      messageCount: 23
+  // Fetch sync logs when selected account changes or when showLogs is toggled
+  useEffect(() => {
+    if (selectedAccount && showLogs) {
+      fetchSyncLogs();
     }
-  ];
+  }, [selectedAccount, showLogs]);
+
+  const fetchSyncLogs = async () => {
+    if (!selectedAccount) return;
+    
+    setIsLoading(true);
+    try {
+      const logs = await getSyncLogs(selectedAccount, 10);
+      setSyncLogs(logs);
+    } catch (error) {
+      console.error("Error fetching sync logs:", error);
+      toast.error("Failed to load sync history");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleScheduleChange = (value: string) => {
     setScheduleOption(value as ScheduleOption);
@@ -65,22 +60,53 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
     }
   };
 
-  const handleSaveSchedule = () => {
+  const handleSaveSchedule = async () => {
     if (!selectedAccount) {
       toast.error("Please select an email account first");
       return;
     }
 
-    // In a real implementation, this would save the schedule to the database
-    toast.success(`Automatic sync ${isEnabled ? "enabled" : "disabled"} for ${scheduleOption === "hourly" ? "every hour" : `daily at ${specificHour}:00`}`);
-    
-    // For demonstration, load mock logs
-    setSyncLogs(mockSyncLogs);
+    try {
+      // Save schedule settings to the database
+      const { error } = await supabase.rpc('update_sync_schedule', {
+        account_id_param: selectedAccount,
+        enabled_param: isEnabled,
+        schedule_type_param: scheduleOption,
+        hour_param: parseInt(specificHour)
+      });
+
+      if (error) throw error;
+      
+      toast.success(`Automatic sync ${isEnabled ? "enabled" : "disabled"} for ${scheduleOption === "hourly" ? "every hour" : `daily at ${specificHour}:00`}`);
+      
+      // Refresh logs after saving
+      if (showLogs) {
+        fetchSyncLogs();
+      }
+    } catch (error) {
+      console.error("Error saving schedule:", error);
+      toast.error("Failed to save schedule settings");
+    }
   };
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleString();
+  };
+
+  // Determine display status and message count for nicer UI
+  const getDisplayStatus = (log: SyncLogEntry) => {
+    if (log.status === "success") {
+      return {
+        label: "Success",
+        className: "bg-green-100 text-green-800"
+      };
+    } else {
+      return {
+        label: "Failed",
+        className: "bg-red-100 text-red-800"
+      };
+    }
   };
 
   return (
@@ -152,7 +178,12 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => setShowLogs(!showLogs)}
+              onClick={() => {
+                setShowLogs(!showLogs);
+                if (!showLogs && selectedAccount) {
+                  fetchSyncLogs();
+                }
+              }}
               className="text-xs"
             >
               {showLogs ? "Hide logs" : "Show logs"}
@@ -168,26 +199,31 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
                 <div>Details</div>
               </div>
               <div className="divide-y">
-                {syncLogs.length > 0 ? (
-                  syncLogs.map((log, index) => (
-                    <div key={index} className="px-4 py-2 text-xs grid grid-cols-4 gap-2">
-                      <div>{formatTimestamp(log.timestamp)}</div>
-                      <div>
-                        <span className={`inline-block px-2 py-1 rounded text-xs ${
-                          log.status === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                        }`}>
-                          {log.status}
-                        </span>
+                {isLoading ? (
+                  <div className="px-4 py-4 text-xs text-center text-muted-foreground">
+                    Loading sync logs...
+                  </div>
+                ) : syncLogs.length > 0 ? (
+                  syncLogs.map((log, index) => {
+                    const statusDisplay = getDisplayStatus(log);
+                    return (
+                      <div key={index} className="px-4 py-2 text-xs grid grid-cols-4 gap-2">
+                        <div>{formatTimestamp(log.timestamp)}</div>
+                        <div>
+                          <span className={`inline-block px-2 py-1 rounded text-xs ${statusDisplay.className}`}>
+                            {statusDisplay.label}
+                          </span>
+                        </div>
+                        <div>{log.message_count}</div>
+                        <div className="text-muted-foreground truncate">
+                          {log.error_message || "Completed successfully"}
+                        </div>
                       </div>
-                      <div>{log.messageCount}</div>
-                      <div className="text-muted-foreground truncate">
-                        {log.error || "Completed successfully"}
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="px-4 py-4 text-xs text-center text-muted-foreground">
-                    No sync logs available
+                    {selectedAccount ? "No sync logs available" : "Select an account to view sync logs"}
                   </div>
                 )}
               </div>

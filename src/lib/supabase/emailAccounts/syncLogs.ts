@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface SyncLogEntry {
@@ -15,19 +16,20 @@ export interface SyncLogEntry {
  */
 export async function getSyncLogs(accountId: string, limit: number = 10): Promise<SyncLogEntry[]> {
   try {
+    // Using a raw query to get around type system limitations
+    // Since our table exists in the database but is not in the generated types
     const { data, error } = await supabase
-      .from('email_sync_logs')
-      .select('*')
-      .eq('account_id', accountId)
-      .order('timestamp', { ascending: false })
-      .limit(limit);
+      .rpc('get_account_sync_logs', { 
+        account_id_param: accountId,
+        limit_param: limit
+      });
 
     if (error) {
       console.error('Error fetching sync logs:', error);
-      throw error;
+      return [];
     }
 
-    return data as SyncLogEntry[];
+    return (data || []) as SyncLogEntry[];
   } catch (error) {
     console.error('Exception in getSyncLogs:', error);
     return [];
@@ -39,15 +41,19 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
  */
 export async function addSyncLog(log: SyncLogEntry): Promise<SyncLogEntry | null> {
   try {
+    // Using a raw query to get around type system limitations
     const { data, error } = await supabase
-      .from('email_sync_logs')
-      .insert(log)
-      .select()
-      .single();
+      .rpc('add_sync_log', { 
+        account_id_param: log.account_id,
+        status_param: log.status,
+        message_count_param: log.message_count,
+        error_message_param: log.error_message || null,
+        details_param: log.details || null
+      });
 
     if (error) {
       console.error('Error adding sync log:', error);
-      throw error;
+      return null;
     }
 
     return data as SyncLogEntry;
@@ -62,39 +68,16 @@ export async function addSyncLog(log: SyncLogEntry): Promise<SyncLogEntry | null
  */
 export async function clearOldSyncLogs(accountId: string, keepCount: number = 50): Promise<boolean> {
   try {
-    // Get all logs for this account
-    const { data, error } = await supabase
-      .from('email_sync_logs')
-      .select('id, timestamp')
-      .eq('account_id', accountId)
-      .order('timestamp', { ascending: false });
+    // Using a raw query to get around type system limitations
+    const { error } = await supabase
+      .rpc('clear_old_sync_logs', { 
+        account_id_param: accountId,
+        keep_count_param: keepCount
+      });
 
     if (error) {
-      throw error;
-    }
-
-    if (!data || data.length <= keepCount) {
-      // No need to delete anything
-      return true;
-    }
-
-    // Get IDs to delete (all except the most recent keepCount)
-    const idsToDelete = data
-      .slice(keepCount) // Keep only the oldest ones (after the ones we want to keep)
-      .map(log => log.id);
-
-    if (idsToDelete.length === 0) {
-      return true;
-    }
-
-    // Delete the old logs
-    const { error: deleteError } = await supabase
-      .from('email_sync_logs')
-      .delete()
-      .in('id', idsToDelete);
-
-    if (deleteError) {
-      throw deleteError;
+      console.error('Error clearing old sync logs:', error);
+      return false;
     }
 
     return true;
