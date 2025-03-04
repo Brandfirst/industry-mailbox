@@ -27,8 +27,8 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
       return [];
     }
 
-    // Properly cast the data to our SyncLogEntry type
-    return (data || []) as SyncLogEntry[];
+    // Cast the data to our SyncLogEntry type with proper type assertion
+    return (data || []) as unknown as SyncLogEntry[];
   } catch (error) {
     console.error('Exception in getSyncLogs:', error);
     return [];
@@ -54,8 +54,8 @@ export async function addSyncLog(log: SyncLogEntry): Promise<SyncLogEntry | null
       return null;
     }
 
-    // Properly cast the response data to our SyncLogEntry type
-    return data as SyncLogEntry;
+    // Cast the returned data to SyncLogEntry
+    return data as unknown as SyncLogEntry;
   } catch (error) {
     console.error('Exception in addSyncLog:', error);
     return null;
@@ -78,7 +78,7 @@ export async function clearOldSyncLogs(accountId: string, keepCount: number = 50
       return false;
     }
 
-    return data as boolean;
+    return !!data;
   } catch (error) {
     console.error('Exception in clearOldSyncLogs:', error);
     return false;
@@ -108,7 +108,7 @@ export async function updateSyncSchedule(
       return false;
     }
 
-    return data as boolean;
+    return !!data;
   } catch (error) {
     console.error('Exception in updateSyncSchedule:', error);
     return false;
