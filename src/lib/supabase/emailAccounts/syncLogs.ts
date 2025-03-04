@@ -27,7 +27,7 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
       return [];
     }
 
-    // Cast the data to our SyncLogEntry type with proper type assertion
+    // Fix the type assertion issue by using unknown as an intermediate type
     return (data || []) as unknown as SyncLogEntry[];
   } catch (error) {
     console.error('Exception in getSyncLogs:', error);
@@ -54,7 +54,7 @@ export async function addSyncLog(log: SyncLogEntry): Promise<SyncLogEntry | null
       return null;
     }
 
-    // Cast the returned data to SyncLogEntry
+    // Fix the type assertion issue by using unknown as an intermediate type
     return data as unknown as SyncLogEntry;
   } catch (error) {
     console.error('Exception in addSyncLog:', error);

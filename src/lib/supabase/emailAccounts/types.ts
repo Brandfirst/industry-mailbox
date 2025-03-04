@@ -12,21 +12,10 @@ export interface GoogleOAuthResult {
   tokenInfo?: any;
 }
 
-export interface SyncResult {
-  success: boolean;
-  error?: string;
-  count?: number;
-  synced?: any[];
-  failed?: any[];
-  partial?: boolean;
-  warning?: string;
-  details?: any;
-  statusCode?: number;
-  timestamp: number;
-  requiresReauthentication?: boolean;
-}
-
 export interface DisconnectResult {
   success: boolean;
   error?: string;
 }
+
+// Re-export sync types for backward compatibility
+export * from './sync/types';

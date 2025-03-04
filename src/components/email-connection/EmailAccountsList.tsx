@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { EmailAccountItem } from "./EmailAccountItem";
 import { EmailAccount } from "@/lib/supabase/types";
-import { disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase";
+import { disconnectEmailAccount, syncEmailAccount } from "@/lib/supabase/emailAccounts";
 import { toast } from "sonner";
 
 interface EmailAccountsListProps {
