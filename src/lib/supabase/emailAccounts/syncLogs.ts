@@ -16,8 +16,6 @@ export interface SyncLogEntry {
  */
 export async function getSyncLogs(accountId: string, limit: number = 10): Promise<SyncLogEntry[]> {
   try {
-    // Using a raw query to get around type system limitations
-    // Since our table exists in the database but is not in the generated types
     const { data, error } = await supabase
       .rpc('get_account_sync_logs', { 
         account_id_param: accountId,
@@ -41,7 +39,6 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
  */
 export async function addSyncLog(log: SyncLogEntry): Promise<SyncLogEntry | null> {
   try {
-    // Using a raw query to get around type system limitations
     const { data, error } = await supabase
       .rpc('add_sync_log', { 
         account_id_param: log.account_id,
@@ -68,8 +65,7 @@ export async function addSyncLog(log: SyncLogEntry): Promise<SyncLogEntry | null
  */
 export async function clearOldSyncLogs(accountId: string, keepCount: number = 50): Promise<boolean> {
   try {
-    // Using a raw query to get around type system limitations
-    const { error } = await supabase
+    const { data, error } = await supabase
       .rpc('clear_old_sync_logs', { 
         account_id_param: accountId,
         keep_count_param: keepCount
@@ -80,9 +76,39 @@ export async function clearOldSyncLogs(accountId: string, keepCount: number = 50
       return false;
     }
 
-    return true;
+    return data as boolean;
   } catch (error) {
     console.error('Exception in clearOldSyncLogs:', error);
+    return false;
+  }
+}
+
+/**
+ * Update sync schedule settings for an account
+ */
+export async function updateSyncSchedule(
+  accountId: string, 
+  enabled: boolean, 
+  scheduleType: string,
+  hour?: number
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .rpc('update_sync_schedule', {
+        account_id_param: accountId,
+        enabled_param: enabled,
+        schedule_type_param: scheduleType,
+        hour_param: hour || null
+      });
+
+    if (error) {
+      console.error('Error updating sync schedule:', error);
+      return false;
+    }
+
+    return data as boolean;
+  } catch (error) {
+    console.error('Exception in updateSyncSchedule:', error);
     return false;
   }
 }

@@ -77,6 +77,7 @@ export type Database = {
           last_token_refresh: string | null
           provider: string
           refresh_token: string | null
+          sync_settings: Json | null
           user_id: string
         }
         Insert: {
@@ -89,6 +90,7 @@ export type Database = {
           last_token_refresh?: string | null
           provider: string
           refresh_token?: string | null
+          sync_settings?: Json | null
           user_id: string
         }
         Update: {
@@ -101,6 +103,7 @@ export type Database = {
           last_token_refresh?: string | null
           provider?: string
           refresh_token?: string | null
+          sync_settings?: Json | null
           user_id?: string
         }
         Relationships: []
@@ -243,6 +246,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_sync_log: {
+        Args: {
+          account_id_param: string
+          status_param: string
+          message_count_param: number
+          error_message_param?: string
+          details_param?: Json
+        }
+        Returns: Json
+      }
+      clear_old_sync_logs: {
+        Args: {
+          account_id_param: string
+          keep_count_param?: number
+        }
+        Returns: boolean
+      }
+      get_account_sync_logs: {
+        Args: {
+          account_id_param: string
+          limit_param?: number
+        }
+        Returns: Json[]
+      }
       update_admin_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -251,6 +278,15 @@ export type Database = {
         Args: {
           p_sender_email: string
           p_brand_name: string
+        }
+        Returns: boolean
+      }
+      update_sync_schedule: {
+        Args: {
+          account_id_param: string
+          enabled_param: boolean
+          schedule_type_param: string
+          hour_param?: number
         }
         Returns: boolean
       }

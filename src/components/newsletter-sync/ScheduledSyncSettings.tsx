@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -13,8 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { getSyncLogs, SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
-import { supabase } from "@/integrations/supabase/client";
+import { getSyncLogs, SyncLogEntry, updateSyncSchedule } from "@/lib/supabase/emailAccounts/syncLogs";
 
 type ScheduleOption = "hourly" | "daily" | "disabled";
 
@@ -67,15 +65,15 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
     }
 
     try {
-      // Save schedule settings to the database
-      const { error } = await supabase.rpc('update_sync_schedule', {
-        account_id_param: selectedAccount,
-        enabled_param: isEnabled,
-        schedule_type_param: scheduleOption,
-        hour_param: parseInt(specificHour)
-      });
+      // Save schedule settings to the database using the updateSyncSchedule function
+      const success = await updateSyncSchedule(
+        selectedAccount,
+        isEnabled,
+        scheduleOption,
+        scheduleOption === "daily" ? parseInt(specificHour) : undefined
+      );
 
-      if (error) throw error;
+      if (!success) throw new Error("Failed to update sync schedule");
       
       toast.success(`Automatic sync ${isEnabled ? "enabled" : "disabled"} for ${scheduleOption === "hourly" ? "every hour" : `daily at ${specificHour}:00`}`);
       
