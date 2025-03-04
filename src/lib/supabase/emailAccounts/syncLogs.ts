@@ -27,6 +27,7 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
       return [];
     }
 
+    // Properly cast the data to our SyncLogEntry type
     return (data || []) as SyncLogEntry[];
   } catch (error) {
     console.error('Exception in getSyncLogs:', error);
@@ -53,6 +54,7 @@ export async function addSyncLog(log: SyncLogEntry): Promise<SyncLogEntry | null
       return null;
     }
 
+    // Properly cast the response data to our SyncLogEntry type
     return data as SyncLogEntry;
   } catch (error) {
     console.error('Exception in addSyncLog:', error);
