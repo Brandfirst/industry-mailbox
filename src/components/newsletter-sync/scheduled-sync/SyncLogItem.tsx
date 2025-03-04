@@ -25,18 +25,36 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   
   const statusDisplay = getDisplayStatus(log);
   
+  // Extract additional metrics from details if available
+  const newSenders = log.details?.new_senders_count || 0;
+  const totalEmails = log.message_count || 0;
+  
   return (
-    <div className="px-4 py-2 text-xs grid grid-cols-4 gap-2">
-      <div>{formatTimestamp(log.timestamp)}</div>
-      <div>
-        <span className={`inline-block px-2 py-1 rounded text-xs ${statusDisplay.className}`}>
-          {statusDisplay.label}
-        </span>
+    <div className="px-4 py-2 text-xs">
+      <div className="grid grid-cols-4 gap-2 mb-1">
+        <div>{formatTimestamp(log.timestamp)}</div>
+        <div>
+          <span className={`inline-block px-2 py-1 rounded text-xs ${statusDisplay.className}`}>
+            {statusDisplay.label}
+          </span>
+        </div>
+        <div>
+          {totalEmails} message{totalEmails !== 1 ? 's' : ''}
+        </div>
+        <div className="text-muted-foreground truncate">
+          {log.error_message || "Completed successfully"}
+        </div>
       </div>
-      <div>{log.message_count}</div>
-      <div className="text-muted-foreground truncate">
-        {log.error_message || "Completed successfully"}
-      </div>
+      
+      {/* Additional metrics row */}
+      {log.status === "success" && (
+        <div className="grid grid-cols-4 gap-2 mt-1 text-muted-foreground">
+          <div></div>
+          <div></div>
+          <div>{newSenders > 0 && `${newSenders} new sender${newSenders !== 1 ? 's' : ''}`}</div>
+          <div></div>
+        </div>
+      )}
     </div>
   );
 }

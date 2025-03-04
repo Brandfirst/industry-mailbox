@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SyncResult } from "./types";
 import { toast } from "sonner";
+import { addSyncLog } from "./syncLogs";
 
 /**
  * Syncs emails for a specific account
@@ -41,6 +42,16 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     
     if (response.error) {
       console.error("Error invoking sync-emails function:", response.error);
+      
+      // Log the failed sync attempt
+      await addSyncLog({
+        account_id: accountId,
+        status: 'failed',
+        message_count: 0,
+        error_message: response.error.message || "Error connecting to sync service",
+        timestamp: new Date().toISOString()
+      });
+      
       return { 
         success: false, 
         error: response.error.message || "Error connecting to sync service",
@@ -52,6 +63,16 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     // Check if we have data and if it indicates an error
     if (!response.data) {
       console.error("Empty response from sync-emails function");
+      
+      // Log the failed sync attempt
+      await addSyncLog({
+        account_id: accountId,
+        status: 'failed',
+        message_count: 0,
+        error_message: "Empty response from server",
+        timestamp: new Date().toISOString()
+      });
+      
       return { 
         success: false, 
         error: "Empty response from server", 
@@ -69,6 +90,15 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         duration: 6000,
       });
       
+      // Log the failed sync attempt
+      await addSyncLog({
+        account_id: accountId,
+        status: 'failed',
+        message_count: 0,
+        error_message: "Authentication expired",
+        timestamp: new Date().toISOString()
+      });
+      
       return {
         success: false,
         error: response.data.error || "Authentication expired",
@@ -81,6 +111,16 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
     // Check the success flag directly from the response data
     if (!response.data.success) {
       console.error("Error in sync-emails function:", response.data.error || "Unknown error");
+      
+      // Log the failed sync attempt
+      await addSyncLog({
+        account_id: accountId,
+        status: 'failed',
+        message_count: 0,
+        error_message: response.data.error || "Failed to sync emails",
+        timestamp: new Date().toISOString()
+      });
+      
       return { 
         success: false, 
         error: response.data.error || "Failed to sync emails",
@@ -90,9 +130,35 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
       };
     }
 
+    // Calculate unique senders in the newly synced emails
+    const uniqueSenders = new Set();
+    if (response.data.synced && response.data.synced.length > 0) {
+      response.data.synced.forEach(email => {
+        if (email.sender_email) {
+          uniqueSenders.add(email.sender_email);
+        }
+      });
+    }
+    
+    // Create details object with new sender count
+    const syncDetails = {
+      ...response.data.details,
+      new_senders_count: uniqueSenders.size
+    };
+
     // Handle partial success case
     if (response.data.partial) {
       console.warn("Partial sync completed with some errors:", response.data);
+      
+      // Log the partial sync success
+      await addSyncLog({
+        account_id: accountId,
+        status: 'success',
+        message_count: response.data.count || 0,
+        error_message: "Some emails failed to sync",
+        details: syncDetails,
+        timestamp: new Date().toISOString()
+      });
       
       return {
         success: true,
@@ -101,7 +167,7 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
         synced: response.data.synced || [],
         failed: response.data.failed || [],
         warning: "Some emails failed to sync",
-        details: response.data.details,
+        details: syncDetails,
         statusCode: 200,
         timestamp: Date.now()
       };
@@ -121,6 +187,15 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
       console.log("Debug info:", response.data.debugInfo || "No debug info available");
     }
 
+    // Log the successful sync
+    await addSyncLog({
+      account_id: accountId,
+      status: 'success',
+      message_count: response.data.count || 0,
+      details: syncDetails,
+      timestamp: new Date().toISOString()
+    });
+
     // If we reach here, the sync was successful
     console.log("Sync completed successfully:", response.data);
 
@@ -129,10 +204,25 @@ export async function syncEmailAccount(accountId): Promise<SyncResult> {
       synced: response.data.synced || [],
       count: response.data.count || 0,
       statusCode: 200,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      details: syncDetails
     };
   } catch (error) {
     console.error("Exception in syncEmailAccount:", error);
+    
+    // Log the error
+    try {
+      await addSyncLog({
+        account_id: accountId,
+        status: 'failed',
+        message_count: 0,
+        error_message: error.message || String(error),
+        timestamp: new Date().toISOString()
+      });
+    } catch (logError) {
+      console.error("Failed to log sync error:", logError);
+    }
+    
     return { 
       success: false, 
       error: error.message || String(error),

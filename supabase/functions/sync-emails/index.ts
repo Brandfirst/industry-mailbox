@@ -1,4 +1,3 @@
-
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
@@ -693,12 +692,18 @@ serve(async (req) => {
     // Process and save all emails
     const synced = [];
     const failed = [];
+    const uniqueSenders = new Set();
 
     for (const email of emails) {
       try {
         const savedEmail = await saveEmailToDatabase(email, accountId, supabase, verbose);
         if (savedEmail) {
           synced.push(savedEmail);
+          
+          // Track unique senders
+          if (email.sender_email) {
+            uniqueSenders.add(email.sender_email);
+          }
         }
       } catch (error) {
         console.error(`Error processing email ${email.id}:`, error);
@@ -721,13 +726,14 @@ serve(async (req) => {
         synced,
         failed: failed.length > 0 ? failed : [],
         warning: partial ? 'Some emails failed to sync' : null,
-        details: debug ? {
+        details: {
           accountEmail: accountData.email,
           provider: accountData.provider,
           totalEmails: emails.length,
           syncedCount: synced.length,
-          failedCount: failed.length
-        } : null,
+          failedCount: failed.length,
+          new_senders_count: uniqueSenders.size
+        },
         debugInfo: debug ? {
           timestamp: new Date().toISOString(),
           accountId,
