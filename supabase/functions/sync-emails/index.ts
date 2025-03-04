@@ -1,3 +1,4 @@
+
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
@@ -10,6 +11,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Module for handling token authentication and refresh
 async function refreshGoogleToken(refresh_token, accountId, supabase) {
   if (!refresh_token) {
     console.error('No refresh token available for account', accountId);
@@ -62,7 +64,6 @@ async function refreshGoogleToken(refresh_token, accountId, supabase) {
     const { access_token, expires_in } = tokenData;
     
     // Update the account with the new access token
-    // Make sure we only update the columns we have in the table
     const updatePayload = { 
       access_token,
       last_token_refresh: new Date().toISOString()
@@ -88,6 +89,267 @@ async function refreshGoogleToken(refresh_token, accountId, supabase) {
   }
 }
 
+// Module for handling Gmail API requests
+async function makeGmailApiRequest(url, token) {
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  if (response.status === 401) {
+    // Return a special object indicating we need to refresh the token
+    return { needsRefresh: true, response };
+  }
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error(`Gmail API error (${url}):`, errorData);
+    throw new Error(`Gmail API error: ${errorData.error?.message || `HTTP ${response.status}`}`);
+  }
+  
+  return { data: await response.json(), needsRefresh: false };
+}
+
+// Function to decode Gmail API content data
+function decodeGmailContent(rawData) {
+  // Replace Gmail-specific characters and decode
+  const normalizedData = rawData.replace(/-/g, '+').replace(/_/g, '/');
+  
+  try {
+    // Use TextDecoder for proper UTF-8 handling
+    const decoded = atob(normalizedData);
+    const bytes = new Uint8Array(decoded.length);
+    for (let i = 0; i < decoded.length; i++) {
+      bytes[i] = decoded.charCodeAt(i);
+    }
+    const decoder = new TextDecoder('utf-8');
+    return decoder.decode(bytes);
+  } catch (error) {
+    console.error("Error decoding content:", error);
+    // Fallback to simple decoding
+    return atob(normalizedData);
+  }
+}
+
+// Extract email content from Gmail message parts
+function extractEmailContent(messageData) {
+  let html = '';
+  let plainText = '';
+  
+  // Process message parts recursively
+  function processMessagePart(part) {
+    if (!part) return;
+    
+    if (part.mimeType === 'text/html' && part.body?.data) {
+      html = decodeGmailContent(part.body.data);
+    } else if (part.mimeType === 'text/plain' && part.body?.data) {
+      plainText = decodeGmailContent(part.body.data);
+    } else if (part.parts) {
+      // Handle nested parts
+      part.parts.forEach(subpart => processMessagePart(subpart));
+    }
+  }
+  
+  // Start with the message payload
+  if (messageData.payload) {
+    // Handle multipart messages
+    if (messageData.payload.parts) {
+      messageData.payload.parts.forEach(part => processMessagePart(part));
+    } 
+    // Handle single-part messages
+    else if (messageData.payload.body && messageData.payload.body.data) {
+      const content = decodeGmailContent(messageData.payload.body.data);
+      if (messageData.payload.mimeType === 'text/html') {
+        html = content;
+      } else if (messageData.payload.mimeType === 'text/plain') {
+        plainText = content;
+      }
+    }
+  }
+  
+  // Ensure HTML content has proper UTF-8 declarations
+  if (html && !html.includes('<meta charset="utf-8">')) {
+    // Improve HTML structure as needed
+    html = ensureProperHtmlStructure(html);
+  }
+  
+  return { html, plainText };
+}
+
+// Ensure HTML has proper document structure
+function ensureProperHtmlStructure(html) {
+  // Check if HTML has a DOCTYPE declaration
+  if (!html.trim().toLowerCase().startsWith('<!doctype')) {
+    return `<!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="utf-8">
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+              </head>
+              <body>${html}</body>
+            </html>`;
+  } else {
+    // If it has a doctype, check for head tags
+    const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+    if (headMatch) {
+      // Add meta charset tag to existing head if not present
+      if (!headMatch[1].includes('charset')) {
+        return html.replace(
+          headMatch[0], 
+          `<head${headMatch[0].substring(5, headMatch[0].indexOf('>'))}>
+            <meta charset="utf-8">
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            ${headMatch[1]}
+          </head>`
+        );
+      }
+    } else if (html.includes('<html')) {
+      // Add head with meta charset if no head exists
+      return html.replace(
+        /<html[^>]*>/i,
+        `$&<head><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>`
+      );
+    }
+  }
+  
+  return html;
+}
+
+// Remove tracking elements from content
+function removeTrackingElements(content) {
+  if (!content) return '';
+  
+  let cleanedContent = content;
+  
+  // 1. Remove all tracking image tags
+  cleanedContent = cleanedContent.replace(
+    /<img[^>]*?src=['"]([^'"]+)['"][^>]*>/gi,
+    (match, src) => {
+      if (isTrackingUrl(src)) {
+        return ''; // Remove tracking images
+      }
+      return match;
+    }
+  );
+  
+  // 2. Remove tracking links but preserve inner content
+  cleanedContent = cleanedContent.replace(
+    /<a[^>]*?href=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/a>/gi,
+    (match, href, innerContent) => {
+      if (isTrackingUrl(href)) {
+        return innerContent;
+      }
+      return match;
+    }
+  );
+  
+  // 3. Remove all script tags
+  cleanedContent = cleanedContent.replace(
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, 
+    ''
+  );
+  
+  // 4. Remove inline event handlers
+  cleanedContent = cleanedContent.replace(
+    /\s(on\w+)=['"]([^'"]*)['"]/gi,
+    ''
+  );
+  
+  // 5. Remove tracking pixels with long URLs
+  cleanedContent = cleanedContent.replace(
+    /<img[^>]*?src=['"][^'"]{150,}['"][^>]*>/gi,
+    ''
+  );
+  
+  // 6. Remove iframe content
+  cleanedContent = cleanedContent.replace(
+    /<iframe[^>]*>([\s\S]*?)<\/iframe>/gi, 
+    ''
+  );
+  
+  // 7. Remove meta refresh tags
+  cleanedContent = cleanedContent.replace(
+    /<meta[^>]*?http-equiv=['"]refresh['"][^>]*>/gi,
+    ''
+  );
+  
+  // 8. Remove problematic link tags
+  cleanedContent = cleanedContent.replace(
+    /<link[^>]*?href=['"]https?:\/\/(?:[^'"]+)\.(?:analytics|track|click|mail|open)[^'"]*['"][^>]*>/gi, 
+    ''
+  );
+  
+  // 9. Remove specific problematic domains
+  const specificDomains = ['analytics.boozt.com', 'url2879.vitavenn.vita.no', 'vitavenn.vita.no'];
+  cleanedContent = cleanedContent.replace(
+    new RegExp(`<[^>]*?(?:src|href)=['"]https?://(?:[^'"]*?)(${specificDomains.join('|')})([^'"]*?)['"][^>]*>`, 'gi'),
+    ''
+  );
+  
+  // 10. Remove specific tracking patterns
+  cleanedContent = cleanedContent.replace(
+    /<[^>]*?(?:src|href)=['"][^'"]*?(?:JGZ2HocBug|wuGK4U8731)[^'"]*?['"][^>]*>/gi,
+    ''
+  );
+  
+  return cleanedContent;
+}
+
+// Check if URL is likely a tracking URL
+function isTrackingUrl(url) {
+  // List of common tracking domains and patterns
+  const trackingDomains = [
+    'analytics', 'track', 'click', 'open', 'mail', 'url', 'beacon', 'wf', 'ea', 'stat',
+    'vitavenn', 'boozt', 'everestengagement', 'email.booztlet', 
+    'wuGK4U8731', 'open.aspx', 'JGZ2HocBug'
+  ];
+
+  // Additional specific domains from error logs
+  const specificTrackingDomains = [
+    'analytics.boozt.com',
+    'url2879.vitavenn.vita.no',
+    'vitavenn.vita.no'
+  ];
+
+  // Common tracking URL patterns
+  const trackingPatterns = [
+    /\/open\.aspx/i,
+    /\/wf\/open/i,
+    /\/ea\/\w+/i,
+    /[?&](utm_|trk|tracking|cid|eid|sid)/i,
+    /\.gif(\?|$)/i,
+    /pixel\.(gif|png|jpg)/i,
+    /beacon\./i,
+    /click\./i,
+    /JGZ2HocBug/i,
+    /wuGK4U8731/i
+  ];
+  
+  // Check against known specific tracking domains first
+  if (specificTrackingDomains.some(domain => url.includes(domain))) {
+    return true;
+  }
+  
+  // Check against known tracking domains
+  if (trackingDomains.some(domain => url.includes(domain))) {
+    return true;
+  }
+  
+  // Check against known tracking patterns
+  if (trackingPatterns.some(pattern => pattern.test(url))) {
+    return true;
+  }
+  
+  // Additional check for long query parameters
+  if (url.includes('?') && url.length > 100 && /[?&].{30,}/.test(url)) {
+    return true;
+  }
+  
+  return false;
+}
+
+// Main function to fetch emails from Gmail
 async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, verbose = false) {
   if (verbose) {
     console.log(`Fetching emails from Gmail API with token: ${accessToken ? accessToken.substring(0, 10) + '...' : 'NO TOKEN'}`);
@@ -99,33 +361,12 @@ async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, 
     throw new Error('Missing access token for Gmail API');
   }
   
-  async function makeGmailApiRequest(url, token) {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    if (response.status === 401) {
-      // Return a special object indicating we need to refresh the token
-      return { needsRefresh: true, response };
-    }
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error(`Gmail API error (${url}):`, errorData);
-      throw new Error(`Gmail API error: ${errorData.error?.message || `HTTP ${response.status}`}`);
-    }
-    
-    return { data: await response.json(), needsRefresh: false };
-  }
-  
   try {
-    // First, let's get the user's email address
+    // First, get the user's profile information
     let currentToken = accessToken;
     let result = await makeGmailApiRequest('https://www.googleapis.com/gmail/v1/users/me/profile', currentToken);
     
-    // Check if token is invalid and needs refresh
+    // Check if token needs refresh
     if (result.needsRefresh) {
       console.log('Access token expired, attempting to refresh...');
       if (!refreshToken) {
@@ -148,14 +389,13 @@ async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, 
       console.log(`Fetching emails for Gmail user: ${userInfo.emailAddress}`);
     }
     
-    // Get list of message IDs - modified to get up to 50 messages
+    // Get message list - limited to 50
     result = await makeGmailApiRequest(
       'https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50', 
       currentToken
     );
     
     if (result.needsRefresh) {
-      // This shouldn't happen if we just refreshed, but handle it anyway
       currentToken = await refreshGoogleToken(refreshToken, accountId, supabase);
       result = await makeGmailApiRequest(
         'https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50', 
@@ -176,17 +416,17 @@ async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, 
       console.log(`Found ${messageList.messages.length} messages, fetching details`);
     }
     
-    // Fetch details for each message
+    // Fetch full message details (limited to 20 to avoid rate limits)
     const emails = [];
     
-    for (const message of messageList.messages.slice(0, 20)) { // Limit to 20 messages to avoid rate limits
+    for (const message of messageList.messages.slice(0, 20)) {
+      // Fetch full message details
       result = await makeGmailApiRequest(
         `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`, 
         currentToken
       );
       
       if (result.needsRefresh) {
-        // This shouldn't happen if we just refreshed, but handle it anyway
         currentToken = await refreshGoogleToken(refreshToken, accountId, supabase);
         result = await makeGmailApiRequest(
           `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`, 
@@ -202,153 +442,10 @@ async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, 
         return acc;
       }, {});
       
-      // Extract body
-      let html = '';
-      let plainText = '';
+      // Extract content
+      const { html, plainText } = extractEmailContent(messageData);
       
-      if (messageData.payload.parts) {
-        for (const part of messageData.payload.parts) {
-          if (part.mimeType === 'text/html' && part.body.data) {
-            // Improved Base64 decoding with proper handling for UTF-8
-            const rawData = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
-            try {
-              // Use TextDecoder for proper UTF-8 handling
-              const decoded = atob(rawData);
-              const bytes = new Uint8Array(decoded.length);
-              for (let i = 0; i < decoded.length; i++) {
-                bytes[i] = decoded.charCodeAt(i);
-              }
-              const decoder = new TextDecoder('utf-8');
-              html = decoder.decode(bytes);
-            } catch (error) {
-              console.error("Error decoding HTML content:", error);
-              // Fallback to simple decoding
-              html = atob(rawData);
-            }
-          } else if (part.mimeType === 'text/plain' && part.body.data) {
-            // Improved decoding for plain text
-            const rawData = part.body.data.replace(/-/g, '+').replace(/_/g, '/');
-            try {
-              // Use TextDecoder for proper UTF-8 handling
-              const decoded = atob(rawData);
-              const bytes = new Uint8Array(decoded.length);
-              for (let i = 0; i < decoded.length; i++) {
-                bytes[i] = decoded.charCodeAt(i);
-              }
-              const decoder = new TextDecoder('utf-8');
-              plainText = decoder.decode(bytes);
-            } catch (error) {
-              console.error("Error decoding plain text content:", error);
-              // Fallback to simple decoding
-              plainText = atob(rawData);
-            }
-          } else if (part.parts) {
-            // Handle nested parts with improved decoding
-            for (const subpart of part.parts) {
-              if (subpart.mimeType === 'text/html' && subpart.body.data) {
-                const rawData = subpart.body.data.replace(/-/g, '+').replace(/_/g, '/');
-                try {
-                  // Use TextDecoder for proper UTF-8 handling
-                  const decoded = atob(rawData);
-                  const bytes = new Uint8Array(decoded.length);
-                  for (let i = 0; i < decoded.length; i++) {
-                    bytes[i] = decoded.charCodeAt(i);
-                  }
-                  const decoder = new TextDecoder('utf-8');
-                  html = decoder.decode(bytes);
-                } catch (error) {
-                  console.error("Error decoding nested HTML content:", error);
-                  // Fallback to simple decoding
-                  html = atob(rawData);
-                }
-              } else if (subpart.mimeType === 'text/plain' && subpart.body.data) {
-                const rawData = subpart.body.data.replace(/-/g, '+').replace(/_/g, '/');
-                try {
-                  // Use TextDecoder for proper UTF-8 handling
-                  const decoded = atob(rawData);
-                  const bytes = new Uint8Array(decoded.length);
-                  for (let i = 0; i < decoded.length; i++) {
-                    bytes[i] = decoded.charCodeAt(i);
-                  }
-                  const decoder = new TextDecoder('utf-8');
-                  plainText = decoder.decode(bytes);
-                } catch (error) {
-                  console.error("Error decoding nested plain text content:", error);
-                  // Fallback to simple decoding
-                  plainText = atob(rawData);
-                }
-              }
-            }
-          }
-        }
-      } else if (messageData.payload.body && messageData.payload.body.data) {
-        // Handle single-part messages with improved decoding
-        const rawData = messageData.payload.body.data.replace(/-/g, '+').replace(/_/g, '/');
-        try {
-          // Use TextDecoder for proper UTF-8 handling
-          const decoded = atob(rawData);
-          const bytes = new Uint8Array(decoded.length);
-          for (let i = 0; i < decoded.length; i++) {
-            bytes[i] = decoded.charCodeAt(i);
-          }
-          const decoder = new TextDecoder('utf-8');
-          const content = decoder.decode(bytes);
-          
-          if (messageData.payload.mimeType === 'text/html') {
-            html = content;
-          } else if (messageData.payload.mimeType === 'text/plain') {
-            plainText = content;
-          }
-        } catch (error) {
-          console.error("Error decoding body content:", error);
-          // Fallback to simple decoding
-          const content = atob(rawData);
-          if (messageData.payload.mimeType === 'text/html') {
-            html = content;
-          } else if (messageData.payload.mimeType === 'text/plain') {
-            plainText = content;
-          }
-        }
-      }
-      
-      // Ensure HTML content has proper UTF-8 declarations
-      if (html && !html.includes('<meta charset="utf-8">')) {
-        // Check if HTML has a DOCTYPE declaration
-        if (!html.trim().toLowerCase().startsWith('<!doctype')) {
-          html = `<!DOCTYPE html>
-                  <html>
-                    <head>
-                      <meta charset="utf-8">
-                      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                    </head>
-                    <body>${html}</body>
-                  </html>`;
-        } else {
-          // If it has a doctype, check for head tags
-          const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
-          if (headMatch) {
-            // Add meta charset tag to existing head if not present
-            if (!headMatch[1].includes('charset')) {
-              html = html.replace(
-                headMatch[0], 
-                `<head${headMatch[0].substring(5, headMatch[0].indexOf('>'))}>
-                  <meta charset="utf-8">
-                  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                  ${headMatch[1]}
-                </head>`
-              );
-            }
-          } else if (html.includes('<html')) {
-            // Add head with meta charset if no head exists
-            html = html.replace(
-              /<html[^>]*>/i,
-              `$&<head><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>`
-            );
-          }
-        }
-      }
-      
-      // Create email object with properly decoded content
+      // Create email object
       const email = {
         id: messageData.id,
         threadId: messageData.threadId,
@@ -375,6 +472,81 @@ async function fetchGmailEmails(accessToken, refreshToken, accountId, supabase, 
   }
 }
 
+// Function to save an email to the database
+async function saveEmailToDatabase(email, accountId, supabase, verbose = false) {
+  try {
+    // Check if email already exists to avoid duplicates
+    if (verbose) {
+      console.log(`Checking if email ${email.id} already exists...`);
+    }
+    
+    const { data: existingData } = await supabase
+      .from('newsletters')
+      .select('id')
+      .eq('email_id', accountId)
+      .eq('gmail_message_id', email.id)
+      .maybeSingle();
+    
+    if (existingData) {
+      if (verbose) {
+        console.log(`Email ${email.id} already exists, skipping`);
+      }
+      return null;
+    }
+    
+    // Prepare email data for saving
+    const emailData = {
+      email_id: accountId,
+      gmail_message_id: email.id,
+      gmail_thread_id: email.threadId,
+      title: email.subject,
+      sender_email: email.sender_email,
+      sender: email.sender,
+      content: email.html || email.snippet || '',
+      published_at: email.date,
+      preview: email.snippet || '',
+    };
+    
+    if (verbose) {
+      console.log(`Inserting email:`, {
+        id: email.id,
+        title: emailData.title,
+        sender: emailData.sender
+      });
+    }
+    
+    // Pre-process content to remove tracking elements before saving
+    if (emailData.content) {
+      emailData.content = removeTrackingElements(emailData.content);
+      if (verbose) {
+        console.log('Tracking elements removed from email content before storage');
+      }
+    }
+    
+    // Insert email into database
+    const { data, error } = await supabase
+      .from('newsletters')
+      .insert(emailData)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error(`Error saving email ${email.id}:`, error);
+      throw error;
+    }
+    
+    if (verbose) {
+      console.log(`Saved email: ${data.title}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error(`Error processing email ${email.id}:`, error);
+    throw error;
+  }
+}
+
+// Main request handler
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -431,7 +603,7 @@ serve(async (req) => {
       console.log(`Last token refresh: ${accountData.last_token_refresh || 'Never'}`);
     }
     
-    // Check if the access token needs to be refreshed based on time since last refresh
+    // Check if the access token needs to be refreshed
     let accessToken = accountData.access_token;
     const refreshToken = accountData.refresh_token;
     
@@ -453,13 +625,13 @@ serve(async (req) => {
       }
     }
     
-    // Update last_sync timestamp to show we're attempting a sync
+    // Update last_sync timestamp
     await supabase
       .from('email_accounts')
       .update({ last_sync: new Date().toISOString() })
       .eq('id', accountId);
     
-    // Fetch emails from the actual Gmail API
+    // Fetch emails from the appropriate provider
     let emails = [];
     let errorFetchingEmails = null;
     
@@ -490,7 +662,7 @@ serve(async (req) => {
       console.error('Error fetching emails:', error);
       errorFetchingEmails = error.message;
       
-      // Check if this is an authentication error that might be fixed by re-authenticating
+      // Check if this is an authentication error
       const isAuthError = error.message.includes('authentication') || 
                           error.message.includes('credential') || 
                           error.message.includes('token') ||
@@ -518,119 +690,15 @@ serve(async (req) => {
       );
     }
     
-    // No filtering - process all emails
-    if (verbose) {
-      console.log(`Processing all ${emails.length} emails`);
-    }
-    
     // Process and save all emails
     const synced = [];
     const failed = [];
 
     for (const email of emails) {
       try {
-        // Check if email already exists to avoid duplicates
-        if (verbose) {
-          console.log(`Checking if email ${email.id} already exists...`);
-        }
-        
-        const { data: existingData } = await supabase
-          .from('newsletters')
-          .select('id')
-          .eq('email_id', accountId)
-          .eq('gmail_message_id', email.id)
-          .maybeSingle();
-        
-        if (existingData) {
-          if (verbose) {
-            console.log(`Email ${email.id} already exists, skipping`);
-          }
-          continue;
-        }
-        
-        // Prepare email data for saving with proper UTF-8 handling
-        const emailData = {
-          email_id: accountId,
-          gmail_message_id: email.id,
-          gmail_thread_id: email.threadId,
-          title: email.subject,
-          sender_email: email.sender_email,
-          sender: email.sender,
-          content: email.html || email.snippet || '',
-          published_at: email.date,
-          preview: email.snippet || '',
-        };
-        
-        if (verbose) {
-          console.log(`Inserting email:`, {
-            id: email.id,
-            title: emailData.title,
-            sender: emailData.sender
-          });
-        }
-        
-        // Pre-process content to remove tracking elements before saving to database
-        try {
-          // Simple tracking removal without dependencies - similar to client-side tracking filters
-          if (emailData.content) {
-            // Remove tracking pixels and analytics
-            emailData.content = emailData.content.replace(
-              /<img[^>]*?src=['"]([^'"]+)(analytics|track|click|mail|open|beacon|wf|ea|stat)[^'"]*['"][^>]*>/gi,
-              ''
-            );
-            
-            // Remove script tags
-            emailData.content = emailData.content.replace(
-              /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, 
-              ''
-            );
-            
-            // Strip inline event handlers
-            emailData.content = emailData.content.replace(
-              /\s(on\w+)=['"]([^'"]*)['"]/gi,
-              ''
-            );
-
-            // Remove specific problematic domains we've identified from console errors
-            const specificDomains = ['analytics.boozt.com', 'url2879.vitavenn.vita.no', 'vitavenn.vita.no'];
-            emailData.content = emailData.content.replace(
-              new RegExp(`<[^>]*?(?:src|href)=['"]https?://(?:[^'"]*?)(${specificDomains.join('|')})([^'"]*?)['"][^>]*>`, 'gi'),
-              ''
-            );
-            
-            // Remove specific tracking patterns from JGZ2HocBug and wuGK4U8731
-            emailData.content = emailData.content.replace(
-              /<[^>]*?(?:src|href)=['"][^'"]*?(?:JGZ2HocBug|wuGK4U8731)[^'"]*?['"][^>]*>/gi,
-              ''
-            );
-            
-            if (verbose) {
-              console.log('Tracking elements removed from email content before storage');
-            }
-          }
-        } catch (processingError) {
-          console.warn('Error processing tracking elements:', processingError);
-          // Continue with the original content if processing fails
-        }
-        
-        // Insert email into database
-        const { data, error } = await supabase
-          .from('newsletters')
-          .insert(emailData)
-          .select()
-          .single();
-        
-        if (error) {
-          console.error(`Error saving email ${email.id}:`, error);
-          failed.push({
-            id: email.id,
-            error: error.message
-          });
-        } else {
-          if (verbose) {
-            console.log(`Saved email: ${data.title}`);
-          }
-          synced.push(data);
+        const savedEmail = await saveEmailToDatabase(email, accountId, supabase, verbose);
+        if (savedEmail) {
+          synced.push(savedEmail);
         }
       } catch (error) {
         console.error(`Error processing email ${email.id}:`, error);
