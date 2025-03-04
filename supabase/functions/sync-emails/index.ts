@@ -1,4 +1,3 @@
-
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This enables autocomplete, go to definition, etc.
@@ -6,9 +5,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import { corsHeaders } from '../_shared/cors.ts';
-import { fetchGmailEmails } from './gmail.ts';
+import { fetchGmailEmails, refreshGoogleToken } from './gmail.ts';
 import { saveEmailToDatabase } from './database.ts';
-import { refreshGoogleToken } from './gmail.ts';
 
 // Main request handler
 serve(async (req) => {
