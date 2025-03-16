@@ -74,7 +74,11 @@ export function SyncLogsList({
       />
       
       {showLogs && (
-        <LogsContainer>
+        <LogsContainer 
+          isLoading={isLoading} 
+          syncLogs={syncLogs} 
+          formatTimestamp={formatTimestamp}
+        >
           {!selectedAccount ? (
             <AccountNotice selectedAccount={selectedAccount} />
           ) : isLoading ? (
@@ -84,7 +88,10 @@ export function SyncLogsList({
               <Skeleton className="h-8 w-full" />
             </div>
           ) : syncLogs.length === 0 ? (
-            <LogsContent>
+            <LogsContent 
+              syncLogs={syncLogs} 
+              formatTimestamp={formatTimestamp}
+            >
               <span>No sync logs found for this account</span>
             </LogsContent>
           ) : (

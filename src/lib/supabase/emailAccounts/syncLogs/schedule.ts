@@ -29,7 +29,15 @@ export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSe
       };
     }
     
-    return data.sync_settings as SyncScheduleSettings;
+    // Safely convert the JSON data to SyncScheduleSettings
+    const settings = data.sync_settings as Record<string, any>;
+    
+    return {
+      enabled: !!settings.enabled,
+      scheduleType: (settings.scheduleType || settings.schedule_type || "disabled") as ScheduleOption,
+      hour: settings.hour !== undefined ? settings.hour : null,
+      updated_at: settings.updated_at
+    };
   } catch (error) {
     console.error("Exception getting sync schedule:", error);
     return null;
@@ -55,10 +63,18 @@ export async function updateSyncSchedule(
     
     console.log("Updating sync schedule for account:", accountId, settings);
     
+    // Convert the settings to a JSON object that Supabase can store
+    const jsonSettings = {
+      enabled: settings.enabled,
+      scheduleType: settings.scheduleType,
+      hour: settings.hour,
+      updated_at: settings.updated_at
+    };
+    
     const { error } = await supabase
       .from("email_accounts")
       .update({ 
-        sync_settings: settings 
+        sync_settings: jsonSettings 
       })
       .eq("id", accountId);
     

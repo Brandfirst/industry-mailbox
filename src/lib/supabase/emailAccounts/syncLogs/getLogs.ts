@@ -33,7 +33,7 @@ export async function getSyncLogs(accountId: string, limit: number = 20): Promis
         message_count: log.message_count,
         status: log.status as "scheduled" | "processing" | "success" | "failed" | "partial",
         error_message: log.error_message,
-        details: log.details,
+        details: log.details ? { ...log.details } : null,
         sync_type: log.sync_type as "manual" | "scheduled",
         account: log.account
       };
@@ -41,7 +41,7 @@ export async function getSyncLogs(accountId: string, limit: number = 20): Promis
       // Add account email to details if available
       if (typedLog.account?.email && typedLog.details) {
         typedLog.details = {
-          ...typedLog.details,
+          ...(typedLog.details || {}),
           accountEmail: typedLog.account.email
         };
       }

@@ -31,6 +31,8 @@ export interface SyncLogInput {
   error_message?: string | null;
   details?: Record<string, any> | null;
   sync_type?: "manual" | "scheduled";
+  // Add timestamp property since it's being used in the code
+  timestamp?: string;
 }
 
 export type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";

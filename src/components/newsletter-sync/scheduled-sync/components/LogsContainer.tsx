@@ -10,7 +10,12 @@ export interface LogsContainerProps {
   formatTimestamp?: (timestamp: string) => string;
 }
 
-export function LogsContainer({ children }: LogsContainerProps) {
+export function LogsContainer({ 
+  children,
+  isLoading,
+  syncLogs,
+  formatTimestamp
+}: LogsContainerProps) {
   return (
     <div className="mt-2 border rounded-md overflow-hidden">
       {children}

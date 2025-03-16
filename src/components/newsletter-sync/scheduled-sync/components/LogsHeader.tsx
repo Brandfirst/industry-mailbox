@@ -1,56 +1,52 @@
 
-import React from 'react';
-import { ChevronDown, ChevronUp, History, RefreshCw } from 'lucide-react';
+import React from "react";
 import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 
-export type LogsHeaderProps = {
+export interface LogsHeaderProps {
   showLogs: boolean;
   onToggle: () => void;
-  isRefreshing?: boolean;
-  onRefresh?: () => Promise<void>;
-};
+  onRefresh: () => Promise<void>;
+  isRefreshing: boolean;
+}
 
 export function LogsHeader({ 
   showLogs, 
   onToggle, 
-  isRefreshing,
-  onRefresh
+  onRefresh, 
+  isRefreshing 
 }: LogsHeaderProps) {
   return (
-    <div className="flex justify-between items-center mt-6 mb-2">
-      <div className="flex items-center space-x-2">
-        <History className="h-4 w-4 text-muted-foreground" />
+    <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center">
         <h3 className="text-sm font-medium">Sync History</h3>
-      </div>
-      
-      <div className="flex items-center space-x-2">
         <Button
           variant="ghost"
           size="sm"
+          className="p-0 h-7 w-7 ml-1"
           onClick={onToggle}
-          className="text-xs p-1 h-auto"
         >
           {showLogs ? (
-            <ChevronUp className="h-4 w-4 mr-1" />
+            <ChevronUp className="h-4 w-4" />
           ) : (
-            <ChevronDown className="h-4 w-4 mr-1" />
+            <ChevronDown className="h-4 w-4" />
           )}
-          {showLogs ? "Hide Logs" : "Show Logs"}
         </Button>
-        
-        {showLogs && onRefresh && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="text-xs p-1 h-auto"
-          >
-            <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
-        )}
       </div>
+      {showLogs && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 w-7 p-0"
+          onClick={onRefresh}
+          disabled={isRefreshing}
+        >
+          <RefreshCw 
+            className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} 
+          />
+          <span className="sr-only">Refresh</span>
+        </Button>
+      )}
     </div>
   );
 }

@@ -8,7 +8,11 @@ export interface LogsContentProps {
   formatTimestamp?: (timestamp: string) => string;
 }
 
-export function LogsContent({ children }: LogsContentProps) {
+export function LogsContent({ 
+  children,
+  syncLogs,
+  formatTimestamp
+}: LogsContentProps) {
   return (
     <div className="p-4 text-center">
       {children}
