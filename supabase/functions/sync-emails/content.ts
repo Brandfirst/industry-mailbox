@@ -2,7 +2,7 @@
 /**
  * Content module responsible for handling email content cleaning and processing
  */
-import { TrackingDomain } from "./types";
+import { TrackingDomain } from "./types.ts";
 
 /**
  * List of known tracking domains to filter out
@@ -85,4 +85,36 @@ export function createPreview(content: string, maxLength: number = 150): string 
   // Find a good breaking point
   const breakPoint = text.lastIndexOf(' ', maxLength);
   return breakPoint > 0 ? text.substring(0, breakPoint) + '...' : text.substring(0, maxLength) + '...';
+}
+
+/**
+ * Helper function to ensure HTML has proper structure
+ */
+export function ensureProperHtmlStructure(html: string): string {
+  // Add meta charset if not present
+  if (!html.includes('<meta charset="utf-8">') && !html.includes('<head>')) {
+    html = `<html><head><meta charset="utf-8"></head><body>${html}</body></html>`;
+  } else if (!html.includes('<meta charset="utf-8">') && html.includes('<head>')) {
+    html = html.replace('<head>', '<head><meta charset="utf-8">');
+  }
+  return html;
+}
+
+/**
+ * Decode and process content from Gmail API
+ */
+export function decodeGmailContent(encodedContent: string): string {
+  // Gmail API returns base64url encoded content
+  try {
+    // Convert from base64url to base64
+    const base64 = encodedContent.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Decode base64 to a string
+    const decoded = atob(base64);
+    
+    return decoded;
+  } catch (error) {
+    console.error('Error decoding Gmail content:', error);
+    return '';
+  }
 }

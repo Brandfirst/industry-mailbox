@@ -53,14 +53,17 @@ export async function addSyncLog(logData: SyncLogInput): Promise<SyncLogEntry | 
     }
     
     // Convert from the returned database format to our TypeScript interface
+    // Cast data to any to safely access properties
+    const typedData = data as any;
+    
     return {
-      id: data.id,
-      account_id: data.account_id,
-      timestamp: data.timestamp,
-      status: data.status,
-      message_count: data.message_count,
-      error_message: data.error_message,
-      details: data.details,
+      id: typedData.id,
+      account_id: typedData.account_id,
+      timestamp: typedData.timestamp,
+      status: typedData.status,
+      message_count: typedData.message_count,
+      error_message: typedData.error_message,
+      details: typedData.details,
       sync_type: logData.sync_type
     };
   } catch (error) {
@@ -84,12 +87,18 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
       return [];
     }
     
+    // Ensure data is an array before mapping
+    if (!Array.isArray(data)) {
+      console.error("Unexpected data format from get_account_sync_logs:", data);
+      return [];
+    }
+    
     return data.map((log: any): SyncLogEntry => {
       return {
         id: log.id,
         account_id: log.account_id,
         timestamp: log.timestamp,
-        status: log.status,
+        status: log.status as SyncLogEntry['status'],
         message_count: log.message_count,
         error_message: log.error_message,
         // Ensure details is properly parsed as an object
@@ -161,9 +170,9 @@ export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSe
     const settings = data.sync_settings as any;
     
     return {
-      enabled: settings.enabled || false,
-      scheduleType: settings.scheduleType || 'disabled',
-      hour: settings.hour,
+      enabled: Boolean(settings.enabled),
+      scheduleType: (settings.scheduleType || 'disabled') as SyncScheduleSettings['scheduleType'],
+      hour: typeof settings.hour === 'number' ? settings.hour : undefined,
       updated_at: settings.updated_at
     };
   } catch (error) {
