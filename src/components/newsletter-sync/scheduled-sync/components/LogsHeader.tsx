@@ -22,7 +22,7 @@ export function LogsHeader({
 }: LogsHeaderProps) {
   return (
     <div className="flex justify-between items-center">
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center">
         <Button
           variant="outline"
           size="sm"

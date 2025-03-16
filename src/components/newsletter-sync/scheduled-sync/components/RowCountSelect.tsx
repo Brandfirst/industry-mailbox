@@ -15,7 +15,7 @@ interface RowCountSelectProps {
 
 export function RowCountSelect({ value, onChange }: RowCountSelectProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 ml-4">
       <span className="text-sm text-muted-foreground">Rows:</span>
       <Select
         value={value.toString()}
