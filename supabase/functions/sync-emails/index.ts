@@ -6,6 +6,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts';
 import { handleSyncRequest } from './handlers/requestHandler.ts';
+import { handleUnexpectedError } from './handlers/responseHandler.ts';
 
 // Main request handler
 serve(async (req) => {
@@ -14,6 +15,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
   
-  // Process the request
-  return await handleSyncRequest(req);
+  // Process the request with enhanced error handling
+  try {
+    return await handleSyncRequest(req);
+  } catch (error) {
+    return handleUnexpectedError(error);
+  }
 })
