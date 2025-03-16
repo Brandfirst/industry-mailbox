@@ -44,26 +44,28 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
           <span>{formatTimestamp(log.timestamp)}</span>
           <span className="text-xs text-muted-foreground">{relativeTime}</span>
         </div>
-        <div className="flex items-center gap-1">
-          <StatusBadge status={log.status} />
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1">
+            <StatusBadge status={log.status} />
+            
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-5 w-5 rounded-full p-0 ml-1"
+                  aria-label="View sync details"
+                >
+                  <InfoIcon className="h-3 w-3" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 bg-white text-gray-900 border border-gray-200 shadow-md p-4" align="end">
+                <DetailedSyncInfo log={log} />
+              </PopoverContent>
+            </Popover>
+          </div>
           
-          <Popover open={isOpen} onOpenChange={setIsOpen}>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-5 w-5 rounded-full p-0 ml-1"
-                aria-label="View sync details"
-              >
-                <InfoIcon className="h-3 w-3" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 bg-white text-gray-900 border border-gray-200 shadow-md p-4" align="end">
-              <DetailedSyncInfo log={log} />
-            </PopoverContent>
-          </Popover>
-          
-          <div className="text-xs text-muted-foreground mt-1 ml-1">
+          <div className="text-xs text-muted-foreground mt-1">
             {syncType === 'manual' ? 'Manual sync' : 'Scheduled'}
           </div>
         </div>
