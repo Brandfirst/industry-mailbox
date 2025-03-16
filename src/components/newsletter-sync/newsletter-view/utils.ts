@@ -1,96 +1,96 @@
 
-import { debugLog, getSystemFontCSS, ensureUtf8Encoding, sanitizeNewsletterContent } from "@/lib/utils/content-sanitization";
+import { sanitizeNewsletterContent } from "@/lib/utils/content-sanitization";
 
 /**
- * Generate iframe content with proper encoding and sanitization
+ * Generates the HTML content for the iframe
+ * @param content The raw newsletter content
+ * @returns Formatted HTML content with proper styling
  */
-export function generateIframeContent(content: string | null): string | null {
-  if (!content) return null;
-
-  // First ensure proper UTF-8 encoding
-  const utf8Content = ensureUtf8Encoding(content);
-
-  // Check for Nordic characters
-  const nordicChars = (utf8Content.match(/[ØÆÅøæå]/g) || []).join('');
-  debugLog('NORDIC CHARACTERS IN DIALOG BEFORE SANITIZE:', nordicChars || 'None found');
-
-  // Sanitize content to prevent CORS issues
-  let sanitizedContent = sanitizeNewsletterContent(utf8Content);
-
-  // Replace http:// with https:// for security
-  sanitizedContent = sanitizedContent.replace(/http:\/\//g, 'https://');
-
-  // More aggressive tracking pixel and analytics removal
-  sanitizedContent = sanitizedContent.replace(/<img[^>]*?src=['"]https?:\/\/([^'"]+)\.(?:mail|click|url|send|analytics|track|open|beacon|wf|ea|stat)[^'"]*['"][^>]*>/gi, '<!-- tracking pixel removed -->');
-
-  // Remove any script tags to prevent sandbox warnings
-  sanitizedContent = sanitizedContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '<!-- scripts removed -->');
-
-  // Remove problematic link tags that could cause certificate errors
-  sanitizedContent = sanitizedContent.replace(/<link[^>]*?href=['"]https?:\/\/(?:[^'"]+)\.(?:analytics|track|click|mail|open)[^'"]*['"][^>]*>/gi, '<!-- problematic link removed -->');
-
-  // Add data attribute if has Nordic characters for special font handling
-  const hasNordicAttribute = nordicChars ? 'data-has-nordic-chars="true"' : '';
+export function generateIframeContent(content: string | null): string {
+  if (!content) return '';
+  
+  // Sanitize the content first
+  const sanitizedContent = sanitizeNewsletterContent(content);
   
   return `<!DOCTYPE html>
-    <html>
+    <html lang="en">
       <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none'; frame-src 'none';">
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          ${getSystemFontCSS()}
-          body {
+          /* Reset and base styles */
+          html, body {
             margin: 0;
-            padding: 1rem;
-            color: #333;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #ffffff;
+            padding: 0;
+            background-color: #FFFFFF;
+            color: #000000e6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            width: 100%;
+            height: 100%;
           }
-          img { max-width: 100%; height: auto; }
-          * { max-width: 100%; box-sizing: border-box; }
+          
+          body {
+            padding: 20px;
+            overflow-x: hidden;
+          }
+          
+          /* Ensure all content is properly visible */
+          * {
+            max-width: 100%;
+            box-sizing: border-box;
+          }
+          
+          p, h1, h2, h3, h4, h5, h6, span, div, li, a {
+            color: #000000e6 !important; 
+          }
+          
+          img {
+            max-width: 100%;
+            height: auto;
+            display: inline-block;
+          }
+          
+          a {
+            color: #0066cc !important;
+            text-decoration: underline;
+          }
+          
+          table {
+            border-collapse: collapse;
+            width: 100%;
+          }
           
           /* Error message styling */
           .error-overlay {
             display: none;
             padding: 10px;
             margin: 10px 0;
-            background-color: #f8f9fa;
-            border-left: 4px solid #dc3545;
-            color: #333;
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
           }
+          
           .has-error .error-overlay {
             display: block;
           }
+          
+          /* Override any dark backgrounds that might be in the newsletter */
+          [style*="background-color: #000"],
+          [style*="background-color: black"],
+          [style*="background-color: rgb(0, 0, 0)"],
+          [style*="background-color: #111"],
+          [style*="background-color: #222"],
+          [style*="background-color: #333"] {
+            background-color: #f8f9fa !important;
+            color: #000000e6 !important;
+          }
         </style>
-        <script>
-          // Suppress all errors to prevent console warnings
-          window.addEventListener('error', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Check if this is a certificate error or tracking pixel
-            const isTrackingError = e.message && (
-              e.message.includes('certificate') || 
-              e.message.includes('tracking') || 
-              e.message.includes('analytics') ||
-              e.message.includes('ERR_CERT') ||
-              e.message.includes('net::')
-            );
-            
-            if (!isTrackingError) {
-              // Only show error for non-tracking issues
-              document.body.classList.add('has-error');
-            }
-            
-            return true; // Prevents the error from bubbling up
-          }, true);
-        </script>
       </head>
-      <body ${hasNordicAttribute}>
+      <body>
         <div class="error-overlay">
-          <p>Some content in this newsletter could not be displayed properly. This is usually due to security restrictions.</p>
+          <p>Some content in this newsletter could not be displayed properly due to security restrictions.</p>
         </div>
         ${sanitizedContent}
       </body>

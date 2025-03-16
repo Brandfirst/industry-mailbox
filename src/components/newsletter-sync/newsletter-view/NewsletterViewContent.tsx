@@ -51,7 +51,7 @@ export function NewsletterViewContent({ newsletter }: NewsletterViewContentProps
   }, [newsletter.content]);
 
   return (
-    <div className="overflow-auto flex-1 h-[calc(90vh-220px)] bg-white dark:bg-gray-800 rounded-b-md">
+    <div className="overflow-auto flex-1 h-[calc(90vh-220px)] bg-white rounded-b-md">
       {hasErrors && (
         <div className="bg-amber-50 border-l-4 border-amber-500 p-4 m-4 text-sm">
           <p className="text-amber-700">Some content in this newsletter could not be displayed properly due to security restrictions.</p>

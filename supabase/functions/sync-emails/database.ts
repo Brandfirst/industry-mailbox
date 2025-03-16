@@ -1,6 +1,5 @@
 
-
-import { removeTrackingElements } from './content.ts';
+import { removeTrackingPixels } from './content.ts';
 
 // Function to save an email to the database
 export async function saveEmailToDatabase(email, accountId, supabase, verbose = false) {
@@ -47,7 +46,7 @@ export async function saveEmailToDatabase(email, accountId, supabase, verbose = 
     
     // Pre-process content to remove tracking elements but preserve legitimate images
     if (emailData.content) {
-      emailData.content = removeTrackingElements(emailData.content);
+      emailData.content = removeTrackingPixels(emailData.content);
       
       // Convert all image URLs to HTTPS for security
       emailData.content = emailData.content.replace(

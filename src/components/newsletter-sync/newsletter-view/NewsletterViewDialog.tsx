@@ -19,7 +19,7 @@ export function NewsletterViewDialog({ newsletter }: NewsletterViewDialogProps) 
           <Eye className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden border-gray-200 shadow-lg">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-white border-gray-200 shadow-lg">
         <NewsletterViewHeader newsletter={newsletter} />
         <NewsletterViewContent newsletter={newsletter} />
       </DialogContent>
