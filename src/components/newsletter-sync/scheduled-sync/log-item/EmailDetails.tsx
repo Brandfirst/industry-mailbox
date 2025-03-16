@@ -20,7 +20,10 @@ export function EmailDetails({ syncedEmails }: EmailDetailsProps) {
     ? syncedEmails 
     : syncedEmails.slice(0, maxInitialEmails);
     
-  const navigateToNewsletter = (email: any) => {
+  const navigateToNewsletter = (email: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Direct navigation to the newsletter detail page
     if (email.id) {
       console.log(`Navigating to newsletter ID: ${email.id}`);
@@ -38,7 +41,7 @@ export function EmailDetails({ syncedEmails }: EmailDetailsProps) {
           <div 
             key={idx} 
             className="pb-1 mb-1 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 p-1 rounded"
-            onClick={() => navigateToNewsletter(email)}
+            onClick={(e) => navigateToNewsletter(email, e)}
           >
             <div className="truncate"><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
             <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>

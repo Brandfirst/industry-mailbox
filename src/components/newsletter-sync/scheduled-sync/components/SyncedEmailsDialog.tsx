@@ -49,8 +49,11 @@ export function SyncedEmailsDialog({
     onOpenChange(open);
   };
   
-  // Navigation handler
-  const navigateToNewsletter = (email: any) => {
+  // Navigation handler with explicit event handling
+  const navigateToNewsletter = (email: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (email.id) {
       console.log(`Navigating to newsletter ID: ${email.id}`);
       navigate(`/newsletter/${email.id}`);
@@ -79,7 +82,7 @@ export function SyncedEmailsDialog({
                 <div 
                   key={index} 
                   className="mb-2 pb-2 border-b border-gray-100 last:border-b-0 rounded bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
-                  onClick={() => navigateToNewsletter(email)}
+                  onClick={(e) => navigateToNewsletter(email, e)}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">

@@ -1,10 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon, ChevronUpIcon, Eye } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
-import { Newsletter } from "@/lib/supabase/types";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface SyncedEmailsSectionProps {
@@ -25,7 +22,10 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   
   console.log("Displaying emails in SyncedEmailsSection:", displayedEmails);
   
-  const navigateToNewsletter = (email: any) => {
+  const navigateToNewsletter = (email: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Direct navigation to the newsletter detail page
     if (email.id) {
       navigate(`/newsletter/${email.id}`);
@@ -46,7 +46,7 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
             <div 
               key={index} 
               className="mb-2 pb-2 border-b border-gray-100 last:border-b-0 rounded bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
-              onClick={() => navigateToNewsletter(email)}
+              onClick={(e) => navigateToNewsletter(email, e)}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
