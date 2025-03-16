@@ -139,7 +139,7 @@ const MobileFilterDrawer = ({
               onApplyFilters();
               toggleMobileFilters();
             }} 
-            className="w-full bg-[#FF5722] hover:bg-orange-600"
+            className="w-full bg-[#FF5722] hover:bg-orange-600 text-white"
           >
             Bruk filtre
           </Button>

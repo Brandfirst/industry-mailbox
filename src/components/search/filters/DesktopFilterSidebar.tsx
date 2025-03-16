@@ -1,3 +1,4 @@
+
 import React, { memo, useState } from 'react';
 import { NewsletterCategory } from '@/lib/supabase/types';
 import { Button } from "@/components/ui/button";
@@ -126,7 +127,7 @@ const DesktopFilterSidebar = ({
             
             <Button 
               onClick={onApplyFilters} 
-              className="w-full bg-[#FF5722] hover:bg-orange-600"
+              className="w-full bg-[#FF5722] hover:bg-orange-600 text-white"
             >
               Bruk filtre
             </Button>
