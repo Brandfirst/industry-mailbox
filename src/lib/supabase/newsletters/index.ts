@@ -7,21 +7,20 @@ export * from './manage';
 export * from './search';
 export * from './save';
 
-// These files need direct imports and re-exports
-import { getNewslettersByCategory } from './fetch';
-import { getAllNewsletters, getAllNewslettersBySender } from './fetchAll';
+// Import and re-export with explicit names
+import { getNewslettersByCategory as getNewslettersByCategoryImport } from './fetch';
+import { getAllNewsletters } from './fetchAll';
 import { getNewslettersFromEmailAccount } from './fetchFromAccount';
-import { getNewsletter } from './fetchSingle';
+import { getNewsletterById } from './fetchSingle';
 import { updateSenderCategory, updateSenderBrand } from './manage';
 
 // Re-export with explicit names
 export { 
-  getNewslettersByCategory
+  getNewslettersByCategoryImport as getNewslettersByCategory
 };
 
 export { 
-  getAllNewsletters,
-  getAllNewslettersBySender
+  getAllNewsletters
 };
 
 export { 
@@ -29,7 +28,7 @@ export {
 };
 
 export {
-  getNewsletter
+  getNewsletterById as getNewsletter
 };
 
 export {

@@ -10,6 +10,7 @@ import {
   EmptyTableRow,
   SenderActions
 } from './components';
+import { useSenderListSorting } from "./hooks";
 
 type SenderListProps = {
   senders: NewsletterSenderStats[];
@@ -34,14 +35,21 @@ const SenderList = ({
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
   const [brandInputValues, setBrandInputValues] = useState<Record<string, string>>({});
+  
+  // Use our new sorting hook
+  const { sortField, sortDirection, toggleSort, sortSenders } = useSenderListSorting();
 
   // Filter senders based on search term
-  const filteredSenders = senders.filter(sender => {
-    const senderName = sender.sender_name?.toLowerCase() || "";
-    const senderEmail = sender.sender_email?.toLowerCase() || "";
-    const term = searchTerm.toLowerCase();
-    return senderName.includes(term) || senderEmail.includes(term);
-  });
+  const filteredSenders = senders
+    .filter(sender => {
+      const senderName = sender.sender_name?.toLowerCase() || "";
+      const senderEmail = sender.sender_email?.toLowerCase() || "";
+      const term = searchTerm.toLowerCase();
+      return senderName.includes(term) || senderEmail.includes(term);
+    });
+  
+  // Apply sorting to filtered senders
+  const sortedSenders = sortSenders(filteredSenders);
 
   // Handle category change
   const handleCategoryChange = async (senderEmail: string, categoryId: string) => {
@@ -96,10 +104,10 @@ const SenderList = ({
   };
 
   const handleSelectAll = () => {
-    if (selectedSenders.length === filteredSenders.length) {
+    if (selectedSenders.length === sortedSenders.length) {
       setSelectedSenders([]);
     } else {
-      setSelectedSenders(filteredSenders.map(sender => sender.sender_email));
+      setSelectedSenders(sortedSenders.map(sender => sender.sender_email));
     }
   };
 
@@ -145,7 +153,7 @@ const SenderList = ({
         <SenderListHeader 
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          resultsCount={filteredSenders.length}
+          resultsCount={sortedSenders.length}
         />
         
         {onDeleteSenders && (
@@ -160,17 +168,17 @@ const SenderList = ({
       <div className="rounded-md border">
         <Table>
           <SenderTableHeaders 
-            sortField="name"
-            sortDirection="asc"
-            onSort={() => {}}
-            allSelected={selectedSenders.length === filteredSenders.length && filteredSenders.length > 0}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={toggleSort}
+            allSelected={selectedSenders.length === sortedSenders.length && sortedSenders.length > 0}
             onSelectAll={onDeleteSenders ? handleSelectAll : undefined}
           />
           <TableBody>
-            {filteredSenders.length === 0 ? (
+            {sortedSenders.length === 0 ? (
               <EmptyTableRow colSpan={onDeleteSenders ? 7 : 6} />
             ) : (
-              filteredSenders.map((sender, index) => (
+              sortedSenders.map((sender, index) => (
                 <SenderTableRow
                   key={sender.sender_email}
                   sender={sender}
