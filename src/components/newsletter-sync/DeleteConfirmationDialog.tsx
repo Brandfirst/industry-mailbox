@@ -1,5 +1,15 @@
 
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
 
 type DeleteConfirmationDialogProps = {
   isOpen: boolean;
@@ -18,20 +28,23 @@ export function DeleteConfirmationDialog({
 }: DeleteConfirmationDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="bg-destructive">
+      <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription className="text-white">
-            This will permanently delete the selected {count} newsletter(s).
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5 text-destructive" />
+            Confirm Deletion
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete the selected {count} newsletter{count !== 1 ? 's' : ''}.
             This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-white text-destructive hover:bg-gray-100">Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm} 
             disabled={isDeleting}
-            className="bg-white text-destructive hover:bg-gray-100 border border-white"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>

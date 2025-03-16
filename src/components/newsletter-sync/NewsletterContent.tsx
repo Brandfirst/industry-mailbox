@@ -7,6 +7,7 @@ import { EmptyState } from "./EmptyState";
 import { FilterToolbar, FiltersState } from "./FilterToolbar";
 import { NewsletterList } from "./newsletter-list/NewsletterList";
 import { NewsletterPagination } from "./NewsletterPagination";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type NewsletterContentProps = {
   errorMessage: string | null;
@@ -45,51 +46,56 @@ export function NewsletterContent({
 }: NewsletterContentProps) {
   
   return (
-    <div className="space-y-6 bg-white p-4 rounded-lg text-gray-800">
-      <AlertMessages 
-        errorMessage={errorMessage} 
-        warningMessage={warningMessage}
-      />
-      
-      <AccountSelector 
-        accounts={emailAccounts}
-        selectedAccount={selectedAccount}
-        onSelectAccount={onSelectAccount}
-        isDisabled={isLoading || isSyncing}
-      />
-      
-      {isLoading ? (
-        <LoadingState />
-      ) : newsletters.length === 0 ? (
-        <EmptyState 
-          selectedAccount={selectedAccount} 
-          isSyncing={isSyncing} 
+    <Card className="bg-background">
+      <CardHeader className="pb-3">
+        <CardTitle>Newsletter Manager</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <AlertMessages 
+          errorMessage={errorMessage} 
+          warningMessage={warningMessage}
         />
-      ) : (
-        <>
-          <FilterToolbar 
-            filters={filters}
-            onFiltersChange={onFiltersChange}
-            categories={categories}
+        
+        <AccountSelector 
+          accounts={emailAccounts}
+          selectedAccount={selectedAccount}
+          onSelectAccount={onSelectAccount}
+          isDisabled={isLoading || isSyncing}
+        />
+        
+        {isLoading ? (
+          <LoadingState />
+        ) : newsletters.length === 0 ? (
+          <EmptyState 
+            selectedAccount={selectedAccount} 
+            isSyncing={isSyncing} 
           />
-          
-          <NewsletterList 
-            newsletters={newsletters}
-            categories={categories}
-            onDeleteNewsletters={onDeleteNewsletters}
-          />
-          
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-6">
-              <NewsletterPagination 
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={onPageChange}
-              />
-            </div>
-          )}
-        </>
-      )}
-    </div>
+        ) : (
+          <>
+            <FilterToolbar 
+              filters={filters}
+              onFiltersChange={onFiltersChange}
+              categories={categories}
+            />
+            
+            <NewsletterList 
+              newsletters={newsletters}
+              categories={categories}
+              onDeleteNewsletters={onDeleteNewsletters}
+            />
+            
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <NewsletterPagination 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={onPageChange}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

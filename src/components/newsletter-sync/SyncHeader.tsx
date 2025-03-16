@@ -1,9 +1,15 @@
 
 import { Button } from "@/components/ui/button";
 import { CardTitle } from "@/components/ui/card";
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { RefreshCw } from "lucide-react";
+import { 
+  TooltipProvider, 
+  Tooltip, 
+  TooltipContent, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { RefreshCw, Mail } from "lucide-react";
 import { EmailAccount } from "@/lib/supabase";
+import { format } from "date-fns";
 
 type SyncHeaderProps = {
   isSyncing: boolean;
@@ -19,31 +25,38 @@ export function SyncHeader({ isSyncing, selectedAccount, emailAccounts, onSync }
     const account = emailAccounts.find(acc => acc.id === selectedAccount);
     if (!account || !account.last_sync) return "Never";
     
-    return account.last_sync;
+    try {
+      return format(new Date(account.last_sync), "MMM d, yyyy 'at' h:mm a");
+    } catch (e) {
+      return account.last_sync;
+    }
   };
 
   return (
-    <CardTitle className="flex items-center justify-between text-gray-800">
-      <span>Email Sync</span>
+    <div className="flex items-center justify-between">
+      <CardTitle className="flex items-center gap-2">
+        <Mail className="h-5 w-5" />
+        <span>Email Sync</span>
+      </CardTitle>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
-              variant="outline" 
+              variant="default" 
               size="sm" 
               onClick={onSync}
               disabled={isSyncing || !selectedAccount}
-              className="bg-white border-[#FF5722]/30 text-gray-800"
+              className="gap-2"
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              Sync Now
+              <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing...' : 'Sync Now'}
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="bg-white text-gray-800">
+          <TooltipContent side="left">
             <p>Last synced: {getLastSyncTime()}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-    </CardTitle>
+    </div>
   );
 }
