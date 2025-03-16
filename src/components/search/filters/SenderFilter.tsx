@@ -9,7 +9,7 @@ interface SenderBrand {
   sender_email: string;
   sender_name: string;
   count: number;
-  brand_name?: string; // Add brand_name field
+  brand_name?: string;
 }
 
 interface SenderFilterProps {
@@ -66,10 +66,7 @@ const SenderFilter = ({
                   htmlFor={`brand-${brand.sender_email}`}
                   className="text-sm cursor-pointer leading-tight"
                 >
-                  <span className="font-medium">{displayName}</span>
-                  <span className="block text-xs text-muted-foreground truncate max-w-[200px]">
-                    {brand.sender_email} ({brand.count})
-                  </span>
+                  <span className="font-medium">{displayName} <span className="text-xs text-muted-foreground">({brand.count})</span></span>
                 </Label>
               </div>
             );

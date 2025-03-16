@@ -54,7 +54,7 @@ const SenderNewsletters = () => {
         senderName={senderName}
         onSearch={onSearch}
         onPeriodChange={handlePeriodChange}
-        selectedPeriod={timePeriod}
+        selectedPeriod={timePeriod as any} // Fix the type error by casting
       />
       
       <SenderContent 
