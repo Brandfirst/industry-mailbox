@@ -13,6 +13,7 @@ export const forceCentering = (doc: Document): void => {
     centerTables(doc);
     centerTextElements(doc);
     fixAbsolutePositioning(doc);
+    adjustFixedWidthElements(doc);
   } catch (error) {
     console.error("Error applying centering:", error);
   }
@@ -49,7 +50,7 @@ const centerNewsletterWrapper = (doc: Document): void => {
   if (newsletterWrapper instanceof HTMLElement) {
     newsletterWrapper.style.setProperty('margin', '0 auto', 'important');
     newsletterWrapper.style.setProperty('width', '100%', 'important');
-    newsletterWrapper.style.setProperty('max-width', '800px', 'important');
+    newsletterWrapper.style.setProperty('max-width', '100%', 'important');
     newsletterWrapper.style.setProperty('overflow-x', 'hidden', 'important');
     newsletterWrapper.style.setProperty('display', 'block', 'important');
     newsletterWrapper.style.setProperty('text-align', 'center', 'important');
@@ -77,7 +78,7 @@ const centerContainerElements = (doc: Document): void => {
       element.style.setProperty('margin-right', 'auto', 'important');
       element.style.setProperty('float', 'none', 'important');
       element.style.setProperty('width', '100%', 'important');
-      element.style.setProperty('max-width', '800px', 'important');
+      element.style.setProperty('max-width', '100%', 'important');
     }
   });
 };
@@ -97,15 +98,15 @@ const centerTables = (doc: Document): void => {
       table.style.setProperty('float', 'none', 'important');
       table.style.setProperty('max-width', '100%', 'important');
       
+      // Make table layout automatically adjust
+      table.style.setProperty('table-layout', 'auto', 'important');
+      
       // Handle tables with fixed widths
       const width = table.getAttribute('width');
       if (width) {
-        const numWidth = parseInt(width, 10);
-        if (!isNaN(numWidth) && numWidth > 0) {
-          // Set a max-width instead of a fixed width to prevent overflow
-          table.style.setProperty('max-width', `${Math.min(numWidth, 800)}px`, 'important');
-          table.style.setProperty('width', 'auto', 'important');
-        }
+        // Convert fixed widths to max-width to prevent overflow
+        table.style.setProperty('width', 'auto', 'important');
+        table.style.setProperty('max-width', '100%', 'important');
       }
     }
   });
@@ -123,6 +124,10 @@ const centerTextElements = (doc: Document): void => {
       el.style.setProperty('margin-left', 'auto', 'important');
       el.style.setProperty('margin-right', 'auto', 'important');
       el.style.setProperty('max-width', '100%', 'important');
+      
+      // Ensure text doesn't overflow
+      el.style.setProperty('word-wrap', 'break-word', 'important');
+      el.style.setProperty('overflow-wrap', 'break-word', 'important');
     }
   });
 };
@@ -143,3 +148,42 @@ const fixAbsolutePositioning = (doc: Document): void => {
   });
 };
 
+/**
+ * Adjust elements with fixed widths to fit container
+ * 
+ * @param doc The document to apply adjustments to
+ */
+const adjustFixedWidthElements = (doc: Document): void => {
+  // Find elements with explicit width attributes or inline width styles
+  const fixedWidthElements = doc.querySelectorAll('[width], [style*="width"]');
+  
+  fixedWidthElements.forEach(el => {
+    if (el instanceof HTMLElement) {
+      // For non-table elements, always ensure they're responsive
+      if (el.tagName !== 'TABLE') {
+        el.style.setProperty('width', 'auto', 'important');
+        el.style.setProperty('max-width', '100%', 'important');
+      }
+      
+      // Remove any min-width that might cause overflow
+      el.style.setProperty('min-width', '0', 'important');
+    }
+  });
+  
+  // Fix common newsletter layout issues with specific element types
+  const elementTypes = ['td', 'th', 'div', 'p', 'span', 'img'];
+  
+  elementTypes.forEach(type => {
+    const elements = doc.querySelectorAll(type);
+    elements.forEach(el => {
+      if (el instanceof HTMLElement) {
+        // Prevent overflow by setting max-width
+        el.style.setProperty('max-width', '100%', 'important');
+        // Make sure images scale properly
+        if (type === 'img') {
+          el.style.setProperty('height', 'auto', 'important');
+        }
+      }
+    });
+  });
+};

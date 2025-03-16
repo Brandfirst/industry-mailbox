@@ -67,7 +67,7 @@ const getIframeStyles = (isMobile: boolean = false): string => {
       align-items: center;
       justify-content: flex-start;
       overflow-x: hidden !important;
-      ${isMobile ? 'transform: scale(0.4); transform-origin: top center;' : 'transform: scale(0.7); transform-origin: top center;'}
+      ${isMobile ? 'transform: scale(0.5); transform-origin: top center;' : 'transform: scale(0.8); transform-origin: top center;'}
     }
     
     /* Preserve the pointer-events none for links */
@@ -84,8 +84,7 @@ const getIframeStyles = (isMobile: boolean = false): string => {
     /* Create a centered container for newsletter content */
     .newsletter-wrapper {
       width: 100% !important;
-      max-width: 800px !important;
-      display: block;
+      max-width: 100% !important;
       margin: 0 auto !important;
       overflow-x: hidden !important;
       text-align: center !important;
@@ -95,10 +94,10 @@ const getIframeStyles = (isMobile: boolean = false): string => {
     /* Make sure tables don't overflow */
     table {
       max-width: 100% !important;
+      width: auto !important;
       margin-left: auto !important;
       margin-right: auto !important;
-      width: auto !important; 
-      table-layout: auto !important;
+      table-layout: fixed !important;
     }
     
     /* Handle nested tables often used in newsletters */
@@ -113,7 +112,7 @@ const getIframeStyles = (isMobile: boolean = false): string => {
       margin-left: auto !important;
       margin-right: auto !important;
       width: 100% !important;
-      max-width: 800px !important;
+      max-width: 100% !important;
       float: none !important;
     }
     
@@ -141,4 +140,3 @@ const getIframeStyles = (isMobile: boolean = false): string => {
     }
   `;
 };
-

@@ -34,6 +34,7 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
           
         // And again after short delays to handle any dynamic elements
         setTimeout(() => forceCentering(doc), 100);
+        setTimeout(() => forceCentering(doc), 300);
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);
