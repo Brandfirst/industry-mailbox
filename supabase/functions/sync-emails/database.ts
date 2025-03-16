@@ -1,4 +1,5 @@
 
+
 import { removeTrackingElements } from './content.ts';
 
 // Function to save an email to the database

@@ -4,7 +4,7 @@
  * to prevent CORS issues with external resources
  */
 import { debugLog } from './debugUtils';
-import { removeTrackingElements } from './trackingFilter';
+import { removeTrackingPixels } from './trackingFilter';
 
 /**
  * Removes external font imports or replaces them with system fonts
@@ -21,7 +21,7 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
   debugLog('NORDIC CHARACTERS BEFORE SANITIZATION:', nordicChars || 'None found');
   
   // Apply our comprehensive tracking removal first to eliminate problem elements
-  htmlContent = removeTrackingElements(htmlContent);
+  htmlContent = removeTrackingPixels(htmlContent);
   
   // Replace problematic @font-face declarations
   htmlContent = htmlContent.replace(
