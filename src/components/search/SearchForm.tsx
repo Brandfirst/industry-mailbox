@@ -37,7 +37,7 @@ const SearchForm = ({
           
           <Button 
             type="submit" 
-            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl"
           >
             Søk
           </Button>
