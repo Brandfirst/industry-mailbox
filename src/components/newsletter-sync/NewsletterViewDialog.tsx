@@ -1,3 +1,4 @@
+
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,8 @@ export function NewsletterViewDialog({
               margin: 0;
               padding: 1rem;
               color: #333;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+              background-color: #ffffff;
             }
             img { max-width: 100%; height: auto; }
             * { max-width: 100%; box-sizing: border-box; }
@@ -179,7 +182,7 @@ export function NewsletterViewDialog({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden border-gray-200 shadow-lg">
         <DialogHeader className="pb-2 border-b border-gray-200 space-y-2">
           <div className="flex items-start justify-between">
-            <DialogTitle className="text-xl font-bold text-zinc-50">
+            <DialogTitle className="text-xl font-bold">
               {newsletter.title || "Untitled Newsletter"}
             </DialogTitle>
             <DialogClose asChild>
@@ -191,15 +194,15 @@ export function NewsletterViewDialog({
           
           <div className="flex flex-col space-y-2">
             <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-              <UserCircle className="h-4 w-4 mr-1 bg-slate-50" /> 
-              <span className="font-medium text-slate-50">From:</span>
-              <span className="ml-1 text-slate-50">{newsletter.sender || newsletter.sender_email || "Unknown sender"}</span>
+              <UserCircle className="h-4 w-4 mr-1" /> 
+              <span className="font-medium">From:</span>
+              <span className="ml-1">{newsletter.sender || newsletter.sender_email || "Unknown sender"}</span>
             </div>
             
             <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-              <Calendar className="h-4 w-4 mr-1 bg-slate-50" /> 
-              <span className="font-medium text-slate-50">Date:</span>
-              <span className="ml-1 text-slate-50">{formattedDate}</span>
+              <Calendar className="h-4 w-4 mr-1" /> 
+              <span className="font-medium">Date:</span>
+              <span className="ml-1">{formattedDate}</span>
             </div>
             
             {newsletter.industry && <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
@@ -228,7 +231,7 @@ export function NewsletterViewDialog({
                   </Badge>}
               </div>}
             
-            {newsletter.preview && <DialogDescription className="text-sm mt-2 line-clamp-2 text-slate-50">
+            {newsletter.preview && <DialogDescription className="text-sm mt-2 line-clamp-2">
                 {newsletter.preview}
               </DialogDescription>}
           </div>
