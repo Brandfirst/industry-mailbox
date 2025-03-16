@@ -4,7 +4,7 @@ import { useSenderOperations } from "./useSenderOperations";
 import { useSenderSorting } from "./useSenderSorting";
 import { useRefreshSenders } from "./useRefreshSenders";
 import { UseNewsletterSendersResult } from "./types";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function useNewsletterSenders(): UseNewsletterSendersResult {
   // Get base sender data
@@ -49,44 +49,56 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
     setFrequencyData
   );
 
-  // Track whether we're in an operation and whether we've already refreshed
-  const isOperationInProgress = useRef(false);
-  const hasRefreshedAfterOperation = useRef(false);
-  const refreshRequested = useRef(false);
+  // State to track if we need to trigger a refresh
+  const [shouldRefresh, setShouldRefresh] = useState(false);
+  
+  // Track the previous operation states
+  const prevOperationState = useRef({
+    updatingCategory: false,
+    updatingBrand: false,
+    deleting: false,
+    refreshing: false
+  });
 
-  // Auto-refresh after operations
+  // This effect detects when operations complete
   useEffect(() => {
-    // If any operation is in progress, mark our flag
-    if ((updatingCategory || updatingBrand || deleting || refreshing) && 
-        !isOperationInProgress.current) {
-      console.log("Operation started - tracking for later refresh");
-      isOperationInProgress.current = true;
-      refreshRequested.current = false;
-      hasRefreshedAfterOperation.current = false;
+    const currentlyOperating = updatingCategory || updatingBrand || deleting || refreshing;
+    const wasOperating = 
+      prevOperationState.current.updatingCategory || 
+      prevOperationState.current.updatingBrand || 
+      prevOperationState.current.deleting ||
+      prevOperationState.current.refreshing;
+    
+    // If we were operating but now we're not, schedule a refresh
+    if (wasOperating && !currentlyOperating) {
+      console.log("Operation completed, scheduling a single refresh");
+      setShouldRefresh(true);
     }
     
-    // Only proceed if we were doing an operation, it's now completed, and we haven't refreshed yet
-    if (isOperationInProgress.current && 
-        !updatingCategory && !updatingBrand && !deleting && !refreshing && 
-        !hasRefreshedAfterOperation.current &&
-        !refreshRequested.current) {
-      console.log("Operations completed, triggering one-time refresh");
-      
-      // Mark that we've requested a refresh so we don't request again in future renders
-      refreshRequested.current = true;
-      
-      // Mark that we've refreshed so we don't do it again
-      hasRefreshedAfterOperation.current = true;
-      
-      // Reset the operation flag
-      isOperationInProgress.current = false;
-      
-      // Trigger a single refresh without updating the dependency array
-      setTimeout(() => {
-        handleRefresh();
-      }, 0);
-    }
+    // Update the previous state
+    prevOperationState.current = {
+      updatingCategory,
+      updatingBrand,
+      deleting,
+      refreshing
+    };
   }, [updatingCategory, updatingBrand, deleting, refreshing]);
+
+  // Handle the refresh when shouldRefresh changes to true
+  useEffect(() => {
+    if (shouldRefresh) {
+      // Reset the flag immediately to prevent further refreshes
+      setShouldRefresh(false);
+      
+      // Use setTimeout to ensure this runs after the current render cycle
+      const timeoutId = setTimeout(() => {
+        console.log("Executing the scheduled refresh");
+        handleRefresh();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [shouldRefresh, handleRefresh]);
 
   // Apply filters to get the final sender list
   const filteredSenders = filterSenders(senders);
