@@ -31,7 +31,7 @@ const CategoryFilter = ({
           placeholder="Søk kategorier..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-8 rounded-lg bg-black/30 backdrop-blur-sm border-[#FF5722]/20"
+          className="pl-8 rounded-lg border-[#FF5722]/20 bg-white"
         />
       </div>
       
