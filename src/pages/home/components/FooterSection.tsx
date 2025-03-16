@@ -1,15 +1,12 @@
-
 import { Mail } from "lucide-react";
-
 const FooterSection = () => {
-  return (
-    <footer className="pt-16 pb-8 border-t border-blue-500/20 bg-black">
+  return <footer className="pt-16 pb-8 border-t border-blue-500/20 bg-black">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Mail className="text-blue-400 h-5 w-5" />
-              <span className="text-white font-bold text-lg">NewsletterHub</span>
+              <Mail className="text-blue-400 h-5 w-5 bg-orange-600" />
+              <span className="text-white font-bold text-lg">Nyhetsbrevo</span>
             </div>
             <p className="text-gray-400 mb-4">
               Norges største database av nyhetsbrev for markedsførere og byråer.
@@ -74,8 +71,6 @@ const FooterSection = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default FooterSection;

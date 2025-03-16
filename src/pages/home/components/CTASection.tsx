@@ -1,10 +1,7 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
 const CTASection = () => {
-  return (
-    <section className="py-20 bg-black relative overflow-hidden">
+  return <section className="bg-black relative overflow-hidden py-[34px]">
       {/* Removed SplineBackground */}
       
       <div className="container mx-auto px-4 text-center max-w-4xl relative z-10">
@@ -27,8 +24,6 @@ const CTASection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default CTASection;

@@ -1,11 +1,8 @@
-
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useState } from "react";
 import SplineBackground from "./SplineBackground";
-
 const FAQSection = () => {
-  return (
-    <section className="py-20 bg-black relative overflow-hidden">
+  return <section className="bg-black relative overflow-hidden py-[44px]">
       <SplineBackground position="top" rotation={-45} scale={1.1} opacity={0.1} />
       
       <div className="container mx-auto px-4 max-w-4xl relative z-10">
@@ -49,8 +46,6 @@ const FAQSection = () => {
           </AccordionItem>
         </Accordion>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default FAQSection;

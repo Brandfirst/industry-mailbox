@@ -1,14 +1,10 @@
-
 import { useState } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 const NewsletterSubscriptionSection = () => {
   const [email, setEmail] = useState("");
-  
-  return (
-    <section className="py-20 bg-black relative overflow-hidden">
+  return <section className="bg-black relative overflow-hidden py-[8px]">
       {/* Removed SplineBackground */}
       
       <div className="container mx-auto px-4 max-w-3xl relative z-10">
@@ -19,13 +15,7 @@ const NewsletterSubscriptionSection = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <Input 
-              type="email" 
-              placeholder="Din e-postadresse" 
-              className="bg-black/30 backdrop-blur-sm border-[#FF5722]/20 text-white rounded-xl" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <Input type="email" placeholder="Din e-postadresse" className="bg-black/30 backdrop-blur-sm border-[#FF5722]/20 text-white rounded-xl" value={email} onChange={e => setEmail(e.target.value)} />
             <Button className="gradient-button">
               Abonner
               <Send className="ml-2 h-4 w-4" />
@@ -37,8 +27,6 @@ const NewsletterSubscriptionSection = () => {
           </p>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default NewsletterSubscriptionSection;
