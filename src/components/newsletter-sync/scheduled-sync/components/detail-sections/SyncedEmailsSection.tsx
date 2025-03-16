@@ -27,12 +27,16 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   
   console.log("Displaying emails in SyncedEmailsSection:", displayedEmails);
   
-  const navigateToNewsletter = (newsletter: Newsletter) => {
-    if (newsletter.id) {
-      const path = getNewsletterPath(newsletter);
-      navigate(path);
+  const navigateToNewsletter = (email: any) => {
+    // If the email has an actual newsletter ID, go directly to it
+    if (email.id && !email.id.toString().startsWith('temp-')) {
+      navigate(`/newsletter/${email.id}`);
+    } else if (email.gmail_message_id) {
+      // If it has a Gmail message ID, try to find the newsletter by that ID
+      // This is just a navigation, we're not actually searching
+      navigate(`/newsletter/${email.id}`);
     } else {
-      console.log("Cannot navigate: newsletter has no ID");
+      console.log("Cannot navigate: email has no valid ID");
     }
   };
     
@@ -43,26 +47,12 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
       </div>
       <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
         {displayedEmails.map((email: any, index: number) => {
-          // Create a newsletter object from email data
-          const newsletter = {
-            id: email.id || `temp-${index}`,
-            title: email.title || email.subject || 'No subject',
-            sender: email.sender || 'Unknown',
-            sender_email: email.sender_email || email.sender || 'Unknown',
-            content: email.content || null,
-            published_at: email.date || new Date().toISOString(),
-            industry: email.industry || '',
-            preview: email.preview || email.subject || '',
-            created_at: email.created_at || new Date().toISOString(),
-            gmail_message_id: email.gmail_message_id || '',
-            email_id: email.email_id || ''
-          } as Newsletter;
-          
+          // Create a simplified reference just for display
           return (
             <div 
               key={index} 
               className="mb-2 pb-2 border-b border-gray-100 last:border-b-0 rounded bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
-              onClick={() => navigateToNewsletter(newsletter)}
+              onClick={() => navigateToNewsletter(email)}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -71,7 +61,22 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
                   {email.date && <div className="text-xs text-gray-500 mt-1">Date: {new Date(email.date).toLocaleString()}</div>}
                 </div>
                 <div onClick={(e) => e.stopPropagation()}>
-                  <NewsletterViewDialog newsletter={newsletter} />
+                  <NewsletterViewDialog 
+                    newsletter={{
+                      id: email.id || index,
+                      title: email.title || email.subject || 'No subject',
+                      sender: email.sender || 'Unknown',
+                      sender_email: email.sender_email || email.sender || 'Unknown',
+                      content: email.content || null,
+                      published_at: email.date || new Date().toISOString(),
+                      industry: email.industry || '',
+                      preview: email.preview || email.subject || '',
+                      created_at: email.created_at || new Date().toISOString(),
+                      gmail_message_id: email.gmail_message_id || '',
+                      gmail_thread_id: email.gmail_thread_id || '',
+                      email_id: email.email_id || ''
+                    } as Newsletter} 
+                  />
                 </div>
               </div>
             </div>
