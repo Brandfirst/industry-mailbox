@@ -47,6 +47,9 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
     }
   });
   
+  // Total unique senders count from this particular sync
+  const uniqueSendersCount = uniqueSenders.size;
+  
   // Ensure the account email is available for the DetailedSyncInfo component
   if (log.details && !log.details.accountEmail && log.account?.email) {
     log.details.accountEmail = log.account.email;
@@ -103,11 +106,11 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
           )}
         </div>
         
-        {/* Senders column - Just showing the total count */}
+        {/* Senders column - showing the unique senders from this sync */}
         <div className="flex items-center">
-          {uniqueSenders.size > 0 ? (
+          {uniqueSendersCount > 0 ? (
             <div className="flex items-center gap-1">
-              <span>{uniqueSenders.size}</span>
+              <span>{uniqueSendersCount}</span>
               
               <Popover open={isSendersOpen} onOpenChange={setIsSendersOpen}>
                 <PopoverTrigger asChild>
@@ -125,7 +128,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
                     <h4 className="font-medium text-sm">Sender Information</h4>
                     <div className="text-xs">
                       <div className="font-medium mb-1">
-                        {uniqueSenders.size} unique sender{uniqueSenders.size !== 1 ? 's' : ''}:
+                        {uniqueSendersCount} unique sender{uniqueSendersCount !== 1 ? 's' : ''}:
                       </div>
                       <div className="max-h-40 overflow-y-auto space-y-1">
                         {Array.from(uniqueSenders).map((sender, idx) => (
