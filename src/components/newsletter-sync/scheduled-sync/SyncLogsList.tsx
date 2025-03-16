@@ -96,9 +96,9 @@ export function SyncLogsList({
             </LogsContent>
           ) : (
             <div className="overflow-x-auto w-full">
-              <div className="min-w-[800px] max-w-full">
+              <div className="min-w-[800px]">
                 <LogsTableHeader />
-                <div className="max-h-96 overflow-y-auto overflow-x-hidden">
+                <div className="overflow-y-auto">
                   {syncLogs.map((log, index) => (
                     <SyncLogItem 
                       key={log.id} 

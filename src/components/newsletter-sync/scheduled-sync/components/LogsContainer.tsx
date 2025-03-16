@@ -18,7 +18,7 @@ export function LogsContainer({
 }: LogsContainerProps) {
   return (
     <div className="mt-2 border rounded-md overflow-hidden">
-      <div className="w-full overflow-x-auto" style={{ maxWidth: '100%' }}>
+      <div className="w-full overflow-x-auto">
         {children}
       </div>
     </div>

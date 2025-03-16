@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { StatusColumn } from "./StatusColumn";
@@ -85,17 +84,14 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
         />
       </div>
       
-      {/* Type column */}
       <div className="overflow-hidden px-1">
         <TypeColumn syncType={syncType} />
       </div>
       
-      {/* Emails column - Make sure this column has proper z-index to be clickable */}
-      <div className="relative z-30 pointer-events-auto overflow-hidden px-1">
+      <div className="relative z-30 overflow-hidden px-1">
         <EmailsColumn log={log} totalEmails={totalEmails} />
       </div>
       
-      {/* Senders column */}
       <div className="overflow-hidden px-1">
         <SendersColumn 
           uniqueSendersCount={uniqueSendersCount}
@@ -106,7 +102,6 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
         />
       </div>
       
-      {/* Details column */}
       <div className="overflow-hidden truncate px-1">
         <StatusMessage log={log} />
       </div>
