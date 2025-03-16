@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { updateSyncSchedule } from "@/lib/supabase/emailAccounts/syncLogs";
 import { supabase } from "@/integrations/supabase/client";
-import { ScheduleOption } from "../components/ScheduleSelector";
+import { ScheduleOption } from "../SyncScheduleControls";
 
 export function useSyncSchedule({
   selectedAccount,
@@ -58,9 +58,9 @@ export function useSyncSchedule({
     }
     
     try {
-      // Call the scheduled-sync function directly for immediate testing
+      // Call the scheduled-sync function directly with forceRun set to true
       const { data, error } = await supabase.functions.invoke("scheduled-sync", {
-        body: { forceRun: true }
+        body: { forceRun: true, manual: true }
       });
       
       if (error) {

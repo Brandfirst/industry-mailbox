@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
       
       // Skip if sync is not enabled
       if (!settings?.enabled || settings?.scheduleType === 'disabled') {
+        console.log(`Account ${account.id} (${account.email}) - sync disabled, skipping`);
         continue;
       }
       

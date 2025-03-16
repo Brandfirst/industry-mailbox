@@ -8,7 +8,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { getSyncLogs, getSyncSchedule, SyncScheduleSettings } from "@/lib/supabase/emailAccounts/syncLogs";
+import { getSyncLogs, getSyncSchedule } from "@/lib/supabase/emailAccounts/syncLogs";
 import { SyncScheduleControls, SyncLogsList } from "./scheduled-sync";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
