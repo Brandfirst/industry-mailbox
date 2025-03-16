@@ -5,25 +5,27 @@ import { RowCountSelect } from "./RowCountSelect";
 import { MessageCountFilter } from "./MessageCountFilter";
 
 interface LogsHeaderProps {
-  showLogs: boolean;
+  title?: string;
   onToggle: () => void;
   onRefresh: () => void;
-  isRefreshing: boolean;
-  rowCount?: number;
-  onRowCountChange?: (value: number) => void;
-  minMessageCount?: number;
-  onMinMessageCountChange?: (value: number) => void;
+  isRefreshing?: boolean;
+  rowCount?: string;
+  onRowCountChange?: (value: string) => void;
+  messageCountFilter?: string;
+  onMessageCountFilterChange?: (value: string) => void;
+  showLogs?: boolean;
 }
 
 export function LogsHeader({ 
-  showLogs, 
+  title = "Sync History",
   onToggle, 
   onRefresh, 
-  isRefreshing,
-  rowCount = 10,
+  isRefreshing = false,
+  rowCount = "10",
   onRowCountChange,
-  minMessageCount = 0,
-  onMinMessageCountChange
+  messageCountFilter = "1",
+  onMessageCountFilterChange,
+  showLogs = true
 }: LogsHeaderProps) {
   return (
     <div className="flex justify-between items-center">
@@ -37,12 +39,12 @@ export function LogsHeader({
           {showLogs ? (
             <>
               <ChevronUp className="h-4 w-4 mr-1" />
-              Hide Sync History
+              Hide {title}
             </>
           ) : (
             <>
               <ChevronDown className="h-4 w-4 mr-1" />
-              Show Sync History
+              Show {title}
             </>
           )}
         </Button>
@@ -54,10 +56,10 @@ export function LogsHeader({
           />
         )}
         
-        {showLogs && onMinMessageCountChange && (
+        {showLogs && onMessageCountFilterChange && (
           <MessageCountFilter
-            value={minMessageCount || 0}
-            onChange={onMinMessageCountChange}
+            value={messageCountFilter}
+            onChange={onMessageCountFilterChange}
           />
         )}
       </div>

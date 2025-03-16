@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/select";
 
 interface RowCountSelectProps {
-  value: number;
-  onChange: (value: number) => void;
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export function RowCountSelect({ value, onChange }: RowCountSelectProps) {
@@ -18,11 +18,11 @@ export function RowCountSelect({ value, onChange }: RowCountSelectProps) {
     <div className="flex items-center gap-2 ml-4">
       <span className="text-sm text-muted-foreground">Rows:</span>
       <Select
-        value={value.toString()}
-        onValueChange={(val) => onChange(parseInt(val))}
+        value={value}
+        onValueChange={onChange}
       >
         <SelectTrigger className="w-16 h-8">
-          <SelectValue placeholder={value.toString()} />
+          <SelectValue placeholder={value} />
         </SelectTrigger>
         <SelectContent className="bg-white text-black">
           <SelectItem value="5" className="text-black">5</SelectItem>

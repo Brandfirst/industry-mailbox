@@ -4,8 +4,6 @@ import { SyncLogItem } from "./SyncLogItem";
 import { LogsHeader } from "./components/LogsHeader";
 import { LogsContainer } from "./components/LogsContainer";
 import { LogsContent } from "./components/LogsContent";
-import { Spinner } from "@/components/shared/Spinner";
-import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { LogsTableHeader } from "./components/LogsTableHeader";
 import { AccountNotice } from "./components/AccountNotice";
 import { Button } from "@/components/ui/button";
@@ -32,9 +30,9 @@ export function SyncLogsList({
   formatTimestamp,
   setSyncLogs
 }: SyncLogsListProps) {
-  const [rowCount, setRowCount] = useState("10");
+  const [rowCount, setRowCount] = useState<string>("10");
   const [filteredLogs, setFilteredLogs] = useState<SyncLogEntry[]>([]);
-  const [messageCountFilter, setMessageCountFilter] = useState("1"); // Set default to "1" (≥ 1)
+  const [messageCountFilter, setMessageCountFilter] = useState<string>("1"); // Set default to "1" (≥ 1)
 
   // Filter logs based on selected criteria
   useEffect(() => {
@@ -99,7 +97,7 @@ export function SyncLogsList({
           <AccountNotice />
         ) : isLoading ? (
           <div className="flex justify-center items-center p-8">
-            <Spinner size="lg" />
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </div>
         ) : filteredLogs.length === 0 ? (
           <div className="text-center p-8 text-muted-foreground">
