@@ -49,27 +49,34 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
     setFrequencyData
   );
 
-  // Track whether we're in an operation
+  // Track whether we're in an operation and whether we've already refreshed
   const isOperationInProgress = useRef(false);
+  const hasRefreshedAfterOperation = useRef(false);
 
   // Auto-refresh after operations
   useEffect(() => {
-    // Only proceed if we were doing an operation and now it's completed
+    // If any operation is in progress, mark our flag
+    if ((updatingCategory || updatingBrand || deleting || refreshing) && 
+        !isOperationInProgress.current) {
+      console.log("Operation started - tracking for later refresh");
+      isOperationInProgress.current = true;
+      hasRefreshedAfterOperation.current = false;
+    }
+    
+    // Only proceed if we were doing an operation, it's now completed, and we haven't refreshed yet
     if (isOperationInProgress.current && 
-        !updatingCategory && !updatingBrand && !deleting && !refreshing) {
-      console.log("Operations completed, refreshing sender data");
+        !updatingCategory && !updatingBrand && !deleting && !refreshing && 
+        !hasRefreshedAfterOperation.current) {
+      console.log("Operations completed, triggering one-time refresh");
+      
+      // Mark that we've refreshed so we don't do it again
+      hasRefreshedAfterOperation.current = true;
       
       // Reset the operation flag
       isOperationInProgress.current = false;
       
       // Trigger a single refresh
       handleRefresh();
-    }
-    
-    // Set the flag if we're currently in an operation
-    if ((updatingCategory || updatingBrand || deleting || refreshing) && 
-        !isOperationInProgress.current) {
-      isOperationInProgress.current = true;
     }
   }, [updatingCategory, updatingBrand, deleting, refreshing]);
 
