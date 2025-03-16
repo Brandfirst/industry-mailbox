@@ -31,7 +31,6 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
   const relativeTime = formatDistanceToNow(new Date(log.timestamp), { addSuffix: true });
   
   // Extract additional metrics from details if available
-  const newSenders = log.details?.new_senders_count || 0;
   const totalEmails = log.message_count || 0;
   const syncType = log.sync_type || 'manual';
   
@@ -104,16 +103,11 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
           )}
         </div>
         
-        {/* Senders column - Now with integrated "new" count */}
+        {/* Senders column - Just showing the total count */}
         <div className="flex items-center">
-          {uniqueSenders.size > 0 || newSenders > 0 ? (
+          {uniqueSenders.size > 0 ? (
             <div className="flex items-center gap-1">
-              <div className="flex items-center">
-                <span>{uniqueSenders.size}</span>
-                {newSenders > 0 && (
-                  <span className="ml-1 text-emerald-600">(+{newSenders} new)</span>
-                )}
-              </div>
+              <span>{uniqueSenders.size}</span>
               
               <Popover open={isSendersOpen} onOpenChange={setIsSendersOpen}>
                 <PopoverTrigger asChild>
@@ -131,10 +125,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
                     <h4 className="font-medium text-sm">Sender Information</h4>
                     <div className="text-xs">
                       <div className="font-medium mb-1">
-                        {uniqueSenders.size} unique sender{uniqueSenders.size !== 1 ? 's' : ''}
-                        {newSenders > 0 && (
-                          <span className="text-emerald-600 ml-1">(+{newSenders} new)</span>
-                        )}:
+                        {uniqueSenders.size} unique sender{uniqueSenders.size !== 1 ? 's' : ''}:
                       </div>
                       <div className="max-h-40 overflow-y-auto space-y-1">
                         {Array.from(uniqueSenders).map((sender, idx) => (
