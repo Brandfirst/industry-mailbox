@@ -1,24 +1,15 @@
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { 
-  Newsletter,
-  getNewslettersFromEmailAccount
-} from "@/lib/supabase";
-import { FiltersState } from "./FilterToolbar";
+import { useCallback } from "react";
 import { useNewsletterData } from "./hooks/useNewsletterData";
 import { useNewsletterFetching } from "./hooks/useNewsletterFetching";
 import { useNewsletterOperations } from "./hooks/useNewsletterOperations";
+import { usePagination } from "./hooks/usePagination";
+import { useFilters } from "./hooks/useFilters";
+import { useDisplayRange } from "./hooks/useDisplayRange";
+import { useNewsletterDeletion } from "./hooks/useNewsletterDeletion";
+import { FiltersState } from "./FilterToolbar";
 
 export function useNewsletterSync(userId: string | undefined) {
-  const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<FiltersState>({
-    searchQuery: "",
-    sender: "",
-    categoryId: "all", // Changed from empty string to "all"
-    fromDate: undefined,
-    toDate: undefined
-  });
-
   // Get accounts and categories data
   const {
     emailAccounts,
@@ -29,16 +20,11 @@ export function useNewsletterSync(userId: string | undefined) {
     setErrorMessage: setDataErrorMessage
   } = useNewsletterData(userId);
 
-  // Track account changes to prevent page reset issues
-  const prevSelectedAccountRef = useRef<string | null>(null);
-  
-  // Reset page when account changes
-  useEffect(() => {
-    if (prevSelectedAccountRef.current !== selectedAccount) {
-      prevSelectedAccountRef.current = selectedAccount;
-      setPage(1); // Reset to first page when account changes
-    }
-  }, [selectedAccount]);
+  // Set up pagination
+  const { page, setPage } = usePagination(selectedAccount);
+
+  // Set up filters
+  const { filters, handleFiltersChange: handleFiltersChangeBase } = useFilters();
 
   // Get newsletters based on current filters
   const {
@@ -64,58 +50,39 @@ export function useNewsletterSync(userId: string | undefined) {
     selectedAccount,
     page,
     setNewsletters,
-    setTotalCount,  // Pass setTotalCount from useNewsletterFetching
+    setTotalCount,
     setFetchErrorMessage,
     setWarningMessage
   );
 
+  // Calculate display range and total pages
+  const { displayRange, totalPages } = useDisplayRange(
+    page,
+    itemsPerPage,
+    totalCount,
+    isLoading
+  );
+
+  // Set up newsletter deletion
+  const { handleDeleteNewsletters } = useNewsletterDeletion({
+    newsletters,
+    page,
+    setPage,
+    setNewsletters,
+    setTotalCount,
+    deleteNewslettersBase
+  });
+
+  // Handle filter changes and reset page
+  const handleFiltersChange = useCallback((newFilters: FiltersState) => {
+    const shouldResetPage = handleFiltersChangeBase(newFilters);
+    if (shouldResetPage) {
+      setPage(1);
+    }
+  }, [handleFiltersChangeBase, setPage]);
+
   // Combine error messages from different sources
   const errorMessage = dataErrorMessage || fetchErrorMessage;
-
-  // Handle deleting newsletters and update UI accordingly
-  const handleDeleteNewsletters = useCallback(async (ids: number[]) => {
-    if (!ids.length) return;
-    
-    try {
-      await deleteNewslettersBase(ids);
-      
-      // Update the local state to remove deleted newsletters
-      const remainingNewsletters = newsletters.filter(
-        newsletter => !ids.includes(newsletter.id)
-      );
-      
-      setNewsletters(remainingNewsletters);
-      
-      // Decrease total count
-      setTotalCount(prevCount => prevCount - ids.length);
-      
-      // If all newsletters on the current page were deleted and we're not on page 1,
-      // go to the previous page
-      if (remainingNewsletters.length === 0 && page > 1) {
-        setPage(prev => prev - 1);
-      }
-    } catch (error) {
-      console.error("Error deleting newsletters:", error);
-      throw error; // Re-throw to let the component handle the error display
-    }
-  }, [deleteNewslettersBase, newsletters, page, setNewsletters, setTotalCount]);
-
-  const handleFiltersChange = useCallback((newFilters: FiltersState) => {
-    setFilters(newFilters);
-    // Reset to first page when filters change
-    setPage(1);
-  }, []);
-
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-  
-  // Calculate displayed range (e.g., "Showing 1-10 of 50")
-  const startItem = (page - 1) * itemsPerPage + 1;
-  const endItem = Math.min(page * itemsPerPage, totalCount);
-  const displayRange = isLoading 
-    ? "Loading..."
-    : totalCount > 0 
-      ? `Showing ${startItem}-${endItem} of ${totalCount}`
-      : "No newsletters found";
 
   return {
     emailAccounts,
