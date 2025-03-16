@@ -49,8 +49,10 @@ export const useIframeContent = (newsletter: Newsletter) => {
           
           resizeObserver.observe(doc.body);
           
-          // Run centering after content has had time to render
+          // Run centering after content has had time to render at multiple intervals
+          setTimeout(() => forceCentering(doc), 100);
           setTimeout(() => forceCentering(doc), 300);
+          setTimeout(() => forceCentering(doc), 600);
           
           return () => {
             resizeObserver.disconnect();

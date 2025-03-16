@@ -44,8 +44,10 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
           // Apply centering immediately after content is loaded
           forceCentering(doc);
           
-          // And again after a short delay to handle any dynamic elements
+          // And again after short delays to handle any dynamic elements
+          setTimeout(() => forceCentering(doc), 100);
           setTimeout(() => forceCentering(doc), 300);
+          setTimeout(() => forceCentering(doc), 600);
           
           return () => {
             resizeObserver.disconnect();
@@ -58,7 +60,7 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
   }, [content, isMobile]);
 
   return (
-    <div className="w-full h-full flex justify-center items-start">
+    <div className="w-full h-full flex justify-center items-start overflow-x-hidden">
       <iframe
         ref={iframeRef}
         title={title || "Newsletter Content"}
@@ -69,9 +71,11 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
           display: "block",
           width: "100%",
           height: iframeHeight,
-          overflow: "hidden",
+          overflow: "visible",
           objectFit: "cover",
-          borderRadius: "12px"
+          borderRadius: "12px",
+          padding: "0",
+          margin: "0 auto"
         }}
       />
     </div>
