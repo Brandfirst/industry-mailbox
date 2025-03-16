@@ -116,6 +116,7 @@ export type Database = {
           id: string
           message_count: number
           status: string
+          sync_type: string | null
           timestamp: string
         }
         Insert: {
@@ -125,6 +126,7 @@ export type Database = {
           id?: string
           message_count?: number
           status: string
+          sync_type?: string | null
           timestamp?: string
         }
         Update: {
@@ -134,6 +136,7 @@ export type Database = {
           id?: string
           message_count?: number
           status?: string
+          sync_type?: string | null
           timestamp?: string
         }
         Relationships: [
@@ -284,16 +287,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      add_sync_log: {
-        Args: {
-          account_id_param: string
-          status_param: string
-          message_count_param: number
-          error_message_param?: string
-          details_param?: Json
-        }
-        Returns: Json
-      }
+      add_sync_log:
+        | {
+            Args: {
+              account_id_param: string
+              status_param: string
+              message_count_param: number
+              error_message_param?: string
+              details_param?: Json
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              account_id_param: string
+              status_param: string
+              message_count_param: number
+              error_message_param?: string
+              details_param?: Json
+              sync_type_param?: string
+            }
+            Returns: Json
+          }
       clear_old_sync_logs: {
         Args: {
           account_id_param: string
