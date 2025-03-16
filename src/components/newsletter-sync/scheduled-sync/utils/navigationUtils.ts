@@ -30,8 +30,8 @@ export const createNewsletterNavigationHandler = (
     if (newsletterId) {
       console.log(`Navigating to newsletter ID: ${newsletterId}`);
       
-      // Direct navigation to the newsletter detail page
-      navigate(`/admin/newsletters/${newsletterId}`);
+      // Direct navigation to the public newsletter detail page (not admin)
+      navigate(`/newsletter/${newsletterId}`);
       
       // Call the completion callback if provided
       if (onComplete) {
@@ -53,8 +53,8 @@ export const createNewsletterNavigationHandler = (
           const latestNewsletter = newsletters[0];
           console.log(`Found newsletter with ID: ${latestNewsletter.id} from sender: ${email.sender_email}`);
           
-          // Direct navigation to the found newsletter
-          navigate(`/admin/newsletters/${latestNewsletter.id}`);
+          // Direct navigation to the found newsletter (public route)
+          navigate(`/newsletter/${latestNewsletter.id}`);
           
           // Call the completion callback if provided
           if (onComplete) {
@@ -75,8 +75,12 @@ export const createNewsletterNavigationHandler = (
         description: "The specific newsletter couldn't be found, showing all from this sender instead."
       });
       
-      // Navigate to admin newsletter page with sender filter
-      navigate(`/admin/newsletters?sender=${encodeURIComponent(email.sender_email)}`);
+      // Navigate to public sender search page with sender filter
+      if (email.sender) {
+        navigate(getSenderPath(email.sender));
+      } else {
+        navigate(`/search?sender=${encodeURIComponent(email.sender_email)}`);
+      }
       
       if (onComplete) {
         onComplete();
