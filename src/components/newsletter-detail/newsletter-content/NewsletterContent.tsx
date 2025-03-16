@@ -13,7 +13,7 @@ const NewsletterContent: React.FC<NewsletterContentProps> = ({ newsletter }) => 
   const { iframeRef, iframeHeight, hasErrors } = useIframeContent(newsletter);
   
   return (
-    <div className="border rounded-lg overflow-hidden bg-white p-6">
+    <div className="border rounded-lg overflow-hidden bg-white p-0">
       {newsletter.content ? (
         <>
           <ErrorAlert show={hasErrors} />
@@ -27,7 +27,7 @@ const NewsletterContent: React.FC<NewsletterContentProps> = ({ newsletter }) => 
                 display: "block",
                 width: "100%",
                 height: iframeHeight,
-                overflow: "hidden"
+                overflow: "visible"
               }}
             />
           </div>

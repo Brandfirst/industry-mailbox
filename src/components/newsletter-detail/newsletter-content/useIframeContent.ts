@@ -32,23 +32,22 @@ export const useIframeContent = (newsletter: Newsletter) => {
           doc.write(formattedContent);
           doc.close();
           
-          // Apply the centralized forceCentering function
+          // Apply the gentle centering
           forceCentering(doc);
           
           // Adjust height after content is loaded
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
-              // Increase the multiplier to ensure all content is visible
-              const height = doc.body.scrollHeight * 0.95;
+              // Set appropriate height to show all content
+              const height = doc.body.scrollHeight;
               setIframeHeight(`${height}px`);
             }
           });
           
           resizeObserver.observe(doc.body);
           
-          // Run the centering multiple times to ensure it applies after all content is loaded
-          setTimeout(() => forceCentering(doc), 100);
-          setTimeout(() => forceCentering(doc), 500);
+          // Run centering after content has had time to render
+          setTimeout(() => forceCentering(doc), 300);
           
           return () => {
             resizeObserver.disconnect();
