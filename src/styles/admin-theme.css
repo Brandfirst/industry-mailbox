@@ -1,100 +1,134 @@
 
-/* Admin Portal Theme */
+/* Admin Portal Light Mode Theme */
 :root.admin-theme {
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222 47% 11%;
-
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222 47% 11%;
-
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
-
-  --radius: 0.5rem;
-
+  /* Light backgrounds */
+  --admin-bg-primary: #FFFFFF;
+  --admin-bg-secondary: #F9F9F9;
+  --admin-bg-tertiary: #F5F5F5;
+  --admin-bg-elevated: #EFEFEF;
+  
+  /* Text colors */
+  --admin-text-primary: #333333;
+  --admin-text-secondary: #555555;
+  --admin-text-muted: #777777;
+  
+  /* Border colors */
+  --admin-border-subtle: rgba(0, 0, 0, 0.1);
+  --admin-border-strong: rgba(0, 0, 0, 0.2);
+  
+  /* Accent colors */
+  --admin-accent: #FF5722;
+  --admin-accent-muted: rgba(255, 87, 34, 0.2);
+  
   /* Status colors */
-  --admin-success: 142.1 76.2% 36.3%;
-  --admin-warning: 38 92% 50%;
-  --admin-error: 0 84.2% 60.2%;
-  --admin-info: 221.2 83.2% 53.3%;
+  --admin-success: #4CAF50;
+  --admin-warning: #FFC107;
+  --admin-error: #F44336;
+  --admin-info: #2196F3;
 }
 
-.admin-theme .bg-white {
-  background-color: hsl(0 0% 100%);
-  color: hsl(var(--foreground));
+/* Admin Layout Light Mode Styles */
+.admin-theme .admin-layout {
+  background-color: var(--admin-bg-primary);
+  color: var(--admin-text-primary);
 }
 
-.admin-theme .text-gray-800 {
-  color: hsl(var(--foreground));
+.admin-theme .admin-sidebar {
+  background-color: var(--admin-bg-secondary);
+  border-right: 1px solid var(--admin-border-subtle);
 }
 
-/* Button styling */
+.admin-theme .admin-card {
+  background-color: var(--admin-bg-tertiary);
+  border: 1px solid var(--admin-border-subtle);
+}
+
+.admin-theme .admin-header {
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.admin-theme .admin-table {
+  --tw-border-opacity: 0.1;
+}
+
+.admin-theme .admin-table th {
+  background-color: var(--admin-bg-tertiary);
+  color: var(--admin-text-secondary);
+}
+
+.admin-theme .admin-table tr:hover {
+  background-color: var(--admin-bg-elevated);
+}
+
+/* Button styling for admin light theme */
 .admin-theme .admin-button-primary {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  background-color: var(--admin-accent);
+  color: white;
 }
 
 .admin-theme .admin-button-secondary {
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
+  background-color: transparent;
+  border: 1px solid var(--admin-border-strong);
+  color: var(--admin-text-primary);
 }
 
-/* Status colors */
-.admin-theme .status-success {
-  color: hsl(var(--admin-success));
+/* Form elements styling */
+.admin-theme .admin-input {
+  background-color: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border-subtle);
+  color: var(--admin-text-primary);
 }
 
-.admin-theme .status-warning {
-  color: hsl(var(--admin-warning));
+.admin-theme .admin-input:focus {
+  border-color: var(--admin-accent);
 }
 
-.admin-theme .status-error {
-  color: hsl(var(--admin-error));
+/* Status indicators */
+.admin-theme .admin-status-success {
+  color: var(--admin-success);
 }
 
-.admin-theme .status-info {
-  color: hsl(var(--admin-info));
+.admin-theme .admin-status-warning {
+  color: var(--admin-warning);
 }
 
-/* Newsletter list table */
-.admin-theme .newsletter-table {
-  border-radius: var(--radius);
-  border: 1px solid hsl(var(--border));
+.admin-theme .admin-status-error {
+  color: var(--admin-error);
 }
 
-.admin-theme .newsletter-table th {
-  background-color: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
-  font-weight: 500;
+.admin-theme .admin-status-info {
+  color: var(--admin-info);
 }
 
-.admin-theme .newsletter-table tr:hover {
-  background-color: hsl(var(--muted));
+/* Newsletter content styles */
+.admin-theme .bg-white {
+  color: var(--admin-text-primary);
 }
 
-/* Card styling */
-.admin-theme .admin-card {
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  background-color: hsl(var(--card));
-  color: hsl(var(--card-foreground));
+/* Card and dialog styling */
+.admin-theme .card,
+.admin-theme .dialog {
+  color: var(--admin-text-primary);
+}
+
+/* Ensure icons are properly colored */
+.admin-theme .icon {
+  color: var(--admin-text-primary);
+}
+
+/* Make sure inputs and selects have proper contrast */
+.admin-theme select,
+.admin-theme input {
+  color: var(--admin-text-primary);
+  background-color: var(--admin-bg-primary);
+}
+
+/* Fix text colors in sidebar navigation */
+.admin-theme .admin-sidebar a {
+  color: var(--admin-text-secondary);
+}
+
+.admin-theme .admin-sidebar a.active,
+.admin-theme .admin-sidebar a:hover {
+  color: var(--admin-text-primary);
 }

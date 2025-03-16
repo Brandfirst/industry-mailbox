@@ -1,59 +1,51 @@
 
-import { useState } from "react";
-import { toast } from "sonner";
-import { deleteNewsletters } from "@/lib/supabase/newsletters";
+import { useCallback } from "react";
+import { Newsletter } from "@/lib/supabase";
 
 interface NewsletterDeletionProps {
-  onSuccess?: () => void;
-  setTotalCount: React.Dispatch<React.SetStateAction<number>>;
+  newsletters: Newsletter[];
+  page: number;
+  setPage: (page: number) => void;
+  setNewsletters: (newsletters: Newsletter[]) => void;
+  setTotalCount: (count: number | ((prevCount: number) => number)) => void;
+  deleteNewslettersBase: (ids: number[]) => Promise<void>;
 }
 
-export function useNewsletterDeletion({ onSuccess, setTotalCount }: NewsletterDeletionProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-  const handleDeleteNewsletters = async (ids: number[]) => {
-    if (ids.length === 0) return;
+export function useNewsletterDeletion({
+  newsletters,
+  page,
+  setPage,
+  setNewsletters,
+  setTotalCount,
+  deleteNewslettersBase
+}: NewsletterDeletionProps) {
+  
+  const handleDeleteNewsletters = useCallback(async (ids: number[]) => {
+    if (!ids.length) return;
     
-    setSelectedIds(ids);
-    setIsConfirmOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (selectedIds.length === 0) {
-      setIsConfirmOpen(false);
-      return;
-    }
-
-    setIsDeleting(true);
     try {
-      await deleteNewsletters(selectedIds);
-      toast.success(`${selectedIds.length} newsletter(s) deleted successfully`);
+      await deleteNewslettersBase(ids);
       
-      // Update the total count after deletion
-      // We need to pass a function to setTotalCount to properly update based on previous state
-      setTotalCount((prev) => prev - selectedIds.length);
+      // Update the local state to remove deleted newsletters
+      const remainingNewsletters = newsletters.filter(
+        newsletter => !ids.includes(newsletter.id)
+      );
       
-      if (onSuccess) {
-        onSuccess();
+      setNewsletters(remainingNewsletters);
+      
+      // Decrease total count
+      setTotalCount(prevCount => prevCount - ids.length);
+      
+      // If all newsletters on the current page were deleted and we're not on page 1,
+      // go to the previous page
+      if (remainingNewsletters.length === 0 && page > 1) {
+        setPage(prev => prev - 1);
       }
     } catch (error) {
       console.error("Error deleting newsletters:", error);
-      toast.error(`Failed to delete newsletters: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsDeleting(false);
-      setIsConfirmOpen(false);
-      setSelectedIds([]);
+      throw error; // Re-throw to let the component handle the error display
     }
-  };
+  }, [deleteNewslettersBase, newsletters, page, setNewsletters, setTotalCount, setPage]);
 
-  return {
-    isDeleting,
-    isConfirmOpen,
-    selectedIds,
-    setIsConfirmOpen,
-    handleDeleteNewsletters,
-    confirmDelete,
-  };
+  return { handleDeleteNewsletters };
 }

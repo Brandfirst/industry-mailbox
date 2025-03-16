@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Separator } from "@/components/ui/separator";
 
 interface AdminHeaderProps {
   activeTab: string;
@@ -9,7 +8,7 @@ interface AdminHeaderProps {
 const AdminHeader = ({ activeTab }: AdminHeaderProps) => {
   return (
     <div className="mb-8">
-      <h1 className="text-3xl font-bold tracking-tight">
+      <h1 className="text-2xl font-bold text-white">
         {activeTab === "dashboard" && "Dashboard"}
         {activeTab === "newsletters" && "Newsletters"}
         {activeTab === "users" && "Users"}
@@ -17,7 +16,7 @@ const AdminHeader = ({ activeTab }: AdminHeaderProps) => {
         {activeTab === "settings" && "Settings"}
         {activeTab === "newsletter-senders" && "Newsletter Senders"}
       </h1>
-      <p className="text-muted-foreground mt-1 mb-4">
+      <p className="text-gray-400">
         {activeTab === "dashboard" && "Overview of your NewsletterHub instance"}
         {activeTab === "newsletters" && "Manage all archived newsletters"}
         {activeTab === "users" && "View and manage user accounts"}
@@ -25,7 +24,6 @@ const AdminHeader = ({ activeTab }: AdminHeaderProps) => {
         {activeTab === "settings" && "Admin account and system settings"}
         {activeTab === "newsletter-senders" && "Manage newsletter senders and categories"}
       </p>
-      <Separator />
     </div>
   );
 };

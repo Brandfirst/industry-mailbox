@@ -4,7 +4,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import AdminSidebar from "./AdminSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Menu, ChevronLeft, User, LogOut, Bell } from "lucide-react";
+import { Menu, ChevronLeft, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { 
@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { LogoutHandler } from "@/components/navbar/LogoutHandler";
 
 interface AdminLayoutProps {
@@ -43,88 +42,74 @@ const AdminLayout = ({ children, activeTab, setActiveTab }: AdminLayoutProps) =>
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
   
+  // Only show mobile menu button on mobile
+  const renderMobileMenuButton = () => {
+    if (!isMobile) return null;
+    
+    return (
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={toggleMobileSidebar}
+        className="lg:hidden text-white absolute left-4 top-4 z-20"
+      >
+        <Menu className="h-6 w-6" />
+      </Button>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <div className="mr-4 hidden md:flex">
-            <Link to="/" className="flex items-center space-x-2 font-bold">
-              <span>NewsletterHub</span>
+    <div className="min-h-screen bg-background admin-layout">
+      <div className="bg-dark-200/80 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50 w-full admin-header">
+        <div className="container flex items-center justify-between h-16 px-4 mx-auto sm:px-6">
+          <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center text-white hover:text-[#FF5722] transition-colors">
+              <ChevronLeft className="w-5 h-5 mr-1" />
+              <span>Back to site</span>
             </Link>
           </div>
           
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={toggleMobileSidebar}
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
-          
-          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-            <div className="w-full flex-1 md:w-auto md:flex-none">
-              <Link 
-                to="/" 
-                className="flex items-center text-sm font-medium transition-colors hover:text-primary"
-              >
-                <ChevronLeft className="mr-1 h-4 w-4" />
-                <span>Back to site</span>
-              </Link>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
-                  3
-                </Badge>
-              </Button>
-              
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
-                      <User className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>
-                      {user.user_metadata?.firstName || user.email}
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => window.location.href = '/'}>
-                      Home Page
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => window.location.href = '/account'}>
-                      My Account
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="p-0">
-                      <LogoutHandler className="w-full flex items-center px-2 py-1.5 cursor-default" />
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+          <div className="flex items-center space-x-4">
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full bg-dark-400 hover:bg-dark-500">
+                    <User className="w-5 h-5 text-gray-300" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-white border text-gray-800">
+                  <DropdownMenuLabel className="text-gray-800">
+                    {user.user_metadata?.firstName || user.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-gray-200" />
+                  <DropdownMenuItem onClick={() => window.location.href = '/'} className="hover:bg-gray-100 text-gray-800">
+                    Home Page
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.location.href = '/account'} className="hover:bg-gray-100 text-gray-800">
+                    My Account
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-gray-200" />
+                  <DropdownMenuItem className="p-0">
+                    <LogoutHandler className="w-full flex items-center px-2 py-1.5 cursor-default" />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
-      </header>
+      </div>
       
-      {/* Main layout */}
-      <div className="grid md:grid-cols-[240px_1fr]">
-        <AdminSidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          isMobileSidebarOpen={isMobileSidebarOpen}
-          toggleMobileSidebar={toggleMobileSidebar}
-        />
-        
-        <main className="flex min-h-screen flex-col container py-6">
-          {children}
-        </main>
+      <AdminSidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isMobileSidebarOpen={isMobileSidebarOpen}
+        toggleMobileSidebar={toggleMobileSidebar}
+      />
+      
+      {renderMobileMenuButton()}
+      
+      <div className={`${isMobile ? 'ml-0 px-4 pt-16' : 'ml-64 p-8'} bg-white text-gray-800 min-h-screen`}>
+        {children}
       </div>
     </div>
   );

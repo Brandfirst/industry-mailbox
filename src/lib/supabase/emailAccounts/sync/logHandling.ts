@@ -1,3 +1,4 @@
+
 import { addSyncLog } from '../syncLogs';
 
 /**

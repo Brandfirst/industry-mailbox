@@ -3,7 +3,6 @@ import React from "react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, AlertTriangle, Calendar } from "lucide-react";
 
 type SyncLogItemProps = {
   log: SyncLogEntry;
@@ -12,36 +11,32 @@ type SyncLogItemProps = {
 
 export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   // Get status display configuration
-  const getStatusConfig = (log: SyncLogEntry) => {
+  const getStatusDisplay = (log: SyncLogEntry) => {
     switch(log.status) {
       case "success":
         return {
           label: "Success",
-          variant: "success" as const,
-          icon: <CheckCircle className="h-3 w-3 mr-1" />
+          className: "bg-green-100 text-green-800"
         };
       case "failed":
         return {
           label: "Failed",
-          variant: "destructive" as const,
-          icon: <AlertTriangle className="h-3 w-3 mr-1" />
+          className: "bg-red-100 text-red-800"
         };
       case "scheduled":
         return {
           label: "Scheduled",
-          variant: "info" as const,
-          icon: <Calendar className="h-3 w-3 mr-1" />
+          className: "bg-blue-100 text-blue-800"
         };
       default:
         return {
           label: log.status,
-          variant: "secondary" as const,
-          icon: null
+          className: "bg-gray-100 text-gray-800"
         };
     }
   };
   
-  const statusConfig = getStatusConfig(log);
+  const statusDisplay = getStatusDisplay(log);
   
   // Format relative time
   const relativeTime = formatDistanceToNow(new Date(log.timestamp), { addSuffix: true });
@@ -53,8 +48,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   
   // Schedule details if it's a scheduled log
   const scheduleDetails = log.status === 'scheduled' && log.details && (
-    <div className="flex items-center text-muted-foreground">
-      <Clock className="h-3 w-3 mr-1" />
+    <div>
       {log.details.schedule_type === 'hourly' 
         ? 'Every hour' 
         : `Daily at ${log.details.hour}:00`}
@@ -62,45 +56,40 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   );
   
   return (
-    <div className="py-3 px-4 border-b last:border-b-0 hover:bg-muted/20 transition-colors">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div className="px-4 py-2 text-xs">
+      <div className="grid grid-cols-4 gap-2 mb-1">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <Badge variant={statusConfig.variant} className="flex items-center">
-              {statusConfig.icon}
-              {statusConfig.label}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {syncType === 'manual' ? 'Manual sync' : 'Scheduled'}
-            </span>
-          </div>
-          <div className="flex items-center mt-1 text-xs">
-            <span className="font-medium">{formatTimestamp(log.timestamp)}</span>
-            <span className="mx-1 text-muted-foreground">•</span>
-            <span className="text-muted-foreground">{relativeTime}</span>
+          <span>{formatTimestamp(log.timestamp)}</span>
+          <span className="text-xs text-muted-foreground">{relativeTime}</span>
+        </div>
+        <div>
+          <Badge className={`inline-block px-2 py-1 rounded text-xs ${statusDisplay.className}`}>
+            {statusDisplay.label}
+          </Badge>
+          <div className="text-xs text-muted-foreground mt-1">
+            {syncType === 'manual' ? 'Manual sync' : 'Scheduled'}
           </div>
         </div>
-        
-        <div className="flex flex-col sm:items-end">
+        <div>
           {log.status !== 'scheduled' ? (
             <>
-              <div className="font-medium">
-                {totalEmails} message{totalEmails !== 1 ? 's' : ''}
-              </div>
-              {newSenders > 0 && (
-                <div className="text-xs text-muted-foreground">
-                  {newSenders} new sender{newSenders !== 1 ? 's' : ''}
-                </div>
-              )}
+              {totalEmails} message{totalEmails !== 1 ? 's' : ''}
             </>
           ) : scheduleDetails}
         </div>
+        <div className="text-muted-foreground truncate">
+          {log.error_message || (log.status === 'success' ? "Completed successfully" : 
+                                log.status === 'scheduled' ? "Sync scheduled" : "")}
+        </div>
       </div>
       
-      {/* Error message for failed syncs */}
-      {log.error_message && (
-        <div className="mt-2 p-2 bg-destructive/10 text-destructive rounded text-xs">
-          {log.error_message}
+      {/* Additional metrics row */}
+      {log.status === "success" && newSenders > 0 && (
+        <div className="grid grid-cols-4 gap-2 mt-1 text-muted-foreground">
+          <div></div>
+          <div></div>
+          <div>{newSenders} new sender{newSenders !== 1 ? 's' : ''}</div>
+          <div></div>
         </div>
       )}
     </div>
