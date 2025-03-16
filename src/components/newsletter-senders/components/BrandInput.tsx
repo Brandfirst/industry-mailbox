@@ -50,16 +50,16 @@ const BrandInput = ({
   }
 
   return (
-    <div className="flex items-center space-x-2">
-      <Briefcase className="h-4 w-4 text-muted-foreground" />
-      <div className="flex w-full md:w-40">
+    <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-2">
+      <Briefcase className="h-4 w-4 text-muted-foreground mt-2.5 md:mt-0" />
+      <div className="flex flex-col w-full space-y-2">
         <Input
           placeholder="Enter brand name"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          className="mr-2 text-sm"
+          className="text-sm min-w-[200px] w-full"
         />
-        <div className="flex space-x-1">
+        <div className="flex space-x-2">
           <Button
             size="sm"
             variant="outline"
