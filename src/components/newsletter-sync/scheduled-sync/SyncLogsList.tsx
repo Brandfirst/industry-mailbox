@@ -7,8 +7,7 @@ import { LogsContent } from "./components/LogsContent";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { LogsTableHeader } from "./components/LogsTableHeader";
 import { AccountNotice } from "./components/AccountNotice";
-import { Button } from "@/components/ui/button";
-import { RefreshCwIcon } from "lucide-react";
+import { useLogsFetching } from "./hooks/useLogsFetching";
 
 interface SyncLogsListProps {
   showLogs: boolean;
@@ -35,6 +34,13 @@ export function SyncLogsList({
   const [filteredLogs, setFilteredLogs] = useState<SyncLogEntry[]>([]);
   const [messageCountFilter, setMessageCountFilter] = useState<string>("1"); // Set default to "1" (≥ 1)
 
+  // Use our custom hook for log fetching and refreshing
+  const { isRefreshing, handleRefresh } = useLogsFetching(
+    selectedAccount, 
+    showLogs, 
+    fetchSyncLogs
+  );
+
   // Filter logs based on selected criteria
   useEffect(() => {
     if (!syncLogs) {
@@ -59,24 +65,17 @@ export function SyncLogsList({
     
     setFilteredLogs(filtered);
   }, [syncLogs, rowCount, messageCountFilter]);
-
-  // Handle refresh button click
-  const handleRefresh = () => {
-    if (selectedAccount) {
-      fetchSyncLogs();
-    }
-  };
   
   if (!showLogs) {
     return (
       <div className="mt-4 pt-4 border-t border-gray-200">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setShowLogs(true)}
-        >
-          Show Sync History
-        </Button>
+        <LogsHeader 
+          title="Sync History" 
+          onToggle={() => setShowLogs(true)}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+          showLogs={false}
+        />
       </div>
     );
   }
@@ -91,12 +90,13 @@ export function SyncLogsList({
         messageCountFilter={messageCountFilter}
         onMessageCountFilterChange={setMessageCountFilter}
         onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
       />
       
       <LogsContainer>
         {!selectedAccount ? (
           <AccountNotice />
-        ) : isLoading ? (
+        ) : isLoading || isRefreshing ? (
           <div className="flex justify-center items-center p-8">
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </div>
@@ -109,15 +109,22 @@ export function SyncLogsList({
         ) : (
           <LogsContent>
             <LogsTableHeader />
-            {filteredLogs.map((log, index) => (
-              <SyncLogItem 
-                key={log.id} 
-                log={log} 
-                formatTimestamp={formatTimestamp}
-                itemNumber={index + 1}
-                totalItems={filteredLogs.length}
-              />
-            ))}
+            {filteredLogs.map((log, index) => {
+              // Calculate row number based on the original logs array position
+              // This ensures consistent numbering regardless of filters
+              const originalIndex = syncLogs.findIndex(item => item.id === log.id);
+              const rowNumber = originalIndex + 1;
+              
+              return (
+                <SyncLogItem 
+                  key={log.id} 
+                  log={log} 
+                  formatTimestamp={formatTimestamp}
+                  itemNumber={syncLogs.length - originalIndex}
+                  totalItems={filteredLogs.length}
+                />
+              );
+            })}
           </LogsContent>
         )}
       </LogsContainer>
