@@ -118,8 +118,8 @@ export function SyncLogsList({
                     key={log.id} 
                     log={log} 
                     formatTimestamp={formatTimestamp}
-                    itemNumber={index + 1}
-                    totalItems={displayedLogs.length}
+                    itemNumber={syncLogs.indexOf(log) + 1} // Use the original index from syncLogs
+                    totalItems={syncLogs.length} // Total number of logs, not just displayed ones
                   />
                 ))}
               </div>
