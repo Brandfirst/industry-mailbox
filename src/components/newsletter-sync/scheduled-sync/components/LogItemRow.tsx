@@ -66,7 +66,7 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
   }
   
   return (
-    <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full gap-1 items-center py-2 hover:bg-gray-50">
+    <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full items-center border-b border-gray-100 last:border-0">
       <div className="font-medium overflow-hidden text-ellipsis px-1">{itemNumber}</div>
       
       <div className="flex flex-col overflow-hidden px-1">

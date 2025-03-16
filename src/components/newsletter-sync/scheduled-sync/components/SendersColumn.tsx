@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { SenderPopover } from "./SenderPopover";
 import { SendersDialog } from "./SendersDialog";
 
 interface SendersColumnProps {
@@ -27,11 +26,11 @@ export function SendersColumn({
   return (
     <div className="flex items-center">
       {uniqueSendersCount > 0 ? (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center">
           <Button 
-            variant="ghost" 
+            variant="link" 
             size="sm" 
-            className={`h-auto p-0 ${showClickableSenders ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50' : ''}`}
+            className={`px-0 py-0 h-auto text-blue-600 hover:text-blue-800 cursor-pointer underline underline-offset-2 ${!showClickableSenders ? 'pointer-events-none opacity-70' : ''}`}
             disabled={!showClickableSenders}
             onClick={() => setIsDialogOpen(true)}
           >
