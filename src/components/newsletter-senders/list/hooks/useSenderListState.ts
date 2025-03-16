@@ -1,9 +1,9 @@
 
 import { useState } from "react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
-import { useSenderListSorting } from "../../hooks/useSenderListSorting";
+import { NewsletterCategory } from "@/lib/supabase/types";
 import { useBrandInputValues } from "../../hooks/useBrandInputValues";
-import { useSelectedSenders } from "../../hooks/useSelectedSenders"; 
+import { useSelectedSenders } from "../../hooks/useSelectedSenders";
 import { SenderSortField } from "../../components/SenderTableHeaders";
 
 interface UseSenderListStateProps {
@@ -20,7 +20,7 @@ interface UseSenderListStateProps {
   externalDeleting?: boolean;
 }
 
-export function useSenderListState({
+export const useSenderListState = ({
   senders,
   sortKey,
   sortAsc,
@@ -32,8 +32,7 @@ export function useSenderListState({
   externalUpdatingCategory,
   externalUpdatingBrand,
   externalDeleting
-}: UseSenderListStateProps) {
-  const [searchTerm, setSearchTerm] = useState("");
+}: UseSenderListStateProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
@@ -47,24 +46,28 @@ export function useSenderListState({
   const effectiveUpdatingBrand = externalUpdatingBrand !== undefined ? externalUpdatingBrand : updatingBrand;
   const effectiveDeleting = externalDeleting !== undefined ? externalDeleting : isDeleting;
   
-  // Use provided sort functionality, or local implementation if not provided
-  const localSorting = useSenderListSorting();
-  const effectiveSortField = sortKey || localSorting.sortField;
-  const effectiveSortDirection = sortAsc !== undefined ? (sortAsc ? 'asc' : 'desc') : localSorting.sortDirection;
-  const effectiveToggleSort = toggleSort || localSorting.toggleSort;
+  // Use provided sort functionality, or local implementation
+  const [localSortField, setLocalSortField] = useState<SenderSortField>('name');
+  const [localSortDirection, setLocalSortDirection] = useState<'asc' | 'desc'>('asc');
+  
+  const effectiveSortField = sortKey || localSortField;
+  const effectiveSortDirection = sortAsc !== undefined ? (sortAsc ? 'asc' : 'desc') : localSortDirection;
+  
+  const localToggleSort = (key: SenderSortField) => {
+    if (key === localSortField) {
+      setLocalSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setLocalSortField(key);
+      setLocalSortDirection('asc');
+    }
+  };
+  
+  const effectiveToggleSort = toggleSort || localToggleSort;
   
   const { getBrandInputValue, updateBrandInputValue } = useBrandInputValues(senders);
   const { selectedSenders, handleToggleSelect, handleSelectAll, setSelectedSenders } = useSelectedSenders(senders);
-
-  const filteredSenders = senders
-    .filter(sender => {
-      const senderName = sender.sender_name?.toLowerCase() || "";
-      const senderEmail = sender.sender_email?.toLowerCase() || "";
-      const term = searchTerm.toLowerCase();
-      return senderName.includes(term) || senderEmail.includes(term);
-    });
   
-  const sendersWithLocalUpdates = filteredSenders.map(sender => {
+  const sendersWithLocalUpdates = senders.map(sender => {
     if (localCategoryUpdates[sender.sender_email] !== undefined) {
       return {
         ...sender,
@@ -75,7 +78,39 @@ export function useSenderListState({
   });
   
   // Sort senders based on effective sort field and direction
-  const sortedSenders = localSorting.sortSenders(sendersWithLocalUpdates);
+  const sortedSenders = [...sendersWithLocalUpdates].sort((a, b) => {
+    let result = 0;
+    
+    switch (effectiveSortField) {
+      case 'name':
+        const nameA = a.sender_name?.toLowerCase() || a.sender_email.toLowerCase();
+        const nameB = b.sender_name?.toLowerCase() || b.sender_email.toLowerCase();
+        result = nameA.localeCompare(nameB);
+        break;
+      case 'brand':
+        const brandA = a.brand_name?.toLowerCase() || '';
+        const brandB = b.brand_name?.toLowerCase() || '';
+        result = brandA.localeCompare(brandB);
+        break;
+      case 'category':
+        const catA = a.category_id || 0;
+        const catB = b.category_id || 0;
+        result = catA - catB;
+        break;
+      case 'newsletters':
+        const countA = a.newsletter_count || 0;
+        const countB = b.newsletter_count || 0;
+        result = countA - countB;
+        break;
+      case 'lastSync':
+        const dateA = a.last_sync_date ? new Date(a.last_sync_date).getTime() : 0;
+        const dateB = b.last_sync_date ? new Date(b.last_sync_date).getTime() : 0;
+        result = dateA - dateB;
+        break;
+    }
+    
+    return effectiveSortDirection === 'asc' ? result : -result;
+  });
 
   const handleCategoryChange = async (senderEmail: string, categoryId: string) => {
     if (!onCategoryChange) return;
@@ -89,11 +124,7 @@ export function useSenderListState({
         [senderEmail]: parsedCategoryId
       }));
       
-      console.log(`Updating category for ${senderEmail} to ${parsedCategoryId}`);
-      
       await onCategoryChange(senderEmail, parsedCategoryId);
-      
-      console.log(`Category update completed for ${senderEmail}`);
     } catch (error) {
       console.error("Error updating category:", error);
       
@@ -114,8 +145,6 @@ export function useSenderListState({
     try {
       await onBrandChange(senderEmail, brandName);
       updateBrandInputValue(senderEmail, brandName);
-      
-      console.log(`Brand update completed. Value now: ${brandName} for ${senderEmail}`);
     } catch (error) {
       console.error("Error updating brand:", error);
     } finally {
@@ -138,8 +167,6 @@ export function useSenderListState({
   };
 
   return {
-    searchTerm,
-    setSearchTerm,
     sortedSenders,
     effectiveToggleSort,
     effectiveSortField,
@@ -156,4 +183,4 @@ export function useSenderListState({
     getBrandInputValue,
     effectiveDeleteFunction
   };
-}
+};

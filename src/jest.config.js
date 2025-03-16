@@ -8,5 +8,11 @@ module.exports = {
     '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/__mocks__/fileMock.js'
   },
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/']
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      tsconfig: 'tsconfig.json',
+      diagnostics: false
+    }]
+  }
 };

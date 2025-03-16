@@ -3,7 +3,6 @@ import { Table, TableBody } from "@/components/ui/table";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
 import { NewsletterCategory } from "@/lib/supabase/types";
 import { useSenderListState } from "./hooks/useSenderListState";
-import SenderListHeader from "./SenderListHeader";
 import SenderTableHeaders from "./SenderTableHeaders";
 import SenderTableRows from "./SenderTableRows";
 import SenderActions from "./SenderActions";
@@ -43,8 +42,6 @@ const SenderList = ({
   loadingAnalytics
 }: SenderListProps) => {
   const {
-    searchTerm,
-    setSearchTerm,
     sortedSenders,
     effectiveToggleSort,
     effectiveSortField,
