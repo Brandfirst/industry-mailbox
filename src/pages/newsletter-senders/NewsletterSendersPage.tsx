@@ -68,7 +68,7 @@ const NewsletterSendersPage = () => {
         toggleSort={toggleSort}
         onCategoryChange={handleCategoryChange}
         onBrandChange={handleBrandChange}
-        onDelete={handleDeleteSenders}
+        onDeleteSenders={handleDeleteSenders}
         updatingCategory={updatingCategory}
         updatingBrand={updatingBrand}
         deleting={deleting}

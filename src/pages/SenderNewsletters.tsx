@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 const SenderNewsletters = () => {
   const { senderSlug } = useParams<{ senderSlug: string }>();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(true);
+  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false); // Changed to false to hide filters by default
   const [isFollowing, setIsFollowing] = useState(false);
   const [senderSearchQuery, setSenderSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -125,7 +125,7 @@ const SenderNewsletters = () => {
   const handleSenderSearch = (query: string) => {
     setSenderSearchQuery(query);
     setSearchQuery(query);
-    handleSearch(query); // Pass the query parameter here
+    handleSearch(query);
   };
 
   // Get random cover image

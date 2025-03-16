@@ -15,7 +15,7 @@ import { useBrandInputValues } from "./hooks/useBrandInputValues";
 import { useSelectedSenders } from "./hooks/useSelectedSenders";
 import { SenderSortField } from "./components/SenderTableHeaders";
 
-type SenderListProps = {
+export type SenderListProps = {
   senders: NewsletterSenderStats[];
   categories: NewsletterCategory[];
   loading?: boolean;
@@ -25,6 +25,7 @@ type SenderListProps = {
   onCategoryChange?: (senderEmail: string, categoryId: number | null) => Promise<void>;
   onBrandChange?: (senderEmail: string, brandName: string) => Promise<void>;
   onDeleteSenders?: (senderEmails: string[]) => Promise<void>;
+  onDelete?: (senderEmails: string[]) => Promise<void>; // For backward compatibility
   updatingCategory?: string | null;
   updatingBrand?: string | null;
   deleting?: boolean;
@@ -41,6 +42,7 @@ const SenderList = ({
   onCategoryChange,
   onBrandChange,
   onDeleteSenders,
+  onDelete, // For backward compatibility
   updatingCategory: externalUpdatingCategory,
   updatingBrand: externalUpdatingBrand,
   deleting: externalDeleting,
@@ -51,6 +53,9 @@ const SenderList = ({
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
   const [localCategoryUpdates, setLocalCategoryUpdates] = useState<Record<string, number | null>>({});
+  
+  // Use either onDeleteSenders or onDelete for backward compatibility
+  const effectiveDeleteFunction = onDeleteSenders || onDelete;
   
   // Use external state if provided, otherwise use local state
   const effectiveUpdatingCategory = externalUpdatingCategory !== undefined ? externalUpdatingCategory : updatingCategory;
@@ -134,11 +139,11 @@ const SenderList = ({
   };
 
   const handleDeleteSenders = async (senderEmails: string[]) => {
-    if (!onDeleteSenders || senderEmails.length === 0) return;
+    if (!effectiveDeleteFunction || senderEmails.length === 0) return;
     
     setIsDeleting(true);
     try {
-      await onDeleteSenders(senderEmails);
+      await effectiveDeleteFunction(senderEmails);
       setSelectedSenders([]);
     } catch (error) {
       console.error("Error deleting senders:", error);
@@ -164,7 +169,7 @@ const SenderList = ({
           resultsCount={sortedSenders.length}
         />
         
-        {onDeleteSenders && (
+        {effectiveDeleteFunction && (
           <SenderActions 
             selectedSenders={selectedSenders}
             onDeleteSenders={handleDeleteSenders}
@@ -180,11 +185,11 @@ const SenderList = ({
             sortDirection={effectiveSortDirection}
             onSort={effectiveToggleSort}
             allSelected={selectedSenders.length === sortedSenders.length && sortedSenders.length > 0}
-            onSelectAll={onDeleteSenders ? handleSelectAll : undefined}
+            onSelectAll={effectiveDeleteFunction ? handleSelectAll : undefined}
           />
           <TableBody>
             {sortedSenders.length === 0 ? (
-              <EmptyTableRow colSpan={onDeleteSenders ? 7 : 6} />
+              <EmptyTableRow colSpan={effectiveDeleteFunction ? 7 : 6} />
             ) : (
               sortedSenders.map((sender, index) => {
                 const effectiveCategoryId = localCategoryUpdates[sender.sender_email] !== undefined 
@@ -206,7 +211,7 @@ const SenderList = ({
                     brandInputValue={getBrandInputValue(sender)}
                     onCategoryChange={handleCategoryChange}
                     onBrandUpdate={handleBrandUpdate}
-                    onToggleSelect={onDeleteSenders ? handleToggleSelect : undefined}
+                    onToggleSelect={effectiveDeleteFunction ? handleToggleSelect : undefined}
                   />
                 );
               })
