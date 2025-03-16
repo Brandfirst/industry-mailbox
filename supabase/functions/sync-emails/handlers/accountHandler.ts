@@ -1,4 +1,6 @@
 
+import { logAccountDetails } from './accountLogger.ts';
+
 /**
  * Handles email account retrieval and validation
  * @param supabase The Supabase client instance
@@ -103,15 +105,4 @@ export async function handleEmailAccount(supabase: any, accountId: string, verbo
       }
     };
   }
-}
-
-/**
- * Log account details for debugging
- */
-function logAccountDetails(accountData: any) {
-  console.log(`Found account: ${accountData.email} (${accountData.provider || 'unknown provider'})`);
-  console.log(`Access token available: ${accountData.access_token ? 'Yes' : 'No'}`);
-  console.log(`Refresh token available: ${accountData.refresh_token ? 'Yes' : 'No'}`);
-  console.log(`Last token refresh: ${accountData.last_token_refresh || 'Never'}`);
-  console.log(`Last sync: ${accountData.last_sync || 'Never'}`);
 }

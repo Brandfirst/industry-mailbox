@@ -1,11 +1,12 @@
 
 import { corsHeaders } from '../../_shared/cors.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 import { handleEmailAccount } from './accountHandler.ts';
 import { processAccountEmails } from './syncProcessor.ts';
 import { createSuccessResponse, createErrorResponse } from './responseHandler.ts';
 import { createFailureLog } from './logManager.ts';
 import { SyncRequestData } from '../types.ts';
+import { validateSyncRequest, logRequestDetails } from './requestValidator.ts';
+import { createSupabaseClient } from './clientFactory.ts';
 
 /**
  * Main handler for sync email requests
@@ -14,31 +15,33 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
   try {
     // Parse request body
     const requestData = await req.json() as SyncRequestData;
+    
+    // Validate request
+    const { isValid, error } = validateSyncRequest(requestData);
+    if (!isValid) {
+      return createErrorResponse(error || 'Invalid request');
+    }
+    
+    // Extract request parameters with defaults
     const { 
       accountId, 
       debug = false, 
       verbose = false, 
       import_all_emails = true,
-      scheduled = false, // Track if this is a scheduled sync
-      sync_log_id = null  // For updating existing log entries instead of creating new ones
+      scheduled = false,
+      sync_log_id = null
     } = requestData;
     
-    if (!accountId) {
-      console.error('No accountId provided');
-      return createErrorResponse('No account ID provided');
-    }
-    
-    console.log(`Starting ${scheduled ? 'scheduled' : 'manual'} sync for account ${accountId} with debug=${debug}, verbose=${verbose}, import_all_emails=${import_all_emails}`);
+    // Log request details
+    logRequestDetails(requestData);
     
     // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createSupabaseClient();
     
     // Get and validate email account
     const accountResult = await handleEmailAccount(supabase, accountId, verbose);
     if (!accountResult.success) {
-      // Update or create a failure log entry for scheduled syncs
+      // Handle failure for scheduled syncs
       if (scheduled) {
         try {
           await createFailureLog(supabase, accountId, sync_log_id, accountResult.error);
