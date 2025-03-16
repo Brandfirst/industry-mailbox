@@ -7,13 +7,16 @@ import { SyncLogEntry, SyncLogInput } from './types';
  */
 export async function addSyncLog(logData: SyncLogInput): Promise<SyncLogEntry | null> {
   try {
+    console.log("Adding sync log:", logData);
+    
     // Call the database function
     const { data, error } = await supabase.rpc('add_sync_log', {
       account_id_param: logData.account_id,
       status_param: logData.status,
       message_count_param: logData.message_count,
       error_message_param: logData.error_message || null,
-      details_param: logData.details ? logData.details : null
+      details_param: logData.details ? logData.details : null,
+      sync_type_param: logData.sync_type || 'manual' // Add the sync_type parameter to the RPC call
     });
     
     if (error) {
@@ -33,7 +36,7 @@ export async function addSyncLog(logData: SyncLogInput): Promise<SyncLogEntry | 
       message_count: typedData.message_count,
       error_message: typedData.error_message,
       details: typedData.details,
-      sync_type: logData.sync_type
+      sync_type: logData.sync_type || 'manual'
     };
   } catch (error) {
     console.error("Exception adding sync log:", error);

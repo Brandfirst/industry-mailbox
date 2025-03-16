@@ -15,7 +15,13 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
   try {
     // Parse request body
     const requestData = await req.json() as SyncRequestData;
-    const { accountId, debug = false, verbose = false, import_all_emails = true } = requestData;
+    const { 
+      accountId, 
+      debug = false, 
+      verbose = false, 
+      import_all_emails = true,
+      scheduled = false // Track if this is a scheduled sync
+    } = requestData;
     
     if (!accountId) {
       console.error('No accountId provided');
@@ -23,7 +29,7 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
     }
     
     if (verbose) {
-      console.log(`Starting sync for account ${accountId} with debug=${debug}, verbose=${verbose}, import_all_emails=${import_all_emails}`);
+      console.log(`Starting ${scheduled ? 'scheduled' : 'manual'} sync for account ${accountId} with debug=${debug}, verbose=${verbose}, import_all_emails=${import_all_emails}`);
     }
     
     // Create Supabase client
@@ -83,13 +89,15 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
           totalEmails: result.length,
           syncedCount: synced.length,
           failedCount: failed.length,
-          new_senders_count: uniqueSenders.size
+          new_senders_count: uniqueSenders.size,
+          sync_type: scheduled ? 'scheduled' : 'manual'
         },
         debugInfo: debug ? {
           timestamp: new Date().toISOString(),
           accountId,
           emailsProcessed: result.length,
-          mock: false
+          mock: false,
+          scheduled
         } : null
       });
       

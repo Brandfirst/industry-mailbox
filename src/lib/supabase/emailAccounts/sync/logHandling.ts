@@ -4,7 +4,7 @@ import { addSyncLog } from '../syncLogs';
 /**
  * Log successful sync with partial success
  */
-export function logPartialSync(accountId: string, response: any, syncDetails: any): void {
+export function logPartialSync(accountId: string, response: any, syncDetails: any, syncType: 'manual' | 'scheduled' = 'manual'): void {
   console.warn("Partial sync completed with some errors:", response.data);
   
   // Log the partial sync success
@@ -15,14 +15,14 @@ export function logPartialSync(accountId: string, response: any, syncDetails: an
     error_message: "Some emails failed to sync",
     details: syncDetails,
     timestamp: new Date().toISOString(),
-    sync_type: 'manual'
+    sync_type: syncType
   });
 }
 
 /**
  * Log successful sync
  */
-export function logSuccessfulSync(accountId: string, response: any, syncDetails: any): void {
+export function logSuccessfulSync(accountId: string, response: any, syncDetails: any, syncType: 'manual' | 'scheduled' = 'manual'): void {
   // Log what was synced in detail
   if (response.data.synced && response.data.synced.length) {
     console.log(`Synced ${response.data.synced.length} emails: `, 
@@ -44,18 +44,18 @@ export function logSuccessfulSync(accountId: string, response: any, syncDetails:
     message_count: response.data.count || 0,
     details: syncDetails,
     timestamp: new Date().toISOString(),
-    sync_type: 'manual'
+    sync_type: syncType
   });
 
   // Log completion
-  console.log("Sync completed successfully:", response.data);
+  console.log(`${syncType.charAt(0).toUpperCase() + syncType.slice(1)} sync completed successfully:`, response.data);
 }
 
 /**
  * Log failed sync
  */
-export function logFailedSync(accountId: string, error: any): void {
-  console.error("Sync failed:", error);
+export function logFailedSync(accountId: string, error: any, syncType: 'manual' | 'scheduled' = 'manual'): void {
+  console.error(`${syncType.charAt(0).toUpperCase() + syncType.slice(1)} sync failed:`, error);
   
   // Log the failed sync
   addSyncLog({
@@ -64,7 +64,7 @@ export function logFailedSync(accountId: string, error: any): void {
     message_count: 0,
     error_message: error.message || String(error),
     timestamp: new Date().toISOString(),
-    sync_type: 'manual'
+    sync_type: syncType
   });
 }
 
@@ -80,6 +80,23 @@ export function logScheduledSync(accountId: string, scheduleType: string, hour?:
     status: 'scheduled',
     message_count: 0,
     details: { schedule_type: scheduleType, hour },
+    timestamp: new Date().toISOString(),
+    sync_type: 'scheduled'
+  });
+}
+
+/**
+ * Log scheduled sync attempt
+ */
+export function logScheduledSyncAttempt(accountId: string): void {
+  console.log(`Scheduled sync attempt for account ${accountId}`);
+  
+  // Log the scheduled sync attempt
+  addSyncLog({
+    account_id: accountId,
+    status: 'processing',
+    message_count: 0,
+    details: { attempt_time: new Date().toISOString() },
     timestamp: new Date().toISOString(),
     sync_type: 'scheduled'
   });

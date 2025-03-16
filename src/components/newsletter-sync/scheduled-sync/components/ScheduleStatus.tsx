@@ -98,11 +98,15 @@ export function ScheduleStatus({ scheduleOption, specificHour, lastUpdated, isEn
   }, [scheduleOption, specificHour, isEnabled]);
   
   const getStatusMessage = () => {
+    if (!isEnabled) {
+      return "Automatic syncing is currently disabled.";
+    }
+    
     switch (scheduleOption) {
       case "minute":
         return "Emails will sync every minute.";
       case "hourly":
-        return "Emails will sync once every hour.";
+        return "Emails will sync once every hour at the top of the hour.";
       case "daily":
         const hour = parseInt(specificHour, 10);
         if (isNaN(hour) || hour < 0 || hour > 23) {
