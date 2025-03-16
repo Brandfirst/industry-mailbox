@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { ScheduleDetails } from "./ScheduleDetails";
 import { Button } from "@/components/ui/button";
-import { MailIcon, ExternalLinkIcon } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { SyncedEmailsDialog } from "./SyncedEmailsDialog";
 
 interface EmailsColumnProps {
@@ -31,9 +31,9 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
       {log.status !== 'scheduled' ? (
         <>
           <Button 
-            variant="ghost" 
+            variant={showClickableEmails ? "link" : "ghost"}
             size="sm" 
-            className={`h-auto p-0 ${showClickableEmails ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer' : ''}`}
+            className={`px-0 py-0 h-auto flex items-center ${showClickableEmails ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline underline-offset-2' : ''}`}
             disabled={!showClickableEmails}
             onClick={handleClickEmails}
           >

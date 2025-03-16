@@ -21,11 +21,12 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   return (
     <div className="mt-2 pt-2 border-t border-gray-100">
       <div className="text-gray-600 mb-1">Synced Emails ({syncedEmails.length}):</div>
-      <div className="space-y-2 max-h-60 overflow-y-auto">
+      <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
         {displayedEmails.map((email: any, index: number) => (
-          <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-b-0">
+          <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-b-0 rounded bg-gray-50 p-2">
             <div><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
             <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
+            {email.date && <div className="text-xs text-gray-500 mt-1">Date: {new Date(email.date).toLocaleString()}</div>}
           </div>
         ))}
         

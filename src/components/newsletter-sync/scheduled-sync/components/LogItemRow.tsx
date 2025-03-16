@@ -86,8 +86,10 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
       {/* Type column */}
       <TypeColumn syncType={syncType} />
       
-      {/* Emails column */}
-      <EmailsColumn log={log} totalEmails={totalEmails} />
+      {/* Emails column - Make sure this column has proper z-index to be clickable */}
+      <div className="relative z-10">
+        <EmailsColumn log={log} totalEmails={totalEmails} />
+      </div>
       
       {/* Senders column */}
       <SendersColumn 

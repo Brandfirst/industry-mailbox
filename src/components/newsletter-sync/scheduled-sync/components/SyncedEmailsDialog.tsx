@@ -8,7 +8,6 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import { SyncedEmailsSection } from "./detail-sections/SyncedEmailsSection";
-import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
 interface SyncedEmailsDialogProps {
@@ -25,6 +24,13 @@ export function SyncedEmailsDialog({
   title = "Synced Emails"
 }: SyncedEmailsDialogProps) {
   const emailCount = syncedEmails?.length || 0;
+  
+  // Debug to check if we're actually opening the dialog
+  React.useEffect(() => {
+    if (isOpen) {
+      console.log("SyncedEmailsDialog opened with", emailCount, "emails");
+    }
+  }, [isOpen, emailCount]);
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
