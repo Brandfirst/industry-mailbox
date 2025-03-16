@@ -21,3 +21,4 @@ export * from "./SendersDialog";
 export * from "./SyncedEmailsDialog";
 export * from "./SenderPopover";
 export * from "./SavedIndicator";
+export * from "./FilterControls";

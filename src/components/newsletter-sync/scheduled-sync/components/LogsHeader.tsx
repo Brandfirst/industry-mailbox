@@ -1,8 +1,7 @@
 
 import { RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RowCountSelect } from "./RowCountSelect";
-import { MessageCountFilter } from "./MessageCountFilter";
+import { FilterControls } from "./FilterControls";
 
 interface LogsHeaderProps {
   title?: string;
@@ -49,17 +48,12 @@ export function LogsHeader({
           )}
         </Button>
         
-        {showLogs && onRowCountChange && (
-          <RowCountSelect 
-            value={rowCount} 
-            onChange={onRowCountChange} 
-          />
-        )}
-        
-        {showLogs && onMessageCountFilterChange && (
-          <MessageCountFilter
-            value={messageCountFilter}
-            onChange={onMessageCountFilterChange}
+        {showLogs && onRowCountChange && onMessageCountFilterChange && (
+          <FilterControls
+            rowCount={rowCount}
+            onRowCountChange={onRowCountChange}
+            messageCountFilter={messageCountFilter}
+            onMessageCountFilterChange={onMessageCountFilterChange}
           />
         )}
       </div>
