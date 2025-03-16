@@ -18,15 +18,25 @@ export function useSenderOperations(setSenders: React.Dispatch<React.SetStateAct
     
     try {
       setUpdatingCategory(true);
+      
+      // Log the operation start
+      console.log(`Starting category update for ${senderEmail} to ${categoryId}`);
+      
+      // Perform the update
       await updateSenderCategory(senderEmail, categoryId, user.id);
       
-      setSenders(prevSenders => 
-        prevSenders.map(sender => 
+      // Update the UI state
+      setSenders(prevSenders => {
+        // Make a deep copy to ensure React detects the change
+        const updatedSenders = prevSenders.map(sender => 
           sender.sender_email === senderEmail
             ? { ...sender, category_id: categoryId }
-            : sender
-        )
-      );
+            : { ...sender }
+        );
+        
+        console.log(`Updated local state for ${senderEmail}, new category_id: ${categoryId}`);
+        return updatedSenders;
+      });
       
       toast.success("Category updated successfully");
     } catch (error) {

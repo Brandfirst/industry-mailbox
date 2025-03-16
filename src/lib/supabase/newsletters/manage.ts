@@ -10,12 +10,30 @@ export const updateSenderCategory = async (
   userId: string
 ) => {
   try {
-    const { error } = await supabase
+    console.log(`Updating category for ${senderEmail} to ${categoryId}`);
+    
+    const { data, error } = await supabase
       .from('newsletters')
       .update({ category_id: categoryId })
       .eq('sender_email', senderEmail);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error in updateSenderCategory:', error);
+      throw error;
+    }
+    
+    // Additional verification query to confirm the update succeeded
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('newsletters')
+      .select('category_id')
+      .eq('sender_email', senderEmail)
+      .limit(1);
+      
+    if (verifyError) {
+      console.error('Error verifying category update:', verifyError);
+    } else if (verifyData && verifyData.length > 0) {
+      console.log(`Verification - newsletter from ${senderEmail} now has category_id: ${verifyData[0].category_id}`);
+    }
     
     console.log(`Updated category to ${categoryId} for newsletters from ${senderEmail}`);
     return true;

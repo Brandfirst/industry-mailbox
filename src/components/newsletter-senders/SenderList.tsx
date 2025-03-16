@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody } from "@/components/ui/table";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
@@ -35,6 +34,7 @@ const SenderList = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
+  const [localCategoryUpdates, setLocalCategoryUpdates] = useState<Record<string, number | null>>({});
   
   const { sortField, sortDirection, toggleSort, sortSenders } = useSenderListSorting();
   const { getBrandInputValue, updateBrandInputValue } = useBrandInputValues(senders);
@@ -48,7 +48,17 @@ const SenderList = ({
       return senderName.includes(term) || senderEmail.includes(term);
     });
   
-  const sortedSenders = sortSenders(filteredSenders);
+  const sendersWithLocalUpdates = filteredSenders.map(sender => {
+    if (localCategoryUpdates[sender.sender_email] !== undefined) {
+      return {
+        ...sender,
+        category_id: localCategoryUpdates[sender.sender_email]
+      };
+    }
+    return sender;
+  });
+  
+  const sortedSenders = sortSenders(sendersWithLocalUpdates);
 
   const handleCategoryChange = async (senderEmail: string, categoryId: string) => {
     if (!onCategoryChange) return;
@@ -56,9 +66,25 @@ const SenderList = ({
     setUpdatingCategory(senderEmail);
     try {
       const parsedCategoryId = categoryId === "null" ? null : parseInt(categoryId);
+      
+      setLocalCategoryUpdates(prev => ({
+        ...prev,
+        [senderEmail]: parsedCategoryId
+      }));
+      
+      console.log(`Updating category for ${senderEmail} to ${parsedCategoryId}`);
+      
       await onCategoryChange(senderEmail, parsedCategoryId);
+      
+      console.log(`Category update completed for ${senderEmail}`);
     } catch (error) {
       console.error("Error updating category:", error);
+      
+      setLocalCategoryUpdates(prev => {
+        const updated = { ...prev };
+        delete updated[senderEmail];
+        return updated;
+      });
     } finally {
       setUpdatingCategory(null);
     }
@@ -70,10 +96,8 @@ const SenderList = ({
     setUpdatingBrand(senderEmail);
     try {
       await onBrandChange(senderEmail, brandName);
-      // Make sure to update the local brand value cache after successful API call
       updateBrandInputValue(senderEmail, brandName);
       
-      // Log for debugging
       console.log(`Brand update completed. Value now: ${brandName} for ${senderEmail}`);
     } catch (error) {
       console.error("Error updating brand:", error);
@@ -135,21 +159,30 @@ const SenderList = ({
             {sortedSenders.length === 0 ? (
               <EmptyTableRow colSpan={onDeleteSenders ? 7 : 6} />
             ) : (
-              sortedSenders.map((sender, index) => (
-                <SenderTableRow
-                  key={sender.sender_email}
-                  sender={sender}
-                  index={index}
-                  categories={categories}
-                  isSelected={selectedSenders.includes(sender.sender_email)}
-                  updatingCategory={updatingCategory}
-                  updatingBrand={updatingBrand}
-                  brandInputValue={getBrandInputValue(sender)}
-                  onCategoryChange={handleCategoryChange}
-                  onBrandUpdate={handleBrandUpdate}
-                  onToggleSelect={onDeleteSenders ? handleToggleSelect : undefined}
-                />
-              ))
+              sortedSenders.map((sender, index) => {
+                const effectiveCategoryId = localCategoryUpdates[sender.sender_email] !== undefined 
+                  ? localCategoryUpdates[sender.sender_email] 
+                  : sender.category_id;
+                
+                return (
+                  <SenderTableRow
+                    key={sender.sender_email}
+                    sender={{
+                      ...sender,
+                      category_id: effectiveCategoryId
+                    }}
+                    index={index}
+                    categories={categories}
+                    isSelected={selectedSenders.includes(sender.sender_email)}
+                    updatingCategory={updatingCategory}
+                    updatingBrand={updatingBrand}
+                    brandInputValue={getBrandInputValue(sender)}
+                    onCategoryChange={handleCategoryChange}
+                    onBrandUpdate={handleBrandUpdate}
+                    onToggleSelect={onDeleteSenders ? handleToggleSelect : undefined}
+                  />
+                );
+              })
             )}
           </TableBody>
         </Table>
