@@ -23,7 +23,7 @@ export function LogsHeader({
     setShowLogs(newValue);
     
     // If we're showing logs and there's a fetch function, call it
-    if (newValue && fetchSyncLogs) {
+    if (newValue && fetchSyncLogs && !showLogs) {
       console.log("Fetching logs after toggle");
       fetchSyncLogs();
     }

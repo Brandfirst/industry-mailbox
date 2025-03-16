@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { SyncLogItem } from "./SyncLogItem";
@@ -26,13 +26,21 @@ export function SyncLogsList({
   fetchSyncLogs,
   formatTimestamp
 }: SyncLogsListProps) {
+  const initialFetchCompleted = useRef(false);
+  
   // Force fetch logs when component mounts if logs should be shown
   useEffect(() => {
-    if (selectedAccount && showLogs) {
+    if (selectedAccount && showLogs && !initialFetchCompleted.current) {
       console.log("SyncLogsList: Fetching logs on mount/account change");
       fetchSyncLogs();
+      initialFetchCompleted.current = true;
     }
-  }, [selectedAccount, showLogs, fetchSyncLogs]);
+  }, [selectedAccount, showLogs]);
+  
+  // Reset the ref when selectedAccount changes
+  useEffect(() => {
+    initialFetchCompleted.current = false;
+  }, [selectedAccount]);
   
   if (!selectedAccount) return null;
   

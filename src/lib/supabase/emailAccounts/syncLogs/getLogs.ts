@@ -2,11 +2,24 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SyncLogEntry, SyncScheduleSettings } from './types';
 
+// Cache to store the most recent logs by account ID
+const logsCache: Record<string, { logs: SyncLogEntry[], timestamp: number }> = {};
+const CACHE_TTL = 10000; // 10 seconds cache lifetime
+
 /**
  * Get sync logs for an account
  */
 export async function getSyncLogs(accountId: string, limit: number = 20): Promise<SyncLogEntry[]> {
   try {
+    // Check if we have fresh logs in the cache
+    const cachedData = logsCache[accountId];
+    const now = Date.now();
+    
+    if (cachedData && (now - cachedData.timestamp) < CACHE_TTL) {
+      console.log(`Using cached logs for account ${accountId} (${cachedData.logs.length} logs)`);
+      return cachedData.logs;
+    }
+    
     console.log(`Fetching up to ${limit} sync logs for account ${accountId}`);
     
     const { data, error } = await supabase.rpc('get_account_sync_logs', {
@@ -18,8 +31,6 @@ export async function getSyncLogs(accountId: string, limit: number = 20): Promis
       console.error("Error fetching sync logs:", error);
       return [];
     }
-    
-    console.log("Raw sync logs data:", data);
     
     // Ensure data is an array before mapping
     if (!Array.isArray(data)) {
@@ -34,7 +45,7 @@ export async function getSyncLogs(accountId: string, limit: number = 20): Promis
       console.log("Sample log entry:", data[0]);
     }
     
-    return data.map((log: any): SyncLogEntry => {
+    const parsedLogs = data.map((log: any): SyncLogEntry => {
       // Parse details properly
       let details = {};
       if (log.details) {
@@ -62,6 +73,14 @@ export async function getSyncLogs(accountId: string, limit: number = 20): Promis
         sync_type: log.sync_type || 'manual'
       };
     });
+    
+    // Update the cache
+    logsCache[accountId] = {
+      logs: parsedLogs,
+      timestamp: now
+    };
+    
+    return parsedLogs;
   } catch (error) {
     console.error("Exception fetching sync logs:", error);
     return [];
