@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
 import NewsletterResults from '@/components/search/NewsletterResults';
@@ -125,7 +125,7 @@ const SenderNewsletters = () => {
   const handleSenderSearch = (query: string) => {
     setSenderSearchQuery(query);
     setSearchQuery(query);
-    handleSearch(query);
+    handleSearch(query); // Fixed: handleSearch should receive the query string
   };
 
   // Get random cover image

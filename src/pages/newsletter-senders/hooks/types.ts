@@ -1,6 +1,7 @@
 
 import { NewsletterSenderStats, SenderFrequencyAnalytics } from "@/lib/supabase/newsletters/types";
 import { NewsletterCategory } from "@/lib/supabase/types";
+import { SenderSortField } from "@/components/newsletter-senders/components/SenderTableHeaders";
 
 export type SenderFrequencyData = {
   date: string;
@@ -8,7 +9,8 @@ export type SenderFrequencyData = {
   count: number;
 };
 
-export type SortKey = "name" | "count" | "date";
+// Changed SortKey to match SenderSortField from SenderTableHeaders component
+export type SortKey = SenderSortField;
 
 export type UseNewsletterSendersState = {
   senders: NewsletterSenderStats[];
@@ -18,8 +20,8 @@ export type UseNewsletterSendersState = {
   sortKey: SortKey;
   sortAsc: boolean;
   refreshing: boolean;
-  updatingCategory: boolean;
-  updatingBrand: boolean;
+  updatingCategory: string | null; // Changed from boolean to string | null to match expected types
+  updatingBrand: string | null; // Changed from boolean to string | null
   deleting: boolean;
   frequencyData: SenderFrequencyData[] | null;
   loadingAnalytics: boolean;
