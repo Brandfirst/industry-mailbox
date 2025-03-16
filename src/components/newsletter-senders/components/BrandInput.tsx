@@ -17,14 +17,14 @@ const BrandInput = ({
   isUpdating, 
   onUpdate 
 }: BrandInputProps) => {
-  const [inputValue, setInputValue] = useState(initialValue);
+  const [inputValue, setInputValue] = useState(initialValue || "");
   const [isEditing, setIsEditing] = useState(false);
-  const [brandValue, setBrandValue] = useState(initialValue);
+  const [brandValue, setBrandValue] = useState(initialValue || "");
 
-  // Update the internal state when initialValue changes (e.g., after navigation)
+  // Update the internal state when initialValue changes (e.g., after navigation or refresh)
   useEffect(() => {
-    setInputValue(initialValue);
-    setBrandValue(initialValue);
+    setInputValue(initialValue || "");
+    setBrandValue(initialValue || "");
   }, [initialValue]);
 
   const handleSave = async () => {

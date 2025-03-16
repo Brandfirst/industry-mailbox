@@ -45,7 +45,7 @@ export function useSenderOperations(setSenders: React.Dispatch<React.SetStateAct
       setUpdatingBrand(true);
       await updateSenderBrand(senderEmail, brandName, user.id);
       
-      // Update the local state to reflect the change
+      // Update the local state to reflect the change - make sure this is reliable
       setSenders(prevSenders => 
         prevSenders.map(sender => 
           sender.sender_email === senderEmail

@@ -8,7 +8,9 @@ import {
   SenderTableHeaders,
   SenderTableRow,
   EmptyTableRow,
-  SenderActions
+  SenderActions,
+  getCategoryNameById,
+  getCategoryColorById
 } from './components';
 import { useSenderListSorting } from "./hooks";
 import { useBrandInputValues } from "./hooks/useBrandInputValues";
@@ -38,7 +40,7 @@ const SenderList = ({
   
   // Use our custom hooks
   const { sortField, sortDirection, toggleSort, sortSenders } = useSenderListSorting();
-  const { brandInputValues, getBrandInputValue, setBrandInputValues } = useBrandInputValues(senders);
+  const { getBrandInputValue, updateBrandInputValue } = useBrandInputValues(senders);
   const { selectedSenders, handleToggleSelect, handleSelectAll, setSelectedSenders } = useSelectedSenders(senders);
 
   // Filter senders based on search term
@@ -76,11 +78,8 @@ const SenderList = ({
     setUpdatingBrand(senderEmail);
     try {
       await onBrandChange(senderEmail, brandName);
-      // Update the brand input values state
-      setBrandInputValues(prev => ({
-        ...prev,
-        [senderEmail]: brandName
-      }));
+      // Update our local cache of brand values to ensure UI consistency
+      updateBrandInputValue(senderEmail, brandName);
     } catch (error) {
       console.error("Error updating brand:", error);
     } finally {
@@ -101,19 +100,6 @@ const SenderList = ({
     } finally {
       setIsDeleting(false);
     }
-  };
-
-  // Get category utility functions
-  const getCategoryNameById = (categoryId: number | null) => {
-    if (!categoryId) return "Uncategorized";
-    const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.name : "Uncategorized";
-  };
-
-  const getCategoryColorById = (categoryId: number | null) => {
-    if (!categoryId) return "#666666";
-    const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.color : "#666666";
   };
 
   if (loading) {
@@ -168,8 +154,8 @@ const SenderList = ({
                   onCategoryChange={handleCategoryChange}
                   onBrandUpdate={handleBrandUpdate}
                   onToggleSelect={onDeleteSenders ? handleToggleSelect : undefined}
-                  getCategoryNameById={getCategoryNameById}
-                  getCategoryColorById={getCategoryColorById}
+                  getCategoryNameById={(categoryId) => getCategoryNameById(categories, categoryId)}
+                  getCategoryColorById={(categoryId) => getCategoryColorById(categories, categoryId)}
                 />
               ))
             )}
