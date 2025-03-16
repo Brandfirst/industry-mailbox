@@ -14,7 +14,7 @@ export const useIframeContent = (newsletter: Newsletter) => {
     
     try {
       const iframe = iframeRef.current;
-      const formattedContent = getIframeContent(newsletter.content, false);
+      const formattedContent = getIframeContent(newsletter.content, false, false); // Use full mode, not snapshot
       
       // Wait for iframe to be available
       const setIframeContent = () => {
@@ -35,12 +35,12 @@ export const useIframeContent = (newsletter: Newsletter) => {
           doc.documentElement.style.backgroundColor = "white";
           doc.body.style.backgroundColor = "white";
           
-          // Apply centering immediately
-          forceCentering(doc);
+          // Apply centering immediately (no snapshot mode in detail view)
+          forceCentering(doc, false);
           
           // Apply centering at multiple intervals to handle late-loading content
-          setTimeout(() => forceCentering(doc), 200);
-          setTimeout(() => forceCentering(doc), 500);
+          setTimeout(() => forceCentering(doc, false), 200);
+          setTimeout(() => forceCentering(doc, false), 500);
           
         } catch (error) {
           console.error("Error writing to iframe:", error);

@@ -1,14 +1,14 @@
-
 /**
  * Apply centering to elements in the document that might cause layout issues
  * This version preserves original layout while fixing centering issues
  * 
  * @param doc The document to apply centering to
+ * @param isSnapshot Whether this is a snapshot/thumbnail view
  */
-export const forceCentering = (doc: Document): void => {
+export const forceCentering = (doc: Document, isSnapshot: boolean = false): void => {
   try {
-    applyBodyCentering(doc);
-    centerNewsletterWrapper(doc);
+    applyBodyCentering(doc, isSnapshot);
+    centerNewsletterWrapper(doc, isSnapshot);
     centerContainerElements(doc);
     centerTables(doc);
     centerTextElements(doc);
@@ -23,8 +23,9 @@ export const forceCentering = (doc: Document): void => {
  * Apply centering styles to the body element
  * 
  * @param doc The document to apply centering to
+ * @param isSnapshot Whether this is a snapshot/thumbnail view
  */
-const applyBodyCentering = (doc: Document): void => {
+const applyBodyCentering = (doc: Document, isSnapshot: boolean = false): void => {
   if (doc.body) {
     doc.body.style.setProperty('margin', '0 auto', 'important');
     doc.body.style.setProperty('text-align', 'center', 'important');
@@ -37,6 +38,10 @@ const applyBodyCentering = (doc: Document): void => {
     doc.body.style.setProperty('flex-direction', 'column', 'important');
     doc.body.style.setProperty('align-items', 'center', 'important');
     doc.body.style.setProperty('justify-content', 'flex-start', 'important');
+    
+    if (isSnapshot) {
+      doc.body.style.setProperty('overflow-y', 'hidden', 'important');
+    }
   }
 };
 
@@ -44,8 +49,9 @@ const applyBodyCentering = (doc: Document): void => {
  * Center the main newsletter wrapper
  * 
  * @param doc The document to apply centering to
+ * @param isSnapshot Whether this is a snapshot/thumbnail view
  */
-const centerNewsletterWrapper = (doc: Document): void => {
+const centerNewsletterWrapper = (doc: Document, isSnapshot: boolean = false): void => {
   const newsletterWrapper = doc.querySelector('.newsletter-wrapper');
   if (newsletterWrapper instanceof HTMLElement) {
     newsletterWrapper.style.setProperty('margin', '0 auto', 'important');
@@ -54,6 +60,11 @@ const centerNewsletterWrapper = (doc: Document): void => {
     newsletterWrapper.style.setProperty('overflow-x', 'hidden', 'important');
     newsletterWrapper.style.setProperty('display', 'block', 'important');
     newsletterWrapper.style.setProperty('text-align', 'center', 'important');
+    
+    if (isSnapshot) {
+      newsletterWrapper.style.setProperty('overflow-y', 'hidden', 'important');
+      newsletterWrapper.style.setProperty('max-height', '800px', 'important');
+    }
   }
 };
 

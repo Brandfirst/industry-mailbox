@@ -6,18 +6,26 @@ interface IframePreviewProps {
   content: string;
   title: string | null;
   isMobile?: boolean;
+  mode?: 'full' | 'snapshot';
+  maxHeight?: string;
 }
 
-const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile = false }) => {
+const IframePreview: React.FC<IframePreviewProps> = ({ 
+  content, 
+  title, 
+  isMobile = false,
+  mode = 'full',
+  maxHeight
+}) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [iframeHeight, setIframeHeight] = useState<string>("400px");
+  const [iframeHeight, setIframeHeight] = useState<string>(maxHeight || (isMobile ? "250px" : "400px"));
   
   // Handle iframe load and resize
   useEffect(() => {
     if (!iframeRef.current) return;
     
     const iframe = iframeRef.current;
-    const formattedContent = getIframeContent(content, isMobile);
+    const formattedContent = getIframeContent(content, isMobile, mode === 'snapshot');
     
     try {
       const doc = iframe.contentDocument;
@@ -26,20 +34,20 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
         doc.write(formattedContent);
         doc.close();
         
-        // Set fixed height based on device type
-        setIframeHeight(isMobile ? "250px" : "400px");
+        // Set fixed height based on device type and mode
+        setIframeHeight(maxHeight || (isMobile ? "250px" : mode === 'snapshot' ? "300px" : "400px"));
         
         // Apply centering
-        forceCentering(doc);
+        forceCentering(doc, mode === 'snapshot');
           
         // And again after short delays to handle any dynamic elements
-        setTimeout(() => forceCentering(doc), 100);
-        setTimeout(() => forceCentering(doc), 300);
+        setTimeout(() => forceCentering(doc, mode === 'snapshot'), 100);
+        setTimeout(() => forceCentering(doc, mode === 'snapshot'), 300);
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);
     }
-  }, [content, isMobile]);
+  }, [content, isMobile, mode, maxHeight]);
 
   return (
     <div className="w-full h-full flex justify-center items-start bg-white">

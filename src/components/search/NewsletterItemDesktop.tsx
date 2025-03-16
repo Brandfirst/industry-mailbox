@@ -65,6 +65,8 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayN
           content={newsletter.content} 
           title={newsletter.title}
           isMobile={false}
+          mode="snapshot"
+          maxHeight="100%"
         />
       </div>
     </div>

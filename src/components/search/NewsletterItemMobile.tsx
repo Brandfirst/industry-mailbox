@@ -32,6 +32,8 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate, displayNa
             content={newsletter.content} 
             title={newsletter.title}
             isMobile={true}
+            mode="snapshot"
+            maxHeight="100%"
           />
         </div>
       </div>
