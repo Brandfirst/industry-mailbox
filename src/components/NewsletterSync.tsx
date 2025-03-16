@@ -6,7 +6,6 @@ import { NewsletterContent } from "./newsletter-sync/NewsletterContent";
 import { useNewsletterSync } from "./newsletter-sync/useNewsletterSync";
 import { Alert, AlertDescription } from "./ui/alert";
 import { InfoIcon } from "lucide-react";
-import { ScheduledSyncSettings } from "./newsletter-sync/ScheduledSyncSettings";
 import { toast } from "sonner";
 import { getNewslettersFromEmailAccount } from "@/lib/supabase";
 import { sanitizeNewsletterContent } from "@/lib/utils/content-sanitization";
@@ -129,9 +128,6 @@ export default function NewsletterSync() {
           filters={filters}
           onFiltersChange={handleFiltersChange}
         />
-        
-        {/* Add the scheduled sync settings component */}
-        <ScheduledSyncSettings selectedAccount={selectedAccount} />
       </CardContent>
     </Card>
   );

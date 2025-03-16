@@ -10,6 +10,7 @@ import CategoriesManagement from "@/components/admin/CategoriesManagement";
 import NewsletterSenders from "@/pages/NewsletterSenders";
 import UsersPage from "@/pages/admin/UsersPage";
 import UnderConstructionTab from "@/components/admin/UnderConstructionTab";
+import NewsletterAutomaticSync from "@/pages/admin/NewsletterAutomaticSync";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const Admin = () => {
   }, [tab, navigate, searchParams, isOAuthCallback]);
   
   useEffect(() => {
-    const validTabs = ["dashboard", "newsletters", "categories", "users", "settings", "newsletter-senders"];
+    const validTabs = ["dashboard", "newsletters", "categories", "users", "settings", "newsletter-senders", "automatic-sync"];
     if (tab && !validTabs.includes(tab) && !isOAuthCallback) {
       navigate("/admin/dashboard", { replace: true });
     }
@@ -77,6 +78,12 @@ const Admin = () => {
         </div>
       )}
       
+      {activeTab === "automatic-sync" && (
+        <div className="space-y-6">
+          <NewsletterAutomaticSync key={componentKey} />
+        </div>
+      )}
+      
       {activeTab === "newsletter-senders" && (
         <div className="space-y-6">
           <NewsletterSenders key={componentKey} />
@@ -100,6 +107,6 @@ const Admin = () => {
       )}
     </AdminLayout>
   );
-};
+}
 
 export default Admin;

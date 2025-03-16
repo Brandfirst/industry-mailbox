@@ -42,24 +42,30 @@ export function ScheduleSelector({
   };
 
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-2">
+    <div className="flex flex-wrap items-center justify-between gap-4 p-4 border rounded-lg bg-gray-50">
+      <div className="flex items-center space-x-3">
         <Switch 
           id="auto-sync" 
           checked={isEnabled} 
           onCheckedChange={setIsEnabled}
           disabled={disabled || !selectedAccount}
+          className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-300"
         />
-        <Label htmlFor="auto-sync">Enable automatic sync</Label>
+        <Label 
+          htmlFor="auto-sync" 
+          className={`font-medium ${isEnabled ? 'text-purple-700' : 'text-gray-600'}`}
+        >
+          Enable automatic sync
+        </Label>
       </div>
       
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3">
         <Select 
           value={scheduleOption} 
           onValueChange={handleScheduleChange}
           disabled={!isEnabled || disabled || !selectedAccount}
         >
-          <SelectTrigger className="w-36">
+          <SelectTrigger className="w-36 border-purple-200 focus:ring-purple-400">
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
           <SelectContent>
@@ -77,7 +83,7 @@ export function ScheduleSelector({
               type="number"
               min="0"
               max="23"
-              className="w-16"
+              className="w-16 border-purple-200 focus:ring-purple-400"
               value={specificHour}
               onChange={(e) => setSpecificHour(e.target.value)}
               disabled={!isEnabled || disabled || !selectedAccount}
@@ -91,6 +97,7 @@ export function ScheduleSelector({
         variant="outline" 
         onClick={onSaveSchedule}
         disabled={disabled || isSaving || !selectedAccount}
+        className="bg-purple-50 text-purple-700 border-purple-300 hover:bg-purple-100 hover:border-purple-400"
       >
         {isSaving ? "Saving..." : "Save Schedule"}
       </Button>

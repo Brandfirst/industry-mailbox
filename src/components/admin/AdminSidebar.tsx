@@ -2,7 +2,7 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Mail, Users, Tags, UserCircle, Settings } from "lucide-react";
+import { LayoutDashboard, Mail, Users, Tags, UserCircle, Settings, Clock } from "lucide-react";
 
 export type AdminSidebarProps = {
   activeTab: string;
@@ -64,6 +64,14 @@ const AdminSidebar = ({
                 icon={<Mail className="h-5 w-5 text-gray-600" />} 
                 isActive={activeTab === "newsletters"} 
                 onClick={() => handleTabChange("newsletters")} 
+              />
+            </li>
+            <li>
+              <AdminSidebarLink 
+                label="Automatic Sync" 
+                icon={<Clock className="h-5 w-5 text-gray-600" />} 
+                isActive={activeTab === "automatic-sync"} 
+                onClick={() => handleTabChange("automatic-sync")} 
               />
             </li>
             <li>
