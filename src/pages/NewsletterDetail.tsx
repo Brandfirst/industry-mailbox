@@ -6,9 +6,26 @@ import NewsletterContent from '@/components/newsletter-detail/NewsletterContent'
 import NewsletterLoading from '@/components/newsletter-detail/NewsletterLoading';
 import NewsletterNotFound from '@/components/newsletter-detail/NewsletterNotFound';
 import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 const NewsletterDetail = () => {
+  // Get parameters from URL
+  const params = useParams();
   const { newsletter, loading } = useNewsletterDetail();
+  
+  // Debug URL parameters 
+  useEffect(() => {
+    console.log("URL Params:", params);
+    // If we're using the new URL format, the newsletter ID will be in the title param at the end
+    if (params.title) {
+      console.log("SEO friendly URL detected");
+      // Extract the ID from the title slug (format: title-ID)
+      const idMatch = params.title.match(/-(\d+)$/);
+      if (idMatch && idMatch[1]) {
+        console.log("Extracted newsletter ID from slug:", idMatch[1]);
+      }
+    }
+  }, [params]);
   
   // Force UTF-8 character set for the whole page
   useEffect(() => {

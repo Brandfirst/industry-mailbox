@@ -9,9 +9,11 @@ import { Newsletter } from '@/lib/supabase/types';
 export const getNewsletterPath = (newsletter: Newsletter): string => {
   if (!newsletter) return '/';
   
-  const senderSlug = newsletter.sender 
-    ? newsletter.sender.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-    : 'unknown';
+  const senderSlug = newsletter.sender_email 
+    ? newsletter.sender_email.toLowerCase().replace('@', '-').replace(/\./g, '')
+    : (newsletter.sender 
+      ? newsletter.sender.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : 'unknown');
   
   const titleSlug = newsletter.title 
     ? newsletter.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
@@ -29,6 +31,11 @@ export const getNewsletterPath = (newsletter: Newsletter): string => {
  */
 export const getSenderPath = (senderName: string): string => {
   if (!senderName) return '/search';
+  
+  // If it's an email address, create a slug from it
+  if (senderName.includes('@')) {
+    return `/sender/${senderName.toLowerCase().replace('@', '-').replace(/\./g, '')}`;
+  }
   
   const senderSlug = senderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   return `/sender/${senderSlug}`;
