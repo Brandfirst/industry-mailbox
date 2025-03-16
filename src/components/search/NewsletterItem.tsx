@@ -16,6 +16,9 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
     return format(new Date(dateString), 'MMM d');
   };
 
+  // Determine the display name to use (brand_name if available, otherwise sender)
+  const displayName = newsletter.brand_name || newsletter.sender || "Unknown Sender";
+
   return (
     <div 
       className="cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm border hover:shadow-md transition-shadow"
@@ -24,12 +27,14 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
         newsletter={newsletter} 
         onClick={() => onClick(newsletter)} 
         getFormattedDate={getFormattedDate}
+        displayName={displayName}
       />
       
       <NewsletterItemDesktop 
         newsletter={newsletter} 
         onClick={() => onClick(newsletter)} 
         getFormattedDate={getFormattedDate}
+        displayName={displayName}
       />
     </div>
   );

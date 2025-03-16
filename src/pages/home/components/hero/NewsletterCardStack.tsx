@@ -62,6 +62,9 @@ const NewsletterCardStack = ({
           return null;
         }
         
+        // Get display name (brand name if available, otherwise sender)
+        const displayName = newsletter.brand_name || newsletter.sender || "Unknown Sender";
+        
         // Determine positioning and styling
         const zIndex = isCurrentCard ? 30 : (isPreviousCard ? 20 : 10);
         
@@ -106,15 +109,15 @@ const NewsletterCardStack = ({
             <div className="flex flex-col h-full">
               <div className="flex items-center p-3 border-b border-gray-700">
                 <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0">
-                  {newsletter.sender && (
+                  {displayName && (
                     <span className="text-sm font-semibold text-gray-700">
-                      {newsletter.sender.charAt(0).toUpperCase()}
+                      {displayName.charAt(0).toUpperCase()}
                     </span>
                   )}
                 </div>
                 <div className="flex flex-col overflow-hidden">
                   <span className="font-medium text-sm truncate text-white">
-                    {newsletter.sender || 'Unknown Sender'}
+                    {displayName}
                   </span>
                   <span className="text-gray-300 text-xs">
                     {new Date(newsletter.published_at || '').toLocaleDateString('no-NO')}

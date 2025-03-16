@@ -9,9 +9,10 @@ interface NewsletterItemDesktopProps {
   newsletter: Newsletter;
   onClick: () => void;
   getFormattedDate: (dateString: string) => string;
+  displayName: string;
 }
 
-const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate }: NewsletterItemDesktopProps) => {
+const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayName }: NewsletterItemDesktopProps) => {
   const navigate = useNavigate();
   
   const handleSenderClick = (e: React.MouseEvent) => {
@@ -25,9 +26,9 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate }: Newsle
           className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0 cursor-pointer"
           onClick={handleSenderClick}
         >
-          {newsletter.sender && (
+          {displayName && (
             <span className="text-sm font-semibold text-gray-700">
-              {newsletter.sender.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </span>
           )}
         </div>
@@ -36,7 +37,7 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate }: Newsle
             className="font-medium text-sm truncate text-black cursor-pointer hover:underline"
             onClick={handleSenderClick}
           >
-            {newsletter.sender || 'Unknown Sender'}
+            {displayName}
           </span>
           <span className="text-black text-xs">
             NO • {getFormattedDate(newsletter.published_at || '')}

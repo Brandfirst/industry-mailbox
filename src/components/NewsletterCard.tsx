@@ -20,6 +20,7 @@ interface NewsletterProps {
   id: number;
   title: string;
   sender: string;
+  brand_name?: string;
   industry: string;
   preview: string;
   date: Date;
@@ -29,6 +30,7 @@ const NewsletterCard = ({
   id, 
   title, 
   sender, 
+  brand_name,
   industry, 
   preview, 
   date
@@ -37,6 +39,9 @@ const NewsletterCard = ({
   const [isSaving, setIsSaving] = useState(false);
   const { user, isPremium } = useAuth();
   const navigate = useNavigate();
+  
+  // Get display name (brand name if available, otherwise sender)
+  const displayName = brand_name || sender;
   
   useEffect(() => {
     // Check if this newsletter is saved for the current user
@@ -105,7 +110,7 @@ const NewsletterCard = ({
           </Badge>
           <h3 className="text-lg font-medium line-clamp-1 text-white">{title}</h3>
           <p className="text-sm text-gray-500">
-            From: {sender}
+            From: {displayName}
           </p>
         </div>
         <TooltipProvider>

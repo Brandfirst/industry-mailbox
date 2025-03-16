@@ -9,9 +9,10 @@ interface NewsletterItemMobileProps {
   newsletter: Newsletter;
   onClick: () => void;
   getFormattedDate: (dateString: string) => string;
+  displayName: string;
 }
 
-const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate }: NewsletterItemMobileProps) => {
+const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate, displayName }: NewsletterItemMobileProps) => {
   const navigate = useNavigate();
   
   const handleSenderClick = (e: React.MouseEvent) => {
@@ -36,9 +37,9 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate }: Newslet
             className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0 cursor-pointer"
             onClick={handleSenderClick}
           >
-            {newsletter.sender && (
+            {displayName && (
               <span className="text-xs font-semibold text-gray-700">
-                {newsletter.sender.charAt(0).toUpperCase()}
+                {displayName.charAt(0).toUpperCase()}
               </span>
             )}
           </div>
@@ -46,7 +47,7 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate }: Newslet
             className="font-medium text-xs truncate text-black cursor-pointer hover:underline"
             onClick={handleSenderClick}
           >
-            {newsletter.sender || 'Unknown Sender'}
+            {displayName}
           </span>
           <span className="text-black text-xs ml-1">
             {newsletter.categories?.name && (
