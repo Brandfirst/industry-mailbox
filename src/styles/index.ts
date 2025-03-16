@@ -6,7 +6,7 @@ import './animations.css';
 // The components styles are in the components directory which we import at the bottom
 import './testimonials.css';
 import './carousel.css';
-import './responsive.css';
+// responsive.css doesn't exist, we import from responsive folder instead (see below)
 import './theme.css';
 import './float-animation.css';
 import './variables.css';
