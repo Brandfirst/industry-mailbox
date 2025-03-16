@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getSenderPath, getNewsletterPath } from "@/lib/utils/newsletterNavigation";
+import { Newsletter } from "@/lib/supabase/types";
 
 /**
  * Helper function to navigate to a newsletter detail page
@@ -29,15 +30,21 @@ export const createNewsletterNavigationHandler = (
       console.log(`Navigating to newsletter ID: ${newsletterId}`);
       
       // Create a complete newsletter object with all needed properties
-      const newsletterObject = {
+      // Include all required properties from the Newsletter type
+      const newsletterObject: Partial<Newsletter> = {
         id: newsletterId,
         sender_email: email.sender_email || null,
         sender: email.sender || null,
-        title: email.title || email.subject || 'untitled'
+        title: email.title || email.subject || 'untitled',
+        industry: '',
+        preview: '',
+        content: '',
+        published_at: email.date || new Date().toISOString(),
+        created_at: email.created_at || new Date().toISOString()
       };
       
       // Use the central utility function to create the path
-      const path = getNewsletterPath(newsletterObject);
+      const path = getNewsletterPath(newsletterObject as Newsletter);
       
       console.log(`Using SEO-friendly path: ${path}`);
       navigate(path);
