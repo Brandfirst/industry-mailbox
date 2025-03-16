@@ -28,6 +28,11 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
           label: "Scheduled",
           className: "bg-blue-100 text-blue-800"
         };
+      case "processing":
+        return {
+          label: "Processing",
+          className: "bg-yellow-100 text-yellow-800"
+        };
       default:
         return {
           label: log.status,
@@ -51,6 +56,8 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
     <div>
       {log.details.schedule_type === 'hourly' 
         ? 'Every hour' 
+        : log.details.schedule_type === 'minute'
+        ? 'Every minute'
         : `Daily at ${log.details.hour}:00`}
     </div>
   );
@@ -79,7 +86,8 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
         </div>
         <div className="text-muted-foreground truncate">
           {log.error_message || (log.status === 'success' ? "Completed successfully" : 
-                                log.status === 'scheduled' ? "Sync scheduled" : "")}
+                                log.status === 'scheduled' ? "Sync scheduled" : 
+                                log.status === 'processing' ? "Sync in progress" : "")}
         </div>
       </div>
       

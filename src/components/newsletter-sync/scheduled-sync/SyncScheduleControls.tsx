@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { updateSyncSchedule } from "@/lib/supabase/emailAccounts/syncLogs";
 import { ScheduleSelector } from "./components/ScheduleSelector";
 import { ScheduleStatus } from "./components/ScheduleStatus";
+import { logScheduledSync } from "@/lib/supabase/emailAccounts/sync/logHandling";
 
 export type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
 
@@ -103,6 +104,20 @@ export function SyncScheduleControls({
         setSaveTimestamp(currentTimestamp);
         toast.success("Sync schedule updated");
         setHasSaved(true);
+        
+        // Create a log entry for the scheduled sync if enabled
+        if (effectiveEnabled && scheduleOption !== "disabled") {
+          try {
+            // Import and use the logScheduledSync function from our utils
+            await import("@/lib/supabase/emailAccounts/sync/logHandling").then(({ logScheduledSync }) => {
+              logScheduledSync(selectedAccount, scheduleOption, hourNumber);
+            });
+          } catch (error) {
+            console.error("Error logging scheduled sync:", error);
+            // Non-critical error, don't show to user
+          }
+        }
+        
         refreshLogs(); // Refresh logs to show new scheduled entry
       } else {
         toast.error("Failed to update sync schedule");
