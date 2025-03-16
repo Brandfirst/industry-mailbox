@@ -1,38 +1,24 @@
 
-import { NewsletterSenderStats, SenderFrequencyAnalytics } from "@/lib/supabase/newsletters/types";
-import { NewsletterCategory } from "@/lib/supabase/types";
-import { SenderSortField } from "@/components/newsletter-senders/components/SenderTableHeaders";
+export type SortKey = "name" | "newsletters" | "lastSync" | "brand" | "category";
 
-export type SenderFrequencyData = {
-  date: string;
-  sender: string;
-  count: number;
-};
-
-// Changed SortKey to match SenderSortField from SenderTableHeaders component
-export type SortKey = SenderSortField;
-
-export type UseNewsletterSendersState = {
-  senders: NewsletterSenderStats[];
-  categories: NewsletterCategory[];
+export interface UseNewsletterSendersResult {
+  senders: any[];
+  categories: any[];
   loading: boolean;
   searchTerm: string;
+  setSearchTerm: (term: string) => void;
   sortKey: SortKey;
   sortAsc: boolean;
   refreshing: boolean;
-  updatingCategory: string | null; // Changed from boolean to string | null to match expected types
-  updatingBrand: string | null; // Changed from boolean to string | null
+  updatingCategory: string | null;
+  updatingBrand: string | null;
   deleting: boolean;
-  frequencyData: SenderFrequencyData[] | null;
+  frequencyData: any;
   loadingAnalytics: boolean;
-};
-
-export type UseNewsletterSendersResult = UseNewsletterSendersState & {
-  setSearchTerm: (term: string) => void;
-  handleRefresh: () => Promise<void>;
-  handleCategoryChange: (senderEmail: string, categoryId: number | null) => Promise<void>;
-  handleBrandChange: (senderEmail: string, brandName: string) => Promise<void>;
-  handleDeleteSenders: (senderEmails: string[]) => Promise<void>;
+  handleRefresh: () => void;
+  handleCategoryChange: (senderEmail: string, categoryId: number | null) => void;
+  handleBrandChange: (senderEmail: string, brandName: string) => void;
+  handleDeleteSenders: (senderEmails: string[]) => void;
   toggleSort: (key: SortKey) => void;
-  filteredSenders: NewsletterSenderStats[];
-};
+  filteredSenders: any[];
+}

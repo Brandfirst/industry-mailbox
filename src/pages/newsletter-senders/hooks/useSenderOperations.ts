@@ -2,9 +2,9 @@
 import { useState } from "react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 import { 
-  updateNewsletterSenderCategory, 
-  updateNewsletterSenderBrand, 
-  deleteNewsletterSenders 
+  updateSenderCategory, 
+  updateSenderBrand, 
+  deleteNewsletters 
 } from "@/lib/supabase/newsletters";
 import { toast } from "sonner";
 
@@ -21,7 +21,7 @@ export function useSenderOperations(
     try {
       setUpdatingCategory(senderEmail);
       
-      await updateNewsletterSenderCategory(senderEmail, categoryId);
+      await updateSenderCategory(senderEmail, categoryId);
       
       // Update local sender's category
       setSenders(prevSenders => 
@@ -45,7 +45,7 @@ export function useSenderOperations(
     try {
       setUpdatingBrand(senderEmail);
       
-      await updateNewsletterSenderBrand(senderEmail, brandName);
+      await updateSenderBrand(senderEmail, brandName);
       
       // Update local sender's brand
       setSenders(prevSenders => 
@@ -77,7 +77,7 @@ export function useSenderOperations(
     try {
       setDeleting(true);
       
-      await deleteNewsletterSenders(senderEmails);
+      await deleteNewsletters(senderEmails);
       
       // Remove deleted senders from local state
       setSenders(prevSenders => 
