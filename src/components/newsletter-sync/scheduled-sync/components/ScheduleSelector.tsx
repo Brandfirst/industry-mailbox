@@ -65,10 +65,10 @@ export function ScheduleSelector({
           onValueChange={handleScheduleChange}
           disabled={!isEnabled || disabled || !selectedAccount}
         >
-          <SelectTrigger className="w-36 border-purple-200 focus:ring-purple-400">
+          <SelectTrigger className={`w-36 border-purple-200 focus:ring-purple-400 ${!isEnabled ? 'bg-gray-200 text-gray-700' : 'bg-white'}`}>
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white border border-purple-100">
             <SelectItem value="hourly">Every hour</SelectItem>
             <SelectItem value="daily">Daily</SelectItem>
             <SelectItem value="disabled">Disabled</SelectItem>
@@ -83,7 +83,7 @@ export function ScheduleSelector({
               type="number"
               min="0"
               max="23"
-              className="w-16 border-purple-200 focus:ring-purple-400"
+              className={`w-16 border-purple-200 focus:ring-purple-400 ${!isEnabled ? 'bg-gray-200 text-gray-700' : 'bg-white'}`}
               value={specificHour}
               onChange={(e) => setSpecificHour(e.target.value)}
               disabled={!isEnabled || disabled || !selectedAccount}
