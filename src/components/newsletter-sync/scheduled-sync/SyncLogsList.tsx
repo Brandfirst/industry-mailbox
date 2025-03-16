@@ -1,8 +1,7 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
-import { SyncLogItem } from "./SyncLogItem";
+import { LogsHeader, LogsTableHeader, LogsContent } from "./components";
 
 type SyncLogsListProps = {
   showLogs: boolean;
@@ -25,49 +24,23 @@ export function SyncLogsList({
 }: SyncLogsListProps) {
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Sync History</h3>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => {
-            setShowLogs(!showLogs);
-            if (!showLogs && selectedAccount) {
-              fetchSyncLogs();
-            }
-          }}
-          className="text-xs"
-        >
-          {showLogs ? "Hide logs" : "Show logs"}
-        </Button>
-      </div>
+      <LogsHeader
+        showLogs={showLogs}
+        setShowLogs={setShowLogs}
+        selectedAccount={selectedAccount}
+        fetchSyncLogs={fetchSyncLogs}
+      />
       
       {showLogs && (
         <div className="mt-2 border rounded-md overflow-hidden">
-          <div className="bg-muted px-4 py-2 text-xs font-medium grid grid-cols-4 gap-2">
-            <div>Time</div>
-            <div>Status</div>
-            <div>Messages</div>
-            <div>Details</div>
-          </div>
+          <LogsTableHeader />
           <div className="divide-y">
-            {isLoading ? (
-              <div className="px-4 py-4 text-xs text-center text-muted-foreground">
-                Loading sync logs...
-              </div>
-            ) : syncLogs.length > 0 ? (
-              syncLogs.map((log, index) => (
-                <SyncLogItem 
-                  key={index} 
-                  log={log} 
-                  formatTimestamp={formatTimestamp} 
-                />
-              ))
-            ) : (
-              <div className="px-4 py-4 text-xs text-center text-muted-foreground">
-                {selectedAccount ? "No sync logs available" : "Select an account to view sync logs"}
-              </div>
-            )}
+            <LogsContent
+              isLoading={isLoading}
+              syncLogs={syncLogs}
+              selectedAccount={selectedAccount}
+              formatTimestamp={formatTimestamp}
+            />
           </div>
         </div>
       )}
