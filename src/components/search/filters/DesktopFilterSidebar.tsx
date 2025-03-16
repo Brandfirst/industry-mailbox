@@ -1,4 +1,3 @@
-
 import React, { memo, useState } from 'react';
 import { NewsletterCategory } from '@/lib/supabase/types';
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ interface SenderBrand {
   sender_email: string;
   sender_name: string;
   count: number;
+  brand_name?: string;
 }
 
 interface DesktopFilterSidebarProps {

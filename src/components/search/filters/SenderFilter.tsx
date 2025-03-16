@@ -9,6 +9,7 @@ interface SenderBrand {
   sender_email: string;
   sender_name: string;
   count: number;
+  brand_name?: string; // Add brand_name field
 }
 
 interface SenderFilterProps {
@@ -24,10 +25,13 @@ const SenderFilter = ({
 }: SenderFilterProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const filteredBrands = senderBrands.filter(brand => 
-    brand.sender_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    brand.sender_email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBrands = senderBrands.filter(brand => {
+    const displayName = brand.brand_name || brand.sender_name;
+    return (
+      displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      brand.sender_email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
   
   return (
     <div className="space-y-4">
@@ -45,26 +49,31 @@ const SenderFilter = ({
         {filteredBrands.length === 0 ? (
           <p className="text-sm text-muted-foreground">Ingen avsendere funnet</p>
         ) : (
-          filteredBrands.map((brand) => (
-            <div key={brand.sender_email} className="flex items-start space-x-2">
-              <Checkbox
-                id={`brand-${brand.sender_email}`}
-                checked={selectedBrands.includes(brand.sender_email)}
-                onCheckedChange={(checked) => 
-                  handleBrandChange(brand.sender_email, checked === true)
-                }
-              />
-              <Label 
-                htmlFor={`brand-${brand.sender_email}`}
-                className="text-sm cursor-pointer leading-tight"
-              >
-                <span className="font-medium">{brand.sender_name}</span>
-                <span className="block text-xs text-muted-foreground truncate max-w-[200px]">
-                  {brand.sender_email} ({brand.count})
-                </span>
-              </Label>
-            </div>
-          ))
+          filteredBrands.map((brand) => {
+            // Use brand_name if available, otherwise fall back to sender_name
+            const displayName = brand.brand_name || brand.sender_name;
+            
+            return (
+              <div key={brand.sender_email} className="flex items-start space-x-2">
+                <Checkbox
+                  id={`brand-${brand.sender_email}`}
+                  checked={selectedBrands.includes(brand.sender_email)}
+                  onCheckedChange={(checked) => 
+                    handleBrandChange(brand.sender_email, checked === true)
+                  }
+                />
+                <Label 
+                  htmlFor={`brand-${brand.sender_email}`}
+                  className="text-sm cursor-pointer leading-tight"
+                >
+                  <span className="font-medium">{displayName}</span>
+                  <span className="block text-xs text-muted-foreground truncate max-w-[200px]">
+                    {brand.sender_email} ({brand.count})
+                  </span>
+                </Label>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

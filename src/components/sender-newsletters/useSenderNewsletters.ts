@@ -1,176 +1,230 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
+import { supabase } from '@/integrations/supabase/client';
+import { Newsletter, NewsletterCategory } from '@/lib/supabase/types';
+import { searchNewsletters } from '@/lib/supabase/newsletters';
 import { toast } from 'sonner';
-import { TimePeriodOption } from '@/components/search/filters/TimePeriodFilter';
-import { subDays, subYears, startOfYear, endOfYear } from 'date-fns';
+import { navigateToNewsletter } from '@/lib/utils/newsletterNavigation';
+
+interface SenderBrand {
+  sender_email: string;
+  sender_name: string;
+  count: number;
+  brand_name?: string; // Add brand_name field
+}
 
 export const useSenderNewsletters = () => {
-  const { senderSlug } = useParams<{ senderSlug: string }>();
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false); // False to hide filters by default
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [senderSearchQuery, setSenderSearchQuery] = useState('');
-  const [timePeriod, setTimePeriod] = useState<TimePeriodOption>('all');
+  const { senderName: paramSenderName } = useParams();
   const navigate = useNavigate();
-  
-  // Add light mode class
+  const [senderName, setSenderName] = useState(paramSenderName || '');
+  const [senderBrandName, setSenderBrandName] = useState<string | null>(null);
+  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
+  const [categories, setCategories] = useState<NewsletterCategory[]>([]);
+  const [senderBrands, setSenderBrands] = useState<SenderBrand[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({
+    from: undefined,
+    to: undefined
+  });
+  const [hasMore, setHasMore] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false);
+	const [timePeriod, setTimePeriod] = useState<string>('all');
+  const ITEMS_PER_PAGE = 12;
+  const [page, setPage] = useState(1);
+
   useEffect(() => {
-    // Add both classes to ensure proper styling
-    document.body.classList.add('light-mode');
-    document.documentElement.classList.add('light');
-    
-    return () => {
-      document.body.classList.remove('light-mode');
-      document.documentElement.classList.remove('light');
+    if (paramSenderName) {
+      setSenderName(paramSenderName);
+    }
+  }, [paramSenderName]);
+
+  useEffect(() => {
+    document.title = `${senderName} | NewsletterHub`;
+  }, [senderName]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return;
+      }
+
+      setCategories(data || []);
     };
+
+    fetchCategories();
   }, []);
-  
-  const {
-    newsletters,
-    categories,
-    senderBrands,
-    loading,
-    searchQuery,
-    selectedCategory,
-    selectedBrands,
-    dateRange,
-    hasMore,
-    setSearchQuery,
-    setSelectedCategory,
-    setSelectedBrands,
-    setDateRange,
-    handleLoadMore,
-    handleSearch: originalHandleSearch,
-    handleCategoryChange,
-    handleBrandChange,
-    applyFilters,
-    handleNewsletterClick
-  } = useSearchNewsletters();
-  
-  // Find the sender from the slug
+
   useEffect(() => {
-    if (!senderSlug || !senderBrands.length) return;
-    
-    console.log("Finding sender with slug:", senderSlug);
-    console.log("Available senders:", senderBrands.map(b => b.sender_name));
-    
-    // Try to match the slug to a sender from senderBrands array
-    // Check in different ways to increase chance of matching
-    let matchedSender = null;
-    
-    // Method 1: Check if slug matches email-based slug pattern
-    const emailBasedSenderMatch = senderBrands.find(brand => {
-      if (brand.sender_email) {
-        const emailSlug = brand.sender_email.toLowerCase().replace('@', '-').replace(/\./g, '');
-        return senderSlug === emailSlug;
+    const fetchSenderBrands = async () => {
+      const { data, error } = await supabase
+        .from('newsletters')
+        .select('sender_email, sender')
+        .order('sender');
+
+      if (error) {
+        console.error('Error fetching sender brands:', error);
+        return;
       }
-      return false;
-    });
-    
-    if (emailBasedSenderMatch) {
-      console.log("Found email-based sender match:", emailBasedSenderMatch.sender_name);
-      matchedSender = emailBasedSenderMatch;
-    } else {
-      // Method 2: Check if slug matches name-based slug pattern
-      matchedSender = senderBrands.find(brand => {
-        const brandSlug = brand.sender_name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-        return brandSlug === senderSlug;
-      });
+
+      if (data) {
+        const brandsMap = data.reduce((acc, newsletter) => {
+          if (!newsletter.sender_email) return acc;
+
+          if (!acc[newsletter.sender_email]) {
+            acc[newsletter.sender_email] = {
+              sender_email: newsletter.sender_email,
+              sender_name: newsletter.sender || newsletter.sender_email,
+              count: 0
+            };
+          }
+
+          acc[newsletter.sender_email].count += 1;
+          return acc;
+        }, {} as Record<string, SenderBrand>);
+
+        const brandsArray = Object.values(brandsMap).sort((a, b) => b.count - a.count);
+        setSenderBrands(brandsArray);
+      }
+    };
+
+    fetchSenderBrands();
+  }, []);
+
+  useEffect(() => {
+    const fetchNewsletters = async () => {
+      setLoading(true);
+
+      try {
+        const fromDate = dateRange.from ? dateRange.from.toISOString() : undefined;
+        const toDate = dateRange.to ? dateRange.to.toISOString() : undefined;
+
+        const result = await searchNewsletters({
+          searchQuery,
+          categoryId: selectedCategory !== 'all' ? selectedCategory : undefined,
+          sender: [senderName], // Only search for the current sender
+          fromDate,
+          toDate,
+          page,
+          limit: ITEMS_PER_PAGE
+        });
+
+        if (page === 1) {
+          setNewsletters(result.data || []);
+        } else {
+          setNewsletters(prev => [...prev, ...(result.data || [])]);
+        }
+
+        setHasMore(result.count ? result.count > page * ITEMS_PER_PAGE : false);
+      } catch (error) {
+        console.error('Error fetching newsletters:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Fetch newsletters only if senderName is available
+    if (senderName) {
+      fetchNewsletters();
+    }
+  }, [senderName, searchQuery, selectedCategory, dateRange, page]);
+
+  // Fetch sender's brand name (if available)
+  useEffect(() => {
+    const fetchBrandName = async () => {
+      if (!senderName) return;
       
-      if (matchedSender) {
-        console.log("Found name-based sender match:", matchedSender.sender_name);
-      } else {
-        console.log("No sender match found for slug:", senderSlug);
+      try {
+        const { data, error } = await supabase
+          .from('newsletters')
+          .select('brand_name, sender_email')
+          .eq('sender', senderName)
+          .limit(1);
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0 && data[0].brand_name) {
+          setSenderBrandName(data[0].brand_name);
+        }
+      } catch (error) {
+        console.error('Error fetching brand name:', error);
       }
-    }
+    };
     
-    if (matchedSender) {
-      setSelectedBrands([matchedSender.sender_email]);
-      applyFilters();
+    fetchBrandName();
+  }, [senderName]);
+
+  const handleLoadMore = useCallback(() => {
+    setPage(page + 1);
+  }, [page]);
+
+  const handleCategoryChange = useCallback((value: string) => {
+    setSelectedCategory(value);
+    setPage(1);
+  }, []);
+
+  const handleBrandChange = useCallback((brand: string, checked: boolean) => {
+    if (checked) {
+      setSelectedBrands(prev => [...prev, brand]);
     } else {
-      // If no sender matches, redirect to search
-      console.log("No sender found for slug, redirecting to search");
-      navigate('/search');
+      setSelectedBrands(prev => prev.filter(b => b !== brand));
     }
-  }, [senderSlug, senderBrands, setSelectedBrands, applyFilters, navigate]);
-  
+    setPage(1);
+  }, []);
+
+  const applyFilters = useCallback(() => {
+    setPage(1);
+  }, []);
+
   const toggleMobileFilters = () => {
     setIsMobileFiltersOpen(!isMobileFiltersOpen);
   };
-  
+
   const toggleDesktopFilters = () => {
     setIsDesktopFiltersOpen(!isDesktopFiltersOpen);
   };
-  
-  // Get the sender name to display in the header
-  const senderName = senderBrands.find(brand => 
-    selectedBrands.includes(brand.sender_email)
-  )?.sender_name || senderSlug || '';
+
+  const handleNewsletterClick = useCallback((newsletter: Newsletter) => {
+    console.log("Newsletter clicked:", newsletter.id, newsletter.title);
+    navigateToNewsletter(newsletter, navigate);
+  }, [navigate]);
 
   const handleFollow = () => {
+    // Placeholder for follow functionality
     setIsFollowing(!isFollowing);
-    if (!isFollowing) {
-      toast.success(`Du følger nå ${senderName}`);
-    } else {
-      toast.info(`Du følger ikke lenger ${senderName}`);
-    }
+    toast.success(`You have ${isFollowing ? 'unfollowed' : 'followed'} ${senderName}`);
   };
 
-  // Create a wrapper function to handle the search properly
   const handleSenderSearch = (query: string) => {
-    setSenderSearchQuery(query);
     setSearchQuery(query);
-    
-    // Create a synthetic form event to pass to originalHandleSearch
-    const syntheticEvent = { preventDefault: () => {} } as FormEvent<HTMLFormElement>;
-    originalHandleSearch(syntheticEvent);
+    setPage(1);
   };
 
-  // Handle time period filter changes
-  const handlePeriodChange = (period: TimePeriodOption) => {
+	const handlePeriodChange = (period: string) => {
     setTimePeriod(period);
-    
-    const now = new Date();
+    const today = new Date();
     let fromDate: Date | undefined = undefined;
-    let toDate: Date | undefined = undefined;
-    
-    switch (period) {
-      case 'last30days':
-        fromDate = subDays(now, 30);
-        toDate = now;
-        break;
-      case 'lastyear':
-        fromDate = subYears(now, 1);
-        toDate = now;
-        break;
-      case '2025':
-        fromDate = startOfYear(new Date(2025, 0, 1));
-        toDate = endOfYear(new Date(2025, 0, 1));
-        break;
-      case '2024':
-        fromDate = startOfYear(new Date(2024, 0, 1));
-        toDate = endOfYear(new Date(2024, 0, 1));
-        break;
-      case '2023':
-        fromDate = startOfYear(new Date(2023, 0, 1));
-        toDate = endOfYear(new Date(2023, 0, 1));
-        break;
-      case '2022':
-        fromDate = startOfYear(new Date(2022, 0, 1));
-        toDate = endOfYear(new Date(2022, 0, 1));
-        break;
-      case 'last30emails':
-        // This will be handled differently since it's not date-based
-        // We'll keep dates undefined and handle this case in the fetch logic
-        break;
-      default:
-        // For 'all', clear the date range
-        break;
+
+    if (period === 'last7days') {
+      fromDate = new Date(today.setDate(today.getDate() - 7));
+    } else if (period === 'last30days') {
+      fromDate = new Date(today.setDate(today.getDate() - 30));
+    } else if (period === 'last90days') {
+      fromDate = new Date(today.setDate(today.getDate() - 90));
     }
-    
-    setDateRange({ from: fromDate, to: toDate });
-    applyFilters();
+
+    setDateRange({ from: fromDate, to: undefined });
+    setPage(1);
   };
 
   return {
@@ -187,7 +241,7 @@ export const useSenderNewsletters = () => {
     isFollowing,
     isMobileFiltersOpen,
     isDesktopFiltersOpen,
-    timePeriod,
+		timePeriod,
     setSearchQuery,
     setSelectedCategory,
     handleCategoryChange,
@@ -200,6 +254,6 @@ export const useSenderNewsletters = () => {
     handleNewsletterClick,
     handleFollow,
     handleSenderSearch,
-    handlePeriodChange
+		handlePeriodChange
   };
 };

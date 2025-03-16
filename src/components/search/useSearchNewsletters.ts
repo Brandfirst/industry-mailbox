@@ -10,6 +10,7 @@ interface SenderBrand {
   sender_email: string;
   sender_name: string;
   count: number;
+  brand_name?: string; // Add brand_name field
 }
 
 export const useSearchNewsletters = () => {
@@ -53,7 +54,7 @@ export const useSearchNewsletters = () => {
     const fetchSenderBrands = async () => {
       const { data, error } = await supabase
         .from('newsletters')
-        .select('sender_email, sender')
+        .select('sender_email, sender, brand_name') // Also fetch brand_name
         .order('sender');
       
       if (error) {
@@ -69,8 +70,14 @@ export const useSearchNewsletters = () => {
             acc[newsletter.sender_email] = {
               sender_email: newsletter.sender_email,
               sender_name: newsletter.sender || newsletter.sender_email,
+              brand_name: newsletter.brand_name, // Include brand_name
               count: 0
             };
+          }
+          
+          // Update brand_name if current newsletter has one and the accumulated one doesn't
+          if (newsletter.brand_name && !acc[newsletter.sender_email].brand_name) {
+            acc[newsletter.sender_email].brand_name = newsletter.brand_name;
           }
           
           acc[newsletter.sender_email].count += 1;

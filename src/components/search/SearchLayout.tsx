@@ -7,6 +7,7 @@ interface SenderBrand {
   sender_email: string;
   sender_name: string;
   count: number;
+  brand_name?: string; // Add brand_name field
 }
 
 interface SearchLayoutProps {
