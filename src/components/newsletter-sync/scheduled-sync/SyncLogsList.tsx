@@ -113,15 +113,20 @@ export function SyncLogsList({
             <div className="min-w-[800px]">
               <LogsTableHeader />
               <div>
-                {displayedLogs.map((log, index) => (
-                  <SyncLogItem 
-                    key={log.id} 
-                    log={log} 
-                    formatTimestamp={formatTimestamp}
-                    itemNumber={syncLogs.indexOf(log) + 1} // Use the original index from syncLogs
-                    totalItems={syncLogs.length} // Total number of logs, not just displayed ones
-                  />
-                ))}
+                {displayedLogs.map((log, index) => {
+                  // Calculate row number so the latest entry has the highest number
+                  const rowNumber = syncLogs.length - syncLogs.indexOf(log);
+                  
+                  return (
+                    <SyncLogItem 
+                      key={log.id} 
+                      log={log} 
+                      formatTimestamp={formatTimestamp}
+                      itemNumber={rowNumber}
+                      totalItems={syncLogs.length}
+                    />
+                  );
+                })}
               </div>
             </div>
           )}
