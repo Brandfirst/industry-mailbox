@@ -4,7 +4,7 @@ import { useSenderOperations } from "./useSenderOperations";
 import { useSenderSorting } from "./useSenderSorting";
 import { useRefreshSenders } from "./useRefreshSenders";
 import { UseNewsletterSendersResult } from "./types";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export function useNewsletterSenders(): UseNewsletterSendersResult {
   // Get base sender data
@@ -49,14 +49,29 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
     setFrequencyData
   );
 
+  // Track whether we're in an operation
+  const isOperationInProgress = useRef(false);
+
   // Auto-refresh after operations
   useEffect(() => {
-    // If we were updating and now we're not, refresh the data
-    if (!updatingCategory && !updatingBrand && !deleting && !refreshing) {
+    // Only proceed if we were doing an operation and now it's completed
+    if (isOperationInProgress.current && 
+        !updatingCategory && !updatingBrand && !deleting && !refreshing) {
       console.log("Operations completed, refreshing sender data");
+      
+      // Reset the operation flag
+      isOperationInProgress.current = false;
+      
+      // Trigger a single refresh
       handleRefresh();
     }
-  }, [updatingCategory, updatingBrand, deleting, refreshing, handleRefresh]);
+    
+    // Set the flag if we're currently in an operation
+    if ((updatingCategory || updatingBrand || deleting || refreshing) && 
+        !isOperationInProgress.current) {
+      isOperationInProgress.current = true;
+    }
+  }, [updatingCategory, updatingBrand, deleting, refreshing]);
 
   // Apply filters to get the final sender list
   const filteredSenders = filterSenders(senders);
