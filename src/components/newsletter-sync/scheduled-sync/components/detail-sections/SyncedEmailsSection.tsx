@@ -2,12 +2,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDownIcon, ChevronUpIcon, Eye } from "lucide-react";
-import { NewsletterViewDialog } from "@/components/newsletter-sync/newsletter-view";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
 import { Newsletter } from "@/lib/supabase/types";
 import { useNavigate } from "react-router-dom";
-import { getNewsletterPath } from "@/lib/utils/newsletterNavigation";
 
 interface SyncedEmailsSectionProps {
   syncedEmails: any[];
@@ -30,7 +28,6 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   const navigateToNewsletter = (email: any) => {
     // Direct navigation to the newsletter detail page
     if (email.id) {
-      // Always use the consistent /newsletter/{id} path format
       navigate(`/newsletter/${email.id}`);
       console.log(`Navigating to newsletter ID: ${email.id}`);
     } else {
@@ -45,7 +42,6 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
       </div>
       <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
         {displayedEmails.map((email: any, index: number) => {
-          // Create a simplified reference just for display
           return (
             <div 
               key={index} 
@@ -57,24 +53,6 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
                   <div><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
                   <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
                   {email.date && <div className="text-xs text-gray-500 mt-1">Date: {new Date(email.date).toLocaleString()}</div>}
-                </div>
-                <div onClick={(e) => e.stopPropagation()}>
-                  <NewsletterViewDialog 
-                    newsletter={{
-                      id: email.id || index,
-                      title: email.title || email.subject || 'No subject',
-                      sender: email.sender || 'Unknown',
-                      sender_email: email.sender_email || email.sender || 'Unknown',
-                      content: email.content || null,
-                      published_at: email.date || new Date().toISOString(),
-                      industry: email.industry || '',
-                      preview: email.preview || email.subject || '',
-                      created_at: email.created_at || new Date().toISOString(),
-                      gmail_message_id: email.gmail_message_id || '',
-                      gmail_thread_id: email.gmail_thread_id || '',
-                      email_id: email.email_id || ''
-                    } as Newsletter} 
-                  />
                 </div>
               </div>
             </div>
