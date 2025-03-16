@@ -16,7 +16,7 @@ export async function addSyncLog(logData: SyncLogInput): Promise<SyncLogEntry | 
       message_count_param: logData.message_count,
       error_message_param: logData.error_message || null,
       details_param: logData.details ? logData.details : null,
-      sync_type_param: logData.sync_type || 'manual' // Add the sync_type parameter to the RPC call
+      sync_type_param: logData.sync_type || 'manual'
     });
     
     if (error) {
@@ -36,7 +36,7 @@ export async function addSyncLog(logData: SyncLogInput): Promise<SyncLogEntry | 
       message_count: typedData.message_count,
       error_message: typedData.error_message,
       details: typedData.details,
-      sync_type: logData.sync_type || 'manual'
+      sync_type: typedData.sync_type || 'manual'
     };
   } catch (error) {
     console.error("Exception adding sync log:", error);
