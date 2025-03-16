@@ -75,10 +75,12 @@ export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSe
     // Properly cast the sync_settings to our type
     const settings = data.sync_settings as any;
     
+    // Ensure we're using consistent property names (camelCase)
     // Extract scheduleType - handle both camelCase and snake_case keys for backward compatibility
     const scheduleType = settings.scheduleType || settings.schedule_type || 'disabled';
     
-    const syncSettings = {
+    // Build the settings object with consistent naming
+    const syncSettings: SyncScheduleSettings = {
       enabled: Boolean(settings.enabled),
       scheduleType: scheduleType as SyncScheduleSettings['scheduleType'],
       hour: typeof settings.hour === 'number' ? settings.hour : undefined,

@@ -8,7 +8,7 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { getSyncLogs, SyncLogEntry, getSyncSchedule, SyncScheduleSettings } from "@/lib/supabase/emailAccounts/syncLogs";
+import { getSyncLogs, getSyncSchedule, SyncScheduleSettings } from "@/lib/supabase/emailAccounts/syncLogs";
 import { SyncScheduleControls, SyncLogsList } from "./scheduled-sync";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,7 +24,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
   const [scheduleOption, setScheduleOption] = useState<ScheduleOption>("disabled");
   const [specificHour, setSpecificHour] = useState<string>("09");
   const [isEnabled, setIsEnabled] = useState(false);
-  const [syncLogs, setSyncLogs] = useState<SyncLogEntry[]>([]);
+  const [syncLogs, setSyncLogs] = useState<any[]>([]);
   const [showLogs, setShowLogs] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
@@ -65,6 +65,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       console.log("Retrieved settings:", settings);
       
       if (settings) {
+        // Update state with the retrieved settings
         setIsEnabled(settings.enabled);
         setScheduleOption(settings.scheduleType as ScheduleOption);
         setLastUpdated(settings.updated_at);

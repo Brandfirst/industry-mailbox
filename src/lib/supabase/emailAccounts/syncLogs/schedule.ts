@@ -17,10 +17,10 @@ export async function updateSyncSchedule(
       hour
     });
     
-    // Create settings object ensuring all keys use the same casing convention
+    // Create settings object with consistent property naming convention (camelCase)
     const settings = {
       enabled: enabled,
-      scheduleType: scheduleType,  // Use camelCase consistently
+      scheduleType: scheduleType,
       hour: hour !== undefined ? hour : null,
       updated_at: new Date().toISOString()
     };
