@@ -84,17 +84,21 @@ Deno.serve(async (req) => {
       
       switch (settings.scheduleType) {
         case 'minute':
-          // For minute schedule, check if this is a manual trigger or if it's the right time
-          shouldSync = isManualTrigger || true; // Always run minute syncs for now
+          // For minute schedule, always run it when the scheduled function is called
+          // This now runs on every scheduled invocation of this function
+          shouldSync = true;
+          console.log(`Minute sync for account ${account.id} (${account.email}) - scheduled to run every minute`);
           break;
         case 'hourly':
           // Sync at the top of each hour
           shouldSync = currentMinute === 0;
+          console.log(`Hourly sync for account ${account.id} - should sync: ${shouldSync} (minute: ${currentMinute})`);
           break;
         case 'daily':
           // Sync once per day at specified hour
           const hourToSync = typeof settings.hour === 'number' ? settings.hour : 0;
           shouldSync = currentHour === hourToSync && currentMinute === 0;
+          console.log(`Daily sync for account ${account.id} - should sync: ${shouldSync} (hour: ${currentHour}, target: ${hourToSync}, minute: ${currentMinute})`);
           break;
       }
       
