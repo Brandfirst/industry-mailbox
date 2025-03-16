@@ -1,7 +1,10 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
 import { NewsletterCategory } from "@/lib/supabase/types";
 import {
@@ -19,6 +22,7 @@ type SenderListProps = {
   loading?: boolean;
   onCategoryChange?: (senderEmail: string, categoryId: number | null) => Promise<void>;
   onBrandChange?: (senderEmail: string, brandName: string) => Promise<void>;
+  onDeleteSenders?: (senderEmails: string[]) => Promise<void>;
 };
 
 type SortField = 'name' | 'count' | 'last_sync';
@@ -29,7 +33,8 @@ const SenderList = ({
   categories, 
   loading = false, 
   onCategoryChange,
-  onBrandChange
+  onBrandChange,
+  onDeleteSenders
 }: SenderListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>('count');
@@ -37,6 +42,9 @@ const SenderList = ({
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
   const [brandInputValues, setBrandInputValues] = useState<Record<string, string>>({});
+  const [selectedSenders, setSelectedSenders] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Handle sorting
   const handleSort = (field: SortField) => {
@@ -108,6 +116,41 @@ const SenderList = ({
     return getCategoryColorById(categoryId, categories);
   };
 
+  // Selection handlers
+  const handleToggleSelect = useCallback((senderEmail: string) => {
+    setSelectedSenders(prev => 
+      prev.includes(senderEmail)
+        ? prev.filter(email => email !== senderEmail)
+        : [...prev, senderEmail]
+    );
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    if (selectedSenders.length === filteredSenders.length) {
+      setSelectedSenders([]);
+    } else {
+      setSelectedSenders(filteredSenders.map(sender => sender.sender_email));
+    }
+  }, [filteredSenders, selectedSenders.length]);
+
+  // Delete handlers
+  const handleDeleteSenders = async () => {
+    if (!onDeleteSenders || selectedSenders.length === 0) return;
+    
+    setIsDeleting(true);
+    try {
+      await onDeleteSenders(selectedSenders);
+      toast.success(`Successfully deleted ${selectedSenders.length} sender(s)`);
+      setSelectedSenders([]);
+    } catch (error) {
+      console.error("Error deleting senders:", error);
+      toast.error("Failed to delete senders");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-32">
@@ -118,11 +161,25 @@ const SenderList = ({
 
   return (
     <div className="space-y-4">
-      <SenderListHeader 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        resultsCount={filteredSenders.length}
-      />
+      <div className="flex justify-between items-center">
+        <SenderListHeader 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          resultsCount={filteredSenders.length}
+        />
+        
+        {selectedSenders.length > 0 && onDeleteSenders && (
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete {selectedSenders.length} selected
+          </Button>
+        )}
+      </div>
 
       <div className="rounded-md border">
         <Table>
@@ -130,25 +187,30 @@ const SenderList = ({
             sortField={sortField}
             sortDirection={sortDirection}
             onSort={handleSort}
+            allSelected={selectedSenders.length === filteredSenders.length && filteredSenders.length > 0}
+            onSelectAll={onDeleteSenders ? handleSelectAll : undefined}
           />
           <TableBody>
             {filteredSenders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={onDeleteSenders ? 7 : 6} className="h-24 text-center">
                   No senders found.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredSenders.map((sender) => (
+              filteredSenders.map((sender, index) => (
                 <SenderTableRow
                   key={sender.sender_email}
                   sender={sender}
+                  index={index}
                   categories={categories}
+                  isSelected={selectedSenders.includes(sender.sender_email)}
                   updatingCategory={updatingCategory}
                   updatingBrand={updatingBrand}
                   brandInputValue={getBrandInputValue(sender)}
                   onCategoryChange={handleCategoryChange}
                   onBrandUpdate={handleBrandUpdate}
+                  onToggleSelect={onDeleteSenders ? handleToggleSelect : undefined}
                   getCategoryNameById={getCategoryNameByIdWrapper}
                   getCategoryColorById={getCategoryColorByIdWrapper}
                 />
@@ -157,6 +219,28 @@ const SenderList = ({
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete {selectedSenders.length} sender(s) and all their newsletters.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteSenders}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -37,6 +37,7 @@ export function useNewsletterSenders() {
   const [updatingBrand, setUpdatingBrand] = useState(false);
   const [frequencyData, setFrequencyData] = useState<SenderFrequencyData[] | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -137,6 +138,33 @@ export function useNewsletterSenders() {
       setUpdatingBrand(false);
     }
   }, [user]);
+
+  const handleDeleteSenders = useCallback(async (senderEmails: string[]) => {
+    if (!user || senderEmails.length === 0) return;
+    
+    try {
+      setDeleting(true);
+      
+      // Delete all newsletters from these senders
+      const { error } = await supabase
+        .from('newsletters')
+        .delete()
+        .in('sender_email', senderEmails);
+      
+      if (error) throw error;
+      
+      // Update the local state
+      setSenders(prevSenders => 
+        prevSenders.filter(sender => !senderEmails.includes(sender.sender_email))
+      );
+      
+    } catch (error) {
+      console.error("Error deleting senders:", error);
+      throw error;
+    } finally {
+      setDeleting(false);
+    }
+  }, [user]);
   
   const toggleSort = useCallback((key: typeof sortKey) => {
     if (sortKey === key) {
@@ -183,11 +211,13 @@ export function useNewsletterSenders() {
     refreshing,
     updatingCategory,
     updatingBrand,
+    deleting,
     frequencyData,
     loadingAnalytics,
     handleRefresh,
     handleCategoryChange,
     handleBrandChange,
+    handleDeleteSenders,
     toggleSort,
     filteredSenders
   };

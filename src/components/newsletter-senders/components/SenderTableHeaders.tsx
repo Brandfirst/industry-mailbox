@@ -1,6 +1,7 @@
 
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type SortField = 'name' | 'count' | 'last_sync';
 type SortDirection = 'asc' | 'desc';
@@ -9,12 +10,16 @@ type SenderTableHeadersProps = {
   sortField: SortField;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
+  allSelected?: boolean;
+  onSelectAll?: () => void;
 };
 
 const SenderTableHeaders = ({ 
   sortField, 
   sortDirection, 
-  onSort 
+  onSort,
+  allSelected = false,
+  onSelectAll
 }: SenderTableHeadersProps) => {
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
@@ -26,6 +31,18 @@ const SenderTableHeaders = ({
   return (
     <TableHeader>
       <TableRow>
+        {onSelectAll && (
+          <TableHead className="w-[40px]">
+            <Checkbox 
+              checked={allSelected} 
+              onCheckedChange={onSelectAll}
+              aria-label="Select all senders"
+            />
+          </TableHead>
+        )}
+        <TableHead className="w-[60px] text-center font-medium text-foreground">
+          #
+        </TableHead>
         <TableHead 
           className="w-[250px] cursor-pointer" 
           onClick={() => onSort('name')}

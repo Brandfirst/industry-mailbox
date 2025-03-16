@@ -18,6 +18,8 @@ export default function NewsletterSendersPage() {
     refreshing,
     handleCategoryChange,
     handleBrandChange,
+    handleDeleteSenders,
+    deleting,
     frequencyData,
     filteredSenders
   } = useNewsletterSenders();
@@ -45,6 +47,7 @@ export default function NewsletterSendersPage() {
           loading={loading}
           onCategoryChange={handleCategoryChange}
           onBrandChange={handleBrandChange}
+          onDeleteSenders={handleDeleteSenders}
         />
         
         <SenderAnalytics 
