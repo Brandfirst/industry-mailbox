@@ -34,6 +34,11 @@ const SenderNewsletters = () => {
     handleSenderSearch
   } = useSenderNewsletters();
 
+  // Create a wrapper function that handles the string input
+  const onSearch = (query: string) => {
+    handleSenderSearch(query);
+  };
+
   return (
     <div className="flex flex-col bg-white min-h-screen">
       <SenderHeader 
@@ -45,7 +50,7 @@ const SenderNewsletters = () => {
       
       <SenderSearch 
         senderName={senderName}
-        onSearch={handleSenderSearch}
+        onSearch={onSearch}
       />
       
       <SenderContent 

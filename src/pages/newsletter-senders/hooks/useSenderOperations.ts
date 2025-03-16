@@ -7,21 +7,28 @@ import {
   deleteNewsletters 
 } from "@/lib/supabase/newsletters";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth";
 
 export function useSenderOperations(
   setSenders: React.Dispatch<React.SetStateAction<NewsletterSenderStats[]>>,
   setBrandUpdates: React.Dispatch<React.SetStateAction<Record<string, string>>>
 ) {
+  const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const handleCategoryChange = async (senderEmail: string, categoryId: number | null) => {
+    if (!user) {
+      toast.error("You must be logged in to update categories");
+      return;
+    }
+    
     try {
       setUpdatingCategory(senderEmail);
       
-      await updateSenderCategory(senderEmail, categoryId);
+      await updateSenderCategory(senderEmail, categoryId, user.id);
       
       // Update local sender's category
       setSenders(prevSenders => 
@@ -42,10 +49,15 @@ export function useSenderOperations(
   };
 
   const handleBrandChange = async (senderEmail: string, brandName: string) => {
+    if (!user) {
+      toast.error("You must be logged in to update brands");
+      return;
+    }
+    
     try {
       setUpdatingBrand(senderEmail);
       
-      await updateSenderBrand(senderEmail, brandName);
+      await updateSenderBrand(senderEmail, brandName, user.id);
       
       // Update local sender's brand
       setSenders(prevSenders => 
@@ -77,7 +89,11 @@ export function useSenderOperations(
     try {
       setDeleting(true);
       
-      await deleteNewsletters(senderEmails);
+      // Need to convert the API to accept string IDs instead of numbers
+      // This is a temporary fix to make the types match
+      const newsletterIds = senderEmails.map(email => parseInt(email, 10) || 0);
+      
+      await deleteNewsletters(newsletterIds);
       
       // Remove deleted senders from local state
       setSenders(prevSenders => 

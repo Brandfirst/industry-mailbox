@@ -1,6 +1,12 @@
 
 export type SortKey = "name" | "newsletters" | "lastSync" | "brand" | "category";
 
+export interface SenderFrequencyData {
+  date: string;
+  sender: string;
+  count: number;
+}
+
 export interface UseNewsletterSendersResult {
   senders: any[];
   categories: any[];
@@ -16,9 +22,9 @@ export interface UseNewsletterSendersResult {
   frequencyData: any;
   loadingAnalytics: boolean;
   handleRefresh: () => void;
-  handleCategoryChange: (senderEmail: string, categoryId: number | null) => void;
-  handleBrandChange: (senderEmail: string, brandName: string) => void;
-  handleDeleteSenders: (senderEmails: string[]) => void;
+  handleCategoryChange: (senderEmail: string, categoryId: number | null) => Promise<void>;
+  handleBrandChange: (senderEmail: string, brandName: string) => Promise<void>;
+  handleDeleteSenders: (senderEmails: string[]) => Promise<void>;
   toggleSort: (key: SortKey) => void;
   filteredSenders: any[];
 }
