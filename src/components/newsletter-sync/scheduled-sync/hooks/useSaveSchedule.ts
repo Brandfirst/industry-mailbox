@@ -12,20 +12,20 @@ export async function saveScheduleOperation({
   scheduleOption,
   specificHour,
   setIsSaving,
-  setSaveTimestamp,
   setHasSaved,
   refreshLogs,
-  triggerManualMinuteSync
+  triggerManualMinuteSync,
+  setSaveTimestamp
 }: {
   selectedAccount: string | null;
   isEnabled: boolean;
   scheduleOption: ScheduleOption;
   specificHour: string;
   setIsSaving: (value: boolean) => void;
-  setSaveTimestamp: (value: string) => void;
   setHasSaved: (value: boolean) => void;
   refreshLogs: () => Promise<void>;
   triggerManualMinuteSync: () => Promise<void>;
+  setSaveTimestamp: (value: string) => void;
 }) {
   if (!selectedAccount) {
     toast.error("No account selected");

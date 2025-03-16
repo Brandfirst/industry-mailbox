@@ -33,6 +33,7 @@ export function useSyncSchedule({
     hasSaved,
     setHasSaved,
     saveTimestamp,
+    setSaveTimestamp,
     resetSavedStatus
   } = useScheduleState({ lastUpdated });
   
@@ -73,7 +74,7 @@ export function useSyncSchedule({
       scheduleOption,
       specificHour,
       setIsSaving,
-      setSaveTimestamp: (timestamp) => setSaveTimestamp(timestamp),
+      setSaveTimestamp,
       setHasSaved,
       refreshLogs,
       triggerManualMinuteSync: handleManualMinuteSync
