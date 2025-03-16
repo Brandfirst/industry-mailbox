@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface SyncedEmailsDialogProps {
   isOpen: boolean;
@@ -29,16 +30,19 @@ export function SyncedEmailsDialog({
   const emails = Array.isArray(syncedEmails) ? syncedEmails : [];
   const emailCount = emails.length;
   
-  // Detailed debug logging for every render of this component
+  // Detailed debug logging to troubleshoot navigation issues
   React.useEffect(() => {
     if (isOpen) {
       console.log("SyncedEmailsDialog opened");
       console.log("Email count:", emailCount);
       console.log("Synced emails data:", emails);
       
-      // Check if the syncedEmails are in the expected format
+      // Check if the syncedEmails have newsletter IDs
       if (emailCount > 0) {
-        console.log("First email sample:", emails[0]);
+        emails.forEach((email, index) => {
+          console.log(`Email ${index} has ID:`, email.id);
+          console.log(`Email ${index} full data:`, email);
+        });
       }
     }
   }, [isOpen, emailCount, emails]);
@@ -49,17 +53,26 @@ export function SyncedEmailsDialog({
     onOpenChange(open);
   };
   
-  // Navigation handler with explicit event handling
+  // Enhanced navigation handler with newsletter ID extraction
   const navigateToNewsletter = (email: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Detailed logging to troubleshoot
+    console.log("Attempting to navigate with email:", email);
     
     if (email.id) {
       console.log(`Navigating to newsletter ID: ${email.id}`);
       navigate(`/newsletter/${email.id}`);
       onOpenChange(false); // Close the dialog after navigation
+    } else if (email.newsletter_id) {
+      // Support alternative ID field
+      console.log(`Navigating to newsletter ID (from newsletter_id): ${email.newsletter_id}`);
+      navigate(`/newsletter/${email.newsletter_id}`);
+      onOpenChange(false);
     } else {
       console.log("Cannot navigate: email has no valid ID");
+      toast.error("Can't open this newsletter - no ID available");
     }
   };
   
@@ -89,6 +102,13 @@ export function SyncedEmailsDialog({
                       <div><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
                       <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
                       {email.date && <div className="text-xs text-gray-500 mt-1">Date: {new Date(email.date).toLocaleString()}</div>}
+                      
+                      {/* Debug: show newsletter ID if available */}
+                      {(email.id || email.newsletter_id) && 
+                        <div className="text-xs text-blue-500 mt-1">
+                          Newsletter ID: {email.id || email.newsletter_id}
+                        </div>
+                      }
                     </div>
                   </div>
                 </div>

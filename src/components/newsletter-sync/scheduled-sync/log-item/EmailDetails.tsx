@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface EmailDetailsProps {
   syncedEmails: any[];
@@ -24,12 +25,18 @@ export function EmailDetails({ syncedEmails }: EmailDetailsProps) {
     e.preventDefault();
     e.stopPropagation();
     
+    // Enhanced debug logging
+    console.log("Attempting to navigate from EmailDetails with email:", email);
+    
     // Direct navigation to the newsletter detail page
-    if (email.id) {
-      console.log(`Navigating to newsletter ID: ${email.id}`);
-      navigate(`/newsletter/${email.id}`);
+    const newsletterId = email.id || email.newsletter_id;
+    
+    if (newsletterId) {
+      console.log(`Navigating to newsletter ID: ${newsletterId}`);
+      navigate(`/newsletter/${newsletterId}`);
     } else {
       console.log("Cannot navigate: email has no valid ID");
+      toast.error("Cannot view this newsletter - no ID available");
     }
   };
     
@@ -45,6 +52,11 @@ export function EmailDetails({ syncedEmails }: EmailDetailsProps) {
           >
             <div className="truncate"><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
             <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
+            
+            {/* Debug - show newsletter ID if available */}
+            {(email.id || email.newsletter_id) && (
+              <div className="text-xs text-blue-500">ID: {email.id || email.newsletter_id}</div>
+            )}
           </div>
         ))}
         {syncedEmails.length > maxInitialEmails && (

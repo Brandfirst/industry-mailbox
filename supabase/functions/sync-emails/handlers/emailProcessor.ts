@@ -32,9 +32,14 @@ export async function processEmails(emails: any[], accountId: string, supabase: 
       try {
         const savedEmail = await saveEmailToDatabase(email, accountId, supabase, verbose);
         if (savedEmail) {
-          synced.push(savedEmail);
+          // Ensure we preserve the newsletter ID for proper navigation
+          synced.push({
+            ...savedEmail,
+            // Make sure we have an id property for navigation
+            id: savedEmail.id || savedEmail.newsletter_id
+          });
           
-          // Track unique senders - make sure to log sender info for debugging
+          // Track unique senders
           if (email.sender_email) {
             uniqueSenders.add(email.sender_email);
             if (verbose) {
