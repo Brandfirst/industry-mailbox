@@ -18,8 +18,11 @@ const HeroSection = () => {
     const fetchNewsletters = async () => {
       setLoading(true);
       try {
+        // Convert the selectedCategory to a valid categoryId for the API
+        const categoryIdParam = selectedCategory !== "all" ? selectedCategory : undefined;
+        
         const result = await getFeaturedNewsletters({
-          categoryId: selectedCategory !== "all" ? selectedCategory : undefined,
+          categoryId: categoryIdParam,
           limit: 3
         });
         

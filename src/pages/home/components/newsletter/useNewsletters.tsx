@@ -1,54 +1,49 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { getFeaturedNewsletters } from '@/lib/supabase/newsletters';
-import { NewsletterCategory } from '@/lib/supabase/types';
+import { Newsletter, NewsletterCategory } from '@/lib/supabase/types';
+import { getAllNewsletters } from '@/lib/supabase/newsletters/fetchAll';
+import { getAllCategories } from '@/lib/supabase/categories';
 
-export const useNewsletters = () => {
-  const [newsletters, setNewsletters] = useState([]);
+export function useNewsletters() {
+  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [categories, setCategories] = useState<NewsletterCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  
+
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name')
-        .limit(4);
-      
-      if (error) {
+      try {
+        const data = await getAllCategories();
+        setCategories(data);
+      } catch (error) {
         console.error('Error fetching categories:', error);
-        return;
       }
-      
-      setCategories(data || []);
     };
-    
+
     fetchCategories();
   }, []);
-  
+
   // Fetch newsletters based on selected category
   useEffect(() => {
     const fetchNewsletters = async () => {
       setLoading(true);
-      
       try {
-        const result = await getFeaturedNewsletters({
-          categoryId: selectedCategory !== 'all' ? selectedCategory : undefined,
+        const categoryIdParam = selectedCategory !== 'all' ? selectedCategory : undefined;
+        
+        const result = await getAllNewsletters({
+          categoryId: categoryIdParam,
           limit: 4
         });
         
-        setNewsletters(result.data || []);
+        setNewsletters(result.data);
       } catch (error) {
         console.error('Error fetching newsletters:', error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchNewsletters();
   }, [selectedCategory]);
 
@@ -59,4 +54,4 @@ export const useNewsletters = () => {
     selectedCategory,
     setSelectedCategory
   };
-};
+}

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Select,
   SelectContent,
@@ -10,6 +10,8 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { ChevronDown } from "lucide-react";
+import { NewsletterCategory } from "@/lib/supabase/types";
+import { getAllCategories } from "@/lib/supabase/categories";
 
 interface CategoryFilterProps {
   selectedCategory: string;
@@ -19,14 +21,24 @@ interface CategoryFilterProps {
 const CategoryFilter = ({ selectedCategory, setSelectedCategory }: CategoryFilterProps) => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [categories, setCategories] = useState<NewsletterCategory[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const categories = [
-    { id: "all", name: "Alle kategorier" },
-    { id: "1", name: "Business" },
-    { id: "2", name: "Education" },
-    { id: "3", name: "Finance" },
-    { id: "4", name: "Health" }
-  ];
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesData = await getAllCategories();
+        setCategories(categoriesData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
   
   if (isMobile) {
     return (
@@ -37,11 +49,14 @@ const CategoryFilter = ({ selectedCategory, setSelectedCategory }: CategoryFilte
             <SelectValue placeholder="Velg kategori" className="relative z-10" />
           </SelectTrigger>
           <SelectContent className="bg-black/90 backdrop-blur-sm border-gray-700 text-white">
-            {categories.map((category) => (
+            <SelectItem value="all" className={`${selectedCategory === "all" ? "text-[#FF5722]" : "text-gray-300"}`}>
+              Alle kategorier
+            </SelectItem>
+            {!loading && categories.map((category) => (
               <SelectItem 
                 key={category.id} 
-                value={category.id}
-                className={`${selectedCategory === category.id ? "text-[#FF5722]" : "text-gray-300"}`}
+                value={String(category.id)}
+                className={`${selectedCategory === String(category.id) ? "text-[#FF5722]" : "text-gray-300"}`}
               >
                 {category.name}
               </SelectItem>
@@ -54,16 +69,29 @@ const CategoryFilter = ({ selectedCategory, setSelectedCategory }: CategoryFilte
   
   return (
     <div className="flex flex-wrap justify-center gap-3 mb-8 mt-16">
-      {categories.map((category) => (
+      <Button 
+        variant="outline" 
+        className={`relative overflow-hidden announcement-glow-container ${
+          selectedCategory === "all" 
+            ? "text-white border-[#FF5722] border-2" 
+            : "text-gray-300 border-gray-700"
+        }`}
+        onClick={() => setSelectedCategory("all")}
+      >
+        <div className="absolute inset-0 announcement-glow-effect"></div>
+        <span className="relative z-10">Alle kategorier</span>
+      </Button>
+      
+      {!loading && categories.map((category) => (
         <Button 
           key={category.id}
           variant="outline" 
           className={`relative overflow-hidden announcement-glow-container ${
-            selectedCategory === category.id 
+            selectedCategory === String(category.id) 
               ? "text-white border-[#FF5722] border-2" 
               : "text-gray-300 border-gray-700"
           }`}
-          onClick={() => setSelectedCategory(category.id)}
+          onClick={() => setSelectedCategory(String(category.id))}
         >
           <div className="absolute inset-0 announcement-glow-effect"></div>
           <span className="relative z-10">{category.name}</span>
