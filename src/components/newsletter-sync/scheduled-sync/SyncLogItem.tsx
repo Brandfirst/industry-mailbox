@@ -64,6 +64,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   const newSenders = log.details?.new_senders_count || 0;
   const totalEmails = log.message_count || 0;
   const syncType = log.sync_type || 'manual';
+  const accountEmail = log.details?.accountEmail || 'Not available';
   
   // Schedule details if it's a scheduled log
   const scheduleDetails = log.status === 'scheduled' && log.details && (
@@ -101,25 +102,19 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   
   // Get content for details popup
   const getDetailsContent = () => {
-    const accountEmail = log.details?.accountEmail || 'Unknown';
-    const provider = log.details?.provider || 'Unknown';
     const syncedCount = log.details?.syncedCount || 0;
     const failedCount = log.details?.failedCount || 0;
     const startTime = log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Unknown';
+    const syncedEmails = log.details?.synced || [];
     
     return (
-      <div className="space-y-3 p-1">
+      <div className="space-y-3 p-1 text-foreground">
         <h4 className="font-medium text-sm">Sync Details</h4>
         
         <div className="space-y-2 text-xs">
           <div className="grid grid-cols-2 gap-1">
             <div className="text-muted-foreground">Account:</div>
             <div>{accountEmail}</div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-1">
-            <div className="text-muted-foreground">Provider:</div>
-            <div className="capitalize">{provider}</div>
           </div>
           
           <div className="grid grid-cols-2 gap-1">
@@ -153,6 +148,20 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
                 <div className="grid grid-cols-2 gap-1">
                   <div className="text-muted-foreground">New senders:</div>
                   <div>{newSenders}</div>
+                </div>
+              )}
+              
+              {syncedEmails.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-gray-100">
+                  <div className="text-muted-foreground mb-1">Synced Emails:</div>
+                  <div className="max-h-40 overflow-y-auto">
+                    {syncedEmails.map((email: any, index: number) => (
+                      <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-b-0">
+                        <div><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
+                        <div className="truncate"><span className="font-medium">Subject:</span> {email.title || 'No subject'}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </>
@@ -207,7 +216,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
                 <InfoIcon className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-72" align="end">
+            <PopoverContent className="w-72 bg-background border-border" align="end">
               {getDetailsContent()}
             </PopoverContent>
           </Popover>
