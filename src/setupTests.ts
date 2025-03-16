@@ -8,41 +8,38 @@ import React from 'react';
 
 // Mock the UI components that are imported from shadcn
 jest.mock('@/components/ui/table', () => ({
-  Table: ({ children }: { children: React.ReactNode }) => (
-    <table data-testid="table">{children}</table>
+  Table: ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <div data-testid="table" className={className}>{children}</div>
   ),
-  TableHeader: ({ children }: { children: React.ReactNode }) => (
-    <thead data-testid="table-header">{children}</thead>
+  TableHeader: ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <div data-testid="table-header" className={className}>{children}</div>
   ),
-  TableBody: ({ children }: { children: React.ReactNode }) => (
-    <tbody data-testid="table-body">{children}</tbody>
+  TableBody: ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <div data-testid="table-body" className={className}>{children}</div>
   ),
-  TableHead: ({ 
-    children, 
-    className 
-  }: { 
-    children: React.ReactNode;
-    className?: string;
+  TableHead: ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <div data-testid="table-head" className={className}>{children}</div>
+  ),
+  TableRow: ({ children, className, isSelected, isHighlighted }: { 
+    children: React.ReactNode, 
+    className?: string,
+    isSelected?: boolean,
+    isHighlighted?: boolean
   }) => (
-    <th data-testid="table-head" className={className}>{children}</th>
+    <div 
+      data-testid="table-row" 
+      className={className}
+      data-selected={isSelected ? 'true' : 'false'}
+      data-highlighted={isHighlighted ? 'true' : 'false'}
+    >
+      {children}
+    </div>
   ),
-  TableRow: ({ 
-    children, 
-    className 
-  }: { 
-    children: React.ReactNode;
-    className?: string;
-  }) => (
-    <tr data-testid="table-row" className={className}>{children}</tr>
+  TableCell: ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <div data-testid="table-cell" className={className}>{children}</div>
   ),
-  TableCell: ({ 
-    children, 
-    className 
-  }: { 
-    children: React.ReactNode;
-    className?: string;
-  }) => (
-    <td data-testid="table-cell" className={className}>{children}</td>
+  TableCaption: ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <div data-testid="table-caption" className={className}>{children}</div>
   )
 }));
 
@@ -50,11 +47,11 @@ jest.mock('@/components/ui/checkbox', () => ({
   Checkbox: (props: any) => (
     <input 
       type="checkbox" 
+      data-testid="checkbox"
       checked={props.checked} 
       onChange={props.onCheckedChange ? () => props.onCheckedChange(!props.checked) : undefined}
       className={props.className}
       aria-label={props["aria-label"]}
-      data-testid="checkbox"
     />
   )
 }));
@@ -64,7 +61,6 @@ jest.mock('@/components/ui/input', () => ({
     <input 
       {...props}
       data-testid="input"
-      className={props.className}
     />
   )
 }));
@@ -107,31 +103,35 @@ jest.mock('@/components/ui/badge', () => ({
   )
 }));
 
+// Mock Lucide icons
 jest.mock('lucide-react', () => ({
-  Mail: () => <span data-icon="mail" data-testid="mail-icon">Mail Icon</span>,
-  Calendar: () => <span data-icon="calendar" data-testid="calendar-icon">Calendar Icon</span>,
-  Trash2: () => <span data-icon="trash2" data-testid="trash-icon">Trash Icon</span>,
-  ArrowUpIcon: () => <span data-icon="arrow-up" data-testid="arrow-up-icon">ArrowUpIcon</span>,
-  ArrowDownIcon: () => <span data-icon="arrow-down" data-testid="arrow-down-icon">ArrowDownIcon</span>,
-  Briefcase: () => <span data-icon="briefcase" data-testid="briefcase-icon">Briefcase Icon</span>,
-  Pen: () => <span data-icon="pen" data-testid="pen-icon">Pen Icon</span>,
-  Tag: () => <span data-icon="tag" data-testid="tag-icon">Tag Icon</span>,
-  InfoIcon: () => <span data-icon="info" data-testid="info-icon">Info Icon</span>
+  Mail: () => <span data-testid="mail-icon">Mail Icon</span>,
+  Calendar: () => <span data-testid="calendar-icon">Calendar Icon</span>,
+  Trash2: () => <span data-testid="trash-icon">Trash Icon</span>,
+  ArrowUpIcon: () => <span data-testid="arrow-up-icon">ArrowUpIcon</span>,
+  ArrowDownIcon: () => <span data-testid="arrow-down-icon">ArrowDownIcon</span>,
+  Briefcase: () => <span data-testid="briefcase-icon">Briefcase Icon</span>,
+  Pen: () => <span data-testid="pen-icon">Pen Icon</span>,
+  Tag: () => <span data-testid="tag-icon">Tag Icon</span>,
+  InfoIcon: () => <span data-testid="info-icon">Info Icon</span>,
+  Filter: () => <span data-testid="filter-icon">Filter Icon</span>,
+  ChevronRight: () => <span data-testid="chevron-right-icon">ChevronRight Icon</span>,
+  ChevronLeft: () => <span data-testid="chevron-left-icon">ChevronLeft Icon</span>,
+  Search: () => <span data-testid="search-icon">Search Icon</span>,
+  Check: () => <span data-testid="check-icon">Check Icon</span>,
+  ChevronDown: () => <span data-testid="chevron-down-icon">ChevronDown Icon</span>,
+  ChevronUp: () => <span data-testid="chevron-up-icon">ChevronUp Icon</span>
 }));
 
+// Mock date-fns
 jest.mock('date-fns', () => ({
   format: jest.fn((date, formatStr) => '2023-05-20') // Return a fixed date string for testing
 }));
 
 // Mock the select component from shadcn
 jest.mock('@/components/ui/select', () => ({
-  Select: ({ 
-    children, 
-    value, 
-    onValueChange, 
-    disabled 
-  }: any) => (
-    <div className="select-container" data-testid="select-container">
+  Select: ({ children, value, onValueChange, disabled }: any) => (
+    <div data-testid="select-container">
       <select 
         value={value} 
         onChange={(e) => onValueChange && onValueChange(e.target.value)}
@@ -142,35 +142,50 @@ jest.mock('@/components/ui/select', () => ({
       </select>
     </div>
   ),
-  SelectTrigger: ({ 
-    children, 
-    className 
-  }: any) => (
-    <div className={`select-trigger ${className || ''}`} data-testid="select-trigger">
+  SelectTrigger: ({ children, className }: any) => (
+    <div className={className} data-testid="select-trigger">
       {children}
     </div>
   ),
   SelectValue: ({ placeholder }: any) => (
-    <div className="select-value" data-placeholder={placeholder} data-testid="select-value">
+    <div data-placeholder={placeholder} data-testid="select-value">
       Select Value
     </div>
   ),
-  SelectContent: ({ 
-    children, 
-    className 
-  }: any) => (
-    <div className={`select-content ${className || ''}`} data-testid="select-content">
+  SelectContent: ({ children, className }: any) => (
+    <div className={className} data-testid="select-content">
       {children}
     </div>
   ),
-  SelectItem: ({ 
-    children, 
-    value, 
-    className 
-  }: any) => (
+  SelectItem: ({ children, value, className }: any) => (
     <option value={value} className={className} data-testid="select-item">
       {children}
     </option>
+  ),
+  SelectGroup: ({ children }: any) => (
+    <div data-testid="select-group">{children}</div>
+  ),
+  SelectLabel: ({ children }: any) => (
+    <div data-testid="select-label">{children}</div>
+  ),
+  SelectSeparator: () => (
+    <div data-testid="select-separator" />
+  ),
+  SelectScrollUpButton: () => (
+    <div data-testid="select-scroll-up" />
+  ),
+  SelectScrollDownButton: () => (
+    <div data-testid="select-scroll-down" />
+  )
+}));
+
+// Mock alert component
+jest.mock('@/components/ui/alert', () => ({
+  Alert: ({ children, className }: any) => (
+    <div data-testid="alert" className={className}>{children}</div>
+  ),
+  AlertDescription: ({ children }: any) => (
+    <div data-testid="alert-description">{children}</div>
   )
 }));
 
