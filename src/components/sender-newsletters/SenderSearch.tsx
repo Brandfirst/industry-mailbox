@@ -17,7 +17,7 @@ const SenderSearch = ({
   selectedPeriod = "all"
 }: SenderSearchProps) => {
   return (
-    <div className="py-6 px-4 md:px-6 lg:px-8 bg-slate-50 border-b border-slate-200">
+    <div className="py-4 sm:py-6 px-4 md:px-6 lg:px-8 bg-slate-50 border-b border-slate-200">
       <div className="max-w-6xl mx-auto">
         <SearchBar 
           placeholder={`Search ${senderName} newsletters...`}

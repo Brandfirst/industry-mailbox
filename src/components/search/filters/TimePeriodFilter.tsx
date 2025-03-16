@@ -29,12 +29,12 @@ const TimePeriodFilter: React.FC<TimePeriodFilterProps> = ({
   onPeriodChange
 }) => {
   return (
-    <div className="relative min-w-[150px]">
+    <div className="relative w-full sm:min-w-[150px]">
       <Select
         value={selectedPeriod}
         onValueChange={(value) => onPeriodChange(value as TimePeriodOption)}
       >
-        <SelectTrigger className="w-full bg-white border-border flex items-center gap-2">
+        <SelectTrigger className="w-full bg-white border-border flex items-center gap-2 h-[42px] md:h-10">
           <Clock className="h-4 w-4 text-muted-foreground" />
           <SelectValue placeholder="Filter by period" />
         </SelectTrigger>
