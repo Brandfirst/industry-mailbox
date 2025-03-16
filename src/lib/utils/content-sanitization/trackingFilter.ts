@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for filtering tracking elements and sanitizing content
  */
