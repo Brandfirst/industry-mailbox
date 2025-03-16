@@ -5,6 +5,7 @@ import NewsletterPreview from './NewsletterPreview';
 import { useNavigate } from 'react-router-dom';
 import { navigateToSender } from '@/lib/utils/newsletterNavigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface NewsletterItemDesktopProps {
   newsletter: Newsletter;

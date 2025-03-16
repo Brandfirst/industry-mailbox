@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 interface NewsletterPreviewProps {
   content: string | null;
@@ -9,6 +9,7 @@ interface NewsletterPreviewProps {
 
 const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPreviewProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [iframeHeight, setIframeHeight] = useState<string>(isMobile ? "100%" : "100%");
   
   const getIframeContent = () => {
     if (!content) {
@@ -29,16 +30,19 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             html, body {
               margin: 0;
               padding: 0;
-              overflow: hidden;
               height: 100%;
               width: 100%;
               background-color: white;
-              border-radius: 12px;
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              overflow-x: hidden;
             }
             body {
               ${isMobile ? 'zoom: 0.2;' : ''}
               padding: 10px;
+              box-sizing: border-box;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
             }
             a {
               pointer-events: none;
@@ -48,10 +52,23 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               height: auto;
               display: inline-block;
             }
+            table {
+              margin-left: auto;
+              margin-right: auto;
+              max-width: 100%;
+            }
             * {
               max-width: 100%;
               box-sizing: border-box;
             }
+            /* Center content on mobile preview */
+            ${isMobile ? `
+              body > * {
+                transform-origin: top center;
+                margin-left: auto;
+                margin-right: auto;
+              }
+            ` : ''}
           </style>
         </head>
         <body>
@@ -60,7 +77,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
       </html>`;
   };
 
-  // Handle iframe load
+  // Handle iframe load and resize
   useEffect(() => {
     if (!iframeRef.current) return;
     
@@ -73,6 +90,22 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         doc.open("text/html", "replace");
         doc.write(content);
         doc.close();
+        
+        // Adjust iframe height to content for better display
+        if (!isMobile) {
+          const resizeObserver = new ResizeObserver(() => {
+            if (doc.body) {
+              const height = doc.body.scrollHeight;
+              setIframeHeight(`${height}px`);
+            }
+          });
+          
+          resizeObserver.observe(doc.body);
+          
+          return () => {
+            resizeObserver.disconnect();
+          };
+        }
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);
@@ -98,7 +131,8 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           pointerEvents: "none",
           display: "block",
           width: "100%",
-          height: "100%",
+          height: iframeHeight,
+          overflow: isMobile ? "hidden" : "visible",
           objectFit: "cover",
           borderRadius: "12px"
         }}

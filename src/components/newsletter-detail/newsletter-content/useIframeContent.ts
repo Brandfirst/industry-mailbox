@@ -30,13 +30,27 @@ export const useIframeContent = (newsletter: Newsletter) => {
             <meta http-equiv="Content-Security-Policy" content="script-src 'none'; frame-src 'none';">
             <style>
               body {
-                margin: 0;
+                margin: 0 auto;
                 padding: 20px;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
                 line-height: 1.6;
+                max-width: 100%;
               }
               img { max-width: 100%; height: auto; }
               * { box-sizing: border-box; }
+              table {
+                margin-left: auto;
+                margin-right: auto;
+                max-width: 100%;
+              }
+              div {
+                max-width: 100%;
+              }
+              /* Center content */
+              body > * {
+                margin-left: auto;
+                margin-right: auto;
+              }
             </style>
           </head>
           <body>
@@ -60,12 +74,18 @@ export const useIframeContent = (newsletter: Newsletter) => {
           doc.close();
           
           // Adjust height after content is loaded
-          setTimeout(() => {
-            if (doc.body && iframe) {
+          const resizeObserver = new ResizeObserver(() => {
+            if (doc.body) {
               const height = doc.body.scrollHeight;
               setIframeHeight(`${height + 50}px`);
             }
-          }, 500);
+          });
+          
+          resizeObserver.observe(doc.body);
+          
+          return () => {
+            resizeObserver.disconnect();
+          };
         } catch (error) {
           console.error("Error writing to iframe:", error);
         }

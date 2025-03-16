@@ -25,7 +25,7 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate, displayNa
   
   return (
     <div className="md:hidden flex" onClick={onClick}>
-      <div className="w-1/3 h-56 bg-white overflow-hidden">
+      <div className="w-1/3 h-56 bg-white overflow-hidden rounded-l-xl">
         <div className="w-full h-full flex items-center justify-center">
           <NewsletterPreview 
             content={newsletter.content} 
