@@ -48,7 +48,7 @@ const getIframeStyles = (isMobile: boolean = false): string => {
       width: 100%;
       background-color: white;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden !important;
+      overflow-x: hidden !important;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -65,12 +65,9 @@ const getIframeStyles = (isMobile: boolean = false): string => {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      overflow: hidden !important;
-      ${isMobile ? '' : `
-      transform: scale(0.9);
-      transform-origin: center top;
-      `}
+      justify-content: flex-start;
+      overflow-x: hidden !important;
+      ${isMobile ? 'transform: scale(0.4); transform-origin: top center;' : 'transform: scale(0.7); transform-origin: top center;'}
     }
     
     /* Preserve the pointer-events none for links */
@@ -86,14 +83,12 @@ const getIframeStyles = (isMobile: boolean = false): string => {
     
     /* Create a centered container for newsletter content */
     .newsletter-wrapper {
-      width: auto !important;
-      max-width: 100% !important;
+      width: 100% !important;
+      max-width: 800px !important;
       display: block;
       margin: 0 auto !important;
-      overflow: hidden !important;
+      overflow-x: hidden !important;
       text-align: center !important;
-      transform: scale(0.95);
-      transform-origin: center top;
       background-color: white;
     }
     
@@ -104,9 +99,6 @@ const getIframeStyles = (isMobile: boolean = false): string => {
       margin-right: auto !important;
       width: auto !important; 
       table-layout: auto !important;
-      transform: translateX(-50%) !important;
-      left: 50% !important;
-      position: relative !important;
     }
     
     /* Handle nested tables often used in newsletters */
@@ -114,18 +106,15 @@ const getIframeStyles = (isMobile: boolean = false): string => {
       width: 100% !important;
     }
     
-    /* Center common newsletter container elements without transforming them */
+    /* Center common newsletter container elements */
     .wrapper, .container, [class*="container"], [class*="wrapper"], 
     .email-body, .email-content, .main, .content,
     [class*="body"], [class*="main"], [class*="content"], [class*="inner"] {
       margin-left: auto !important;
       margin-right: auto !important;
-      width: auto !important;
-      max-width: 100% !important;
+      width: 100% !important;
+      max-width: 800px !important;
       float: none !important;
-      transform: translateX(-50%) !important;
-      left: 50% !important;
-      position: relative !important;
     }
     
     /* Preserve table layouts which are critical for email newsletters */
@@ -143,7 +132,7 @@ const getIframeStyles = (isMobile: boolean = false): string => {
       width: 100%;
     }
     
-    /* Extra overrides for better centering */
+    /* Center all elements */
     div, p, h1, h2, h3, h4, h5, h6, span, a, 
     section, article, header, footer, main {
       margin-left: auto !important;
@@ -152,3 +141,4 @@ const getIframeStyles = (isMobile: boolean = false): string => {
     }
   `;
 };
+

@@ -10,7 +10,7 @@ interface IframePreviewProps {
 
 const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile = false }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [iframeHeight, setIframeHeight] = useState<string>(isMobile ? "100%" : "100%");
+  const [iframeHeight, setIframeHeight] = useState<string>("400px");
   
   // Handle iframe load and resize
   useEffect(() => {
@@ -26,33 +26,14 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
         doc.write(formattedContent);
         doc.close();
         
-        // Adjust iframe height to content for better display
-        if (!isMobile) {
-          const resizeObserver = new ResizeObserver(() => {
-            if (doc.body) {
-              // Ensure all content is visible
-              const computedHeight = doc.body.scrollHeight;
-              setIframeHeight(`${computedHeight}px`);
-              
-              // Apply centering
-              forceCentering(doc);
-            }
-          });
+        // Set fixed height based on device type
+        setIframeHeight(isMobile ? "250px" : "400px");
+        
+        // Apply centering
+        forceCentering(doc);
           
-          resizeObserver.observe(doc.body);
-          
-          // Apply centering immediately after content is loaded
-          forceCentering(doc);
-          
-          // And again after short delays to handle any dynamic elements
-          setTimeout(() => forceCentering(doc), 100);
-          setTimeout(() => forceCentering(doc), 300);
-          setTimeout(() => forceCentering(doc), 600);
-          
-          return () => {
-            resizeObserver.disconnect();
-          };
-        }
+        // And again after short delays to handle any dynamic elements
+        setTimeout(() => forceCentering(doc), 100);
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);
