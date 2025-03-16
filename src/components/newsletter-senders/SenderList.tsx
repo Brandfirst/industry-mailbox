@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Table, TableBody } from "@/components/ui/table";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
 import { NewsletterCategory } from "@/lib/supabase/types";
@@ -11,6 +11,8 @@ import {
   SenderActions
 } from './components';
 import { useSenderListSorting } from "./hooks";
+import { useBrandInputValues } from "./hooks/useBrandInputValues";
+import { useSelectedSenders } from "./hooks/useSelectedSenders";
 
 type SenderListProps = {
   senders: NewsletterSenderStats[];
@@ -30,23 +32,14 @@ const SenderList = ({
   onDeleteSenders
 }: SenderListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSenders, setSelectedSenders] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
-  const [brandInputValues, setBrandInputValues] = useState<Record<string, string>>({});
   
-  // Use our new sorting hook
+  // Use our custom hooks
   const { sortField, sortDirection, toggleSort, sortSenders } = useSenderListSorting();
-
-  // Initialize brand input values from senders
-  useEffect(() => {
-    const brandValues: Record<string, string> = {};
-    senders.forEach(sender => {
-      brandValues[sender.sender_email] = sender.brand_name || "";
-    });
-    setBrandInputValues(brandValues);
-  }, [senders]);
+  const { brandInputValues, getBrandInputValue, setBrandInputValues } = useBrandInputValues(senders);
+  const { selectedSenders, handleToggleSelect, handleSelectAll, setSelectedSenders } = useSelectedSenders(senders);
 
   // Filter senders based on search term
   const filteredSenders = senders
@@ -92,33 +85,6 @@ const SenderList = ({
       console.error("Error updating brand:", error);
     } finally {
       setUpdatingBrand(null);
-    }
-  };
-
-  // Get brand input value
-  const getBrandInputValue = (sender: NewsletterSenderStats) => {
-    // First check our local state
-    if (brandInputValues[sender.sender_email] !== undefined) {
-      return brandInputValues[sender.sender_email];
-    }
-    // Fall back to the value from the sender object
-    return sender.brand_name || "";
-  };
-
-  // Selection handlers
-  const handleToggleSelect = (senderEmail: string) => {
-    setSelectedSenders(prev => 
-      prev.includes(senderEmail)
-        ? prev.filter(email => email !== senderEmail)
-        : [...prev, senderEmail]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedSenders.length === sortedSenders.length) {
-      setSelectedSenders([]);
-    } else {
-      setSelectedSenders(sortedSenders.map(sender => sender.sender_email));
     }
   };
 
