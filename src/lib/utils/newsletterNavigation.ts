@@ -36,15 +36,24 @@ export const getNewsletterPath = (newsletter: Newsletter): string => {
  * @returns The formatted URL path for the sender's newsletters
  */
 export const getSenderPath = (senderName: string): string => {
-  if (!senderName) return '/search';
+  if (!senderName) {
+    console.error("No sender name provided");
+    return '/search';
+  }
+  
+  console.log("Creating path for sender:", senderName);
   
   // If it's an email address, create a slug from it
   if (senderName.includes('@')) {
-    return `/sender/${senderName.toLowerCase().replace('@', '-').replace(/\./g, '')}`;
+    const slug = `/sender/${senderName.toLowerCase().replace('@', '-').replace(/\./g, '')}`;
+    console.log("Email sender path:", slug);
+    return slug;
   }
   
   const senderSlug = senderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  return `/sender/${senderSlug}`;
+  const path = `/sender/${senderSlug}`;
+  console.log("Named sender path:", path);
+  return path;
 };
 
 /**
@@ -70,7 +79,14 @@ export const navigateToSender = (senderName: string, navigate: any, event?: Reac
   if (event) {
     event.stopPropagation();
   }
-  if (!senderName) return;
+  
+  if (!senderName) {
+    console.error("Cannot navigate to sender: No sender name provided");
+    return;
+  }
+  
+  console.log("Navigating to sender:", senderName);
   const path = getSenderPath(senderName);
+  console.log("Sender navigation path:", path);
   navigate(path);
 };

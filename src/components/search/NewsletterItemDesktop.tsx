@@ -17,7 +17,10 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayN
   
   const handleSenderClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent parent onClick from firing
-    navigateToSender(newsletter.sender || '', navigate, e);
+    e.preventDefault(); // Ensure no default behavior interferes
+    const senderName = newsletter.sender || newsletter.brand_name || '';
+    console.log("Desktop: Navigating to sender:", senderName);
+    navigateToSender(senderName, navigate, e);
   };
   
   return (

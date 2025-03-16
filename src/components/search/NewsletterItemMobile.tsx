@@ -17,7 +17,10 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate, displayNa
   
   const handleSenderClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent parent onClick from firing
-    navigateToSender(newsletter.sender || '', navigate, e);
+    e.preventDefault(); // Ensure no default behavior interferes
+    const senderName = newsletter.sender || newsletter.brand_name || '';
+    console.log("Mobile: Navigating to sender:", senderName);
+    navigateToSender(senderName, navigate, e);
   };
   
   return (

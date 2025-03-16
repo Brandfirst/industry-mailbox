@@ -17,7 +17,10 @@ const NewsletterMeta = ({ newsletter }: NewsletterMetaProps) => {
   };
   
   const handleSenderClick = (e: React.MouseEvent) => {
-    navigateToSender(newsletter.sender || '', navigate, e);
+    e.preventDefault();
+    console.log("Meta: Navigating to sender:", newsletter.sender || newsletter.brand_name);
+    const senderName = newsletter.sender || newsletter.brand_name || '';
+    navigateToSender(senderName, navigate, e);
   };
   
   return (
@@ -40,7 +43,7 @@ const NewsletterMeta = ({ newsletter }: NewsletterMetaProps) => {
               className="font-medium text-gray-700 cursor-pointer hover:underline"
               onClick={handleSenderClick}
             >
-              {newsletter.sender}
+              {newsletter.sender || newsletter.brand_name}
             </span>
             <span className="mx-2">•</span>
             <span>{getFormattedDate(newsletter.published_at)}</span>
