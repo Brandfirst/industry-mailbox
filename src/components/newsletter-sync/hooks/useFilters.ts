@@ -6,7 +6,7 @@ export function useFilters() {
   const [filters, setFilters] = useState<FiltersState>({
     searchQuery: "",
     sender: "",
-    categoryId: "all", // Changed from empty string to "all"
+    categoryId: "all",
     fromDate: undefined,
     toDate: undefined
   });

@@ -34,7 +34,7 @@ export function useNewsletterDeletion({
       setNewsletters(remainingNewsletters);
       
       // Decrease total count
-      setTotalCount(prevCount => prevCount - ids.length);
+      setTotalCount((prevCount: number) => prevCount - ids.length);
       
       // If all newsletters on the current page were deleted and we're not on page 1,
       // go to the previous page
