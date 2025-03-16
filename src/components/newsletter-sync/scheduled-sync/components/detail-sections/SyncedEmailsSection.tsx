@@ -5,6 +5,7 @@ import { ChevronDownIcon, ChevronUpIcon, Eye } from "lucide-react";
 import { NewsletterViewDialog } from "@/components/newsletter-sync/newsletter-view";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
+import { Newsletter } from "@/lib/supabase/types";
 
 interface SyncedEmailsSectionProps {
   syncedEmails: any[];
@@ -50,7 +51,7 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
                   created_at: email.created_at || new Date().toISOString(),
                   gmail_message_id: email.gmail_message_id || '',
                   email_id: email.email_id || ''
-                }}
+                } as Newsletter}
               />
             </div>
           </div>

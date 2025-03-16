@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Types
@@ -8,13 +7,15 @@ export interface Newsletter {
   sender: string;
   industry: string;
   preview: string;
-  content: string;
+  content: string | null;
   published_at: string;
   created_at: string;
   categories?: any;
   email_id?: string;
   sender_email?: string;
   category_id?: number;
+  gmail_message_id?: string;
+  gmail_thread_id?: string;
 }
 
 export interface EmailAccount {
