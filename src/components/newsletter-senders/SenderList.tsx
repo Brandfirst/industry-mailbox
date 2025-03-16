@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Table, TableBody } from "@/components/ui/table";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
@@ -12,23 +13,38 @@ import {
 import { useSenderListSorting } from "./hooks";
 import { useBrandInputValues } from "./hooks/useBrandInputValues";
 import { useSelectedSenders } from "./hooks/useSelectedSenders";
+import { SenderSortField } from "./components/SenderTableHeaders";
 
 type SenderListProps = {
   senders: NewsletterSenderStats[];
   categories: NewsletterCategory[];
   loading?: boolean;
+  sortKey?: SenderSortField;
+  sortAsc?: boolean;
+  toggleSort?: (key: SenderSortField) => void;
   onCategoryChange?: (senderEmail: string, categoryId: number | null) => Promise<void>;
   onBrandChange?: (senderEmail: string, brandName: string) => Promise<void>;
   onDeleteSenders?: (senderEmails: string[]) => Promise<void>;
+  updatingCategory?: string | null;
+  updatingBrand?: string | null;
+  deleting?: boolean;
+  loadingAnalytics?: boolean;
 };
 
 const SenderList = ({
   senders,
   categories,
   loading = false,
+  sortKey,
+  sortAsc,
+  toggleSort,
   onCategoryChange,
   onBrandChange,
-  onDeleteSenders
+  onDeleteSenders,
+  updatingCategory: externalUpdatingCategory,
+  updatingBrand: externalUpdatingBrand,
+  deleting: externalDeleting,
+  loadingAnalytics
 }: SenderListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -36,7 +52,17 @@ const SenderList = ({
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
   const [localCategoryUpdates, setLocalCategoryUpdates] = useState<Record<string, number | null>>({});
   
-  const { sortField, sortDirection, toggleSort, sortSenders } = useSenderListSorting();
+  // Use external state if provided, otherwise use local state
+  const effectiveUpdatingCategory = externalUpdatingCategory !== undefined ? externalUpdatingCategory : updatingCategory;
+  const effectiveUpdatingBrand = externalUpdatingBrand !== undefined ? externalUpdatingBrand : updatingBrand;
+  const effectiveDeleting = externalDeleting !== undefined ? externalDeleting : isDeleting;
+  
+  // Use provided sort functionality, or local implementation if not provided
+  const localSorting = useSenderListSorting();
+  const effectiveSortField = sortKey || localSorting.sortField;
+  const effectiveSortDirection = sortAsc !== undefined ? (sortAsc ? 'asc' : 'desc') : localSorting.sortDirection;
+  const effectiveToggleSort = toggleSort || localSorting.toggleSort;
+  
   const { getBrandInputValue, updateBrandInputValue } = useBrandInputValues(senders);
   const { selectedSenders, handleToggleSelect, handleSelectAll, setSelectedSenders } = useSelectedSenders(senders);
 
@@ -58,7 +84,8 @@ const SenderList = ({
     return sender;
   });
   
-  const sortedSenders = sortSenders(sendersWithLocalUpdates);
+  // Sort senders based on effective sort field and direction
+  const sortedSenders = localSorting.sortSenders(sendersWithLocalUpdates);
 
   const handleCategoryChange = async (senderEmail: string, categoryId: string) => {
     if (!onCategoryChange) return;
@@ -141,7 +168,7 @@ const SenderList = ({
           <SenderActions 
             selectedSenders={selectedSenders}
             onDeleteSenders={handleDeleteSenders}
-            isDeleting={isDeleting}
+            isDeleting={effectiveDeleting}
           />
         )}
       </div>
@@ -149,9 +176,9 @@ const SenderList = ({
       <div className="rounded-md border">
         <Table>
           <SenderTableHeaders 
-            sortField={sortField}
-            sortDirection={sortDirection}
-            onSort={toggleSort}
+            sortField={effectiveSortField}
+            sortDirection={effectiveSortDirection}
+            onSort={effectiveToggleSort}
             allSelected={selectedSenders.length === sortedSenders.length && sortedSenders.length > 0}
             onSelectAll={onDeleteSenders ? handleSelectAll : undefined}
           />
@@ -174,8 +201,8 @@ const SenderList = ({
                     index={index}
                     categories={categories}
                     isSelected={selectedSenders.includes(sender.sender_email)}
-                    updatingCategory={updatingCategory}
-                    updatingBrand={updatingBrand}
+                    updatingCategory={effectiveUpdatingCategory}
+                    updatingBrand={effectiveUpdatingBrand}
                     brandInputValue={getBrandInputValue(sender)}
                     onCategoryChange={handleCategoryChange}
                     onBrandUpdate={handleBrandUpdate}

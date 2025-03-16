@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
-import SearchHeader from '@/components/search/SearchHeader';
 import NewsletterResults from '@/components/search/NewsletterResults';
 import SearchLayout from '@/components/search/SearchLayout';
 import FilterButtons from '@/components/search/FilterButtons';
@@ -126,7 +125,7 @@ const SenderNewsletters = () => {
   const handleSenderSearch = (query: string) => {
     setSenderSearchQuery(query);
     setSearchQuery(query);
-    handleSearch();
+    handleSearch(query); // Pass the query parameter here
   };
 
   // Get random cover image
