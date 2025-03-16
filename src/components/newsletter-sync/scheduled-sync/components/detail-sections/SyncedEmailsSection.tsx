@@ -21,7 +21,7 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   return (
     <div className="mt-2 pt-2 border-t border-gray-100">
       <div className="text-gray-600 mb-1">Synced Emails ({syncedEmails.length}):</div>
-      <div className="max-h-40 overflow-y-auto">
+      <div className="space-y-2 max-h-60 overflow-y-auto">
         {displayedEmails.map((email: any, index: number) => (
           <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-b-0">
             <div><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
