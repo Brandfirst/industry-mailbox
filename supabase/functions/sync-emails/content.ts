@@ -1,172 +1,81 @@
 
-// Ensure HTML has proper document structure
-export function ensureProperHtmlStructure(html) {
-  // Check if HTML has a DOCTYPE declaration
-  if (!html.trim().toLowerCase().startsWith('<!doctype')) {
-    return `<!DOCTYPE html>
-            <html>
-              <head>
-                <meta charset="utf-8">
-                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-              </head>
-              <body>${html}</body>
-            </html>`;
-  } else {
-    // If it has a doctype, check for head tags
-    const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
-    if (headMatch) {
-      // Add meta charset tag to existing head if not present
-      if (!headMatch[1].includes('charset')) {
-        return html.replace(
-          headMatch[0], 
-          `<head${headMatch[0].substring(5, headMatch[0].indexOf('>'))}>
-            <meta charset="utf-8">
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-            ${headMatch[1]}
-          </head>`
-        );
-      }
-    } else if (html.includes('<html')) {
-      // Add head with meta charset if no head exists
-      return html.replace(
-        /<html[^>]*>/i,
-        `$&<head><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>`
+/**
+ * Decodes base64 Gmail content
+ * @param encoded The base64 encoded content from Gmail API
+ * @returns Decoded content as string
+ */
+export function decodeGmailContent(encoded) {
+  try {
+    // Gmail API uses URL-safe base64 encoding with padding sometimes removed
+    // Replace non-alphabet chars and add padding if needed
+    const sanitized = encoded.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = sanitized.padEnd(sanitized.length + (4 - sanitized.length % 4) % 4, '=');
+    
+    // Decode the base64 string
+    const decoded = atob(padded);
+    
+    try {
+      // Try to decode as UTF-8 content
+      return new TextDecoder('utf-8').decode(
+        new Uint8Array([...decoded].map(c => c.charCodeAt(0)))
       );
+    } catch (e) {
+      // Fallback to basic ASCII decoding if UTF-8 fails
+      return decoded;
     }
+  } catch (error) {
+    console.error('Error decoding Gmail content:', error);
+    return '';
+  }
+}
+
+/**
+ * Ensures HTML content has proper structure
+ * @param html The HTML content to improve
+ * @returns Properly structured HTML
+ */
+export function ensureProperHtmlStructure(html) {
+  // If it doesn't have proper HTML structure, add it
+  if (!html.includes('<html') && !html.includes('<!DOCTYPE')) {
+    return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+${html}
+</body>
+</html>`;
+  }
+  
+  // Add charset meta tag if missing
+  if (!html.includes('<meta charset')) {
+    return html.replace('<head>', '<head>\n<meta charset="utf-8">');
   }
   
   return html;
 }
 
-// Remove tracking elements from content
-export function removeTrackingElements(content) {
-  if (!content) return '';
+/**
+ * Removes tracking pixels, scripts, and other tracking elements from HTML
+ * @param html The HTML content to clean
+ * @returns Cleaned HTML without tracking elements
+ */
+export function removeTrackingElements(html) {
+  if (!html) return html;
   
-  let cleanedContent = content;
-  
-  // 1. Remove all tracking image tags
-  cleanedContent = cleanedContent.replace(
-    /<img[^>]*?src=['"]([^'"]+)['"][^>]*>/gi,
-    (match, src) => {
-      if (isTrackingUrl(src)) {
-        return ''; // Remove tracking images
-      }
-      return match;
-    }
-  );
-  
-  // 2. Remove tracking links but preserve inner content
-  cleanedContent = cleanedContent.replace(
-    /<a[^>]*?href=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/a>/gi,
-    (match, href, innerContent) => {
-      if (isTrackingUrl(href)) {
-        return innerContent;
-      }
-      return match;
-    }
-  );
-  
-  // 3. Remove all script tags
-  cleanedContent = cleanedContent.replace(
-    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, 
-    ''
-  );
-  
-  // 4. Remove inline event handlers
-  cleanedContent = cleanedContent.replace(
-    /\s(on\w+)=['"]([^'"]*)['"]/gi,
-    ''
-  );
-  
-  // 5. Remove tracking pixels with long URLs
-  cleanedContent = cleanedContent.replace(
-    /<img[^>]*?src=['"][^'"]{150,}['"][^>]*>/gi,
-    ''
-  );
-  
-  // 6. Remove iframe content
-  cleanedContent = cleanedContent.replace(
-    /<iframe[^>]*>([\s\S]*?)<\/iframe>/gi, 
-    ''
-  );
-  
-  // 7. Remove meta refresh tags
-  cleanedContent = cleanedContent.replace(
-    /<meta[^>]*?http-equiv=['"]refresh['"][^>]*>/gi,
-    ''
-  );
-  
-  // 8. Remove problematic link tags
-  cleanedContent = cleanedContent.replace(
-    /<link[^>]*?href=['"]https?:\/\/(?:[^'"]+)\.(?:analytics|track|click|mail|open)[^'"]*['"][^>]*>/gi, 
-    ''
-  );
-  
-  // 9. Remove specific problematic domains
-  const specificDomains = ['analytics.boozt.com', 'url2879.vitavenn.vita.no', 'vitavenn.vita.no'];
-  cleanedContent = cleanedContent.replace(
-    new RegExp(`<[^>]*?(?:src|href)=['"]https?://(?:[^'"]*?)(${specificDomains.join('|')})([^'"]*?)['"][^>]*>`, 'gi'),
-    ''
-  );
-  
-  // 10. Remove specific tracking patterns
-  cleanedContent = cleanedContent.replace(
-    /<[^>]*?(?:src|href)=['"][^'"]*?(?:JGZ2HocBug|wuGK4U8731)[^'"]*?['"][^>]*>/gi,
-    ''
-  );
-  
-  return cleanedContent;
-}
-
-// Check if URL is likely a tracking URL
-export function isTrackingUrl(url) {
-  // List of common tracking domains and patterns
-  const trackingDomains = [
-    'analytics', 'track', 'click', 'open', 'mail', 'url', 'beacon', 'wf', 'ea', 'stat',
-    'vitavenn', 'boozt', 'everestengagement', 'email.booztlet', 
-    'wuGK4U8731', 'open.aspx', 'JGZ2HocBug'
-  ];
-
-  // Additional specific domains from error logs
-  const specificTrackingDomains = [
-    'analytics.boozt.com',
-    'url2879.vitavenn.vita.no',
-    'vitavenn.vita.no'
-  ];
-
-  // Common tracking URL patterns
-  const trackingPatterns = [
-    /\/open\.aspx/i,
-    /\/wf\/open/i,
-    /\/ea\/\w+/i,
-    /[?&](utm_|trk|tracking|cid|eid|sid)/i,
-    /\.gif(\?|$)/i,
-    /pixel\.(gif|png|jpg)/i,
-    /beacon\./i,
-    /click\./i,
-    /JGZ2HocBug/i,
-    /wuGK4U8731/i
-  ];
-  
-  // Check against known specific tracking domains first
-  if (specificTrackingDomains.some(domain => url.includes(domain))) {
-    return true;
+  try {
+    // Simple regex-based removal of common tracking elements
+    // Remove tracking pixels (1x1 images, 0x0 images, etc.)
+    let cleaned = html.replace(/<img[^>]*(?:height=(["'])(?:0|1)\\1[^>]*width=(["'])(?:0|1)\\2|width=(["'])(?:0|1)\\3[^>]*height=(["'])(?:0|1)\\4)[^>]*>/gi, '');
+    
+    // Remove tracking scripts from common analytics and tracking providers
+    cleaned = cleaned.replace(/<script[^>]*(?:google-analytics\.com|googletagmanager\.com|analytics|tracking|pixel)[^>]*>[\s\S]*?<\/script>/gi, '');
+    
+    return cleaned;
+  } catch (error) {
+    console.error('Error removing tracking elements:', error);
+    return html; // Return original if cleaning fails
   }
-  
-  // Check against known tracking domains
-  if (trackingDomains.some(domain => url.includes(domain))) {
-    return true;
-  }
-  
-  // Check against known tracking patterns
-  if (trackingPatterns.some(pattern => pattern.test(url))) {
-    return true;
-  }
-  
-  // Additional check for long query parameters
-  if (url.includes('?') && url.length > 100 && /[?&].{30,}/.test(url)) {
-    return true;
-  }
-  
-  return false;
 }
