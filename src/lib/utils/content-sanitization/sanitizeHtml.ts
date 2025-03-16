@@ -71,6 +71,18 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
     }
   );
   
+  // Fix tables with fixed layouts
+  htmlContent = htmlContent.replace(
+    /<table([^>]*)style="([^"]*)"/gi,
+    (match, attributes, styles) => {
+      // Preserve table styles but make sure layout is fixed
+      const enhancedStyles = styles.includes('table-layout') 
+        ? styles 
+        : styles + '; table-layout: fixed;';
+      return `<table${attributes}style="${enhancedStyles}" data-preserved="true"`;
+    }
+  );
+  
   // Ensure content has proper UTF-8 meta tags if it's HTML
   if (htmlContent.includes('<html') && !htmlContent.includes('<meta charset="utf-8">')) {
     if (htmlContent.includes('<head')) {

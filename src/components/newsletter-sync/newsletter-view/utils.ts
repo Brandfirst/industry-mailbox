@@ -29,11 +29,12 @@ export function generateIframeContent(content: string | null): string {
             line-height: 1.6;
             width: 100%;
             height: 100%;
+            overflow-x: hidden;
           }
           
           body {
             padding: 20px;
-            overflow-x: hidden;
+            box-sizing: border-box;
           }
           
           /* Ensure all content is properly visible */
@@ -58,17 +59,22 @@ export function generateIframeContent(content: string | null): string {
           table {
             border-collapse: collapse;
             width: 100% !important;
-            max-width: 100% !important;
+            max-width: 650px !important;
+            margin: 0 auto;
+            table-layout: fixed;
           }
           
           table td, table th {
             padding: 8px;
+            word-wrap: break-word;
           }
           
-          /* Preserve table layouts - important for email formatting */
-          table[width], td[width] {
+          /* Keep layout tables working properly */
+          table[data-preserved="true"], 
+          td[data-preserved="true"], 
+          th[data-preserved="true"] {
             width: auto !important;
-            max-width: 100% !important;
+            table-layout: auto !important;
           }
           
           /* Override dark theme backgrounds */
@@ -79,6 +85,13 @@ export function generateIframeContent(content: string | null): string {
           [style*="background: #000"] {
             background-color: #ffffff !important;
             color: #000000 !important;
+          }
+          
+          /* Force all backgrounds to white */
+          [style*="background-color"],
+          [style*="background:"] {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
           }
           
           /* Make links visible */
@@ -102,10 +115,33 @@ export function generateIframeContent(content: string | null): string {
           }
           
           /* Fix for common newsletter layout issues */
-          .bodyTable, .bodyCell {
+          .bodyTable, .bodyCell, .templateContainer, .templateColumn {
             width: 100% !important;
             max-width: 600px !important;
             margin: 0 auto !important;
+          }
+          
+          /* Preserve email layouts that use tables for structure */
+          .email-container, .wrapper, .container {
+            width: 100% !important;
+            max-width: 650px !important;
+            margin: 0 auto !important;
+          }
+          
+          /* Make mobile-friendly */
+          @media screen and (max-width: 600px) {
+            table {
+              width: 100% !important;
+            }
+            
+            td {
+              display: block !important;
+              width: 100% !important;
+            }
+            
+            img {
+              height: auto !important;
+            }
           }
         </style>
       </head>
@@ -113,7 +149,9 @@ export function generateIframeContent(content: string | null): string {
         <div class="error-overlay">
           <p>Some content in this newsletter could not be displayed properly due to security restrictions.</p>
         </div>
-        ${sanitizedContent}
+        <div class="email-container">
+          ${sanitizedContent}
+        </div>
       </body>
     </html>`;
 }

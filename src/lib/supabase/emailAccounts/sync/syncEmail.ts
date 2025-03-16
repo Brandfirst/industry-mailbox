@@ -33,21 +33,41 @@ export async function syncEmailAccount(accountId: string): Promise<SyncResult> {
       console.log(`Error fetching account info: ${accountError.message}`);
     }
     
-    // Invoke the function with production settings
+    // Invoke the function with improved error handling and retries
     try {
-      const response = await supabase.functions.invoke("sync-emails", {
+      // First attempt
+      let response = await supabase.functions.invoke("sync-emails", {
         body: { 
           accountId,
-          import_all_emails: true,  // Import all emails
-          debug: true,              // Request debug info from the function
-          verbose: true             // Request verbose logging
+          import_all_emails: true,
+          debug: true,
+          verbose: true
         },
       });
 
       console.log("Sync-emails raw response:", response);
       
       if (response.error) {
-        return handleApiError(accountId, response.error);
+        console.log("First attempt failed, retrying...");
+        
+        // Add a small delay before retry (500ms)
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Second attempt
+        response = await supabase.functions.invoke("sync-emails", {
+          body: { 
+            accountId,
+            import_all_emails: true,
+            debug: true,
+            verbose: true
+          },
+        });
+        
+        console.log("Sync-emails retry response:", response);
+        
+        if (response.error) {
+          return handleApiError(accountId, response.error);
+        }
       }
 
       // Check for empty response
@@ -107,7 +127,16 @@ export async function syncEmailAccount(accountId: string): Promise<SyncResult> {
         details: syncDetails
       };
     } catch (error) {
-      return handleApiError(accountId, error);
+      console.error("Error invoking sync-emails function:", error);
+      
+      // Check if the error is related to CORS or network connectivity
+      let errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Failed to fetch') || errorMessage.includes('network') || 
+          errorMessage.includes('CORS') || errorMessage.includes('cross-origin')) {
+        errorMessage = "Network error: Unable to connect to the Edge Function. Please check your network connection and try again.";
+      }
+      
+      return handleApiError(accountId, { message: errorMessage });
     }
   } catch (error: any) {
     return handleSyncError(accountId, error);

@@ -9,6 +9,16 @@ import { addSyncLog } from '../syncLogs';
 export function handleSyncError(accountId: string, error: any): SyncResult {
   console.error("Exception in syncEmailAccount:", error);
   
+  // Create a user-friendly error message
+  let userErrorMessage = error.message || String(error);
+  
+  // Make the error message more user-friendly for common errors
+  if (userErrorMessage.includes('Failed to fetch') || userErrorMessage.includes('TypeError: Failed to fetch')) {
+    userErrorMessage = "Network connectivity issue: Unable to reach the server. Please check your connection and try again.";
+  } else if (userErrorMessage.includes('CORS') || userErrorMessage.includes('cross-origin')) {
+    userErrorMessage = "Browser security restriction: The request was blocked. This is likely a temporary issue.";
+  }
+  
   // Log the error
   try {
     addSyncLog({
@@ -24,7 +34,7 @@ export function handleSyncError(accountId: string, error: any): SyncResult {
   
   return { 
     success: false, 
-    error: error.message || String(error),
+    error: userErrorMessage,
     timestamp: Date.now()
   };
 }
@@ -32,7 +42,7 @@ export function handleSyncError(accountId: string, error: any): SyncResult {
 /**
  * Process successful sync response data
  */
-export function processSyncResponse(accountId: string, response: any): SyncResult {
+export function processSyncResponse(accountId: string, response: any): SyncResult | null {
   // Check if we need to re-authenticate
   if (response.data?.details?.requiresReauthentication) {
     console.warn("Authentication error - account requires re-authentication");
@@ -43,13 +53,17 @@ export function processSyncResponse(accountId: string, response: any): SyncResul
     });
     
     // Log the failed sync attempt
-    addSyncLog({
-      account_id: accountId,
-      status: 'failed',
-      message_count: 0,
-      error_message: "Authentication expired",
-      timestamp: new Date().toISOString()
-    });
+    try {
+      addSyncLog({
+        account_id: accountId,
+        status: 'failed',
+        message_count: 0,
+        error_message: "Authentication expired",
+        timestamp: new Date().toISOString()
+      });
+    } catch (logError) {
+      console.error("Failed to log authentication error:", logError);
+    }
     
     return {
       success: false,
@@ -65,13 +79,17 @@ export function processSyncResponse(accountId: string, response: any): SyncResul
     console.error("Error in sync-emails function:", response.data?.error || "Unknown error");
     
     // Log the failed sync attempt
-    addSyncLog({
-      account_id: accountId,
-      status: 'failed',
-      message_count: 0,
-      error_message: response.data?.error || "Failed to sync emails",
-      timestamp: new Date().toISOString()
-    });
+    try {
+      addSyncLog({
+        account_id: accountId,
+        status: 'failed',
+        message_count: 0,
+        error_message: response.data?.error || "Failed to sync emails",
+        timestamp: new Date().toISOString()
+      });
+    } catch (logError) {
+      console.error("Failed to log sync failure:", logError);
+    }
     
     return { 
       success: false, 
@@ -94,13 +112,17 @@ export function handleEmptyResponse(accountId: string, response: any): SyncResul
     console.error("Empty response from sync-emails function");
     
     // Log the failed sync attempt
-    addSyncLog({
-      account_id: accountId,
-      status: 'failed',
-      message_count: 0,
-      error_message: "Empty response from server",
-      timestamp: new Date().toISOString()
-    });
+    try {
+      addSyncLog({
+        account_id: accountId,
+        status: 'failed',
+        message_count: 0,
+        error_message: "Empty response from server",
+        timestamp: new Date().toISOString()
+      });
+    } catch (logError) {
+      console.error("Failed to log empty response error:", logError);
+    }
     
     return { 
       success: false, 
@@ -119,18 +141,30 @@ export function handleEmptyResponse(accountId: string, response: any): SyncResul
 export function handleApiError(accountId: string, error: any): SyncResult {
   console.error("Error invoking sync-emails function:", error);
   
+  // Create a user-friendly error message
+  let userErrorMessage = error.message || "Error connecting to sync service";
+  
+  // Make API error messages more friendly
+  if (userErrorMessage.includes('Failed to fetch')) {
+    userErrorMessage = "Network issue: Could not connect to the sync service. Please try again later.";
+  }
+  
   // Log the failed sync attempt
-  addSyncLog({
-    account_id: accountId,
-    status: 'failed',
-    message_count: 0,
-    error_message: error.message || "Error connecting to sync service",
-    timestamp: new Date().toISOString()
-  });
+  try {
+    addSyncLog({
+      account_id: accountId,
+      status: 'failed',
+      message_count: 0,
+      error_message: error.message || "Error connecting to sync service",
+      timestamp: new Date().toISOString()
+    });
+  } catch (logError) {
+    console.error("Failed to log API error:", logError);
+  }
   
   return { 
     success: false, 
-    error: error.message || "Error connecting to sync service",
+    error: userErrorMessage,
     statusCode: error ? 500 : 400,
     timestamp: Date.now()
   };
