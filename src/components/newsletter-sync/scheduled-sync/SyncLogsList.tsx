@@ -1,153 +1,127 @@
 
 import React, { useState, useEffect } from "react";
-import { 
-  LogsHeader, 
-  LogsContainer, 
-  LogsContent, 
-  LogsTableHeader, 
-  AccountNotice 
-} from "./components";
-import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SyncLogItem } from "./SyncLogItem";
-import { useLogsFetching } from "./hooks/useLogsFetching";
-import { useRealtimeSync } from "./hooks/useRealtimeSync";
+import { LogsHeader } from "./components/LogsHeader";
+import { LogsContainer } from "./components/LogsContainer";
+import { LogsContent } from "./components/LogsContent";
+import { Spinner } from "@/components/shared/Spinner";
+import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
+import { LogsTableHeader } from "./components/LogsTableHeader";
+import { AccountNotice } from "./components/AccountNotice";
+import { Button } from "@/components/ui/button";
+import { RefreshCwIcon } from "lucide-react";
 
-type SyncLogsListProps = {
+interface SyncLogsListProps {
   showLogs: boolean;
-  setShowLogs: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowLogs: (show: boolean) => void;
   isLoading: boolean;
   syncLogs: SyncLogEntry[];
   selectedAccount: string | null;
-  fetchSyncLogs: () => Promise<void>;
+  fetchSyncLogs: () => void;
   formatTimestamp: (timestamp: string) => string;
   setSyncLogs: React.Dispatch<React.SetStateAction<SyncLogEntry[]>>;
-};
+}
 
-export function SyncLogsList({ 
-  showLogs, 
-  setShowLogs, 
-  isLoading, 
-  syncLogs, 
-  selectedAccount, 
-  fetchSyncLogs, 
+export function SyncLogsList({
+  showLogs,
+  setShowLogs,
+  isLoading,
+  syncLogs,
+  selectedAccount,
+  fetchSyncLogs,
   formatTimestamp,
   setSyncLogs
 }: SyncLogsListProps) {
-  
-  // Add state for row count and message count filter
-  const [rowCount, setRowCount] = useState<number>(10);
-  const [minMessageCount, setMinMessageCount] = useState<number>(0);
-  const [displayedLogs, setDisplayedLogs] = useState<SyncLogEntry[]>([]);
-  
-  // Set up logs fetching
-  const { isRefreshing, handleRefresh } = useLogsFetching(
-    selectedAccount,
-    showLogs,
-    fetchSyncLogs
-  );
-  
-  // Set up real-time subscription for sync logs
-  const channelRef = useRealtimeSync(
-    selectedAccount,
-    showLogs,
-    setSyncLogs
-  );
+  const [rowCount, setRowCount] = useState("10");
+  const [filteredLogs, setFilteredLogs] = useState<SyncLogEntry[]>([]);
+  const [messageCountFilter, setMessageCountFilter] = useState("1"); // Set default to "1" (≥ 1)
 
-  // Update displayed logs when syncLogs, rowCount, or minMessageCount changes
+  // Filter logs based on selected criteria
   useEffect(() => {
-    // Filter logs by message count, then limit by rowCount
-    const filteredLogs = syncLogs
-      .filter(log => log.message_count >= minMessageCount)
-      .slice(0, rowCount);
-    
-    setDisplayedLogs(filteredLogs);
-  }, [syncLogs, rowCount, minMessageCount]);
-  
-  // For enhanced debug logging
-  React.useEffect(() => {
-    if (syncLogs.length > 0) {
-      console.log("Logs with account info:", syncLogs);
+    if (!syncLogs) {
+      setFilteredLogs([]);
+      return;
     }
-  }, [syncLogs]);
-  
-  const handleToggleLogs = () => {
-    if (!showLogs && !isLoading) {
-      // Fetch logs when showing them
+
+    let filtered = [...syncLogs];
+    
+    // Apply message count filter if not "all"
+    if (messageCountFilter !== "all") {
+      const minCount = parseInt(messageCountFilter, 10);
+      filtered = filtered.filter(log => {
+        // Include logs with message_count >= minCount
+        return log.message_count && log.message_count >= minCount;
+      });
+    }
+    
+    // Limit to the selected row count
+    const limit = parseInt(rowCount, 10);
+    filtered = filtered.slice(0, limit);
+    
+    setFilteredLogs(filtered);
+  }, [syncLogs, rowCount, messageCountFilter]);
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    if (selectedAccount) {
       fetchSyncLogs();
     }
-    setShowLogs(!showLogs);
   };
+  
+  if (!showLogs) {
+    return (
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setShowLogs(true)}
+        >
+          Show Sync History
+        </Button>
+      </div>
+    );
+  }
 
-  const handleRowCountChange = (value: number) => {
-    setRowCount(value);
-  };
-  
-  const handleMinMessageCountChange = (value: number) => {
-    setMinMessageCount(value);
-  };
-  
   return (
-    <div className="mt-6">
+    <div className="mt-4 pt-4 border-t border-gray-200">
       <LogsHeader 
-        showLogs={showLogs} 
-        onToggle={handleToggleLogs} 
-        onRefresh={handleRefresh} 
-        isRefreshing={isRefreshing}
+        title="Sync History" 
+        onToggle={() => setShowLogs(false)}
         rowCount={rowCount}
-        onRowCountChange={handleRowCountChange}
-        minMessageCount={minMessageCount}
-        onMinMessageCountChange={handleMinMessageCountChange}
+        onRowCountChange={setRowCount}
+        messageCountFilter={messageCountFilter}
+        onMessageCountFilterChange={setMessageCountFilter}
+        onRefresh={handleRefresh}
       />
       
-      {showLogs && (
-        <LogsContainer 
-          isLoading={isLoading} 
-          syncLogs={syncLogs} 
-          formatTimestamp={formatTimestamp}
-        >
-          {!selectedAccount ? (
-            <AccountNotice selectedAccount={selectedAccount} />
-          ) : isLoading ? (
-            <div className="space-y-2 py-4 px-4">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-            </div>
-          ) : syncLogs.length === 0 ? (
-            <LogsContent 
-              syncLogs={syncLogs} 
-              formatTimestamp={formatTimestamp}
-            >
-              <span>No sync logs found for this account</span>
-            </LogsContent>
-          ) : displayedLogs.length === 0 ? (
-            <LogsContent>
-              <span>No logs match your filter criteria</span>
-            </LogsContent>
-          ) : (
-            <div className="min-w-[800px]">
-              <LogsTableHeader />
-              <div>
-                {displayedLogs.map((log, index) => {
-                  // Calculate row number so the latest entry has the highest number
-                  const rowNumber = syncLogs.length - syncLogs.indexOf(log);
-                  
-                  return (
-                    <SyncLogItem 
-                      key={log.id} 
-                      log={log} 
-                      formatTimestamp={formatTimestamp}
-                      itemNumber={rowNumber}
-                      totalItems={syncLogs.length}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </LogsContainer>
-      )}
+      <LogsContainer>
+        {!selectedAccount ? (
+          <AccountNotice />
+        ) : isLoading ? (
+          <div className="flex justify-center items-center p-8">
+            <Spinner size="lg" />
+          </div>
+        ) : filteredLogs.length === 0 ? (
+          <div className="text-center p-8 text-muted-foreground">
+            {syncLogs.length > 0 
+              ? "No sync logs match your current filters"
+              : "No sync history available yet"}
+          </div>
+        ) : (
+          <LogsContent>
+            <LogsTableHeader />
+            {filteredLogs.map((log, index) => (
+              <SyncLogItem 
+                key={log.id} 
+                log={log} 
+                formatTimestamp={formatTimestamp}
+                itemNumber={index + 1}
+                totalItems={filteredLogs.length}
+              />
+            ))}
+          </LogsContent>
+        )}
+      </LogsContainer>
     </div>
   );
 }

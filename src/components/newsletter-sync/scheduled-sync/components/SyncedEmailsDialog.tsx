@@ -52,8 +52,8 @@ export function SyncedEmailsDialog({
   // Navigation handler
   const navigateToNewsletter = (email: any) => {
     if (email.id) {
-      navigate(`/newsletter/${email.id}`);
       console.log(`Navigating to newsletter ID: ${email.id}`);
+      navigate(`/newsletter/${email.id}`);
       onOpenChange(false); // Close the dialog after navigation
     } else {
       console.log("Cannot navigate: email has no valid ID");

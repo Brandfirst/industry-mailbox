@@ -1,35 +1,25 @@
 
 import React from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MessageCountFilterProps {
-  value: number;
-  onChange: (value: number) => void;
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export function MessageCountFilter({ value, onChange }: MessageCountFilterProps) {
-  const handleValueChange = (newValue: string) => {
-    onChange(parseInt(newValue, 10));
-  };
-
   return (
-    <div className="flex items-center">
-      <label className="text-xs text-muted-foreground mr-2">Min emails:</label>
-      <Select
-        value={value.toString()}
-        onValueChange={handleValueChange}
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-medium">Min emails:</span>
+      <Select 
+        value={value} 
+        onValueChange={onChange}
       >
-        <SelectTrigger className="h-8 w-[100px] text-xs">
-          <SelectValue placeholder="Email count" />
+        <SelectTrigger className="h-7 w-[80px] text-xs">
+          <SelectValue placeholder="All" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="0">All</SelectItem>
+          <SelectItem value="all">All</SelectItem>
           <SelectItem value="1">≥ 1</SelectItem>
           <SelectItem value="5">≥ 5</SelectItem>
           <SelectItem value="10">≥ 10</SelectItem>

@@ -23,8 +23,8 @@ export function EmailDetails({ syncedEmails }: EmailDetailsProps) {
   const navigateToNewsletter = (email: any) => {
     // Direct navigation to the newsletter detail page
     if (email.id) {
-      navigate(`/newsletter/${email.id}`);
       console.log(`Navigating to newsletter ID: ${email.id}`);
+      navigate(`/newsletter/${email.id}`);
     } else {
       console.log("Cannot navigate: email has no valid ID");
     }
