@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Briefcase, Pen } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -19,14 +18,21 @@ const BrandInput = ({
 }: BrandInputProps) => {
   const [inputValue, setInputValue] = useState(initialValue);
   const [isEditing, setIsEditing] = useState(false);
+  const [brandValue, setBrandValue] = useState(initialValue);
 
   const handleSave = async () => {
-    await onUpdate(senderEmail, inputValue);
-    setIsEditing(false);
+    try {
+      await onUpdate(senderEmail, inputValue);
+      setBrandValue(inputValue);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error saving brand:", error);
+      setIsEditing(true);
+    }
   };
 
   const handleCancel = () => {
-    setInputValue(initialValue);
+    setInputValue(brandValue);
     setIsEditing(false);
   };
 
@@ -35,7 +41,7 @@ const BrandInput = ({
       <div className="flex items-center space-x-2">
         <Briefcase className="h-4 w-4 text-muted-foreground" />
         <div className="flex items-center">
-          <span className="text-sm mr-2">{inputValue || "Not set"}</span>
+          <span className="text-sm mr-2">{brandValue || "Not set"}</span>
           <Button
             size="sm"
             variant="ghost"

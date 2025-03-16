@@ -81,14 +81,22 @@ const SenderList = ({
   const handleBrandUpdate = async (senderEmail: string, brandName: string) => {
     if (!onBrandChange) return;
     
-    setBrandInputValues(prev => ({
-      ...prev,
-      [senderEmail]: brandName
-    }));
-    
     setUpdatingBrand(senderEmail);
     try {
       await onBrandChange(senderEmail, brandName);
+      // Update the brand input values state
+      setBrandInputValues(prev => ({
+        ...prev,
+        [senderEmail]: brandName
+      }));
+      
+      // Update the local senders array to reflect the change immediately
+      const updatedSenders = senders.map(sender => 
+        sender.sender_email === senderEmail 
+          ? { ...sender, brand_name: brandName } 
+          : sender
+      );
+      
       toast.success(`Brand updated for ${senderEmail}`);
     } catch (error) {
       console.error("Error updating brand:", error);
@@ -206,7 +214,7 @@ const SenderList = ({
                   categories={categories}
                   isSelected={selectedSenders.includes(sender.sender_email)}
                   updatingCategory={updatingCategory}
-                  updatingBrand={updatingBrand}
+                  updatingBrand={updatingBrand === sender.sender_email ? sender.sender_email : null}
                   brandInputValue={getBrandInputValue(sender)}
                   onCategoryChange={handleCategoryChange}
                   onBrandUpdate={handleBrandUpdate}

@@ -124,6 +124,7 @@ export function useNewsletterSenders() {
       setUpdatingBrand(true);
       await updateSenderBrand(senderEmail, brandName, user.id);
       
+      // Update the local state to reflect the change
       setSenders(prevSenders => 
         prevSenders.map(sender => 
           sender.sender_email === senderEmail
@@ -131,6 +132,10 @@ export function useNewsletterSenders() {
             : sender
         )
       );
+      
+      // Log successful update
+      console.log(`Successfully updated brand to "${brandName}" for ${senderEmail}`);
+      
     } catch (error) {
       console.error("Error updating brand:", error);
       throw error;
