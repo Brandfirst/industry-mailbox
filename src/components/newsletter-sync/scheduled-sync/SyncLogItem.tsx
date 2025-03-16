@@ -74,7 +74,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
                 <InfoIcon className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-72 bg-white border border-gray-200 shadow-md p-4" align="end">
+            <PopoverContent className="w-80 bg-white text-gray-900 border border-gray-200 shadow-md p-4" align="end">
               <DetailedSyncInfo log={log} />
             </PopoverContent>
           </Popover>

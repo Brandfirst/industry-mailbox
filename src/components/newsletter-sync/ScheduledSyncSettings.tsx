@@ -7,10 +7,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon, AlertTriangleIcon } from "lucide-react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
+
 type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
 type ScheduledSyncSettingsProps = {
   selectedAccount: string | null;
 };
+
 export function ScheduledSyncSettings({
   selectedAccount
 }: ScheduledSyncSettingsProps) {
@@ -46,6 +48,7 @@ export function ScheduledSyncSettings({
       setSyncLogs([]);
     }
   }, [selectedAccount]);
+
   const loadAccountSettings = async () => {
     if (!selectedAccount) return;
     setIsLoadingSettings(true);
@@ -78,6 +81,7 @@ export function ScheduledSyncSettings({
       setIsLoadingSettings(false);
     }
   };
+
   const fetchSyncLogs = async () => {
     if (!selectedAccount) return;
     setIsLoading(true);
@@ -93,10 +97,12 @@ export function ScheduledSyncSettings({
       setIsLoading(false);
     }
   };
+
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleString();
   };
+
   return <Card className="w-full mt-4">
       <CardHeader>
         <CardTitle className="text-base">Automatic Sync Settings</CardTitle>
@@ -118,9 +124,16 @@ export function ScheduledSyncSettings({
                 </AlertDescription>
               </Alert>}
             
-            {selectedAccount}
-            
-            <SyncLogsList showLogs={showLogs} setShowLogs={setShowLogs} isLoading={isLoading} syncLogs={syncLogs} selectedAccount={selectedAccount} fetchSyncLogs={fetchSyncLogs} formatTimestamp={formatTimestamp} setSyncLogs={setSyncLogs} />
+            <SyncLogsList 
+              showLogs={showLogs} 
+              setShowLogs={setShowLogs} 
+              isLoading={isLoading} 
+              syncLogs={syncLogs} 
+              selectedAccount={selectedAccount} 
+              fetchSyncLogs={fetchSyncLogs} 
+              formatTimestamp={formatTimestamp} 
+              setSyncLogs={setSyncLogs} 
+            />
           </>}
       </CardContent>
     </Card>;

@@ -12,7 +12,7 @@ export function DetailedSyncInfo({ log }: DetailedSyncInfoProps) {
   const [showAllEmails, setShowAllEmails] = useState(false);
   const [showAllSenders, setShowAllSenders] = useState(false);
   
-  // Extract account email from log - correctly using details.accountEmail
+  // Extract account email from log details
   const accountEmail = log.details?.accountEmail || 'Not available';
                       
   const syncedCount = log.details?.syncedCount || 0;
@@ -20,7 +20,7 @@ export function DetailedSyncInfo({ log }: DetailedSyncInfoProps) {
   const startTime = log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Unknown';
   const syncType = log.sync_type || 'manual';
   const syncedEmails = log.details?.synced || [];
-  const newSenders = log.details?.new_senders_count || 0;
+  const newSendersCount = log.details?.new_senders_count || 0;
   
   // Extract unique senders for display
   const uniqueSenders = new Set<string>();
@@ -79,9 +79,9 @@ export function DetailedSyncInfo({ log }: DetailedSyncInfoProps) {
             </div>
             
             {/* New senders section */}
-            {newSenders > 0 && uniqueSendersArray.length > 0 && (
+            {newSendersCount > 0 && uniqueSendersArray.length > 0 && (
               <div className="mt-2 pt-2 border-t border-gray-100">
-                <div className="text-gray-600 mb-1">New Senders ({newSenders}):</div>
+                <div className="text-gray-600 mb-1">New Senders ({newSendersCount}):</div>
                 <div className="max-h-40 overflow-y-auto">
                   {displayedSenders.map((sender: string, index: number) => (
                     <div key={index} className="mb-1 text-xs">{sender}</div>
