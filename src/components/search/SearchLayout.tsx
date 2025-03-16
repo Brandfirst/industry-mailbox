@@ -22,8 +22,6 @@ interface SearchLayoutProps {
   onApplyFilters: () => void;
   isMobileFiltersOpen: boolean;
   toggleMobileFilters: () => void;
-  isDesktopFiltersOpen: boolean;
-  toggleDesktopFilters: () => void;
 }
 
 const SearchLayout = ({
@@ -38,29 +36,26 @@ const SearchLayout = ({
   setDateRange,
   onApplyFilters,
   isMobileFiltersOpen,
-  toggleMobileFilters,
-  isDesktopFiltersOpen,
-  toggleDesktopFilters
+  toggleMobileFilters
 }: SearchLayoutProps) => {
   return (
     <div className="flex flex-col md:flex-row gap-0 mt-8">
-      {isDesktopFiltersOpen && (
-        <FilterSidebar 
-          categories={categories}
-          selectedCategory={selectedCategory}
-          handleCategoryChange={handleCategoryChange}
-          senderBrands={senderBrands}
-          selectedBrands={selectedBrands}
-          handleBrandChange={handleBrandChange}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          onApplyFilters={onApplyFilters}
-          isMobileOpen={isMobileFiltersOpen}
-          toggleMobileFilters={toggleMobileFilters}
-          isDesktopOpen={isDesktopFiltersOpen}
-          toggleDesktopFilters={toggleDesktopFilters}
-        />
-      )}
+      {/* Always show the filters sidebar */}
+      <FilterSidebar 
+        categories={categories}
+        selectedCategory={selectedCategory}
+        handleCategoryChange={handleCategoryChange}
+        senderBrands={senderBrands}
+        selectedBrands={selectedBrands}
+        handleBrandChange={handleBrandChange}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        onApplyFilters={onApplyFilters}
+        isMobileOpen={isMobileFiltersOpen}
+        toggleMobileFilters={toggleMobileFilters}
+        isDesktopOpen={true} // Always true
+        toggleDesktopFilters={() => {}} // Empty function as it's not needed
+      />
       
       <div className="flex-1">
         {children}

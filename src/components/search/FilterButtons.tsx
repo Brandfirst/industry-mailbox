@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Filter, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Filter } from 'lucide-react';
 
 interface FilterButtonsProps {
   toggleMobileFilters: () => void;
@@ -14,7 +14,7 @@ const FilterButtons = ({
   toggleMobileFilters,
   toggleDesktopFilters,
   isDesktopFiltersOpen,
-  showDesktopFilterButton = true // Default to true for backward compatibility
+  showDesktopFilterButton = false // Default to false now
 }: FilterButtonsProps) => {
   return (
     <div className="flex justify-between items-center mb-4">
@@ -40,11 +40,10 @@ const FilterButtons = ({
             }`}
           >
             {isDesktopFiltersOpen ? (
-              <ChevronLeft className="h-4 w-4" />
+              "Skjul filtre"
             ) : (
-              <ChevronRight className="h-4 w-4" />
+              "Vis filtre"
             )}
-            {isDesktopFiltersOpen ? "Skjul filtre" : "Vis filtre"}
           </Button>
         </div>
       )}

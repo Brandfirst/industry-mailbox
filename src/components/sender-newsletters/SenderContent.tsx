@@ -54,6 +54,14 @@ const SenderContent = ({
 }: SenderContentProps) => {
   return (
     <div className="container py-2 px-4 md:px-6 flex-1">
+      {/* Only show mobile filter button on small screens */}
+      <div className="md:hidden mb-4">
+        <FilterButtons
+          toggleMobileFilters={toggleMobileFilters}
+          showDesktopFilterButton={false}
+        />
+      </div>
+      
       <SearchLayout
         categories={categories}
         selectedCategory={selectedCategory}
@@ -66,16 +74,9 @@ const SenderContent = ({
         onApplyFilters={applyFilters}
         isMobileFiltersOpen={isMobileFiltersOpen}
         toggleMobileFilters={toggleMobileFilters}
-        isDesktopFiltersOpen={isDesktopFiltersOpen}
+        isDesktopOpen={true} // Always true
         toggleDesktopFilters={toggleDesktopFilters}
       >
-        <FilterButtons
-          toggleMobileFilters={toggleMobileFilters}
-          toggleDesktopFilters={toggleDesktopFilters}
-          isDesktopFiltersOpen={isDesktopFiltersOpen}
-          showDesktopFilterButton={false} // Hide the desktop filter button on sender pages
-        />
-        
         <NewsletterResults
           newsletters={newsletters}
           loading={loading}

@@ -54,90 +54,84 @@ const DesktopFilterSidebar = ({
   
   return (
     <div className="hidden md:block">
-      {isOpen ? (
-        <div className="w-80 p-4 border-r bg-gray-50 shadow-sm rounded-lg">
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900">Filtre</h3>
-              {hasActiveFilters && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={clearAllFilters}
-                  className="h-8 px-2 text-gray-700"
-                >
-                  <X className="h-4 w-4 mr-1" />
-                  Nullstill alle
-                </Button>
-              )}
-            </div>
-            
-            <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium mb-2 text-gray-800">Kategorier</h3>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
-                    {categoryOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent>
-                <CategoryFilter 
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  handleCategoryChange={handleCategoryChange}
-                />
-              </CollapsibleContent>
-            </Collapsible>
-            
-            <Collapsible open={dateOpen} onOpenChange={setDateOpen}>
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium mb-2 text-gray-800">Dato</h3>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
-                    {dateOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent>
-                <DateRangePicker 
-                  dateRange={dateRange}
-                  setDateRange={setDateRange}
-                />
-              </CollapsibleContent>
-            </Collapsible>
-            
-            <Collapsible open={senderOpen} onOpenChange={setSenderOpen}>
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium mb-2 text-gray-800">Avsender</h3>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
-                    {senderOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent>
-                <SenderFilter 
-                  senderBrands={senderBrands}
-                  selectedBrands={selectedBrands}
-                  handleBrandChange={handleBrandChange}
-                />
-              </CollapsibleContent>
-            </Collapsible>
-            
-            <Button 
-              onClick={onApplyFilters} 
-              className="w-full bg-[#FF5722] hover:bg-orange-600 text-white"
-            >
-              Bruk filtre
-            </Button>
+      <div className="w-64 p-4 border-r bg-gray-50 shadow-sm rounded-lg mr-6">
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-gray-900">Filtre</h3>
+            {hasActiveFilters && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearAllFilters}
+                className="h-8 px-2 text-gray-700"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Nullstill alle
+              </Button>
+            )}
           </div>
+          
+          <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium mb-2 text-gray-800">Kategorier</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
+                  {categoryOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+              <CategoryFilter 
+                categories={categories}
+                selectedCategory={selectedCategory}
+                handleCategoryChange={handleCategoryChange}
+              />
+            </CollapsibleContent>
+          </Collapsible>
+          
+          <Collapsible open={dateOpen} onOpenChange={setDateOpen}>
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium mb-2 text-gray-800">Dato</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
+                  {dateOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+              <DateRangePicker 
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+              />
+            </CollapsibleContent>
+          </Collapsible>
+          
+          <Collapsible open={senderOpen} onOpenChange={setSenderOpen}>
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium mb-2 text-gray-800">Avsender</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-700">
+                  {senderOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+              <SenderFilter 
+                senderBrands={senderBrands}
+                selectedBrands={selectedBrands}
+                handleBrandChange={handleBrandChange}
+              />
+            </CollapsibleContent>
+          </Collapsible>
+          
+          <Button 
+            onClick={onApplyFilters} 
+            className="w-full bg-[#FF5722] hover:bg-orange-600 text-white"
+          >
+            Bruk filtre
+          </Button>
         </div>
-      ) : (
-        <div className="w-12 flex flex-col items-center py-4 border-r bg-gray-50">
-          {/* We'll keep this minimal when collapsed */}
-        </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -5,7 +5,6 @@ import NewsletterPreview from './NewsletterPreview';
 import { useNavigate } from 'react-router-dom';
 import { navigateToSender } from '@/lib/utils/newsletterNavigation';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface NewsletterItemDesktopProps {
   newsletter: Newsletter;
@@ -26,7 +25,7 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayN
   };
   
   return (
-    <div className="hidden md:flex md:flex-col h-[500px]" onClick={onClick}>
+    <div className="hidden md:flex md:flex-col h-[550px] border rounded-lg shadow-sm overflow-hidden bg-white" onClick={onClick}>
       <div className="flex items-center p-3 border-b">
         <Avatar 
           className="h-8 w-8 rounded-full mr-2 flex-shrink-0 cursor-pointer"
@@ -45,7 +44,7 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayN
             {displayName}
           </span>
           <span className="text-black text-xs">
-            NO • {getFormattedDate(newsletter.published_at || '')}
+            {getFormattedDate(newsletter.published_at || '')}
           </span>
         </div>
         {newsletter.categories?.name && (
@@ -61,7 +60,7 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayN
         )}
       </div>
       
-      <div className="flex-1 overflow-hidden bg-white">
+      <div className="flex-1 overflow-hidden bg-white p-2">
         <NewsletterPreview 
           content={newsletter.content} 
           title={newsletter.title}

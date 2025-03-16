@@ -4,6 +4,7 @@ import { Newsletter } from '@/lib/supabase/types';
 import NewsletterPreview from './NewsletterPreview';
 import { useNavigate } from 'react-router-dom';
 import { navigateToSender } from '@/lib/utils/newsletterNavigation';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface NewsletterItemMobileProps {
   newsletter: Newsletter;
@@ -24,9 +25,9 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate, displayNa
   };
   
   return (
-    <div className="md:hidden flex" onClick={onClick}>
-      <div className="w-1/3 h-56 bg-white overflow-hidden rounded-l-xl">
-        <div className="w-full h-full flex items-center justify-center">
+    <div className="md:hidden flex border rounded-lg shadow-sm overflow-hidden bg-white mb-4" onClick={onClick}>
+      <div className="w-1/3 h-56 bg-white overflow-hidden rounded-l-lg border-r">
+        <div className="w-full h-full flex items-center justify-center p-1">
           <NewsletterPreview 
             content={newsletter.content} 
             title={newsletter.title}
@@ -37,35 +38,31 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate, displayNa
       
       <div className="w-2/3 p-3 flex flex-col">
         <div className="flex items-center mb-1">
-          <div 
-            className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0 cursor-pointer"
+          <Avatar 
+            className="h-6 w-6 rounded-full mr-2 flex-shrink-0 cursor-pointer"
             onClick={handleSenderClick}
           >
-            {displayName && (
-              <span className="text-xs font-semibold text-gray-700">
-                {displayName.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
+            <AvatarFallback className="text-xs font-semibold bg-orange-500 text-white">
+              {displayName && displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
           <span 
             className="font-medium text-xs truncate text-black cursor-pointer hover:underline"
             onClick={handleSenderClick}
           >
             {displayName}
           </span>
-          <span className="text-black text-xs ml-1">
-            {newsletter.categories?.name && (
-              <span 
-                className="px-1.5 py-0.5 text-xs rounded-full font-medium ml-auto"
-                style={{ 
-                  backgroundColor: newsletter.categories?.color ? `${newsletter.categories.color}20` : '#8B5CF620',
-                  color: newsletter.categories?.color || '#8B5CF6' 
-                }}
-              >
-                {newsletter.categories.name}
-              </span>
-            )}
-          </span>
+          {newsletter.categories?.name && (
+            <span 
+              className="px-1.5 py-0.5 text-xs rounded-full font-medium ml-auto"
+              style={{ 
+                backgroundColor: newsletter.categories?.color ? `${newsletter.categories.color}20` : '#8B5CF620',
+                color: newsletter.categories?.color || '#8B5CF6' 
+              }}
+            >
+              {newsletter.categories.name}
+            </span>
+          )}
         </div>
         
         <div className="line-clamp-2 text-sm font-medium text-black mb-1">

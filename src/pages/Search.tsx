@@ -11,7 +11,6 @@ import FilterButtons from '@/components/search/FilterButtons';
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false);
 
   // Add light mode class for search page
   useEffect(() => {
@@ -60,10 +59,6 @@ const SearchPage = () => {
     setIsMobileFiltersOpen(!isMobileFiltersOpen);
   };
 
-  const toggleDesktopFilters = () => {
-    setIsDesktopFiltersOpen(!isDesktopFiltersOpen);
-  };
-
   return (
     <div className="container py-8 md:py-12 px-4 md:px-6 bg-white text-gray-900">
       <SearchHeader />
@@ -79,11 +74,13 @@ const SearchPage = () => {
         setDateRange={setDateRange}
       />
       
-      <FilterButtons
-        toggleMobileFilters={toggleMobileFilters}
-        toggleDesktopFilters={toggleDesktopFilters}
-        isDesktopFiltersOpen={isDesktopFiltersOpen}
-      />
+      {/* Only show mobile filter button */}
+      <div className="md:hidden mb-4">
+        <FilterButtons
+          toggleMobileFilters={toggleMobileFilters}
+          showDesktopFilterButton={false}
+        />
+      </div>
       
       <SearchLayout
         categories={categories}
@@ -97,8 +94,6 @@ const SearchPage = () => {
         onApplyFilters={applyFilters}
         isMobileFiltersOpen={isMobileFiltersOpen}
         toggleMobileFilters={toggleMobileFilters}
-        isDesktopFiltersOpen={isDesktopFiltersOpen}
-        toggleDesktopFilters={toggleDesktopFilters}
       >
         <NewsletterResults
           newsletters={newsletters}
