@@ -157,8 +157,8 @@ export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSe
       };
     }
     
-    // Parse the sync_settings JSON object
-    const settings = data.sync_settings as SyncScheduleSettings;
+    // Properly cast the sync_settings to our type
+    const settings = data.sync_settings as any;
     
     return {
       enabled: settings.enabled || false,

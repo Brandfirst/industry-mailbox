@@ -1,6 +1,7 @@
 
 export * from "./ScheduleSelector";
-export * from "./ScheduleStatus";
+// We don't re-export ScheduleOption from ScheduleStatus to avoid collision
+export { ScheduleStatus } from "./ScheduleStatus";
 export * from "./AccountNotice";
 export * from "./LogsHeader";
 export * from "./LogsTableHeader";
