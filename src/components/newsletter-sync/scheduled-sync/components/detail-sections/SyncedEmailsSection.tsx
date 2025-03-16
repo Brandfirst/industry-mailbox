@@ -28,13 +28,11 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   console.log("Displaying emails in SyncedEmailsSection:", displayedEmails);
   
   const navigateToNewsletter = (email: any) => {
-    // If the email has an actual newsletter ID, go directly to it
-    if (email.id && !email.id.toString().startsWith('temp-')) {
+    // Direct navigation to the newsletter detail page
+    if (email.id) {
+      // Always use the consistent /newsletter/{id} path format
       navigate(`/newsletter/${email.id}`);
-    } else if (email.gmail_message_id) {
-      // If it has a Gmail message ID, try to find the newsletter by that ID
-      // This is just a navigation, we're not actually searching
-      navigate(`/newsletter/${email.id}`);
+      console.log(`Navigating to newsletter ID: ${email.id}`);
     } else {
       console.log("Cannot navigate: email has no valid ID");
     }
