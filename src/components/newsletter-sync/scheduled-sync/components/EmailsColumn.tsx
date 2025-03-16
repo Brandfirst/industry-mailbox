@@ -16,8 +16,12 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
   const scheduleDetails = log.status === 'scheduled' && log.details;
   const syncedEmails = log.details?.synced || [];
   
-  // Only show clickable emails when there are synced emails and not a scheduled sync
-  const showClickableEmails = log.status !== 'scheduled' && syncedEmails.length > 0;
+  // Debug logging to see what's happening with the synced emails
+  console.log("Synced emails for log:", log.id, syncedEmails.length > 0 ? "Has emails" : "No emails");
+  
+  // Change the condition to determine clickability
+  // We'll make it clickable if we have any emails and it's not scheduled
+  const showClickableEmails = log.status !== 'scheduled' && totalEmails > 0;
   
   const handleClickEmails = () => {
     if (showClickableEmails) {
@@ -36,19 +40,19 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
             className={`px-0 py-0 h-auto flex items-center ${showClickableEmails ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline underline-offset-2' : ''}`}
             disabled={!showClickableEmails}
             onClick={handleClickEmails}
+            aria-label="View email details"
           >
             <span>{totalEmails} email{totalEmails !== 1 ? 's' : ''}</span>
             {showClickableEmails && <ExternalLinkIcon className="h-3 w-3 ml-1" />}
           </Button>
           
-          {showClickableEmails && (
-            <SyncedEmailsDialog 
-              isOpen={isDialogOpen}
-              onOpenChange={setIsDialogOpen}
-              syncedEmails={syncedEmails}
-              title={`Emails from ${log.account?.email || ''}`}
-            />
-          )}
+          {/* Always render the dialog but control its open state */}
+          <SyncedEmailsDialog 
+            isOpen={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            syncedEmails={syncedEmails}
+            title={`Emails from ${log.account?.email || ''}`}
+          />
         </>
       ) : scheduleDetails && (
         <ScheduleDetails 

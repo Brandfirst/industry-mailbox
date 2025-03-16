@@ -32,8 +32,14 @@ export function SyncedEmailsDialog({
     }
   }, [isOpen, emailCount]);
   
+  // Since we're having issues with the dialog, let's add more debugging
+  const handleOpenChange = (open: boolean) => {
+    console.log("Dialog open state changing to:", open);
+    onOpenChange(open);
+  };
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md bg-white">
         <DialogTitle>{title}</DialogTitle>
         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
