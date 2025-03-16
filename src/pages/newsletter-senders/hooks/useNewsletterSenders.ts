@@ -52,6 +52,7 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
   // Track whether we're in an operation and whether we've already refreshed
   const isOperationInProgress = useRef(false);
   const hasRefreshedAfterOperation = useRef(false);
+  const refreshRequested = useRef(false);
 
   // Auto-refresh after operations
   useEffect(() => {
@@ -60,14 +61,19 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
         !isOperationInProgress.current) {
       console.log("Operation started - tracking for later refresh");
       isOperationInProgress.current = true;
+      refreshRequested.current = false;
       hasRefreshedAfterOperation.current = false;
     }
     
     // Only proceed if we were doing an operation, it's now completed, and we haven't refreshed yet
     if (isOperationInProgress.current && 
         !updatingCategory && !updatingBrand && !deleting && !refreshing && 
-        !hasRefreshedAfterOperation.current) {
+        !hasRefreshedAfterOperation.current &&
+        !refreshRequested.current) {
       console.log("Operations completed, triggering one-time refresh");
+      
+      // Mark that we've requested a refresh so we don't request again in future renders
+      refreshRequested.current = true;
       
       // Mark that we've refreshed so we don't do it again
       hasRefreshedAfterOperation.current = true;
@@ -75,8 +81,10 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
       // Reset the operation flag
       isOperationInProgress.current = false;
       
-      // Trigger a single refresh
-      handleRefresh();
+      // Trigger a single refresh without updating the dependency array
+      setTimeout(() => {
+        handleRefresh();
+      }, 0);
     }
   }, [updatingCategory, updatingBrand, deleting, refreshing]);
 
