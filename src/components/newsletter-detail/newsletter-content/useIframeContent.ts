@@ -40,7 +40,7 @@ export const useIframeContent = (newsletter: Newsletter) => {
             if (doc.body) {
               // Set appropriate height to show all content
               const height = doc.body.scrollHeight;
-              setIframeHeight(`${height}px`);
+              setIframeHeight(`${height + 50}px`); // Add some extra space to prevent cutoff
               
               // Apply centering again after resize
               forceCentering(doc);
@@ -53,6 +53,7 @@ export const useIframeContent = (newsletter: Newsletter) => {
           setTimeout(() => forceCentering(doc), 100);
           setTimeout(() => forceCentering(doc), 300);
           setTimeout(() => forceCentering(doc), 600);
+          setTimeout(() => forceCentering(doc), 1000);
           
           return () => {
             resizeObserver.disconnect();

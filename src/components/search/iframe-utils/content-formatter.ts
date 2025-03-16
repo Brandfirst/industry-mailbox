@@ -22,7 +22,7 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <meta http-equiv="Content-Security-Policy" content="script-src 'none'; frame-src 'none';">
         <style>
-          ${getIframeStyles()}
+          ${getIframeStyles(isMobile)}
         </style>
       </head>
       <body>
@@ -36,9 +36,10 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
 /**
  * Get the CSS styles for the iframe content
  * 
+ * @param isMobile Whether styles are for mobile view
  * @returns CSS styles as a string
  */
-const getIframeStyles = (): string => {
+const getIframeStyles = (isMobile: boolean = false): string => {
   return `
     html, body {
       margin: 0 !important;
@@ -66,6 +67,10 @@ const getIframeStyles = (): string => {
       align-items: center;
       justify-content: center;
       overflow: hidden !important;
+      ${isMobile ? '' : `
+      transform: scale(0.9);
+      transform-origin: center top;
+      `}
     }
     
     /* Preserve the pointer-events none for links */
