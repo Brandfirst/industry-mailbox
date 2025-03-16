@@ -1,20 +1,22 @@
 
-import { useState, useEffect } from "react";
+import React from "react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { updateSyncSchedule, getSyncSchedule, getNextSyncTime } from "@/lib/supabase/emailAccounts/syncLogs";
-import { ScheduleSelector, ScheduleStatus, AccountNotice } from "./components";
+import { ScheduleSelector, ScheduleStatus } from "./components";
+import { logScheduledSync } from "@/lib/supabase/emailAccounts/sync/logHandling";
 
 type ScheduleOption = "hourly" | "daily" | "disabled";
 
 type SyncScheduleControlsProps = {
   selectedAccount: string | null;
   isEnabled: boolean;
-  setIsEnabled: (value: boolean) => void;
+  setIsEnabled: React.Dispatch<React.SetStateAction<boolean>>;
   scheduleOption: ScheduleOption;
-  setScheduleOption: (value: ScheduleOption) => void;
+  setScheduleOption: React.Dispatch<React.SetStateAction<ScheduleOption>>;
   specificHour: string;
-  setSpecificHour: (value: string) => void;
-  refreshLogs: () => void;
+  setSpecificHour: React.Dispatch<React.SetStateAction<string>>;
+  refreshLogs: () => Promise<void>;
 };
 
 export function SyncScheduleControls({
@@ -27,115 +29,95 @@ export function SyncScheduleControls({
   setSpecificHour,
   refreshLogs
 }: SyncScheduleControlsProps) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [nextSyncTime, setNextSyncTime] = useState<Date | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-
-  // Load current sync schedule for the selected account
-  useEffect(() => {
+  const handleScheduleChange = async (enabled: boolean) => {
     if (!selectedAccount) return;
     
-    const loadSyncSchedule = async () => {
-      const schedule = await getSyncSchedule(selectedAccount);
-      
-      if (schedule) {
-        setIsEnabled(schedule.enabled);
-        setScheduleOption(schedule.scheduleType as ScheduleOption);
-        
-        if (schedule.hour !== undefined && schedule.hour !== null) {
-          setSpecificHour(schedule.hour.toString().padStart(2, '0'));
-        }
-        
-        if (schedule.lastUpdated) {
-          setLastUpdated(schedule.lastUpdated);
-        }
-        
-        // Calculate next sync time
-        if (schedule.enabled) {
-          const next = getNextSyncTime(schedule.scheduleType, schedule.hour);
-          setNextSyncTime(next);
-        } else {
-          setNextSyncTime(null);
-        }
-      }
-    };
+    if (enabled && scheduleOption === "disabled") {
+      // If enabling but no option selected, default to daily
+      setScheduleOption("daily");
+    }
     
-    loadSyncSchedule();
-  }, [selectedAccount, setIsEnabled, setScheduleOption, setSpecificHour]);
+    setIsEnabled(enabled);
+    
+    // Save the schedule settings
+    await saveScheduleSettings(enabled);
+  };
   
-  // Update next sync time when schedule changes
-  useEffect(() => {
-    if (isEnabled) {
-      const hour = parseInt(specificHour);
-      const next = getNextSyncTime(scheduleOption, isNaN(hour) ? undefined : hour);
-      setNextSyncTime(next);
-    } else {
-      setNextSyncTime(null);
-    }
-  }, [isEnabled, scheduleOption, specificHour]);
-
-  const handleSaveSchedule = async () => {
-    if (!selectedAccount) {
-      toast.error("Please select an email account first");
-      return;
-    }
-
-    setIsSaving(true);
+  const saveScheduleSettings = async (enabled: boolean = isEnabled) => {
+    if (!selectedAccount) return;
     
-    try {
-      // Save schedule settings to the database using the updateSyncSchedule function
-      const success = await updateSyncSchedule(
-        selectedAccount,
-        isEnabled,
-        scheduleOption,
-        scheduleOption === "daily" ? parseInt(specificHour) : undefined
-      );
-
-      if (!success) throw new Error("Failed to update sync schedule");
-      
-      // Update last updated timestamp
-      setLastUpdated(new Date().toISOString());
-      
-      // Show success message
-      if (isEnabled) {
-        const scheduleDesc = scheduleOption === "hourly" ? "every hour" : `daily at ${specificHour}:00`;
-        toast.success(`Automatic sync enabled for ${scheduleDesc}`);
+    const hourNumber = scheduleOption === "daily" ? parseInt(specificHour, 10) : undefined;
+    
+    const success = await updateSyncSchedule(selectedAccount, {
+      enabled: enabled,
+      scheduleType: scheduleOption === "disabled" ? "daily" : scheduleOption,
+      hour: hourNumber
+    });
+    
+    if (success) {
+      if (enabled && scheduleOption !== "disabled") {
+        logScheduledSync(selectedAccount, scheduleOption, hourNumber);
+        
+        // Show success message with next sync time
+        const nextSync = getNextSyncTime(scheduleOption, hourNumber);
+        toast.success(`Automatic sync ${enabled ? 'enabled' : 'disabled'}. ${enabled ? `Next sync approximately ${nextSync}.` : ''}`);
       } else {
-        toast.success("Automatic sync disabled");
+        toast.success(`Automatic sync ${enabled ? 'enabled' : 'disabled'}.`);
       }
       
-      // Refresh logs after saving
+      // Refresh the logs to show the new scheduled sync
       refreshLogs();
-    } catch (error) {
-      console.error("Error saving schedule:", error);
-      toast.error("Failed to save schedule settings");
-    } finally {
-      setIsSaving(false);
+    } else {
+      toast.error("Failed to update sync schedule");
     }
   };
-
+  
+  const handleOptionChange = (option: ScheduleOption) => {
+    setScheduleOption(option);
+    
+    // Save the settings when option changes
+    saveScheduleSettings();
+  };
+  
+  const handleHourChange = (hour: string) => {
+    setSpecificHour(hour);
+    
+    // Save the settings when hour changes
+    saveScheduleSettings();
+  };
+  
   return (
-    <div>
-      <ScheduleSelector
-        isEnabled={isEnabled}
-        setIsEnabled={setIsEnabled}
-        scheduleOption={scheduleOption}
-        setScheduleOption={setScheduleOption}
-        specificHour={specificHour}
-        setSpecificHour={setSpecificHour}
-        onSaveSchedule={handleSaveSchedule}
-        isSaving={isSaving}
-        disabled={!selectedAccount}
-      />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <h4 className="font-medium">Enable automatic sync</h4>
+          <p className="text-sm text-muted-foreground">
+            Keep your newsletters up to date automatically
+          </p>
+        </div>
+        <Switch
+          checked={isEnabled}
+          onCheckedChange={handleScheduleChange}
+          disabled={!selectedAccount}
+        />
+      </div>
       
-      <ScheduleStatus
-        isEnabled={isEnabled}
-        nextSyncTime={nextSyncTime}
-        lastUpdated={lastUpdated}
-        selectedAccount={selectedAccount}
-      />
-      
-      <AccountNotice selectedAccount={selectedAccount} />
+      {selectedAccount && isEnabled && (
+        <>
+          <ScheduleSelector
+            selectedAccount={selectedAccount}
+            scheduleOption={scheduleOption}
+            specificHour={specificHour}
+            onOptionChange={handleOptionChange}
+            onHourChange={handleHourChange}
+          />
+          
+          <ScheduleStatus
+            scheduleOption={scheduleOption}
+            specificHour={specificHour}
+          />
+        </>
+      )}
     </div>
   );
 }

@@ -1,11 +1,15 @@
 
 import React from "react";
+import { Button } from "@/components/ui/button";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
-import { LogsHeader, LogsTableHeader, LogsContent } from "./components";
+import { SyncLogItem } from "./SyncLogItem";
+import { LogsHeader, LogsContent, LogsTableHeader } from "./components";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RefreshCcw } from "lucide-react";
 
 type SyncLogsListProps = {
   showLogs: boolean;
-  setShowLogs: (show: boolean) => void;
+  setShowLogs: React.Dispatch<React.SetStateAction<boolean>>;
   isLoading: boolean;
   syncLogs: SyncLogEntry[];
   selectedAccount: string | null;
@@ -22,26 +26,47 @@ export function SyncLogsList({
   fetchSyncLogs,
   formatTimestamp
 }: SyncLogsListProps) {
+  if (!selectedAccount) return null;
+  
   return (
     <div className="mt-6">
-      <LogsHeader
-        showLogs={showLogs}
-        setShowLogs={setShowLogs}
+      <LogsHeader 
+        showLogs={showLogs} 
+        setShowLogs={setShowLogs} 
         selectedAccount={selectedAccount}
-        fetchSyncLogs={fetchSyncLogs}
       />
       
       {showLogs && (
-        <div className="mt-2 border rounded-md overflow-hidden">
-          <LogsTableHeader />
-          <div className="divide-y">
+        <div className="mt-2 border rounded-md">
+          <div className="flex justify-between items-center p-2 bg-muted/40">
+            <LogsTableHeader />
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={fetchSyncLogs}
+              disabled={isLoading}
+            >
+              <RefreshCcw className="h-4 w-4 mr-1" />
+              Refresh
+            </Button>
+          </div>
+          
+          {isLoading ? (
+            <div className="p-4 space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : syncLogs.length > 0 ? (
             <LogsContent
-              isLoading={isLoading}
               syncLogs={syncLogs}
-              selectedAccount={selectedAccount}
               formatTimestamp={formatTimestamp}
             />
-          </div>
+          ) : (
+            <div className="p-6 text-center text-muted-foreground">
+              No sync logs found for this account.
+            </div>
+          )}
         </div>
       )}
     </div>

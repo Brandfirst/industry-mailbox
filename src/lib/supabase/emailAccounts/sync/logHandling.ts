@@ -10,7 +10,7 @@ export function logPartialSync(accountId: string, response: any, syncDetails: an
   // Log the partial sync success
   addSyncLog({
     account_id: accountId,
-    status: 'success',
+    status: 'partial',
     message_count: response.data.count || 0,
     error_message: "Some emails failed to sync",
     details: syncDetails,

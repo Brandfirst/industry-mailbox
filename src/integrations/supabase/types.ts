@@ -108,6 +108,44 @@ export type Database = {
         }
         Relationships: []
       }
+      email_sync_logs: {
+        Row: {
+          account_id: string | null
+          details: Json | null
+          error_message: string | null
+          id: string
+          message_count: number
+          status: string
+          timestamp: string
+        }
+        Insert: {
+          account_id?: string | null
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          message_count?: number
+          status: string
+          timestamp?: string
+        }
+        Update: {
+          account_id?: string | null
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          message_count?: number
+          status?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sync_logs_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletters: {
         Row: {
           brand_name: string | null

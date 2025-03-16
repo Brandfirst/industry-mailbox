@@ -46,19 +46,19 @@ export async function syncEmailAccount(accountId: string): Promise<SyncResult> {
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 500));
         }
         
-        // Make the function call with timeout control
+        // Create AbortController for timeout
         const abortController = new AbortController();
         const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30 second timeout
         
         try {
+          // Make the function call with request options
           const response = await supabase.functions.invoke("sync-emails", {
             body: { 
               accountId,
               import_all_emails: true,
               debug: true,
               verbose: true
-            },
-            signal: abortController.signal
+            }
           });
           
           // Clear the timeout since we got a response
