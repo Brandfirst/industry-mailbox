@@ -31,7 +31,8 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
               // Account for the scale factor when setting the height
-              const computedHeight = doc.body.scrollHeight * (isMobile ? 0.6 : 0.7);
+              // Use a slightly larger multiplier to ensure top content is visible
+              const computedHeight = doc.body.scrollHeight * (isMobile ? 0.7 : 0.85);
               setIframeHeight(`${computedHeight}px`);
               
               // Apply forced centering

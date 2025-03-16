@@ -38,8 +38,8 @@ export const useIframeContent = (newsletter: Newsletter) => {
           // Adjust height after content is loaded
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
-              // Account for the scale factor in the height calculation
-              const height = doc.body.scrollHeight * 0.85;
+              // Increase the multiplier slightly to ensure top content is visible
+              const height = doc.body.scrollHeight * 0.9;
               setIframeHeight(`${height}px`);
             }
           });

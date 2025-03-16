@@ -27,8 +27,8 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
         <meta http-equiv="Content-Security-Policy" content="script-src 'none'; frame-src 'none';">
         <style>
           html, body {
-            margin: 0;
-            padding: 0;
+            margin: 0 !important;
+            padding: 0 !important;
             height: 100%;
             width: 100%;
             background-color: white;
@@ -36,17 +36,20 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             overflow-x: hidden;
             overflow-y: hidden;
             box-sizing: border-box;
-            text-align: center;
+            text-align: center !important;
           }
           body {
-            padding: 0;
+            padding: 0 !important;
+            margin: 0 auto !important;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            width: 100%;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            text-align: center !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 100% !important;
           }
           a {
             pointer-events: none;
@@ -55,28 +58,31 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             max-width: 100%;
             height: auto;
             display: inline-block;
+            margin: 0 auto !important;
           }
           table {
-            max-width: 100%;
+            max-width: 100% !important;
             margin: 0 auto !important;
             float: none !important;
             display: table !important;
             width: 100% !important;
+            text-align: center !important;
           }
           * {
             max-width: 100%;
             box-sizing: border-box;
             margin-left: auto !important;
             margin-right: auto !important;
+            text-align: center !important;
           }
-          /* Fixed content centering and scaling */
+          /* Fixed content centering and scaling - start from top */
           body > * {
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 auto !important;
             float: none !important;
             transform: scale(${isMobile ? '0.6' : '0.7'});
-            transform-origin: center top;
+            transform-origin: top center !important;
             position: relative !important;
             left: 0 !important;
             right: 0 !important;
@@ -98,14 +104,14 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             margin-right: auto !important;
             float: none !important;
             text-align: center !important;
-            position: relative !important;
+            position: static !important;
             max-width: 100% !important;
             width: 100% !important;
           }
           
           /* Fix absolute positioning */
           [style*="position: absolute"], [style*="position:absolute"] {
-            position: relative !important;
+            position: static !important;
             left: auto !important;
             right: auto !important;
             margin: 0 auto !important;
@@ -128,19 +134,29 @@ export const forceCentering = (doc: Document): void => {
   const allElements = doc.querySelectorAll('*');
   allElements.forEach(el => {
     const element = el as HTMLElement;
-    element.style.marginLeft = 'auto';
-    element.style.marginRight = 'auto';
+    element.style.marginLeft = 'auto !important';
+    element.style.marginRight = 'auto !important';
+    element.style.textAlign = 'center !important';
     
     // If element has float, override it
     if (window.getComputedStyle(element).float !== 'none') {
-      element.style.float = 'none';
+      element.style.float = 'none !important';
     }
     
     // Fix absolute positioned elements
     if (window.getComputedStyle(element).position === 'absolute') {
-      element.style.position = 'relative';
+      element.style.position = 'static';
       element.style.left = 'auto';
       element.style.right = 'auto';
+    }
+    
+    // Fix margin and padding
+    if (window.getComputedStyle(element).marginLeft !== '0px' && window.getComputedStyle(element).marginLeft !== 'auto') {
+      element.style.marginLeft = 'auto !important';
+    }
+    
+    if (window.getComputedStyle(element).marginRight !== '0px' && window.getComputedStyle(element).marginRight !== 'auto') {
+      element.style.marginRight = 'auto !important';
     }
   });
   
@@ -154,15 +170,19 @@ export const forceCentering = (doc: Document): void => {
     containerEl.style.marginLeft = 'auto';
     containerEl.style.marginRight = 'auto';
     containerEl.style.float = 'none';
+    containerEl.style.position = 'static';
   });
 
   // Set body styles for better centering
-  doc.body.style.margin = '0';
+  doc.body.style.margin = '0 auto';
   doc.body.style.padding = '0';
   doc.body.style.textAlign = 'center';
   doc.body.style.display = 'flex';
   doc.body.style.flexDirection = 'column';
   doc.body.style.alignItems = 'center';
-  doc.body.style.justifyContent = 'center';
+  doc.body.style.justifyContent = 'flex-start'; // Start from top
   doc.body.style.width = '100%';
+  doc.body.style.maxWidth = '100%';
+  doc.body.style.position = 'static';
 };
+
