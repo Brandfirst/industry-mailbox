@@ -35,8 +35,9 @@ export function SyncLogsList({
   setSyncLogs
 }: SyncLogsListProps) {
   
-  // Add state for row count
+  // Add state for row count and message count filter
   const [rowCount, setRowCount] = useState<number>(10);
+  const [minMessageCount, setMinMessageCount] = useState<number>(0);
   const [displayedLogs, setDisplayedLogs] = useState<SyncLogEntry[]>([]);
   
   // Set up logs fetching
@@ -53,10 +54,15 @@ export function SyncLogsList({
     setSyncLogs
   );
 
-  // Update displayed logs when syncLogs or rowCount changes
+  // Update displayed logs when syncLogs, rowCount, or minMessageCount changes
   useEffect(() => {
-    setDisplayedLogs(syncLogs.slice(0, rowCount));
-  }, [syncLogs, rowCount]);
+    // Filter logs by message count, then limit by rowCount
+    const filteredLogs = syncLogs
+      .filter(log => log.message_count >= minMessageCount)
+      .slice(0, rowCount);
+    
+    setDisplayedLogs(filteredLogs);
+  }, [syncLogs, rowCount, minMessageCount]);
   
   // For enhanced debug logging
   React.useEffect(() => {
@@ -77,6 +83,10 @@ export function SyncLogsList({
     setRowCount(value);
   };
   
+  const handleMinMessageCountChange = (value: number) => {
+    setMinMessageCount(value);
+  };
+  
   return (
     <div className="mt-6">
       <LogsHeader 
@@ -86,6 +96,8 @@ export function SyncLogsList({
         isRefreshing={isRefreshing}
         rowCount={rowCount}
         onRowCountChange={handleRowCountChange}
+        minMessageCount={minMessageCount}
+        onMinMessageCountChange={handleMinMessageCountChange}
       />
       
       {showLogs && (
@@ -108,6 +120,10 @@ export function SyncLogsList({
               formatTimestamp={formatTimestamp}
             >
               <span>No sync logs found for this account</span>
+            </LogsContent>
+          ) : displayedLogs.length === 0 ? (
+            <LogsContent>
+              <span>No logs match your filter criteria</span>
             </LogsContent>
           ) : (
             <div className="min-w-[800px]">

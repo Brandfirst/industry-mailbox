@@ -2,6 +2,7 @@
 import { RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RowCountSelect } from "./RowCountSelect";
+import { MessageCountFilter } from "./MessageCountFilter";
 
 interface LogsHeaderProps {
   showLogs: boolean;
@@ -10,6 +11,8 @@ interface LogsHeaderProps {
   isRefreshing: boolean;
   rowCount?: number;
   onRowCountChange?: (value: number) => void;
+  minMessageCount?: number;
+  onMinMessageCountChange?: (value: number) => void;
 }
 
 export function LogsHeader({ 
@@ -18,11 +21,13 @@ export function LogsHeader({
   onRefresh, 
   isRefreshing,
   rowCount = 10,
-  onRowCountChange
+  onRowCountChange,
+  minMessageCount = 0,
+  onMinMessageCountChange
 }: LogsHeaderProps) {
   return (
     <div className="flex justify-between items-center">
-      <div className="flex items-center">
+      <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -46,6 +51,13 @@ export function LogsHeader({
           <RowCountSelect 
             value={rowCount} 
             onChange={onRowCountChange} 
+          />
+        )}
+        
+        {showLogs && onMinMessageCountChange && (
+          <MessageCountFilter
+            value={minMessageCount || 0}
+            onChange={onMinMessageCountChange}
           />
         )}
       </div>
