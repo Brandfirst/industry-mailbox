@@ -51,6 +51,17 @@ export function SyncScheduleControls({
     }
   }, [isEnabled, scheduleOption, specificHour, hasSaved]);
 
+  // Debug log for settings updates
+  useEffect(() => {
+    console.log("SyncScheduleControls updated:", {
+      selectedAccount,
+      isEnabled,
+      scheduleOption,
+      specificHour,
+      settingsLoaded
+    });
+  }, [selectedAccount, isEnabled, scheduleOption, specificHour, settingsLoaded]);
+
   const saveSchedule = async () => {
     if (!selectedAccount) {
       toast.error("No account selected");
@@ -59,6 +70,13 @@ export function SyncScheduleControls({
     
     setIsSaving(true);
     try {
+      console.log("Saving schedule with values:", {
+        selectedAccount,
+        isEnabled,
+        scheduleOption,
+        specificHour
+      });
+      
       // Convert specificHour to number
       const hourNumber = scheduleOption === "daily" ? parseInt(specificHour, 10) : undefined;
       

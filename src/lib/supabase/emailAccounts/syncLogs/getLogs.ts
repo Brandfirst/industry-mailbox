@@ -48,6 +48,8 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
  */
 export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSettings | null> {
   try {
+    console.log("Fetching sync schedule for account:", accountId);
+    
     const { data, error } = await supabase
       .from('email_accounts')
       .select('sync_settings')
@@ -59,7 +61,10 @@ export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSe
       return null;
     }
     
+    console.log("Retrieved sync settings:", data?.sync_settings);
+    
     if (!data || !data.sync_settings) {
+      console.log("No sync settings found, returning default");
       // Return default settings if none exist
       return {
         enabled: false,
@@ -70,12 +75,18 @@ export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSe
     // Properly cast the sync_settings to our type
     const settings = data.sync_settings as any;
     
-    return {
+    // Extract scheduleType - handle both camelCase and snake_case keys for backward compatibility
+    const scheduleType = settings.scheduleType || settings.schedule_type || 'disabled';
+    
+    const syncSettings = {
       enabled: Boolean(settings.enabled),
-      scheduleType: (settings.scheduleType || settings.schedule_type || 'disabled') as SyncScheduleSettings['scheduleType'],
+      scheduleType: scheduleType as SyncScheduleSettings['scheduleType'],
       hour: typeof settings.hour === 'number' ? settings.hour : undefined,
       updated_at: settings.updated_at
     };
+    
+    console.log("Parsed sync settings:", syncSettings);
+    return syncSettings;
   } catch (error) {
     console.error("Exception fetching sync schedule:", error);
     return null;
