@@ -77,11 +77,16 @@ export function SyncLogsList({
           if (eventType === 'INSERT') {
             // Add the new log at the top of the list
             const newLog = payload.new as SyncLogEntry;
-            setSyncLogs(prevLogs => [newLog, ...prevLogs]);
+            setSyncLogs(prevLogs => {
+              // Check if this log ID already exists to prevent duplicates
+              const exists = prevLogs.some(log => log.id === newLog.id);
+              if (exists) return prevLogs;
+              return [newLog, ...prevLogs];
+            });
             
             // Show a toast notification for the new log
-            toast.info(`New sync log: ${newLog.status}`, {
-              description: `${newLog.message_count} messages processed`
+            toast.info(`New sync started: ${newLog.status}`, {
+              description: `Sync process initiated`
             });
           } else if (eventType === 'UPDATE') {
             // Update the existing log in the list
@@ -91,6 +96,17 @@ export function SyncLogsList({
                 log.id === updatedLog.id ? updatedLog : log
               )
             );
+            
+            // Show different toast based on status change
+            if (updatedLog.status === 'success') {
+              toast.success(`Sync completed: ${updatedLog.message_count} messages`, {
+                description: `Sync process finished successfully`
+              });
+            } else if (updatedLog.status === 'failed') {
+              toast.error(`Sync failed`, {
+                description: updatedLog.error_message || 'Unknown error'
+              });
+            }
           } else if (eventType === 'DELETE') {
             // Remove the deleted log from the list
             const deletedLog = payload.old as SyncLogEntry;
@@ -141,6 +157,8 @@ export function SyncLogsList({
         selectedAccount={selectedAccount}
         fetchSyncLogs={fetchSyncLogs}
         isLoading={isLoading}
+        isRefreshing={isRefreshing}
+        onRefresh={handleRefresh}
       />
       
       {showLogs && (

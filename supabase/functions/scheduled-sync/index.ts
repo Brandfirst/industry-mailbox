@@ -37,15 +37,16 @@ serve(async (req) => {
     const { 
       forceRun = false,
       accountId = null, 
-      manual = false 
+      manual = false,
+      sync_log_id = null  // Optional log ID to update instead of creating new
     } = reqData;
     
     // Log the invocation
-    console.log(`Scheduled sync function invoked with forceRun=${forceRun}, accountId=${accountId}, manual=${manual}`);
+    console.log(`Scheduled sync function invoked with forceRun=${forceRun}, accountId=${accountId}, manual=${manual}, sync_log_id=${sync_log_id}`);
     
     // If a specific account ID is provided, sync only that account
     if (accountId) {
-      return await handleSingleAccountSync(supabase, accountId, forceRun, manual, corsHeaders);
+      return await handleSingleAccountSync(supabase, accountId, forceRun, manual, corsHeaders, sync_log_id);
     }
     
     // Otherwise, get all accounts with enabled sync
@@ -120,7 +121,7 @@ serve(async (req) => {
 /**
  * Handle syncing a single account
  */
-async function handleSingleAccountSync(supabase: any, accountId: string, forceRun: boolean, manual: boolean, corsHeaders: any) {
+async function handleSingleAccountSync(supabase: any, accountId: string, forceRun: boolean, manual: boolean, corsHeaders: any, existingLogId?: string | null) {
   try {
     // Fetch the account
     const { data: account, error } = await supabase
@@ -162,7 +163,7 @@ async function handleSingleAccountSync(supabase: any, accountId: string, forceRu
     }
     
     // Sync the account
-    const result = await syncAccount(supabase, account, forceRun || manual);
+    const result = await syncAccount(supabase, account, forceRun || manual, existingLogId);
     
     // Return the result
     return new Response(
@@ -185,7 +186,7 @@ async function handleSingleAccountSync(supabase: any, accountId: string, forceRu
 /**
  * Sync an individual account
  */
-async function syncAccount(supabase: any, account: any, forceRun: boolean) {
+async function syncAccount(supabase: any, account: any, forceRun: boolean, existingLogId?: string | null) {
   const { id, email, sync_settings } = account;
   console.log(`Syncing account: ${email}`);
   
@@ -220,17 +221,34 @@ async function syncAccount(supabase: any, account: any, forceRun: boolean) {
   }
   
   try {
-    // First create a processing log entry
-    const { data: logEntry } = await supabase.rpc('add_sync_log', {
-      account_id_param: id,
-      status_param: 'processing',
-      message_count_param: 0,
-      details_param: { schedule_type: scheduleType, hour: hourValue },
-      sync_type_param: 'scheduled'
-    });
+    let logId;
     
-    const logId = logEntry?.id;
-    console.log(`Created processing log entry ${logId} for scheduled sync of account ${id}`);
+    // If we have an existing log ID, use it, otherwise create a new one
+    if (existingLogId) {
+      logId = existingLogId;
+      console.log(`Using existing log entry ${logId} for sync of account ${id}`);
+      
+      // Update the existing log to "processing" status
+      await supabase
+        .from('email_sync_logs')
+        .update({
+          status: 'processing',
+          timestamp: new Date().toISOString() // Update timestamp
+        })
+        .eq('id', logId);
+    } else {
+      // Create a new processing log entry
+      const { data: logEntry } = await supabase.rpc('add_sync_log', {
+        account_id_param: id,
+        status_param: 'processing',
+        message_count_param: 0,
+        details_param: { schedule_type: scheduleType, hour: hourValue },
+        sync_type_param: 'scheduled'
+      });
+      
+      logId = logEntry?.id;
+      console.log(`Created processing log entry ${logId} for scheduled sync of account ${id}`);
+    }
     
     // Then call the sync-emails function with the scheduled flag
     const response = await supabase.functions.invoke('sync-emails', {
@@ -249,7 +267,16 @@ async function syncAccount(supabase: any, account: any, forceRun: boolean) {
     if (!response.data || response.error) {
       console.error(`Sync failed for ${email}:`, response.error || 'Unknown error');
       
-      // The sync-emails function should update the log entry itself
+      // Update the log entry to failed status
+      await supabase
+        .from('email_sync_logs')
+        .update({
+          status: 'failed',
+          error_message: response.error?.message || 'Unknown error',
+          details: { error_details: response.error || 'Unknown error' },
+          timestamp: new Date().toISOString() // Keep the original timestamp
+        })
+        .eq('id', logId);
       
       return {
         success: false,

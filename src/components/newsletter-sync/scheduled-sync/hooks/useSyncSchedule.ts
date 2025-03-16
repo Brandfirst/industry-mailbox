@@ -84,7 +84,7 @@ export function useSyncSchedule({
       console.log("Cleaning up real-time subscription for account settings");
       supabase.removeChannel(channel);
     };
-  }, [selectedAccount]);
+  }, [selectedAccount, refreshLogs]);
 
   const triggerManualMinuteSync = async () => {
     if (!selectedAccount || !isEnabled || scheduleOption !== "minute") {
@@ -92,12 +92,24 @@ export function useSyncSchedule({
     }
     
     try {
+      // Find the most recent log for the account
+      const { data: logs } = await supabase
+        .from('email_sync_logs')
+        .select('id')
+        .eq('account_id', selectedAccount)
+        .eq('status', 'processing')
+        .order('timestamp', { ascending: false })
+        .limit(1);
+      
+      const existingLogId = logs && logs.length > 0 ? logs[0].id : null;
+      
       // Call the scheduled-sync function directly with forceRun set to true
       const { data, error } = await supabase.functions.invoke("scheduled-sync", {
         body: { 
           forceRun: true, 
           manual: true,
-          accountId: selectedAccount 
+          accountId: selectedAccount,
+          sync_log_id: existingLogId
         }
       });
       
@@ -113,7 +125,7 @@ export function useSyncSchedule({
       // Refresh logs after a delay to see the results
       setTimeout(() => {
         refreshLogs();
-      }, 5000);
+      }, 3000);
     } catch (error) {
       console.error("Exception in manual sync trigger:", error);
       toast.error("Error triggering manual sync");

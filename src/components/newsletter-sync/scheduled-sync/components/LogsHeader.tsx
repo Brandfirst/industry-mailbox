@@ -9,6 +9,8 @@ export type LogsHeaderProps = {
   selectedAccount: string | null;
   fetchSyncLogs?: () => Promise<void>;
   isLoading?: boolean;
+  isRefreshing?: boolean;
+  onRefresh?: () => Promise<void>;
 };
 
 export function LogsHeader({ 
@@ -16,7 +18,9 @@ export function LogsHeader({
   setShowLogs, 
   selectedAccount,
   fetchSyncLogs,
-  isLoading
+  isLoading,
+  isRefreshing,
+  onRefresh
 }: LogsHeaderProps) {
   const toggleLogs = () => {
     const newValue = !showLogs;
@@ -38,20 +42,22 @@ export function LogsHeader({
       
       <div className="flex items-center space-x-2">
         {selectedAccount && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleLogs}
-            className="text-xs p-1 h-auto"
-            disabled={!selectedAccount}
-          >
-            {showLogs ? (
-              <ChevronUp className="h-4 w-4 mr-1" />
-            ) : (
-              <ChevronDown className="h-4 w-4 mr-1" />
-            )}
-            {showLogs ? "Hide Logs" : "Show Logs"}
-          </Button>
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleLogs}
+              className="text-xs p-1 h-auto"
+              disabled={!selectedAccount}
+            >
+              {showLogs ? (
+                <ChevronUp className="h-4 w-4 mr-1" />
+              ) : (
+                <ChevronDown className="h-4 w-4 mr-1" />
+              )}
+              {showLogs ? "Hide Logs" : "Show Logs"}
+            </Button>
+          </>
         )}
       </div>
     </div>
