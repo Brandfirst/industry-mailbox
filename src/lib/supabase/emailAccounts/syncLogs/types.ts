@@ -24,6 +24,15 @@ export interface SyncLogEntry {
   };
 }
 
+export interface SyncLogInput {
+  account_id: string;
+  status: "scheduled" | "processing" | "success" | "failed" | "partial";
+  message_count: number;
+  error_message?: string | null;
+  details?: Record<string, any> | null;
+  sync_type?: "manual" | "scheduled";
+}
+
 export type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
 
 export interface SyncScheduleSettings {

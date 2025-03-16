@@ -5,34 +5,17 @@ import { Button } from "@/components/ui/button";
 
 export type LogsHeaderProps = {
   showLogs: boolean;
-  setShowLogs: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedAccount: string | null;
-  fetchSyncLogs?: () => Promise<void>;
-  isLoading?: boolean;
+  onToggle: () => void;
   isRefreshing?: boolean;
   onRefresh?: () => Promise<void>;
 };
 
 export function LogsHeader({ 
   showLogs, 
-  setShowLogs, 
-  selectedAccount,
-  fetchSyncLogs,
-  isLoading,
+  onToggle, 
   isRefreshing,
   onRefresh
 }: LogsHeaderProps) {
-  const toggleLogs = () => {
-    const newValue = !showLogs;
-    setShowLogs(newValue);
-    
-    // If we're showing logs and there's a fetch function, call it
-    if (newValue && fetchSyncLogs && !showLogs) {
-      console.log("Fetching logs after toggle");
-      fetchSyncLogs();
-    }
-  };
-  
   return (
     <div className="flex justify-between items-center mt-6 mb-2">
       <div className="flex items-center space-x-2">
@@ -41,36 +24,31 @@ export function LogsHeader({
       </div>
       
       <div className="flex items-center space-x-2">
-        {selectedAccount && (
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleLogs}
-              className="text-xs p-1 h-auto"
-              disabled={!selectedAccount}
-            >
-              {showLogs ? (
-                <ChevronUp className="h-4 w-4 mr-1" />
-              ) : (
-                <ChevronDown className="h-4 w-4 mr-1" />
-              )}
-              {showLogs ? "Hide Logs" : "Show Logs"}
-            </Button>
-            
-            {showLogs && onRefresh && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={onRefresh}
-                disabled={isLoading || isRefreshing}
-                className="text-xs p-1 h-auto"
-              >
-                <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Refreshing...' : 'Refresh'}
-              </Button>
-            )}
-          </>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggle}
+          className="text-xs p-1 h-auto"
+        >
+          {showLogs ? (
+            <ChevronUp className="h-4 w-4 mr-1" />
+          ) : (
+            <ChevronDown className="h-4 w-4 mr-1" />
+          )}
+          {showLogs ? "Hide Logs" : "Show Logs"}
+        </Button>
+        
+        {showLogs && onRefresh && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="text-xs p-1 h-auto"
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
         )}
       </div>
     </div>

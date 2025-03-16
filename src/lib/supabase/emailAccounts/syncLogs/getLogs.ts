@@ -25,16 +25,28 @@ export async function getSyncLogs(accountId: string, limit: number = 20): Promis
 
     // Add account email to details for easier access in components
     const logsWithEmailInfo = data.map(log => {
-      if (log.account?.email && log.details) {
-        return {
-          ...log,
-          details: {
-            ...log.details,
-            accountEmail: log.account.email
-          }
+      // Create a properly typed log entry
+      const typedLog: SyncLogEntry = {
+        id: log.id,
+        account_id: log.account_id,
+        timestamp: log.timestamp,
+        message_count: log.message_count,
+        status: log.status as "scheduled" | "processing" | "success" | "failed" | "partial",
+        error_message: log.error_message,
+        details: log.details,
+        sync_type: log.sync_type as "manual" | "scheduled",
+        account: log.account
+      };
+      
+      // Add account email to details if available
+      if (typedLog.account?.email && typedLog.details) {
+        typedLog.details = {
+          ...typedLog.details,
+          accountEmail: typedLog.account.email
         };
       }
-      return log;
+      
+      return typedLog;
     });
 
     return logsWithEmailInfo;

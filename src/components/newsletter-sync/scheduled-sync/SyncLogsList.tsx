@@ -76,7 +76,7 @@ export function SyncLogsList({
       {showLogs && (
         <LogsContainer>
           {!selectedAccount ? (
-            <AccountNotice />
+            <AccountNotice selectedAccount={selectedAccount} />
           ) : isLoading ? (
             <div className="space-y-2 py-4">
               <Skeleton className="h-8 w-full" />
@@ -84,7 +84,9 @@ export function SyncLogsList({
               <Skeleton className="h-8 w-full" />
             </div>
           ) : syncLogs.length === 0 ? (
-            <LogsContent>No sync logs found for this account</LogsContent>
+            <LogsContent>
+              <span>No sync logs found for this account</span>
+            </LogsContent>
           ) : (
             <div className="overflow-x-auto">
               <LogsTableHeader />
