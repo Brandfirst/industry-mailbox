@@ -8,8 +8,8 @@ export function LogsTableHeader() {
       <div className="flex items-center">Time</div>
       <div className="flex items-center">Status</div>
       <div className="flex items-center justify-center">Type</div>
-      <div className="flex items-center">Emails</div>
-      <div className="flex items-center">Senders</div>
+      <div className="flex items-center justify-center">Emails</div>
+      <div className="flex items-center justify-center">Senders</div>
       <div className="flex items-center">Details</div>
     </div>
   );

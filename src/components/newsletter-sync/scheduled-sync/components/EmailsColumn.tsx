@@ -74,7 +74,7 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
   };
   
   return (
-    <div className="flex items-center">
+    <div className="flex items-center justify-center w-full">
       {log.status !== 'scheduled' ? (
         <>
           <Button 

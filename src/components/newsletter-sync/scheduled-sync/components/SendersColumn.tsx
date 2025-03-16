@@ -24,7 +24,7 @@ export function SendersColumn({
   const showClickableSenders = uniqueSendersCount > 0;
   
   return (
-    <div className="flex items-center">
+    <div className="flex items-center justify-center w-full">
       {uniqueSendersCount > 0 ? (
         <div>
           <Button 

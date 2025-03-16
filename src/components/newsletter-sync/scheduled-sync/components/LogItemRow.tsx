@@ -86,11 +86,11 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
         <TypeColumn syncType={syncType} />
       </div>
       
-      <div className="relative z-30 overflow-hidden flex items-center">
+      <div className="relative z-30 overflow-hidden flex items-center justify-center">
         <EmailsColumn log={log} totalEmails={totalEmails} />
       </div>
       
-      <div className="overflow-hidden flex items-center">
+      <div className="overflow-hidden flex items-center justify-center">
         <SendersColumn 
           uniqueSendersCount={uniqueSendersCount}
           sendersList={sendersList}
