@@ -1,51 +1,44 @@
 
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow, format } from "date-fns";
+import React from 'react';
+import { Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
-type ScheduleStatusProps = {
-  isEnabled: boolean;
-  nextSyncTime: Date | null;
-  lastUpdated: string | null;
-  selectedAccount: string | null;
+export type ScheduleOption = "hourly" | "daily" | "disabled";
+
+export type ScheduleStatusProps = {
+  scheduleOption: ScheduleOption;
+  specificHour?: string;
 };
 
-export function ScheduleStatus({
-  isEnabled,
-  nextSyncTime,
-  lastUpdated,
-  selectedAccount
-}: ScheduleStatusProps) {
-  if (!selectedAccount) {
-    return null;
-  }
+export function ScheduleStatus({ scheduleOption, specificHour }: ScheduleStatusProps) {
+  const getStatusMessage = () => {
+    switch (scheduleOption) {
+      case 'hourly':
+        return 'Your emails will sync automatically every hour.';
+      case 'daily':
+        return `Your emails will sync automatically once per day at ${specificHour}:00.`;
+      case 'disabled':
+      default:
+        return 'Automatic sync is currently disabled.';
+    }
+  };
+
+  const getStatusIcon = () => {
+    switch (scheduleOption) {
+      case 'hourly':
+      case 'daily':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'disabled':
+      default:
+        return <AlertCircle className="w-4 h-4 text-amber-500" />;
+    }
+  };
 
   return (
-    <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
-      <div>
-        {isEnabled ? (
-          <div className="flex items-center space-x-2">
-            <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100">
-              Scheduled
-            </Badge>
-            {nextSyncTime && (
-              <span>
-                Next sync: {formatDistanceToNow(nextSyncTime, { addSuffix: true })} 
-                <span className="text-xs ml-1 opacity-70">
-                  ({format(nextSyncTime, "MMM d, h:mm a")})
-                </span>
-              </span>
-            )}
-          </div>
-        ) : (
-          <Badge variant="outline" className="bg-gray-100">Not scheduled</Badge>
-        )}
-      </div>
-      
-      {lastUpdated && (
-        <div className="text-xs opacity-70">
-          Last updated: {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true })}
-        </div>
-      )}
+    <div className="flex items-center text-sm text-muted-foreground mt-2">
+      <Clock className="w-4 h-4 mr-1" />
+      <span className="mr-2">Status:</span>
+      {getStatusIcon()}
+      <span className="ml-1">{getStatusMessage()}</span>
     </div>
   );
 }

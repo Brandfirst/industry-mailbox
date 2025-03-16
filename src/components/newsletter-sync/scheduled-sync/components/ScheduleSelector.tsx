@@ -1,13 +1,14 @@
 
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
-type ScheduleOption = "hourly" | "daily" | "disabled";
+export type ScheduleOption = "hourly" | "daily" | "disabled";
 
-type ScheduleSelectorProps = {
+export type ScheduleSelectorProps = {
   isEnabled: boolean;
   setIsEnabled: (value: boolean) => void;
   scheduleOption: ScheduleOption;
@@ -17,6 +18,7 @@ type ScheduleSelectorProps = {
   onSaveSchedule: () => void;
   isSaving: boolean;
   disabled: boolean;
+  selectedAccount?: string | null;
 };
 
 export function ScheduleSelector({
@@ -28,7 +30,8 @@ export function ScheduleSelector({
   setSpecificHour,
   onSaveSchedule,
   isSaving,
-  disabled
+  disabled,
+  selectedAccount
 }: ScheduleSelectorProps) {
   const handleScheduleChange = (value: string) => {
     setScheduleOption(value as ScheduleOption);
@@ -45,7 +48,7 @@ export function ScheduleSelector({
           id="auto-sync" 
           checked={isEnabled} 
           onCheckedChange={setIsEnabled}
-          disabled={disabled}
+          disabled={disabled || !selectedAccount}
         />
         <Label htmlFor="auto-sync">Enable automatic sync</Label>
       </div>
@@ -54,7 +57,7 @@ export function ScheduleSelector({
         <Select 
           value={scheduleOption} 
           onValueChange={handleScheduleChange}
-          disabled={!isEnabled || disabled}
+          disabled={!isEnabled || disabled || !selectedAccount}
         >
           <SelectTrigger className="w-36">
             <SelectValue placeholder="Select frequency" />
@@ -77,7 +80,7 @@ export function ScheduleSelector({
               className="w-16"
               value={specificHour}
               onChange={(e) => setSpecificHour(e.target.value)}
-              disabled={!isEnabled || disabled}
+              disabled={!isEnabled || disabled || !selectedAccount}
             />
             <Label htmlFor="specific-hour">:00</Label>
           </div>
@@ -87,7 +90,7 @@ export function ScheduleSelector({
       <Button 
         variant="outline" 
         onClick={onSaveSchedule}
-        disabled={disabled || isSaving}
+        disabled={disabled || isSaving || !selectedAccount}
       >
         {isSaving ? "Saving..." : "Save Schedule"}
       </Button>

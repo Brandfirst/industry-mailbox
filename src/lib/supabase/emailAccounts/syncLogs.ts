@@ -1,81 +1,71 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-/**
- * Interface for sync log entries
- */
 export interface SyncLogEntry {
   id: string;
   account_id: string;
   timestamp: string;
-  status: 'success' | 'partial' | 'failed' | 'scheduled';
+  status: 'success' | 'failed' | 'partial' | 'scheduled';
   message_count: number;
-  error_message?: string | null;
-  details?: any;
+  error_message?: string;
+  details?: {
+    [key: string]: any;
+  };
   sync_type?: 'manual' | 'scheduled';
 }
 
-/**
- * Add a sync log entry
- */
-export async function addSyncLog(logData: {
+interface SyncLogInput {
   account_id: string;
-  status: 'success' | 'partial' | 'failed' | 'scheduled';
+  status: SyncLogEntry['status'];
   message_count: number;
-  error_message?: string | null;
-  details?: any;
-  timestamp?: string;
+  error_message?: string;
+  details?: {
+    [key: string]: any;
+  };
+  timestamp: string;
   sync_type?: 'manual' | 'scheduled';
-}) {
+}
+
+export interface SyncScheduleSettings {
+  enabled: boolean;
+  scheduleType: 'hourly' | 'daily' | 'disabled';
+  hour?: number;
+  updated_at?: string;
+}
+
+/**
+ * Add a new sync log entry
+ */
+export async function addSyncLog(logData: SyncLogInput): Promise<SyncLogEntry | null> {
   try {
-    // First try to use the RPC function
+    // Call the database function
     const { data, error } = await supabase.rpc('add_sync_log', {
       account_id_param: logData.account_id,
       status_param: logData.status,
       message_count_param: logData.message_count,
       error_message_param: logData.error_message || null,
-      details_param: logData.details ? JSON.stringify(logData.details) : null
+      details_param: logData.details ? logData.details : null
     });
     
     if (error) {
-      console.error("Error adding sync log via RPC:", error);
-      
-      // Fallback to direct insert if RPC fails
-      try {
-        // Set up the log data
-        const insertData = {
-          account_id: logData.account_id,
-          status: logData.status, 
-          message_count: logData.message_count,
-          error_message: logData.error_message,
-          details: logData.details ? {
-            ...logData.details,
-            sync_type: logData.sync_type || 'manual'
-          } : { sync_type: logData.sync_type || 'manual' },
-          timestamp: logData.timestamp || new Date().toISOString()
-        };
-        
-        // For scheduled status which isn't in the DB enum, use 'success' instead
-        if (insertData.status === 'scheduled') {
-          insertData.status = 'success';
-        }
-        
-        const { error: insertError } = await supabase
-          .from('email_sync_logs')
-          .insert(insertData);
-          
-        if (insertError) {
-          console.error("Error inserting sync log:", insertError);
-        }
-      } catch (insertCatchError) {
-        console.error("Exception during sync log insert:", insertCatchError);
-      }
+      console.error("Error adding sync log:", error);
+      return null;
     }
     
-    return { success: true };
-  } catch (e) {
-    console.error("Exception in addSyncLog:", e);
-    return { success: false, error: e };
+    // Convert from the returned database format to our TypeScript interface
+    return {
+      id: data.id,
+      account_id: data.account_id,
+      timestamp: data.timestamp,
+      status: data.status,
+      message_count: data.message_count,
+      error_message: data.error_message,
+      details: data.details,
+      sync_type: logData.sync_type
+    };
+  } catch (error) {
+    console.error("Exception adding sync log:", error);
+    return null;
   }
 }
 
@@ -84,105 +74,51 @@ export async function addSyncLog(logData: {
  */
 export async function getSyncLogs(accountId: string, limit: number = 10): Promise<SyncLogEntry[]> {
   try {
-    // First try to use the RPC function
     const { data, error } = await supabase.rpc('get_account_sync_logs', {
       account_id_param: accountId,
       limit_param: limit
     });
     
     if (error) {
-      console.error("Error getting sync logs via RPC:", error);
-      
-      // Fallback to direct query if RPC fails
-      try {
-        const { data: queryData, error: queryError } = await supabase
-          .from('email_sync_logs')
-          .select('*')
-          .eq('account_id', accountId)
-          .order('timestamp', { ascending: false })
-          .limit(limit);
-          
-        if (queryError) {
-          console.error("Error querying sync logs:", queryError);
-          return [];
-        }
-        
-        return (queryData || []).map(log => ({
-          ...log,
-          sync_type: log.details?.sync_type || 'manual'
-        })) as SyncLogEntry[];
-      } catch (e) {
-        console.error("Exception in fallback getSyncLogs query:", e);
-        return [];
-      }
+      console.error("Error fetching sync logs:", error);
+      return [];
     }
     
-    // Process the data to add any missing fields
-    return (data || []).map(log => {
-      // Extract sync_type from details if it exists
-      const details = typeof log.details === 'string' 
-        ? JSON.parse(log.details) 
-        : log.details || {};
-      
+    return data.map((log: any): SyncLogEntry => {
       return {
-        ...log,
-        sync_type: details.sync_type || 'manual'
+        id: log.id,
+        account_id: log.account_id,
+        timestamp: log.timestamp,
+        status: log.status,
+        message_count: log.message_count,
+        error_message: log.error_message,
+        // Ensure details is properly parsed as an object
+        details: typeof log.details === 'object' ? log.details : {},
+        // Set a default sync_type if it's missing
+        sync_type: 'manual'
       };
-    }) as SyncLogEntry[];
-  } catch (e) {
-    console.error("Exception in getSyncLogs:", e);
+    });
+  } catch (error) {
+    console.error("Exception fetching sync logs:", error);
     return [];
   }
 }
 
 /**
- * Get sync schedule settings for an account
- */
-export async function getSyncSchedule(accountId: string) {
-  try {
-    const { data, error } = await supabase
-      .from('email_accounts')
-      .select('sync_settings')
-      .eq('id', accountId)
-      .single();
-      
-    if (error) {
-      console.error("Error getting sync schedule:", error);
-      return null;
-    }
-    
-    if (!data || !data.sync_settings) {
-      return {
-        enabled: false,
-        scheduleType: 'daily',
-        hour: 9
-      };
-    }
-    
-    return data.sync_settings;
-  } catch (e) {
-    console.error("Exception in getSyncSchedule:", e);
-    return null;
-  }
-}
-
-/**
- * Update sync schedule settings for an account
+ * Update sync schedule for an account
  */
 export async function updateSyncSchedule(
-  accountId: string,
-  settings: {
-    enabled: boolean;
-    scheduleType: string;
-    hour?: number;
-  }
-) {
+  accountId: string, 
+  enabled: boolean, 
+  scheduleType: 'hourly' | 'daily' | 'disabled', 
+  hour?: number
+): Promise<boolean> {
   try {
-    const { data, error } = await supabase.rpc('update_sync_schedule', {
+    const { error } = await supabase.rpc('update_sync_schedule', {
       account_id_param: accountId,
-      enabled_param: settings.enabled,
-      schedule_type_param: settings.scheduleType,
-      hour_param: settings.hour
+      enabled_param: enabled,
+      schedule_type_param: scheduleType,
+      hour_param: hour !== undefined ? hour : null
     });
     
     if (error) {
@@ -191,33 +127,69 @@ export async function updateSyncSchedule(
     }
     
     return true;
-  } catch (e) {
-    console.error("Exception in updateSyncSchedule:", e);
+  } catch (error) {
+    console.error("Exception updating sync schedule:", error);
     return false;
   }
 }
 
 /**
- * Get next sync time based on schedule
+ * Get sync schedule for an account
  */
-export function getNextSyncTime(scheduleType: string, hour?: number): string {
-  const now = new Date();
-  const nextSync = new Date();
-  
-  if (scheduleType === 'hourly') {
-    // Set to the next hour
-    nextSync.setHours(now.getHours() + 1, 0, 0, 0);
-  } else if (scheduleType === 'daily' && hour !== undefined) {
-    // Set to specified hour today or tomorrow if that hour already passed
-    nextSync.setHours(hour, 0, 0, 0);
-    if (nextSync < now) {
-      nextSync.setDate(nextSync.getDate() + 1);
+export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSettings | null> {
+  try {
+    const { data, error } = await supabase
+      .from('email_accounts')
+      .select('sync_settings')
+      .eq('id', accountId)
+      .single();
+    
+    if (error) {
+      console.error("Error fetching sync schedule:", error);
+      return null;
     }
-  } else {
-    // Default to tomorrow at 9 AM
-    nextSync.setDate(nextSync.getDate() + 1);
-    nextSync.setHours(9, 0, 0, 0);
+    
+    if (!data || !data.sync_settings) {
+      // Return default settings if none exist
+      return {
+        enabled: false,
+        scheduleType: 'disabled'
+      };
+    }
+    
+    // Parse the sync_settings JSON object
+    const settings = data.sync_settings as SyncScheduleSettings;
+    
+    return {
+      enabled: settings.enabled || false,
+      scheduleType: settings.scheduleType || 'disabled',
+      hour: settings.hour,
+      updated_at: settings.updated_at
+    };
+  } catch (error) {
+    console.error("Exception fetching sync schedule:", error);
+    return null;
   }
-  
-  return nextSync.toLocaleString();
+}
+
+/**
+ * Clear old sync logs to prevent excessive storage use
+ */
+export async function clearOldSyncLogs(accountId: string, keepCount: number = 50): Promise<boolean> {
+  try {
+    const { error } = await supabase.rpc('clear_old_sync_logs', {
+      account_id_param: accountId,
+      keep_count_param: keepCount
+    });
+    
+    if (error) {
+      console.error("Error clearing old sync logs:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Exception clearing old sync logs:", error);
+    return false;
+  }
 }

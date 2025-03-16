@@ -34,6 +34,7 @@ export function SyncLogsList({
         showLogs={showLogs} 
         setShowLogs={setShowLogs} 
         selectedAccount={selectedAccount}
+        fetchSyncLogs={fetchSyncLogs}
       />
       
       {showLogs && (

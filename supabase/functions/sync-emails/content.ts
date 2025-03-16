@@ -61,7 +61,7 @@ ${html}
  * @param html The HTML content to clean
  * @returns Cleaned HTML without tracking elements
  */
-export function removeTrackingElements(html) {
+export function removeTrackingPixels(html) {
   if (!html) return html;
   
   try {
