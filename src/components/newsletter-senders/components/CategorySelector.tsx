@@ -5,32 +5,35 @@ import { NewsletterCategory } from "@/lib/supabase/types";
 
 type CategorySelectorProps = {
   senderEmail: string;
-  categoryId: number | null;
   categories: NewsletterCategory[];
+  currentCategoryId: number | null;
   isUpdating: boolean;
-  onCategoryChange: (senderEmail: string, categoryId: string) => Promise<void>;
-  getCategoryNameById: (categoryId: number | null) => string;
-  getCategoryColorById: (categoryId: number | null) => string;
+  onChange: (senderEmail: string, categoryId: string) => Promise<void>;
 };
 
 const CategorySelector = ({
   senderEmail,
-  categoryId,
   categories,
+  currentCategoryId,
   isUpdating,
-  onCategoryChange,
-  getCategoryNameById,
-  getCategoryColorById
+  onChange
 }: CategorySelectorProps) => {
+  // Get category color for the icon
+  const getCategoryColor = (categoryId: number | null) => {
+    if (!categoryId || !categories) return "#E5E7EB"; // Default gray color
+    const category = categories.find(c => c.id === categoryId);
+    return category?.color || "#E5E7EB";
+  };
+
   return (
     <div className="flex items-center">
       <Tag 
         className="h-4 w-4 mr-2" 
-        style={{ color: getCategoryColorById(categoryId) }} 
+        style={{ color: getCategoryColor(currentCategoryId) }} 
       />
       <Select
-        value={categoryId?.toString() || "null"}
-        onValueChange={(value) => onCategoryChange(senderEmail, value)}
+        value={currentCategoryId?.toString() || "null"}
+        onValueChange={(value) => onChange(senderEmail, value)}
         disabled={isUpdating}
       >
         <SelectTrigger className="w-[180px] bg-background border-border">

@@ -8,6 +8,7 @@ import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 import { NewsletterCategory } from "@/lib/supabase/types";
 import BrandInput from "./BrandInput";
 import CategorySelector from "./CategorySelector";
+import { getCategoryNameById, getCategoryColorById } from "./utils/categoryUtils";
 
 interface SenderTableRowProps {
   sender: NewsletterSenderStats;
@@ -20,8 +21,6 @@ interface SenderTableRowProps {
   onCategoryChange: (senderEmail: string, categoryId: string) => Promise<void>;
   onBrandUpdate: (senderEmail: string, brandName: string) => Promise<void>;
   onToggleSelect?: (senderEmail: string) => void;
-  getCategoryNameById: (categoryId: number | null, categories: NewsletterCategory[]) => string;
-  getCategoryColorById: (categoryId: number | null, categories: NewsletterCategory[]) => string;
 }
 
 const SenderTableRow = ({
@@ -34,9 +33,7 @@ const SenderTableRow = ({
   brandInputValue,
   onCategoryChange,
   onBrandUpdate,
-  onToggleSelect,
-  getCategoryNameById,
-  getCategoryColorById
+  onToggleSelect
 }: SenderTableRowProps) => {
   const isUpdatingCategory = updatingCategory === sender.sender_email;
   const isUpdatingBrand = updatingBrand === sender.sender_email;
@@ -48,6 +45,7 @@ const SenderTableRow = ({
   
   // Get the category color for styling
   const categoryColor = getCategoryColorById(sender.category_id, categories);
+  const categoryName = getCategoryNameById(sender.category_id, categories);
   
   return (
     <TableRow className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
