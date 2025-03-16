@@ -37,7 +37,9 @@ export function NewsletterViewContent({
         sandbox="allow-same-origin" 
       /> : <div className="text-center py-12">
           <Mail className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-700 dark:text-gray-300 font-medium">No content available for this newsletter.</p>
+          <p className="text-gray-700 dark:text-gray-300 font-medium">
+            {newsletter.title ? `No content available for "${newsletter.title}"` : "No content available for this newsletter."}
+          </p>
         </div>}
     </div>;
 }
