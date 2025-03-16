@@ -28,7 +28,7 @@ interface SyncLogInput {
 
 export interface SyncScheduleSettings {
   enabled: boolean;
-  scheduleType: 'hourly' | 'daily' | 'disabled';
+  scheduleType: 'minute' | 'hourly' | 'daily' | 'disabled';
   hour?: number;
   updated_at?: string;
 }
@@ -119,7 +119,7 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
 export async function updateSyncSchedule(
   accountId: string, 
   enabled: boolean, 
-  scheduleType: 'hourly' | 'daily' | 'disabled', 
+  scheduleType: 'minute' | 'hourly' | 'daily' | 'disabled', 
   hour?: number
 ): Promise<boolean> {
   try {

@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon, AlertTriangleIcon } from "lucide-react";
 
-type ScheduleOption = "hourly" | "daily" | "disabled";
+type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
 
 type ScheduledSyncSettingsProps = {
   selectedAccount: string | null;

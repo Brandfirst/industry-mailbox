@@ -6,7 +6,7 @@ import { updateSyncSchedule } from "@/lib/supabase/emailAccounts/syncLogs";
 import { ScheduleSelector } from "./components/ScheduleSelector";
 import { ScheduleStatus } from "./components/ScheduleStatus";
 
-export type ScheduleOption = "hourly" | "daily" | "disabled";
+export type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
 
 type SyncScheduleControlsProps = {
   selectedAccount: string | null;

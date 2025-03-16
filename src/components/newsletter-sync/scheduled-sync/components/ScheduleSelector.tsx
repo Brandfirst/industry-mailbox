@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
-export type ScheduleOption = "hourly" | "daily" | "disabled";
+export type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
 
 export type ScheduleSelectorProps = {
   isEnabled: boolean;
@@ -69,6 +69,7 @@ export function ScheduleSelector({
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
           <SelectContent className="bg-white border border-purple-100">
+            <SelectItem value="minute">Every minute</SelectItem>
             <SelectItem value="hourly">Every hour</SelectItem>
             <SelectItem value="daily">Daily</SelectItem>
             <SelectItem value="disabled">Disabled</SelectItem>
