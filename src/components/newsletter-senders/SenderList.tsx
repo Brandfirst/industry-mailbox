@@ -8,9 +8,7 @@ import {
   SenderTableHeaders,
   SenderTableRow,
   EmptyTableRow,
-  SenderActions,
-  getCategoryNameById,
-  getCategoryColorById
+  SenderActions
 } from './components';
 import { useSenderListSorting } from "./hooks";
 import { useBrandInputValues } from "./hooks/useBrandInputValues";
@@ -154,8 +152,6 @@ const SenderList = ({
                   onCategoryChange={handleCategoryChange}
                   onBrandUpdate={handleBrandUpdate}
                   onToggleSelect={onDeleteSenders ? handleToggleSelect : undefined}
-                  getCategoryNameById={(categoryId) => getCategoryNameById(categoryId, categories)}
-                  getCategoryColorById={(categoryId) => getCategoryColorById(categoryId, categories)}
                 />
               ))
             )}
