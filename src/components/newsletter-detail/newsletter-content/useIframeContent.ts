@@ -32,6 +32,44 @@ export const useIframeContent = (newsletter: Newsletter) => {
           doc.write(formattedContent);
           doc.close();
           
+          // Force all fixed height elements to auto
+          const fixElements = () => {
+            // Apply to all elements to prevent padding/margin issues
+            const allElements = doc.querySelectorAll('*');
+            allElements.forEach(el => {
+              const element = el as HTMLElement;
+              // Force margin to auto for all elements
+              element.style.marginLeft = 'auto';
+              element.style.marginRight = 'auto';
+              
+              // Override specific styling causing left alignment
+              if (window.getComputedStyle(element).float !== 'none') {
+                element.style.float = 'none';
+              }
+              
+              if (window.getComputedStyle(element).position === 'absolute') {
+                element.style.position = 'relative';
+                element.style.left = 'auto';
+                element.style.right = 'auto';
+              }
+              
+              // Force width and center alignment
+              element.style.maxWidth = '100%';
+            });
+            
+            // Apply specific fixes to common elements
+            const containers = doc.querySelectorAll('div, section, table, td, tr, article, main, header, footer, p');
+            containers.forEach(el => {
+              const container = el as HTMLElement;
+              container.style.width = '100%';
+              container.style.marginLeft = 'auto';
+              container.style.marginRight = 'auto';
+              container.style.textAlign = 'center';
+              container.style.display = container.tagName.toLowerCase() === 'table' ? 'table' : '';
+              container.style.float = 'none';
+            });
+          };
+          
           // Adjust height after content is loaded
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
@@ -42,54 +80,8 @@ export const useIframeContent = (newsletter: Newsletter) => {
               // Add extra class to center content better
               doc.body.classList.add('centered-content');
               
-              // Force center alignment on table elements
-              const tables = doc.querySelectorAll('table');
-              tables.forEach(table => {
-                // Cast to HTMLTableElement before accessing style
-                const tableEl = table as HTMLTableElement;
-                tableEl.style.margin = '0 auto';
-                tableEl.style.float = 'none';
-                tableEl.style.display = 'table';
-                
-                // Fix any cells that might be left-aligned
-                const cells = table.querySelectorAll('td, th');
-                cells.forEach(cell => {
-                  // Cast to HTMLTableCellElement before accessing style
-                  const cellEl = cell as HTMLTableCellElement;
-                  cellEl.style.textAlign = 'center';
-                });
-              });
-              
-              // Force center alignment on div elements
-              const divs = doc.querySelectorAll('div');
-              divs.forEach(div => {
-                // Cast to HTMLDivElement before accessing style
-                const divEl = div as HTMLDivElement;
-                if (getComputedStyle(divEl).display !== 'inline') {
-                  divEl.style.margin = '0 auto';
-                  divEl.style.float = 'none';
-                }
-              });
-              
-              // Override any left-aligned elements
-              const leftAligned = doc.querySelectorAll('[align="left"], [style*="text-align: left"]');
-              leftAligned.forEach(el => {
-                // Cast to HTMLElement before accessing style
-                const htmlEl = el as HTMLElement;
-                htmlEl.setAttribute('style', 'text-align: center !important; margin: 0 auto !important;');
-              });
-              
-              // Additional post-load centering for common containers
-              const elements = doc.querySelectorAll('div, section, article, header, footer, main');
-              elements.forEach(element => {
-                const htmlEl = element as HTMLElement;
-                htmlEl.style.marginLeft = 'auto';
-                htmlEl.style.marginRight = 'auto';
-                htmlEl.style.float = 'none';
-                htmlEl.style.position = 'relative';
-                htmlEl.style.left = '0';
-                htmlEl.style.right = '0';
-              });
+              // Fix positioning issues
+              fixElements();
               
               // Apply inline styles to body to ensure centering
               doc.body.style.margin = '0';
@@ -99,10 +91,14 @@ export const useIframeContent = (newsletter: Newsletter) => {
               doc.body.style.flexDirection = 'column';
               doc.body.style.alignItems = 'center';
               doc.body.style.justifyContent = 'center';
+              doc.body.style.width = '100%';
             }
           });
           
           resizeObserver.observe(doc.body);
+          
+          // Run the fixes after a small delay to ensure all styles are applied
+          setTimeout(fixElements, 100);
           
           return () => {
             resizeObserver.disconnect();

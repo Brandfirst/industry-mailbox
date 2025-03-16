@@ -46,20 +46,18 @@ export const getFormattedHtmlContent = (content: string | null) => {
                 body > * {
                   max-width: 100% !important;
                   width: 100% !important;
-                  margin-left: auto !important;
-                  margin-right: auto !important;
+                  margin: 0 auto !important;
                   float: none !important;
-                  transform: scale(0.85);
-                  transform-origin: center top;
-                  position: relative !important;
                   left: 0 !important;
                   right: 0 !important;
+                  position: relative !important;
+                  transform: scale(0.85);
+                  transform-origin: center top;
                 }
                 
                 table {
                   max-width: 100%;
-                  margin-left: auto !important;
-                  margin-right: auto !important;
+                  margin: 0 auto !important;
                   float: none !important;
                   display: table !important;
                   position: relative !important;
@@ -68,8 +66,7 @@ export const getFormattedHtmlContent = (content: string | null) => {
                 /* Fix left alignment issues */
                 [align="left"], [style*="text-align: left"] {
                   text-align: center !important;
-                  margin-left: auto !important;
-                  margin-right: auto !important;
+                  margin: 0 auto !important;
                 }
                 
                 td, th {
@@ -77,13 +74,22 @@ export const getFormattedHtmlContent = (content: string | null) => {
                 }
                 
                 /* Additional fixes for common elements */
-                div, section, article, header, footer, main {
+                div, section, article, header, footer, main, p, h1, h2, h3, h4, h5, h6, span {
                   margin-left: auto !important;
                   margin-right: auto !important;
                   float: none !important;
                   text-align: center !important;
                   position: relative !important;
                   max-width: 100% !important;
+                  width: 100% !important;
+                }
+                
+                /* Override specific position properties */
+                [style*="position: absolute"], [style*="position:absolute"] {
+                  position: relative !important;
+                  left: auto !important;
+                  right: auto !important;
+                  margin: 0 auto !important;
                 }
               </style>
             </head>

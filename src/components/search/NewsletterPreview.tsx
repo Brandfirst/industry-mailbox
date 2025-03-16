@@ -47,6 +47,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               align-items: center;
               justify-content: center;
               text-align: center;
+              width: 100%;
             }
             a {
               pointer-events: none;
@@ -58,21 +59,22 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             }
             table {
               max-width: 100%;
-              margin-left: auto !important;
-              margin-right: auto !important;
+              margin: 0 auto !important;
               float: none !important;
               display: table !important;
+              width: 100% !important;
             }
             * {
               max-width: 100%;
               box-sizing: border-box;
+              margin-left: auto !important;
+              margin-right: auto !important;
             }
             /* Fixed content centering and scaling */
             body > * {
               width: 100% !important;
               max-width: 100% !important;
-              margin-left: auto !important;
-              margin-right: auto !important;
+              margin: 0 auto !important;
               float: none !important;
               transform: scale(${isMobile ? '0.6' : '0.7'});
               transform-origin: center top;
@@ -84,8 +86,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             /* Fix left alignment issues */
             [align="left"], [style*="text-align: left"] {
               text-align: center !important;
-              margin-left: auto !important;
-              margin-right: auto !important;
+              margin: 0 auto !important;
             }
             
             td, th {
@@ -93,13 +94,22 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             }
             
             /* Additional fixes for common elements */
-            div, section, article, header, footer, main {
+            div, section, article, header, footer, main, p, h1, h2, h3, h4, h5, h6, span {
               margin-left: auto !important;
               margin-right: auto !important;
               float: none !important;
               text-align: center !important;
               position: relative !important;
               max-width: 100% !important;
+              width: 100% !important;
+            }
+            
+            /* Fix absolute positioning */
+            [style*="position: absolute"], [style*="position:absolute"] {
+              position: relative !important;
+              left: auto !important;
+              right: auto !important;
+              margin: 0 auto !important;
             }
           </style>
         </head>
@@ -123,6 +133,41 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         doc.write(content);
         doc.close();
         
+        // Apply forced centering to all elements
+        const forceCentering = () => {
+          // Apply to all elements
+          const allElements = doc.querySelectorAll('*');
+          allElements.forEach(el => {
+            const element = el as HTMLElement;
+            element.style.marginLeft = 'auto';
+            element.style.marginRight = 'auto';
+            
+            // If element has float, override it
+            if (window.getComputedStyle(element).float !== 'none') {
+              element.style.float = 'none';
+            }
+            
+            // Fix absolute positioned elements
+            if (window.getComputedStyle(element).position === 'absolute') {
+              element.style.position = 'relative';
+              element.style.left = 'auto';
+              element.style.right = 'auto';
+            }
+          });
+          
+          // Additional specific fixes for container elements
+          const containers = doc.querySelectorAll('div, section, table, article, header, footer, main');
+          containers.forEach(container => {
+            const containerEl = container as HTMLElement;
+            containerEl.style.width = '100%';
+            containerEl.style.maxWidth = '100%';
+            containerEl.style.textAlign = 'center';
+            containerEl.style.marginLeft = 'auto';
+            containerEl.style.marginRight = 'auto';
+            containerEl.style.float = 'none';
+          });
+        };
+        
         // Adjust iframe height to content for better display
         if (!isMobile) {
           const resizeObserver = new ResizeObserver(() => {
@@ -131,50 +176,25 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               const computedHeight = doc.body.scrollHeight * (isMobile ? 0.6 : 0.7);
               setIframeHeight(`${computedHeight}px`);
               
-              // Fix any left-aligned tables or divs
-              const tables = doc.querySelectorAll('table');
-              tables.forEach(table => {
-                // Cast to HTMLTableElement before accessing style
-                const tableEl = table as HTMLTableElement;
-                tableEl.style.margin = '0 auto';
-                tableEl.style.float = 'none';
-                tableEl.style.display = 'table';
-                
-                // Fix any cells that might be left-aligned
-                const cells = table.querySelectorAll('td, th');
-                cells.forEach(cell => {
-                  // Cast to HTMLTableCellElement before accessing style
-                  const cellEl = cell as HTMLTableCellElement;
-                  cellEl.style.textAlign = 'center';
-                });
-              });
+              // Apply forced centering
+              forceCentering();
               
-              // Force divs to center
-              const divs = doc.querySelectorAll('div');
-              divs.forEach(div => {
-                // Cast to HTMLDivElement before accessing style
-                const divEl = div as HTMLDivElement;
-                if (getComputedStyle(divEl).display !== 'inline') {
-                  divEl.style.margin = '0 auto';
-                  divEl.style.float = 'none';
-                }
-              });
-              
-              // Additional post-load centering for common containers
-              const elements = doc.querySelectorAll('div, section, article, header, footer, main');
-              elements.forEach(element => {
-                const htmlEl = element as HTMLElement;
-                htmlEl.style.marginLeft = 'auto';
-                htmlEl.style.marginRight = 'auto';
-                htmlEl.style.float = 'none';
-                htmlEl.style.position = 'relative';
-                htmlEl.style.left = '0';
-                htmlEl.style.right = '0';
-              });
+              // Set body styles for better centering
+              doc.body.style.margin = '0';
+              doc.body.style.padding = '0';
+              doc.body.style.textAlign = 'center';
+              doc.body.style.display = 'flex';
+              doc.body.style.flexDirection = 'column';
+              doc.body.style.alignItems = 'center';
+              doc.body.style.justifyContent = 'center';
+              doc.body.style.width = '100%';
             }
           });
           
           resizeObserver.observe(doc.body);
+          
+          // Run the centering after a small delay to ensure styles are applied
+          setTimeout(forceCentering, 100);
           
           return () => {
             resizeObserver.disconnect();
