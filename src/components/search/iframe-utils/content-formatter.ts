@@ -42,10 +42,10 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
  * @returns CSS styles as a string
  */
 const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false): string => {
-  // Use a smaller scale factor for snapshots to fit more content
+  // Optimize scale factors for each mode to match original appearance
   const baseScale = isSnapshot ? 
-    (isMobile ? '0.4' : '0.48') : 
-    (isMobile ? '0.5' : '0.95');
+    (isMobile ? '0.55' : '0.65') : 
+    (isMobile ? '0.6' : '1');
   
   return `
     html, body {

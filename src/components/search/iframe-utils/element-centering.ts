@@ -44,10 +44,17 @@ const applyBodyCentering = (doc: Document, isSnapshot: boolean = false): void =>
     doc.body.style.setProperty('align-items', 'center', 'important');
     doc.body.style.setProperty('justify-content', 'flex-start', 'important');
     
+    // Remove any font-size overrides that might be too small
+    const computedStyle = window.getComputedStyle(doc.body);
+    const fontSize = parseInt(computedStyle.fontSize);
+    if (fontSize < 12) {
+      doc.body.style.setProperty('font-size', '14px', 'important');
+    }
+    
     // Snapshot adjustments
     if (isSnapshot) {
       // Keep body visible but prevent scrolling
-      doc.body.style.setProperty('overflow-y', 'hidden', 'important');
+      doc.body.style.setProperty('overflow-y', 'visible', 'important');
     }
   }
 };
@@ -183,6 +190,10 @@ const adjustFixedWidthElements = (doc: Document): void => {
       if (el.tagName !== 'TABLE') {
         el.style.setProperty('width', 'auto', 'important');
         el.style.setProperty('max-width', '100%', 'important');
+      } else {
+        // For tables, ensure they're centered
+        el.style.setProperty('margin-left', 'auto', 'important');
+        el.style.setProperty('margin-right', 'auto', 'important');
       }
       
       // Remove any min-width that might cause overflow
@@ -202,6 +213,8 @@ const adjustFixedWidthElements = (doc: Document): void => {
         // Make sure images scale properly
         if (type === 'img') {
           el.style.setProperty('height', 'auto', 'important');
+          el.style.setProperty('display', 'inline-block', 'important');
+          el.style.setProperty('margin', '0 auto', 'important');
         }
       }
     });
@@ -239,6 +252,15 @@ const ensureSnapshotVisibility = (doc: Document): void => {
     img.style.setProperty('height', 'auto', 'important');
     img.style.setProperty('display', 'block', 'important');
     img.style.setProperty('margin', '0 auto', 'important');
+  });
+  
+  // Center all tables
+  const tables = doc.querySelectorAll('table');
+  tables.forEach(table => {
+    if (table instanceof HTMLTableElement) {
+      table.style.setProperty('margin', '0 auto', 'important');
+      table.style.setProperty('float', 'none', 'important');
+    }
   });
   
   // Fix any overflow issues
