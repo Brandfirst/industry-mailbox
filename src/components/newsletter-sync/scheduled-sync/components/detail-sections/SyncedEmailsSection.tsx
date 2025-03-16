@@ -70,7 +70,7 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
                   ) : (
                     <div className="text-xs text-blue-500 mt-1 flex items-center">
                       <AlertCircle className="h-3 w-3 mr-1" />
-                      Finding latest newsletter from this sender
+                      Will search for newsletters from this sender
                     </div>
                   )}
                   

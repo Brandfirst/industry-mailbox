@@ -24,31 +24,14 @@ export const createNewsletterNavigationHandler = (
     
     console.log("Navigation handler called with email:", email);
     
-    // Find the best ID to use
+    // Find the best ID to use - check for both id and newsletter_id
     const newsletterId = email.id || email.newsletter_id;
     
     if (newsletterId) {
       console.log(`Navigating to newsletter ID: ${newsletterId}`);
       
-      // Create a complete newsletter object with all needed properties
-      // Include all required properties from the Newsletter type
-      const newsletterObject: Partial<Newsletter> = {
-        id: newsletterId,
-        sender_email: email.sender_email || null,
-        sender: email.sender || null,
-        title: email.title || email.subject || 'untitled',
-        industry: '',
-        preview: '',
-        content: '',
-        published_at: email.date || new Date().toISOString(),
-        created_at: email.created_at || new Date().toISOString()
-      };
-      
-      // Use the central utility function to create the path
-      const path = getNewsletterPath(newsletterObject as Newsletter);
-      
-      console.log(`Using SEO-friendly path: ${path}`);
-      navigate(path);
+      // Direct navigation to the newsletter detail page
+      navigate(`/admin/newsletters/${newsletterId}`);
       
       // Call the completion callback if provided
       if (onComplete) {
@@ -70,10 +53,8 @@ export const createNewsletterNavigationHandler = (
           const latestNewsletter = newsletters[0];
           console.log(`Found newsletter with ID: ${latestNewsletter.id} from sender: ${email.sender_email}`);
           
-          // Create path to the specific newsletter
-          const path = getNewsletterPath(latestNewsletter);
-          console.log(`Navigating to found newsletter: ${path}`);
-          navigate(path);
+          // Direct navigation to the found newsletter
+          navigate(`/admin/newsletters/${latestNewsletter.id}`);
           
           // Call the completion callback if provided
           if (onComplete) {
@@ -89,13 +70,13 @@ export const createNewsletterNavigationHandler = (
       
       // If we get here, we couldn't find a specific newsletter, so fall back to sender page
       console.log(`Navigating to sender page for: ${email.sender_email}`);
-      const senderPath = getSenderPath(email.sender_email);
       
       toast.info(`Showing all newsletters from ${email.sender_email}`, {
         description: "The specific newsletter couldn't be found, showing all from this sender instead."
       });
       
-      navigate(senderPath);
+      // Navigate to admin newsletter page with sender filter
+      navigate(`/admin/newsletters?sender=${encodeURIComponent(email.sender_email)}`);
       
       if (onComplete) {
         onComplete();

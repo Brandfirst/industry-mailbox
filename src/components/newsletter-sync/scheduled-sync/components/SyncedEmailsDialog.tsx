@@ -42,18 +42,12 @@ export function SyncedEmailsDialog({
       // Check if the syncedEmails have newsletter IDs
       if (emailCount > 0) {
         emails.forEach((email, index) => {
-          console.log(`Email ${index} has ID:`, email.id);
-          console.log(`Email ${index} full data:`, email);
+          console.log(`Email ${index} has ID:`, email.id || email.newsletter_id);
+          console.log(`Email ${index} has sender:`, email.sender_email);
         });
       }
     }
   }, [isOpen, emailCount, emails]);
-  
-  // Improved dialog open state handling
-  const handleOpenChange = (open: boolean) => {
-    console.log("Dialog open state changing to:", open);
-    onOpenChange(open);
-  };
   
   // Create a navigation handler that shows loading state
   const createLoadingNavigationHandler = (email: any, index: number) => {
@@ -73,7 +67,7 @@ export function SyncedEmailsDialog({
   };
   
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md bg-white">
         <DialogTitle>{title}</DialogTitle>
         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
@@ -113,7 +107,7 @@ export function SyncedEmailsDialog({
                         ) : (
                           <div className="text-xs text-blue-500 mt-1 flex items-center">
                             <AlertCircle className="h-3 w-3 mr-1" />
-                            Finding latest newsletter from this sender
+                            Will search for newsletters from this sender
                           </div>
                         )}
                         
