@@ -7,12 +7,14 @@ interface FilterButtonsProps {
   toggleMobileFilters: () => void;
   toggleDesktopFilters?: () => void;
   isDesktopFiltersOpen?: boolean;
+  showDesktopFilterButton?: boolean;
 }
 
 const FilterButtons = ({ 
   toggleMobileFilters,
   toggleDesktopFilters,
-  isDesktopFiltersOpen 
+  isDesktopFiltersOpen,
+  showDesktopFilterButton = true // Default to true for backward compatibility
 }: FilterButtonsProps) => {
   return (
     <div className="flex justify-between items-center mb-4">
@@ -27,7 +29,7 @@ const FilterButtons = ({
         </Button>
       </div>
 
-      {toggleDesktopFilters && (
+      {toggleDesktopFilters && showDesktopFilterButton && (
         <div className="hidden md:block">
           <Button
             variant="outline"

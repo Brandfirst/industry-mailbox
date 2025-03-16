@@ -73,6 +73,7 @@ const SenderContent = ({
           toggleMobileFilters={toggleMobileFilters}
           toggleDesktopFilters={toggleDesktopFilters}
           isDesktopFiltersOpen={isDesktopFiltersOpen}
+          showDesktopFilterButton={false} // Hide the desktop filter button on sender pages
         />
         
         <NewsletterResults
