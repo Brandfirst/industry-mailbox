@@ -8,17 +8,12 @@ export * from './search';
 export * from './save';
 
 // Import and re-export with explicit names
-import { getNewslettersByCategory as getNewslettersByCategoryImport } from './fetch';
 import { getAllNewsletters } from './fetchAll';
 import { getNewslettersFromEmailAccount } from './fetchFromAccount';
 import { getNewsletterById } from './fetchSingle';
 import { updateSenderCategory, updateSenderBrand } from './manage';
 
 // Re-export with explicit names
-export { 
-  getNewslettersByCategoryImport as getNewslettersByCategory
-};
-
 export { 
   getAllNewsletters
 };
