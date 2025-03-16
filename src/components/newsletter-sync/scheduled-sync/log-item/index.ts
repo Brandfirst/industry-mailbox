@@ -1,5 +1,5 @@
 
-export * from './SyncLogItem';
-export * from './SenderInfo';
-export * from './LogItemColumns';
-export * from './EmailDetails';
+export * from "./LogItemColumns";
+export * from "./SenderInfo";
+export * from "./EmailDetails";
+export * from "./SyncLogItem";

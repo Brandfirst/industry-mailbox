@@ -1,68 +1,56 @@
 
 import React from "react";
-import { UsersIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/popover";
-import { EmailDetails } from "./EmailDetails";
 
-interface SenderInfoProps {
-  uniqueSendersCount: number;
-  sendersList: string[];
-  syncedEmails: any[];
-  isSendersOpen: boolean;
-  setIsSendersOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
+export type SenderInfoProps = {
+  accountEmail?: string;
+  syncedCount?: number;
+  failedCount?: number;
+  newSendersCount?: number;
+  scheduleType?: string;
+  hour?: number | null;
+};
 
 export function SenderInfo({ 
-  uniqueSendersCount, 
-  sendersList, 
-  syncedEmails,
-  isSendersOpen,
-  setIsSendersOpen
+  accountEmail, 
+  syncedCount, 
+  failedCount, 
+  newSendersCount,
+  scheduleType,
+  hour
 }: SenderInfoProps) {
   return (
-    <div className="flex items-center gap-1">
-      <span>{uniqueSendersCount}</span>
+    <div className="mt-2 text-sm">
+      {accountEmail && (
+        <div className="text-gray-700">
+          <span className="font-medium">Account:</span> {accountEmail}
+        </div>
+      )}
       
-      <Popover open={isSendersOpen} onOpenChange={setIsSendersOpen}>
-        <PopoverTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-5 w-5 rounded-full p-0"
-            aria-label="View sender details"
-          >
-            <UsersIcon className="h-3 w-3" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-72 bg-white text-gray-900 border border-gray-200 shadow-md p-4" align="end">
-          <div className="space-y-3">
-            <h4 className="font-medium text-sm">Sender Information</h4>
-            <div className="text-xs">
-              <div className="font-medium mb-1">
-                {uniqueSendersCount} unique sender{uniqueSendersCount !== 1 ? 's' : ''}:
-              </div>
-              <div className="max-h-40 overflow-y-auto space-y-1">
-                {sendersList.length > 0 ? (
-                  sendersList.map((sender, idx) => (
-                    <div key={idx} className="truncate">{sender}</div>
-                  ))
-                ) : (
-                  <div className="text-muted-foreground italic">
-                    Sender information not available
-                  </div>
-                )}
-              </div>
-              
-              <EmailDetails syncedEmails={syncedEmails} />
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+      {syncedCount !== undefined && (
+        <div className="text-gray-700">
+          <span className="font-medium">Synced:</span> {syncedCount} emails
+          {failedCount !== undefined && failedCount > 0 && (
+            <span className="text-red-600 ml-2">
+              (Failed: {failedCount})
+            </span>
+          )}
+        </div>
+      )}
+      
+      {newSendersCount !== undefined && newSendersCount > 0 && (
+        <div className="text-gray-700">
+          <span className="font-medium">New senders:</span> {newSendersCount}
+        </div>
+      )}
+      
+      {scheduleType && (
+        <div className="text-gray-700">
+          <span className="font-medium">Schedule:</span> {scheduleType}
+          {hour !== undefined && hour !== null && scheduleType === "daily" && (
+            <span> at {hour}:00</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
