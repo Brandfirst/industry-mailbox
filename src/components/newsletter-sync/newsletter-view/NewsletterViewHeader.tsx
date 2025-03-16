@@ -1,93 +1,36 @@
 
-import React from 'react';
-import { Newsletter, NewsletterCategory } from "@/lib/supabase";
-import { DialogHeader, DialogTitle, DialogClose, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { X, Mail, Calendar, UserCircle, Tag, MapPin } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
+import React from "react";
+import { Newsletter } from "@/lib/supabase";
+import { format } from "date-fns";
+import { Calendar, Mail } from "lucide-react";
 
 interface NewsletterViewHeaderProps {
   newsletter: Newsletter;
 }
 
-export function NewsletterViewHeader({ newsletter }: NewsletterViewHeaderProps) {
-  // Format the date if it exists
-  const formattedDate = newsletter.published_at 
-    ? formatDistanceToNow(new Date(newsletter.published_at), { addSuffix: true }) 
+export function NewsletterViewHeader({
+  newsletter
+}: NewsletterViewHeaderProps) {
+  // Format the date if available
+  const formattedDate = newsletter.published_at
+    ? format(new Date(newsletter.published_at), "MMM d, yyyy")
     : "Unknown date";
 
-  // Get category info if available
-  const category = newsletter.categories as NewsletterCategory | null;
-
   return (
-    <DialogHeader className="pb-2 border-b border-gray-200 space-y-2">
-      <div className="flex items-start justify-between">
-        <DialogTitle className="text-xl font-bold">
-          {newsletter.title || "Untitled Newsletter"}
-        </DialogTitle>
-        <DialogClose asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200">
-            <X className="h-4 w-4" />
-          </Button>
-        </DialogClose>
-      </div>
-      
-      <div className="flex flex-col space-y-2">
-        <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-          <UserCircle className="h-4 w-4 mr-1" /> 
-          <span className="font-medium">From:</span>
-          <span className="ml-1">{newsletter.sender || newsletter.sender_email || "Unknown sender"}</span>
+    <div className="p-4 border-b mb-1">
+      <h2 className="text-xl font-semibold mb-1">
+        {newsletter.title || "No Subject"}
+      </h2>
+      <div className="flex flex-col space-y-1 text-sm text-gray-600">
+        <div className="flex items-center">
+          <Mail className="h-4 w-4 mr-2" />
+          <span>From: {newsletter.sender || newsletter.sender_email || "Unknown Sender"}</span>
         </div>
-        
-        <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-          <Calendar className="h-4 w-4 mr-1" /> 
-          <span className="font-medium">Date:</span>
-          <span className="ml-1">{formattedDate}</span>
+        <div className="flex items-center">
+          <Calendar className="h-4 w-4 mr-2" />
+          <span>Date: {formattedDate}</span>
         </div>
-        
-        {newsletter.industry && (
-          <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-            <MapPin className="h-4 w-4 mr-1" /> 
-            <span className="font-medium">Industry:</span>
-            <span className="ml-1">{newsletter.industry}</span>
-          </div>
-        )}
-        
-        {(newsletter.industry || category) && (
-          <div className="flex items-center gap-2 pt-1">
-            {newsletter.industry && (
-              <Badge variant="outline" className="text-xs font-medium bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100">
-                {newsletter.industry}
-              </Badge>
-            )}
-            
-            {category && (
-              <Badge variant="outline" className="text-xs font-medium" style={{
-                backgroundColor: `${category.color}10` || '#f3f4f6',
-                borderColor: category.color || '#9ca3af',
-                color: category.color || '#6b7280'
-              }}>
-                <Tag className="h-3 w-3 mr-1" /> 
-                {category.name}
-              </Badge>
-            )}
-            
-            {newsletter.sender_email && (
-              <Badge variant="secondary" className="text-xs font-medium">
-                <Mail className="h-3 w-3 mr-1" />
-                {newsletter.sender_email}
-              </Badge>
-            )}
-          </div>
-        )}
-        
-        {newsletter.preview && (
-          <DialogDescription className="text-sm mt-2 line-clamp-2">
-            {newsletter.preview}
-          </DialogDescription>
-        )}
       </div>
-    </DialogHeader>
+    </div>
   );
 }
