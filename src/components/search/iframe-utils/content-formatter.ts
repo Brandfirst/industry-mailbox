@@ -45,7 +45,7 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
   // Use a smaller scale factor for snapshots to fit more content
   const baseScale = isSnapshot ? 
     (isMobile ? '0.3' : '0.35') : 
-    (isMobile ? '0.5' : '0.8');
+    (isMobile ? '0.5' : '0.95');
   
   return `
     html, body {
@@ -87,6 +87,7 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
     img {
       max-width: 100%;
       height: auto;
+      display: inline-block;
     }
     
     /* Create a centered container for newsletter content */
@@ -106,7 +107,9 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
       width: auto !important;
       margin-left: auto !important;
       margin-right: auto !important;
-      table-layout: fixed !important;
+      table-layout: auto !important;
+      display: table !important;
+      border-collapse: collapse !important;
     }
     
     /* Handle nested tables often used in newsletters */
@@ -146,6 +149,18 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
       margin-left: auto !important;
       margin-right: auto !important;
       max-width: 100% !important;
+    }
+    
+    /* Fix common alignment issues */
+    [align="left"], [style*="text-align: left"] {
+      text-align: center !important;
+      margin: 0 auto !important;
+    }
+    
+    /* Fix any layout elements that might break */
+    td, th {
+      text-align: center !important;
+      max-width: none !important;
     }
     
     ${isSnapshot ? `

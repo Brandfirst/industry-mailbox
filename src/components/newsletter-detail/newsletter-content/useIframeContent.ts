@@ -5,7 +5,7 @@ import { getIframeContent, forceCentering } from "@/components/search/iframe-uti
 
 export const useIframeContent = (newsletter: Newsletter) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [iframeHeight, setIframeHeight] = useState("650px");
+  const [iframeHeight, setIframeHeight] = useState("800px");
   const hasErrors = false;
 
   // Handle iframe content
