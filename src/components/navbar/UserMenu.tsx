@@ -1,33 +1,21 @@
-
 import { useNavigate } from "react-router-dom";
 import { User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogoutHandler } from "./LogoutHandler";
-
 interface UserMenuProps {
   user: any;
   isAdmin: boolean;
   isPremium: boolean;
 }
-
-export const UserMenu = ({ user, isAdmin, isPremium }: UserMenuProps) => {
+export const UserMenu = ({
+  user,
+  isAdmin,
+  isPremium
+}: UserMenuProps) => {
   const navigate = useNavigate();
-  
-  return (
-    <div className="flex items-center gap-4">
-      {!isPremium && (
-        <Button variant="outline" className="btn-hover-effect border-blue-400 text-blue-400 hover:bg-blue-400/10">
-          Oppgrader
-        </Button>
-      )}
+  return <div className="flex items-center gap-4">
+      {!isPremium}
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -43,12 +31,10 @@ export const UserMenu = ({ user, isAdmin, isPremium }: UserMenuProps) => {
           <DropdownMenuItem onClick={() => navigate('/account')} className="hover:bg-dark-400 text-gray-200">
             Min konto
           </DropdownMenuItem>
-          {isAdmin && (
-            <DropdownMenuItem onClick={() => navigate('/admin')} className="hover:bg-dark-400 text-gray-200">
+          {isAdmin && <DropdownMenuItem onClick={() => navigate('/admin')} className="hover:bg-dark-400 text-gray-200">
               <Shield className="w-4 h-4 mr-2" />
               Admin panel
-            </DropdownMenuItem>
-          )}
+            </DropdownMenuItem>}
           <DropdownMenuItem onClick={() => navigate('/saved')} className="hover:bg-dark-400 text-gray-200">
             Lagrede nyhetsbrev
           </DropdownMenuItem>
@@ -58,6 +44,5 @@ export const UserMenu = ({ user, isAdmin, isPremium }: UserMenuProps) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
-  );
+    </div>;
 };
