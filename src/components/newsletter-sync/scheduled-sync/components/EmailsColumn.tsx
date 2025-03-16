@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { ScheduleDetails } from "./ScheduleDetails";
 import { Button } from "@/components/ui/button";
-import { ExternalLinkIcon } from "lucide-react";
 import { SyncedEmailsDialog } from "./SyncedEmailsDialog";
 
 interface EmailsColumnProps {
@@ -86,7 +85,6 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
             aria-label="View email details"
           >
             <span>{totalEmails} email{totalEmails !== 1 ? 's' : ''}</span>
-            <ExternalLinkIcon className="h-3 w-3 ml-1" />
           </Button>
           
           <SyncedEmailsDialog 
