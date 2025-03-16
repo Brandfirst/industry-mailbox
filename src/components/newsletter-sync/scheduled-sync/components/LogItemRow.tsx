@@ -17,7 +17,7 @@ interface LogItemRowProps {
 
 export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: LogItemRowProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isSendersOpen, setIsSendersOpen] = useState(false);
+  // We no longer need this state for the sender popover
   
   // Format relative time
   const relativeTime = formatDistanceToNow(new Date(log.timestamp), { addSuffix: true });
@@ -95,8 +95,8 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
           uniqueSendersCount={uniqueSendersCount}
           sendersList={sendersList}
           syncedEmails={syncedEmails}
-          isSendersOpen={isSendersOpen}
-          setIsSendersOpen={setIsSendersOpen}
+          isSendersOpen={false}
+          setIsSendersOpen={() => {}}
         />
       </div>
       
