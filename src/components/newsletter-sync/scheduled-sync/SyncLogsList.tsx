@@ -15,7 +15,8 @@ import {
   PaginationItem, 
   PaginationLink, 
   PaginationNext, 
-  PaginationPrevious 
+  PaginationPrevious,
+  PaginationEllipsis
 } from "@/components/ui/pagination";
 
 interface SyncLogsListProps {
@@ -151,7 +152,9 @@ export function SyncLogsList({
   }
 
   const paginatedLogs = getPaginatedLogs();
-  const totalEntriesText = `Showing ${paginatedLogs.length} of ${filteredLogs.length} entries`;
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(startIndex + paginatedLogs.length - 1, filteredLogs.length);
+  const totalEntriesText = `Showing ${startIndex}-${endIndex} of ${filteredLogs.length} entries`;
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-200">
@@ -181,16 +184,16 @@ export function SyncLogsList({
           </div>
         ) : (
           <>
-            <div className="text-xs text-muted-foreground p-2">{totalEntriesText}</div>
+            <div className="text-xs text-muted-foreground p-2 font-medium">{totalEntriesText}</div>
+            
             <LogsContent>
               <LogsTableHeader />
-              {paginatedLogs.map((log) => {
-                // Find the log's original position in the full list to determine its number
-                const originalIndex = syncLogs.findIndex(item => item.id === log.id);
+              {paginatedLogs.map((log, index) => {
+                // Calculate the true index for display
+                const displayIndex = startIndex + index;
                 
-                // Calculate row number based on original position in full list
-                // Use the length of the total logs to show most recent items with higher numbers
-                // This ensures the latest log has the highest number
+                // Use the original index to get the itemNumber
+                const originalIndex = syncLogs.findIndex(item => item.id === log.id);
                 const itemNumber = syncLogs.length - originalIndex;
                 
                 return (
@@ -206,7 +209,7 @@ export function SyncLogsList({
             </LogsContent>
             
             {totalPages > 1 && (
-              <div className="p-2 flex justify-center">
+              <div className="p-4 flex justify-center">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
@@ -220,7 +223,7 @@ export function SyncLogsList({
                       if (page === 'ellipsis-start' || page === 'ellipsis-end') {
                         return (
                           <PaginationItem key={`ellipsis-${index}`}>
-                            <span className="h-8 w-8 flex items-center justify-center">...</span>
+                            <PaginationEllipsis />
                           </PaginationItem>
                         );
                       }
