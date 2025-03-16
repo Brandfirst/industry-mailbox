@@ -28,6 +28,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
   const [showLogs, setShowLogs] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | undefined>(undefined);
 
   // Fetch account settings when selected account changes
   useEffect(() => {
@@ -38,6 +39,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       setIsEnabled(false);
       setScheduleOption("disabled");
       setSpecificHour("09");
+      setLastUpdated(undefined);
     }
   }, [selectedAccount]);
 
@@ -57,6 +59,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       if (settings) {
         setIsEnabled(settings.enabled);
         setScheduleOption(settings.scheduleType as ScheduleOption);
+        setLastUpdated(settings.updated_at);
         
         if (settings.hour !== undefined && settings.hour !== null) {
           setSpecificHour(settings.hour.toString().padStart(2, '0'));
@@ -115,6 +118,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
               specificHour={specificHour}
               setSpecificHour={setSpecificHour}
               refreshLogs={fetchSyncLogs}
+              lastUpdated={lastUpdated}
             />
             
             {!selectedAccount && (
