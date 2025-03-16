@@ -69,15 +69,15 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
   const reversedItemNumber = totalItems - itemNumber + 1;
   
   return (
-    <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full gap-1 items-center">
-      <div className="font-medium overflow-hidden text-ellipsis">{reversedItemNumber}</div>
+    <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full gap-1 items-center py-2 hover:bg-gray-50">
+      <div className="font-medium overflow-hidden text-ellipsis px-1">{reversedItemNumber}</div>
       
-      <div className="flex flex-col overflow-hidden">
+      <div className="flex flex-col overflow-hidden px-1">
         <span className="truncate">{formatTimestamp(log.timestamp)}</span>
         <span className="text-xs text-muted-foreground truncate">{relativeTime}</span>
       </div>
       
-      <div className="overflow-hidden">
+      <div className="overflow-hidden px-1">
         <StatusColumn 
           log={log} 
           isDetailsOpen={isDetailsOpen} 
@@ -86,17 +86,17 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
       </div>
       
       {/* Type column */}
-      <div className="overflow-hidden">
+      <div className="overflow-hidden px-1">
         <TypeColumn syncType={syncType} />
       </div>
       
       {/* Emails column - Make sure this column has proper z-index to be clickable */}
-      <div className="relative z-30 pointer-events-auto overflow-hidden">
+      <div className="relative z-30 pointer-events-auto overflow-hidden px-1">
         <EmailsColumn log={log} totalEmails={totalEmails} />
       </div>
       
       {/* Senders column */}
-      <div className="overflow-hidden">
+      <div className="overflow-hidden px-1">
         <SendersColumn 
           uniqueSendersCount={uniqueSendersCount}
           sendersList={sendersList}
@@ -107,7 +107,7 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
       </div>
       
       {/* Details column */}
-      <div className="overflow-hidden truncate">
+      <div className="overflow-hidden truncate px-1">
         <StatusMessage log={log} />
       </div>
     </div>
