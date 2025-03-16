@@ -41,14 +41,14 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
  */
 export async function addSyncLog(log: SyncLogEntry): Promise<SyncLogEntry | null> {
   try {
+    // Remove sync_type_param as it's not in the function signature
     const { data, error } = await supabase
       .rpc('add_sync_log', { 
         account_id_param: log.account_id,
         status_param: log.status,
         message_count_param: log.message_count,
         error_message_param: log.error_message || null,
-        details_param: log.details || null,
-        sync_type_param: log.sync_type || 'manual'
+        details_param: log.details || null
       });
 
     if (error) {
@@ -118,8 +118,7 @@ export async function updateSyncSchedule(
         message_count: 0,
         sync_type: 'scheduled',
         details: { schedule_type: scheduleType, hour: hour },
-        timestamp: new Date().toISOString(),
-        error_message: null
+        timestamp: new Date().toISOString()
       });
       
       console.log(`Scheduled sync enabled for account ${accountId}: ${scheduleType}${hour !== undefined ? ` at ${hour}:00` : ''}`);
@@ -162,11 +161,19 @@ export async function getSyncSchedule(accountId: string): Promise<{
       };
     }
     
+    // Properly cast the sync_settings to access its properties safely
+    const settings = data.sync_settings as {
+      enabled: boolean;
+      schedule_type: string;
+      hour?: number;
+      updated_at?: string;
+    };
+    
     return {
-      enabled: data.sync_settings.enabled || false,
-      scheduleType: data.sync_settings.schedule_type || 'disabled',
-      hour: data.sync_settings.hour,
-      lastUpdated: data.sync_settings.updated_at
+      enabled: settings.enabled || false,
+      scheduleType: settings.schedule_type || 'disabled',
+      hour: settings.hour,
+      lastUpdated: settings.updated_at
     };
   } catch (error) {
     console.error('Exception in getSyncSchedule:', error);
