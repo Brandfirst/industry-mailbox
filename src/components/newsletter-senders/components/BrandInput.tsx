@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Briefcase, Pen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,12 @@ const BrandInput = ({
   const [inputValue, setInputValue] = useState(initialValue);
   const [isEditing, setIsEditing] = useState(false);
   const [brandValue, setBrandValue] = useState(initialValue);
+
+  // Update the internal state when initialValue changes (e.g., after navigation)
+  useEffect(() => {
+    setInputValue(initialValue);
+    setBrandValue(initialValue);
+  }, [initialValue]);
 
   const handleSave = async () => {
     try {

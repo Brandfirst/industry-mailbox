@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Table, TableBody } from "@/components/ui/table";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
 import { NewsletterCategory } from "@/lib/supabase/types";
@@ -38,6 +38,15 @@ const SenderList = ({
   
   // Use our new sorting hook
   const { sortField, sortDirection, toggleSort, sortSenders } = useSenderListSorting();
+
+  // Initialize brand input values from senders
+  useEffect(() => {
+    const brandValues: Record<string, string> = {};
+    senders.forEach(sender => {
+      brandValues[sender.sender_email] = sender.brand_name || "";
+    });
+    setBrandInputValues(brandValues);
+  }, [senders]);
 
   // Filter senders based on search term
   const filteredSenders = senders
@@ -88,9 +97,11 @@ const SenderList = ({
 
   // Get brand input value
   const getBrandInputValue = (sender: NewsletterSenderStats) => {
+    // First check our local state
     if (brandInputValues[sender.sender_email] !== undefined) {
       return brandInputValues[sender.sender_email];
     }
+    // Fall back to the value from the sender object
     return sender.brand_name || "";
   };
 
@@ -186,7 +197,7 @@ const SenderList = ({
                   categories={categories}
                   isSelected={selectedSenders.includes(sender.sender_email)}
                   updatingCategory={updatingCategory}
-                  updatingBrand={updatingBrand === sender.sender_email ? sender.sender_email : null}
+                  updatingBrand={updatingBrand}
                   brandInputValue={getBrandInputValue(sender)}
                   onCategoryChange={handleCategoryChange}
                   onBrandUpdate={handleBrandUpdate}

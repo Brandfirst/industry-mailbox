@@ -27,8 +27,11 @@ export function useSenderOperations(setSenders: React.Dispatch<React.SetStateAct
             : sender
         )
       );
+      
+      toast.success("Category updated successfully");
     } catch (error) {
       console.error("Error updating category:", error);
+      toast.error("Failed to update category");
       throw error;
     } finally {
       setUpdatingCategory(false);
@@ -51,11 +54,15 @@ export function useSenderOperations(setSenders: React.Dispatch<React.SetStateAct
         )
       );
       
+      // Show success toast
+      toast.success(`Brand updated to "${brandName}"`);
+      
       // Log successful update
       console.log(`Successfully updated brand to "${brandName}" for ${senderEmail}`);
       
     } catch (error) {
       console.error("Error updating brand:", error);
+      toast.error("Failed to update brand name");
       throw error;
     } finally {
       setUpdatingBrand(false);
@@ -81,8 +88,10 @@ export function useSenderOperations(setSenders: React.Dispatch<React.SetStateAct
         prevSenders.filter(sender => !senderEmails.includes(sender.sender_email))
       );
       
+      toast.success(`${senderEmails.length} sender(s) deleted successfully`);
     } catch (error) {
       console.error("Error deleting senders:", error);
+      toast.error("Failed to delete senders");
       throw error;
     } finally {
       setDeleting(false);
