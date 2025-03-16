@@ -5,8 +5,10 @@ import { SyncLogEntry, SyncScheduleSettings } from './types';
 /**
  * Get sync logs for an account
  */
-export async function getSyncLogs(accountId: string, limit: number = 10): Promise<SyncLogEntry[]> {
+export async function getSyncLogs(accountId: string, limit: number = 20): Promise<SyncLogEntry[]> {
   try {
+    console.log(`Fetching up to ${limit} sync logs for account ${accountId}`);
+    
     const { data, error } = await supabase.rpc('get_account_sync_logs', {
       account_id_param: accountId,
       limit_param: limit
@@ -23,17 +25,38 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
       return [];
     }
     
+    console.log(`Retrieved ${data.length} sync logs`);
+    
+    // For debugging purposes
+    if (data.length > 0) {
+      console.log("Sample log entry:", data[0]);
+    }
+    
     return data.map((log: any): SyncLogEntry => {
+      // Parse details properly
+      let details = {};
+      if (log.details) {
+        // If details is a string, try to parse it as JSON
+        if (typeof log.details === 'string') {
+          try {
+            details = JSON.parse(log.details);
+          } catch (e) {
+            console.error("Error parsing log details:", e);
+            details = { error: "Failed to parse details" };
+          }
+        } else if (typeof log.details === 'object') {
+          details = log.details;
+        }
+      }
+      
       return {
         id: log.id,
         account_id: log.account_id,
         timestamp: log.timestamp,
         status: log.status as SyncLogEntry['status'],
-        message_count: log.message_count,
-        error_message: log.error_message,
-        // Ensure details is properly parsed as an object
-        details: typeof log.details === 'object' ? log.details : {},
-        // Set a default sync_type if it's missing
+        message_count: log.message_count || 0,
+        error_message: log.error_message || null,
+        details: details,
         sync_type: log.sync_type || 'manual'
       };
     });

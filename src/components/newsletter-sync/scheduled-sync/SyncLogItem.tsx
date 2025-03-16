@@ -3,6 +3,7 @@ import React from "react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableCell, TableRow } from "@/components/ui/table";
 
 type SyncLogItemProps = {
   log: SyncLogEntry;
@@ -33,6 +34,11 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
           label: "Processing",
           className: "bg-yellow-100 text-yellow-800"
         };
+      case "partial":
+        return {
+          label: "Partial",
+          className: "bg-orange-100 text-orange-800"
+        };
       default:
         return {
           label: log.status,
@@ -62,6 +68,27 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
     </div>
   );
   
+  // Generate appropriate message based on status
+  const getMessage = () => {
+    if (log.error_message) return log.error_message;
+    
+    switch(log.status) {
+      case 'success':
+        return "Completed successfully";
+      case 'scheduled':
+        return "Sync scheduled";
+      case 'processing':
+        return "Sync in progress";
+      case 'partial':
+        return "Some emails failed to sync";
+      case 'failed':
+        if (!log.error_message) return "Sync failed";
+        return log.error_message;
+      default:
+        return "";
+    }
+  };
+  
   return (
     <div className="px-4 py-2 text-xs">
       <div className="grid grid-cols-4 gap-2 mb-1">
@@ -85,9 +112,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
           ) : scheduleDetails}
         </div>
         <div className="text-muted-foreground truncate">
-          {log.error_message || (log.status === 'success' ? "Completed successfully" : 
-                                log.status === 'scheduled' ? "Sync scheduled" : 
-                                log.status === 'processing' ? "Sync in progress" : "")}
+          {getMessage()}
         </div>
       </div>
       

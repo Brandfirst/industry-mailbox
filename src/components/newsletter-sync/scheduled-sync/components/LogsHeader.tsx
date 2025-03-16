@@ -16,6 +16,17 @@ export function LogsHeader({
   selectedAccount,
   fetchSyncLogs
 }: LogsHeaderProps) {
+  const toggleLogs = () => {
+    const newValue = !showLogs;
+    setShowLogs(newValue);
+    
+    // If we're showing logs and there's a fetch function, call it
+    if (newValue && fetchSyncLogs) {
+      console.log("Fetching logs after toggle");
+      fetchSyncLogs();
+    }
+  };
+  
   return (
     <div className="flex justify-between items-center mt-6 mb-2">
       <div className="flex items-center space-x-2">
@@ -27,12 +38,7 @@ export function LogsHeader({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            setShowLogs(!showLogs);
-            if (!showLogs && fetchSyncLogs) {
-              fetchSyncLogs();
-            }
-          }}
+          onClick={toggleLogs}
           className="text-xs p-1 h-auto"
           disabled={!selectedAccount}
         >

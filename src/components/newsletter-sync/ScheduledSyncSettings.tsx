@@ -25,7 +25,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
   const [specificHour, setSpecificHour] = useState<string>("09");
   const [isEnabled, setIsEnabled] = useState(false);
   const [syncLogs, setSyncLogs] = useState<any[]>([]);
-  const [showLogs, setShowLogs] = useState(false);
+  const [showLogs, setShowLogs] = useState(true); // Set to true by default to show logs immediately
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | undefined>(undefined);
@@ -37,6 +37,11 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       console.log("Account selected, loading settings for:", selectedAccount);
       setSettingsLoaded(false);
       loadAccountSettings();
+      
+      // Also fetch logs when account changes
+      if (showLogs) {
+        fetchSyncLogs();
+      }
     } else {
       // Reset if no account selected
       console.log("No account selected, resetting settings");
@@ -45,15 +50,9 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       setSpecificHour("09");
       setLastUpdated(undefined);
       setSettingsLoaded(false);
+      setSyncLogs([]);
     }
   }, [selectedAccount]);
-
-  // Fetch sync logs when selected account changes or when showLogs is toggled
-  useEffect(() => {
-    if (selectedAccount && showLogs) {
-      fetchSyncLogs();
-    }
-  }, [selectedAccount, showLogs]);
 
   const loadAccountSettings = async () => {
     if (!selectedAccount) return;
@@ -96,7 +95,9 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
     
     setIsLoading(true);
     try {
-      const logs = await getSyncLogs(selectedAccount, 20);
+      console.log("Fetching sync logs for account:", selectedAccount);
+      const logs = await getSyncLogs(selectedAccount, 50); // Increase limit to ensure we get all logs
+      console.log("Retrieved logs:", logs);
       setSyncLogs(logs);
     } catch (error) {
       console.error("Error fetching sync logs:", error);

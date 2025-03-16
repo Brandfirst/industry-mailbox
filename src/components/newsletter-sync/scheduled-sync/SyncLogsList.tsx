@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { SyncLogItem } from "./SyncLogItem";
@@ -26,6 +26,13 @@ export function SyncLogsList({
   fetchSyncLogs,
   formatTimestamp
 }: SyncLogsListProps) {
+  // Force fetch logs when component mounts if logs should be shown
+  useEffect(() => {
+    if (selectedAccount && showLogs) {
+      fetchSyncLogs();
+    }
+  }, [selectedAccount, showLogs, fetchSyncLogs]);
+  
   if (!selectedAccount) return null;
   
   return (
