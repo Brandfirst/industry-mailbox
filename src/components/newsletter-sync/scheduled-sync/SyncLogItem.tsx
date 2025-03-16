@@ -1,8 +1,15 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { InfoIcon } from "lucide-react";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 type SyncLogItemProps = {
   log: SyncLogEntry;
@@ -10,6 +17,8 @@ type SyncLogItemProps = {
 };
 
 export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
   // Get status display configuration
   const getStatusDisplay = (log: SyncLogEntry) => {
     switch(log.status?.toLowerCase()) {
@@ -90,9 +99,79 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
     }
   };
   
+  // Get content for details popup
+  const getDetailsContent = () => {
+    const accountEmail = log.details?.accountEmail || 'Unknown';
+    const provider = log.details?.provider || 'Unknown';
+    const syncedCount = log.details?.syncedCount || 0;
+    const failedCount = log.details?.failedCount || 0;
+    const startTime = log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Unknown';
+    
+    return (
+      <div className="space-y-3 p-1">
+        <h4 className="font-medium text-sm">Sync Details</h4>
+        
+        <div className="space-y-2 text-xs">
+          <div className="grid grid-cols-2 gap-1">
+            <div className="text-muted-foreground">Account:</div>
+            <div>{accountEmail}</div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-1">
+            <div className="text-muted-foreground">Provider:</div>
+            <div className="capitalize">{provider}</div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-1">
+            <div className="text-muted-foreground">Started:</div>
+            <div>{startTime}</div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-1">
+            <div className="text-muted-foreground">Type:</div>
+            <div className="capitalize">{syncType}</div>
+          </div>
+          
+          {log.status !== 'scheduled' && (
+            <>
+              <div className="grid grid-cols-2 gap-1">
+                <div className="text-muted-foreground">Status:</div>
+                <div>{statusDisplay.label}</div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-1">
+                <div className="text-muted-foreground">Synced:</div>
+                <div>{syncedCount} emails</div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-1">
+                <div className="text-muted-foreground">Failed:</div>
+                <div>{failedCount} emails</div>
+              </div>
+              
+              {newSenders > 0 && (
+                <div className="grid grid-cols-2 gap-1">
+                  <div className="text-muted-foreground">New senders:</div>
+                  <div>{newSenders}</div>
+                </div>
+              )}
+            </>
+          )}
+          
+          {log.error_message && (
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <div className="text-muted-foreground mb-1">Error:</div>
+              <div className="text-red-600 break-words">{log.error_message}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+  
   return (
-    <div className="px-4 py-3 text-xs border-b border-muted hover:bg-gray-50">
-      <div className="grid grid-cols-[25%_20%_20%_35%] gap-2 w-full">
+    <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
+      <div className="grid grid-cols-[25%_20%_20%_35%] gap-2 w-full items-center">
         <div className="flex flex-col">
           <span>{formatTimestamp(log.timestamp)}</span>
           <span className="text-xs text-muted-foreground">{relativeTime}</span>
@@ -105,15 +184,33 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
             {syncType === 'manual' ? 'Manual sync' : 'Scheduled'}
           </div>
         </div>
-        <div>
+        <div className="flex items-center">
           {log.status !== 'scheduled' ? (
-            <>
-              {totalEmails} message{totalEmails !== 1 ? 's' : ''}
-            </>
+            <span>
+              {totalEmails} email{totalEmails !== 1 ? 's' : ''}
+            </span>
           ) : scheduleDetails}
         </div>
-        <div className="text-muted-foreground truncate">
-          {getMessage()}
+        <div className="flex justify-between items-center">
+          <span className="text-muted-foreground truncate mr-2">
+            {getMessage()}
+          </span>
+          
+          <Popover open={isOpen} onOpenChange={setIsOpen}>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7 rounded-full"
+                aria-label="View sync details"
+              >
+                <InfoIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72" align="end">
+              {getDetailsContent()}
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       
