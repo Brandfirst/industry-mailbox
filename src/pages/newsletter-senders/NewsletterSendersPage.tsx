@@ -1,7 +1,6 @@
 
 import { useNewsletterSenders } from './hooks/useNewsletterSenders';
 import SenderList from '@/components/newsletter-senders/list';
-import SearchBar from '@/components/SearchBar';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
@@ -10,8 +9,6 @@ const NewsletterSendersPage = () => {
     filteredSenders,
     categories,
     loading,
-    searchTerm,
-    setSearchTerm,
     sortKey,
     sortAsc,
     refreshing,
@@ -25,10 +22,6 @@ const NewsletterSendersPage = () => {
     handleDeleteSenders,
     toggleSort
   } = useNewsletterSenders();
-
-  const handleSearch = (query: string) => {
-    setSearchTerm(query);
-  };
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -49,13 +42,6 @@ const NewsletterSendersPage = () => {
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
           {refreshing ? 'Oppdaterer...' : 'Oppdater'}
         </Button>
-      </div>
-
-      <div className="mb-8">
-        <SearchBar
-          onSearch={handleSearch}
-          placeholder="Søk etter avsender..."
-        />
       </div>
 
       <SenderList

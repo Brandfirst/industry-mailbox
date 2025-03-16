@@ -85,11 +85,9 @@ const SenderList = ({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <SenderListHeader 
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          resultsCount={sortedSenders.length}
-        />
+        <div className="text-sm text-muted-foreground">
+          {sortedSenders.length} avsendere funnet
+        </div>
         
         {effectiveDeleteFunction && (
           <SenderActions 
