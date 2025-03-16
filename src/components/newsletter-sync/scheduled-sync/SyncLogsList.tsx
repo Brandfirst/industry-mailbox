@@ -82,7 +82,7 @@ export function SyncLogsList({
           {!selectedAccount ? (
             <AccountNotice selectedAccount={selectedAccount} />
           ) : isLoading ? (
-            <div className="space-y-2 py-4">
+            <div className="space-y-2 py-4 px-4">
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-8 w-full" />
@@ -95,18 +95,20 @@ export function SyncLogsList({
               <span>No sync logs found for this account</span>
             </LogsContent>
           ) : (
-            <div className="overflow-x-auto">
-              <LogsTableHeader />
-              <div className="max-h-96 overflow-y-auto">
-                {syncLogs.map((log, index) => (
-                  <SyncLogItem 
-                    key={log.id} 
-                    log={log} 
-                    formatTimestamp={formatTimestamp}
-                    itemNumber={index + 1}
-                    totalItems={syncLogs.length}
-                  />
-                ))}
+            <div className="overflow-x-auto w-full">
+              <div className="min-w-[800px]">
+                <LogsTableHeader />
+                <div className="max-h-96 overflow-y-auto">
+                  {syncLogs.map((log, index) => (
+                    <SyncLogItem 
+                      key={log.id} 
+                      log={log} 
+                      formatTimestamp={formatTimestamp}
+                      itemNumber={index + 1}
+                      totalItems={syncLogs.length}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           )}
