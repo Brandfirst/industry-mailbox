@@ -25,12 +25,14 @@ Deno.serve(async (req) => {
     // Check if this is a manual trigger
     let isManualTrigger = false;
     let isForceRun = false;
+    let manualAccountId = null;
     
     try {
       const requestData = await req.json();
       isManualTrigger = !!requestData.manual;
       isForceRun = !!requestData.forceRun;
-      console.log(`Request data: manual=${isManualTrigger}, forceRun=${isForceRun}`);
+      manualAccountId = requestData.accountId || null;
+      console.log(`Request data: manual=${isManualTrigger}, forceRun=${isForceRun}, accountId=${manualAccountId || 'not specified'}`);
     } catch (e) {
       // No request body or invalid JSON, continue as normal scheduled run
       console.log('No request body or invalid JSON, proceeding as normal scheduled run');
@@ -45,10 +47,17 @@ Deno.serve(async (req) => {
     console.log(`Run type: ${isManualTrigger ? 'manual trigger' : 'scheduled'}`);
     
     // Get all email accounts with enabled sync settings
-    const { data: accounts, error: accountsError } = await supabase
+    // If a specific account was specified in manual mode, only get that one
+    let accountsQuery = supabase
       .from('email_accounts')
       .select('id, email, provider, sync_settings')
       .not('sync_settings', 'is', null);
+      
+    if (isManualTrigger && manualAccountId) {
+      accountsQuery = accountsQuery.eq('id', manualAccountId);
+    }
+    
+    const { data: accounts, error: accountsError } = await accountsQuery;
       
     if (accountsError) {
       console.error('Error fetching accounts:', accountsError);
@@ -73,10 +82,30 @@ Deno.serve(async (req) => {
         continue;
       }
       
-      // If this is a force run, we sync regardless of schedule
-      if (isForceRun) {
-        console.log(`Force run requested, adding account ${account.id} (${account.email})`);
+      // If this is a force run or manual trigger for a specific account, sync regardless of schedule
+      if (isForceRun || (isManualTrigger && manualAccountId === account.id)) {
+        console.log(`Force run or manual trigger for account ${account.id} (${account.email})`);
         accountsToSync.push(account.id);
+        
+        // Create a processing log entry for this manual sync
+        try {
+          await supabase.rpc('add_sync_log', {
+            account_id_param: account.id,
+            status_param: 'processing',
+            message_count_param: 0,
+            error_message_param: null,
+            details_param: { 
+              attempt_time: now.toISOString(),
+              manual_trigger: true,
+              force_run: isForceRun
+            },
+            sync_type_param: isManualTrigger ? 'manual' : 'scheduled'
+          });
+          console.log(`Created processing log entry for account ${account.id} (manual/force trigger)`);
+        } catch (logError) {
+          console.error(`Error creating log entry for account ${account.id}:`, logError);
+        }
+        
         continue;
       }
       
@@ -85,8 +114,7 @@ Deno.serve(async (req) => {
       
       switch (settings.scheduleType) {
         case 'minute':
-          // For minute schedule, always run it when the scheduled function is called
-          // This now runs on every scheduled invocation of this function
+          // For minute schedule, always run when the scheduled function is called
           shouldSync = true;
           console.log(`Minute sync for account ${account.id} (${account.email}) - scheduled to run every minute`);
           break;
@@ -126,7 +154,9 @@ Deno.serve(async (req) => {
     }
     
     // Trigger sync for each account that needs it
-    const syncPromises = accountsToSync.map(async (accountId) => {
+    const syncResults = [];
+    
+    for (const accountId of accountsToSync) {
       try {
         console.log(`Triggering sync for account ${accountId}`);
         
@@ -140,7 +170,38 @@ Deno.serve(async (req) => {
         });
         
         console.log(`Sync result for ${accountId}:`, syncResponse);
-        return { accountId, success: true, response: syncResponse };
+        
+        // Check if the sync was successful
+        if (syncResponse.error) {
+          console.error(`Error in sync response for ${accountId}:`, syncResponse.error);
+          
+          // Update the log with the failure
+          try {
+            await supabase.rpc('add_sync_log', {
+              account_id_param: accountId,
+              status_param: 'failed',
+              message_count_param: 0,
+              error_message_param: `Sync failed: ${syncResponse.error}`,
+              details_param: null,
+              sync_type_param: isManualTrigger ? 'manual' : 'scheduled'
+            });
+          } catch (logError) {
+            console.error(`Error updating log for account ${accountId}:`, logError);
+          }
+          
+          syncResults.push({ 
+            accountId, 
+            success: false, 
+            error: syncResponse.error 
+          });
+        } else {
+          // The sync-emails function already handles log creation for success cases
+          syncResults.push({ 
+            accountId, 
+            success: true, 
+            data: syncResponse.data 
+          });
+        }
       } catch (error) {
         console.error(`Error syncing account ${accountId}:`, error);
         
@@ -152,23 +213,24 @@ Deno.serve(async (req) => {
             message_count_param: 0,
             error_message_param: `Failed to invoke sync function: ${error.message || String(error)}`,
             details_param: null,
-            sync_type_param: 'scheduled'
+            sync_type_param: isManualTrigger ? 'manual' : 'scheduled'
           });
         } catch (logError) {
           console.error(`Error creating failure log for account ${accountId}:`, logError);
         }
         
-        return { accountId, success: false, error };
+        syncResults.push({ 
+          accountId, 
+          success: false, 
+          error 
+        });
       }
-    });
-    
-    // Wait for all syncs to complete
-    const results = await Promise.all(syncPromises);
+    }
     
     return new Response(
       JSON.stringify({ 
         message: 'Scheduled sync check completed',
-        results,
+        results: syncResults,
         accounts_synced: accountsToSync.length,
         timestamp: now.toISOString()
       }),

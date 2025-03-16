@@ -60,7 +60,11 @@ export function useSyncSchedule({
     try {
       // Call the scheduled-sync function directly with forceRun set to true
       const { data, error } = await supabase.functions.invoke("scheduled-sync", {
-        body: { forceRun: true, manual: true }
+        body: { 
+          forceRun: true, 
+          manual: true,
+          accountId: selectedAccount 
+        }
       });
       
       if (error) {
