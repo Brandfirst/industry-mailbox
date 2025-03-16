@@ -74,8 +74,6 @@ const SenderContent = ({
         onApplyFilters={applyFilters}
         isMobileFiltersOpen={isMobileFiltersOpen}
         toggleMobileFilters={toggleMobileFilters}
-        isDesktopOpen={true} // Always true
-        toggleDesktopFilters={toggleDesktopFilters}
       >
         <NewsletterResults
           newsletters={newsletters}
