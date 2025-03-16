@@ -17,9 +17,10 @@ export async function processEmails(emails: any[], accountId: string, supabase: 
 
   if (!emails || emails.length === 0) {
     if (verbose) {
-      console.log('No emails to process');
+      console.log('No emails to process - this is OK (empty inbox or all synced)');
     }
-    return { synced, failed, uniqueSenders, error: null };
+    // Return empty arrays but not an error - this is a successful sync with zero emails
+    return { synced: [], failed: [], uniqueSenders: new Set(), error: null };
   }
 
   if (verbose) {

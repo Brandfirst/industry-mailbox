@@ -93,7 +93,7 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
       
       console.log(`Fetched ${result.length} emails from Gmail API for ${accountData.email}`);
       
-      // Process and save emails
+      // Process and save emails - even if there are zero emails, this should be a success
       const { synced, failed, uniqueSenders } = await processEmails(
         result, 
         accountId, 
@@ -101,10 +101,27 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
         verbose
       );
       
-      // Determine partial success
-      const partial = failed.length > 0 && synced.length > 0;
-      const status = partial ? 'partial' : (synced.length > 0 ? 'success' : 'failed');
-      const errorMessage = partial ? 'Some emails failed to sync' : null;
+      // Determine status - an empty result should be a success, not a failure
+      const hasEmails = result.length > 0;
+      const hasFailed = failed.length > 0;
+      const hasSuccess = synced.length > 0;
+      
+      // Determine the status based on the results
+      let status;
+      let errorMessage = null;
+      
+      if (hasFailed && hasSuccess) {
+        status = 'partial';
+        errorMessage = 'Some emails failed to sync';
+      } else if (hasSuccess) {
+        status = 'success';
+      } else if (hasFailed) {
+        status = 'failed';
+        errorMessage = 'All emails failed to sync';
+      } else {
+        // No emails found - this is still a success
+        status = 'success';
+      }
       
       // Create or update log entry for scheduled syncs
       if (scheduled) {
@@ -128,7 +145,7 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
                 sync_type: 'scheduled'
               })
               .eq('id', sync_log_id);
-            console.log(`Updated completion log entry ${sync_log_id} for scheduled sync of account ${accountId}`);
+            console.log(`Updated completion log entry ${sync_log_id} for scheduled sync of account ${accountId} with status ${status}`);
           } else {
             // Create new log entry
             await supabase.rpc('add_sync_log', {
@@ -139,7 +156,7 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
               details_param: logDetails,
               sync_type_param: 'scheduled'
             });
-            console.log(`Created completion log entry for scheduled sync of account ${accountId}`);
+            console.log(`Created completion log entry for scheduled sync of account ${accountId} with status ${status}`);
           }
         } catch (logError) {
           console.error(`Error creating/updating log entry for account ${accountId}:`, logError);
@@ -148,11 +165,11 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
       
       // Return success response
       return createSuccessResponse({
-        partial,
+        partial: status === 'partial',
         count: synced.length,
         synced,
         failed: failed.length > 0 ? failed : [],
-        warning: partial ? 'Some emails failed to sync' : null,
+        warning: errorMessage,
         details: {
           accountEmail: accountData.email,
           provider: accountData.provider,

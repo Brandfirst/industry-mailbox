@@ -1,3 +1,4 @@
+
 // deno-lint-ignore-file no-explicit-any
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
@@ -261,37 +262,100 @@ async function syncAccount(supabase: any, account: any, forceRun: boolean, exist
       }
     });
     
-    console.log(`Sync completed for ${email} with status:`, response.status);
+    console.log(`Sync completed for ${email} with response:`, response);
     
-    // Check if the request failed
-    if (!response.data || response.error) {
-      console.error(`Sync failed for ${email}:`, response.error || 'Unknown error');
+    // Check if the request failed completely
+    if (!response) {
+      console.error(`Sync failed for ${email}: No response received`);
       
       // Update the log entry to failed status
       await supabase
         .from('email_sync_logs')
         .update({
           status: 'failed',
-          error_message: response.error?.message || 'Unknown error',
-          details: { error_details: response.error || 'Unknown error' },
-          timestamp: new Date().toISOString() // Keep the original timestamp
+          error_message: 'No response received from sync service',
+          details: { error_details: 'No response received' },
+          timestamp: new Date().toISOString()
         })
         .eq('id', logId);
       
       return {
         success: false,
-        error: response.error || 'Unknown error',
+        error: 'No response received',
+      };
+    }
+    
+    // Check if there's a specific error in the response
+    if (response.error) {
+      console.error(`Sync failed for ${email}:`, response.error);
+      
+      // Update the log entry to failed status
+      await supabase
+        .from('email_sync_logs')
+        .update({
+          status: 'failed',
+          error_message: response.error.message || String(response.error),
+          details: { error_details: response.error },
+          timestamp: new Date().toISOString()
+        })
+        .eq('id', logId);
+      
+      return {
+        success: false,
+        error: response.error,
         status: response.status
       };
     }
     
-    // The sync-emails function should update the log entry itself
+    // Handle empty data case - this should be a success with zero emails
+    if (!response.data) {
+      console.log(`Sync completed for ${email} but no data returned`);
+      
+      // Update the log entry to success status with 0 emails
+      await supabase
+        .from('email_sync_logs')
+        .update({
+          status: 'success', // Change from 'failed' to 'success'
+          message_count: 0,
+          error_message: null,
+          details: { info: "No new emails found" },
+          timestamp: new Date().toISOString()
+        })
+        .eq('id', logId);
+      
+      return {
+        success: true,
+        data: { count: 0, info: "No new emails found" },
+        status: response.status || 200
+      };
+    }
     
-    // Return success
+    // The sync-emails function should update the log entry itself
+    // But let's double-check if we need to
+    if (response.data.success === false) {
+      // If the sync-emails function reports failure, update the log entry
+      await supabase
+        .from('email_sync_logs')
+        .update({
+          status: 'failed',
+          error_message: response.data.error || 'Unknown error',
+          details: response.data.details || null,
+          timestamp: new Date().toISOString()
+        })
+        .eq('id', logId);
+      
+      return {
+        success: false,
+        error: response.data.error || 'Unknown error',
+        status: response.status || 400
+      };
+    }
+    
+    // If we get here, the function completed successfully
     return {
       success: true,
       data: response.data,
-      status: response.status
+      status: response.status || 200
     };
   } catch (error) {
     console.error(`Exception in syncAccount for ${email}:`, error);

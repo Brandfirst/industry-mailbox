@@ -12,7 +12,7 @@ type SyncLogItemProps = {
 export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   // Get status display configuration
   const getStatusDisplay = (log: SyncLogEntry) => {
-    switch(log.status) {
+    switch(log.status?.toLowerCase()) {
       case "success":
         return {
           label: "Success",
@@ -71,9 +71,11 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   const getMessage = () => {
     if (log.error_message) return log.error_message;
     
-    switch(log.status) {
+    switch(log.status?.toLowerCase()) {
       case 'success':
-        return "Completed successfully";
+        return totalEmails > 0 
+          ? "Completed successfully" 
+          : "Completed successfully (no new emails)";
       case 'scheduled':
         return "Sync scheduled";
       case 'processing':
@@ -84,7 +86,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
         if (!log.error_message) return "Sync failed";
         return log.error_message;
       default:
-        return "";
+        return log.status || "";
     }
   };
   
