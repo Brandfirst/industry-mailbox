@@ -38,7 +38,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
   
   return (
     <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
-      <div className="grid grid-cols-[5%_25%_18%_17%_35%] gap-2 w-full items-center">
+      <div className="grid grid-cols-[5%_25%_18%_17%_35%] gap-2 w-full items-start">
         <div className="font-medium">{itemNumber}</div>
         <div className="flex flex-col">
           <span>{formatTimestamp(log.timestamp)}</span>
@@ -69,7 +69,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
             {syncType === 'manual' ? 'Manual sync' : 'Scheduled'}
           </div>
         </div>
-        <div className="flex items-center">
+        <div>
           {log.status !== 'scheduled' ? (
             <span>
               {totalEmails} email{totalEmails !== 1 ? 's' : ''}
