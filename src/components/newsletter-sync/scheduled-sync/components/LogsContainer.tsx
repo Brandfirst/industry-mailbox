@@ -18,7 +18,7 @@ export function LogsContainer({
 }: LogsContainerProps) {
   return (
     <div className="mt-2 border rounded-md overflow-hidden">
-      <div className="w-full overflow-x-auto">
+      <div className="overflow-x-auto">
         {children}
       </div>
     </div>

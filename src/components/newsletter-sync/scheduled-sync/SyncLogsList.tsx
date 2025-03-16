@@ -95,20 +95,18 @@ export function SyncLogsList({
               <span>No sync logs found for this account</span>
             </LogsContent>
           ) : (
-            <div className="overflow-x-auto w-full">
-              <div className="min-w-[800px]">
-                <LogsTableHeader />
-                <div className="overflow-y-auto">
-                  {syncLogs.map((log, index) => (
-                    <SyncLogItem 
-                      key={log.id} 
-                      log={log} 
-                      formatTimestamp={formatTimestamp}
-                      itemNumber={index + 1}
-                      totalItems={syncLogs.length}
-                    />
-                  ))}
-                </div>
+            <div className="min-w-[800px]">
+              <LogsTableHeader />
+              <div>
+                {syncLogs.map((log, index) => (
+                  <SyncLogItem 
+                    key={log.id} 
+                    log={log} 
+                    formatTimestamp={formatTimestamp}
+                    itemNumber={index + 1}
+                    totalItems={syncLogs.length}
+                  />
+                ))}
               </div>
             </div>
           )}
