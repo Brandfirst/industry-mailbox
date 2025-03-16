@@ -1,4 +1,4 @@
 
-import SenderList from './SenderList';
+import SenderList from './list';
 
 export default SenderList;

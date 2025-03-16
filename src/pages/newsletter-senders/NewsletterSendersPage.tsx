@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNewsletterSenders } from './hooks/useNewsletterSenders';
-import SenderList from '@/components/newsletter-senders/SenderList';
+import SenderList from '@/components/newsletter-senders/list';
 import SearchBar from '@/components/SearchBar';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
