@@ -118,23 +118,29 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               // Fix any left-aligned tables or divs
               const tables = doc.querySelectorAll('table');
               tables.forEach(table => {
-                table.style.margin = '0 auto';
-                table.style.float = 'none';
-                table.style.display = 'table';
+                // Cast to HTMLTableElement before accessing style
+                const tableEl = table as HTMLTableElement;
+                tableEl.style.margin = '0 auto';
+                tableEl.style.float = 'none';
+                tableEl.style.display = 'table';
                 
                 // Fix any cells that might be left-aligned
                 const cells = table.querySelectorAll('td, th');
                 cells.forEach(cell => {
-                  cell.style.textAlign = 'center';
+                  // Cast to HTMLTableCellElement before accessing style
+                  const cellEl = cell as HTMLTableCellElement;
+                  cellEl.style.textAlign = 'center';
                 });
               });
               
               // Force divs to center
               const divs = doc.querySelectorAll('div');
               divs.forEach(div => {
-                if (getComputedStyle(div).display !== 'inline') {
-                  div.style.margin = '0 auto';
-                  div.style.float = 'none';
+                // Cast to HTMLDivElement before accessing style
+                const divEl = div as HTMLDivElement;
+                if (getComputedStyle(divEl).display !== 'inline') {
+                  divEl.style.margin = '0 auto';
+                  divEl.style.float = 'none';
                 }
               });
             }
