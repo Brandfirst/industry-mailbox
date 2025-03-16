@@ -46,7 +46,7 @@ const SenderNewsletters = () => {
     setSelectedBrands,
     setDateRange,
     handleLoadMore,
-    handleSearch,
+    handleSearch: originalHandleSearch,
     handleCategoryChange,
     handleBrandChange,
     applyFilters,
@@ -122,10 +122,14 @@ const SenderNewsletters = () => {
     }
   };
 
+  // Fixed: Create a wrapper function to handle the search properly
   const handleSenderSearch = (query: string) => {
     setSenderSearchQuery(query);
     setSearchQuery(query);
-    handleSearch(query); // Fixed: handleSearch should receive the query string
+    
+    // Create a synthetic form event to pass to originalHandleSearch
+    const syntheticEvent = { preventDefault: () => {} } as FormEvent<HTMLFormElement>;
+    originalHandleSearch(syntheticEvent);
   };
 
   // Get random cover image

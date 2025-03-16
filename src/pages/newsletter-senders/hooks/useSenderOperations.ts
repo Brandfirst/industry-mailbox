@@ -1,109 +1,86 @@
 
-import { useState, useCallback } from "react";
-import { useAuth } from "@/contexts/auth";
-import { toast } from "sonner";
-import { updateSenderCategory, updateSenderBrand } from "@/lib/supabase/newsletters";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
+import { 
+  updateNewsletterSenderCategory, 
+  updateNewsletterSenderBrand, 
+  deleteNewsletterSenders 
+} from "@/lib/supabase/newsletters";
+import { toast } from "sonner";
 
 export function useSenderOperations(
-  setSenders: React.Dispatch<React.SetStateAction<any[]>>, 
+  setSenders: React.Dispatch<React.SetStateAction<NewsletterSenderStats[]>>,
   setBrandUpdates: React.Dispatch<React.SetStateAction<Record<string, string>>>
 ) {
-  const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
-  const [updatingCategory, setUpdatingCategory] = useState(false);
-  const [updatingBrand, setUpdatingBrand] = useState(false);
+  const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
+  const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const handleCategoryChange = useCallback(async (senderEmail: string, categoryId: number | null) => {
-    if (!user) return;
-    
+  const handleCategoryChange = async (senderEmail: string, categoryId: number | null) => {
     try {
-      setUpdatingCategory(true);
+      setUpdatingCategory(senderEmail);
       
-      // Log the operation start
-      console.log(`Starting category update for ${senderEmail} to ${categoryId}`);
+      await updateNewsletterSenderCategory(senderEmail, categoryId);
       
-      // Perform the update
-      await updateSenderCategory(senderEmail, categoryId, user.id);
-      
-      // Update the UI state
-      setSenders(prevSenders => {
-        // Make a deep copy to ensure React detects the change
-        const updatedSenders = prevSenders.map(sender => 
-          sender.sender_email === senderEmail
-            ? { ...sender, category_id: categoryId }
-            : { ...sender }
-        );
-        
-        console.log(`Updated local state for ${senderEmail}, new category_id: ${categoryId}`);
-        return updatedSenders;
-      });
+      // Update local sender's category
+      setSenders(prevSenders => 
+        prevSenders.map(sender => 
+          sender.sender_email === senderEmail 
+            ? { ...sender, category_id: categoryId } 
+            : sender
+        )
+      );
       
       toast.success("Category updated successfully");
     } catch (error) {
       console.error("Error updating category:", error);
       toast.error("Failed to update category");
-      throw error;
     } finally {
-      setUpdatingCategory(false);
+      setUpdatingCategory(null);
     }
-  }, [user, setSenders]);
-  
-  const handleBrandChange = useCallback(async (senderEmail: string, brandName: string) => {
-    if (!user) return;
-    
+  };
+
+  const handleBrandChange = async (senderEmail: string, brandName: string) => {
     try {
-      setUpdatingBrand(true);
-      await updateSenderBrand(senderEmail, brandName, user.id);
+      setUpdatingBrand(senderEmail);
       
-      // Update the local brand updates record
+      await updateNewsletterSenderBrand(senderEmail, brandName);
+      
+      // Update local sender's brand
+      setSenders(prevSenders => 
+        prevSenders.map(sender => 
+          sender.sender_email === senderEmail 
+            ? { ...sender, brand_name: brandName } 
+            : sender
+        )
+      );
+      
+      // Add to brand updates map to refresh analytics
       setBrandUpdates(prev => ({
         ...prev,
         [senderEmail]: brandName
       }));
       
-      // Update the local state to reflect the change - make sure this is reliable
-      setSenders(prevSenders => 
-        prevSenders.map(sender => 
-          sender.sender_email === senderEmail
-            ? { ...sender, brand_name: brandName }
-            : sender
-        )
-      );
-      
-      // Show success toast
-      toast.success(`Brand updated to "${brandName}"`);
-      
-      // Log successful update
-      console.log(`Successfully updated brand to "${brandName}" for ${senderEmail}`);
-      
+      toast.success("Brand updated successfully");
     } catch (error) {
       console.error("Error updating brand:", error);
-      toast.error("Failed to update brand name");
-      throw error;
+      toast.error("Failed to update brand");
     } finally {
-      setUpdatingBrand(false);
+      setUpdatingBrand(null);
     }
-  }, [user, setSenders, setBrandUpdates]);
+  };
 
-  const handleDeleteSenders = useCallback(async (senderEmails: string[]) => {
-    if (!user || senderEmails.length === 0) return;
+  const handleDeleteSenders = async (senderEmails: string[]) => {
+    if (!senderEmails.length) return;
     
     try {
       setDeleting(true);
       
-      // Delete all newsletters from these senders
-      const { error } = await supabase
-        .from('newsletters')
-        .delete()
-        .in('sender_email', senderEmails);
+      await deleteNewsletterSenders(senderEmails);
       
-      if (error) throw error;
-      
-      // Update the local state
-      setSenders((prevSenders: NewsletterSenderStats[]) => 
+      // Remove deleted senders from local state
+      setSenders(prevSenders => 
         prevSenders.filter(sender => !senderEmails.includes(sender.sender_email))
       );
       
@@ -111,11 +88,10 @@ export function useSenderOperations(
     } catch (error) {
       console.error("Error deleting senders:", error);
       toast.error("Failed to delete senders");
-      throw error;
     } finally {
       setDeleting(false);
     }
-  }, [user, setSenders]);
+  };
 
   return {
     refreshing,

@@ -57,18 +57,18 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
   
   // Track the previous operation states
   const prevOperationState = useRef({
-    updatingCategory: false,
-    updatingBrand: false,
+    updatingCategory: null as string | null,
+    updatingBrand: null as string | null,
     deleting: false,
     refreshing: false
   });
 
   // This effect detects when operations complete
   useEffect(() => {
-    const currentlyOperating = updatingCategory || updatingBrand || deleting || refreshing;
+    const currentlyOperating = updatingCategory !== null || updatingBrand !== null || deleting || refreshing;
     const wasOperating = 
-      prevOperationState.current.updatingCategory || 
-      prevOperationState.current.updatingBrand || 
+      prevOperationState.current.updatingCategory !== null || 
+      prevOperationState.current.updatingBrand !== null || 
       prevOperationState.current.deleting ||
       prevOperationState.current.refreshing;
     

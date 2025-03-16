@@ -32,12 +32,22 @@ export function useSenderSorting() {
           const nameA = a.sender_name?.toLowerCase() || a.sender_email?.toLowerCase() || "";
           const nameB = b.sender_name?.toLowerCase() || b.sender_email?.toLowerCase() || "";
           comparison = nameA.localeCompare(nameB);
-        } else if (sortKey === "count") {
+        } else if (sortKey === "newsletters") {
+          // Changed from 'count' to 'newsletters' to match SenderSortField
           comparison = (a.newsletter_count || 0) - (b.newsletter_count || 0);
-        } else if (sortKey === "date") {
+        } else if (sortKey === "lastSync") {
+          // Changed from 'date' to 'lastSync' to match SenderSortField
           const dateA = a.last_sync_date ? new Date(a.last_sync_date).getTime() : 0;
           const dateB = b.last_sync_date ? new Date(b.last_sync_date).getTime() : 0;
           comparison = dateA - dateB;
+        } else if (sortKey === "brand") {
+          const brandA = a.brand_name?.toLowerCase() || "";
+          const brandB = b.brand_name?.toLowerCase() || "";
+          comparison = brandA.localeCompare(brandB);
+        } else if (sortKey === "category") {
+          const catA = a.category_id || 0;
+          const catB = b.category_id || 0;
+          comparison = catA - catB;
         }
         
         return sortAsc ? comparison : -comparison;
