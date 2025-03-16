@@ -1,61 +1,81 @@
 
-import { useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import SenderList from "@/components/newsletter-senders/SenderList";
-import SenderAnalytics from "@/components/newsletter-senders/components/SenderAnalytics";
-import SenderPageHeader from "./components/SenderPageHeader";
-import SenderPageControls from "./components/SenderPageControls";
-import { useNewsletterSenders } from "./hooks/useNewsletterSenders";
+import { useState } from 'react';
+import { useNewsletterSenders } from './hooks/useNewsletterSenders';
+import SenderList from '@/components/newsletter-senders/SenderList';
+import SearchBar from '@/components/SearchBar';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
-export default function NewsletterSendersPage() {
+const NewsletterSendersPage = () => {
   const {
-    senders,
+    filteredSenders,
     categories,
     loading,
+    searchTerm,
+    setSearchTerm,
+    sortKey,
+    sortAsc,
+    refreshing,
+    updatingCategory,
+    updatingBrand,
+    deleting,
     loadingAnalytics,
     handleRefresh,
-    refreshing,
     handleCategoryChange,
     handleBrandChange,
     handleDeleteSenders,
-    deleting,
-    frequencyData,
-    filteredSenders
+    toggleSort
   } = useNewsletterSenders();
 
-  useEffect(() => {
-    document.title = "Newsletter Senders | NewsletterHub";
-  }, []);
+  const handleSearch = (query: string) => {
+    setSearchTerm(query);
+  };
 
   return (
-    <Card className="border shadow-md max-w-full">
-      <CardHeader className="pb-3">
-        <SenderPageHeader onRefresh={handleRefresh} refreshing={refreshing || loading} />
-      </CardHeader>
-      
-      <CardContent>
-        <SenderPageControls 
-          senders={filteredSenders} 
-        />
+    <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Nyhetsbrev-avsendere</h1>
+          <p className="text-gray-600">
+            Administrer alle nyhetsbrev-avsendere og deres kategorier
+          </p>
+        </div>
         
-        <Separator className="my-4" />
-        
-        <SenderList 
-          senders={filteredSenders}
-          categories={categories}
-          loading={loading}
-          onCategoryChange={handleCategoryChange}
-          onBrandChange={handleBrandChange}
-          onDeleteSenders={handleDeleteSenders}
+        <Button
+          onClick={handleRefresh}
+          variant="outline"
+          disabled={refreshing}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Oppdaterer...' : 'Oppdater'}
+        </Button>
+      </div>
+
+      <div className="mb-8">
+        <SearchBar
+          onSearch={handleSearch}
+          placeholder="Søk etter avsender..."
         />
-        
-        <SenderAnalytics 
-          senders={senders}
-          loading={loadingAnalytics}
-          frequencyData={frequencyData}
-        />
-      </CardContent>
-    </Card>
+      </div>
+
+      <SenderList
+        senders={filteredSenders}
+        categories={categories}
+        loading={loading}
+        sortKey={sortKey}
+        sortAsc={sortAsc}
+        toggleSort={toggleSort}
+        onCategoryChange={handleCategoryChange}
+        onBrandChange={handleBrandChange}
+        onDelete={handleDeleteSenders}
+        updatingCategory={updatingCategory}
+        updatingBrand={updatingBrand}
+        deleting={deleting}
+        loadingAnalytics={loadingAnalytics}
+      />
+    </div>
   );
-}
+};
+
+export default NewsletterSendersPage;

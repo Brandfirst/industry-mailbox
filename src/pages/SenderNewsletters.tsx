@@ -6,11 +6,18 @@ import SearchHeader from '@/components/search/SearchHeader';
 import NewsletterResults from '@/components/search/NewsletterResults';
 import SearchLayout from '@/components/search/SearchLayout';
 import FilterButtons from '@/components/search/FilterButtons';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import SearchBar from '@/components/SearchBar';
+import { Bell, BellOff } from 'lucide-react';
+import { toast } from 'sonner';
 
 const SenderNewsletters = () => {
   const { senderSlug } = useParams<{ senderSlug: string }>();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [senderSearchQuery, setSenderSearchQuery] = useState('');
   const navigate = useNavigate();
   
   // Add light mode class
@@ -106,46 +113,114 @@ const SenderNewsletters = () => {
   const senderName = senderBrands.find(brand => 
     selectedBrands.includes(brand.sender_email)
   )?.sender_name || senderSlug;
-  
+
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
+    if (!isFollowing) {
+      toast.success(`Du følger nå ${senderName}`);
+    } else {
+      toast.info(`Du følger ikke lenger ${senderName}`);
+    }
+  };
+
+  const handleSenderSearch = (query: string) => {
+    setSenderSearchQuery(query);
+    setSearchQuery(query);
+    handleSearch();
+  };
+
+  // Get random cover image
+  const coverImageId = Math.floor(Math.random() * 6) + 1;
+  const coverImage = `/unsplash/photo-${coverImageId}.jpg`;
+
   return (
-    <div className="container py-8 md:py-12 px-4 md:px-6 bg-white">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-gray-900">Nyhetsbrev fra {senderName}</h1>
-        <p className="text-gray-600">Se alle nyhetsbrev fra denne avsenderen</p>
+    <div className="flex flex-col bg-white min-h-screen">
+      {/* Cover image section */}
+      <div 
+        className="h-60 w-full relative bg-cover bg-center" 
+        style={{ 
+          backgroundImage: `url(https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&h=400&q=80)`,
+          backgroundPosition: '50% 50%'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
+      </div>
+
+      {/* Profile header */}
+      <div className="container px-4 md:px-6 relative">
+        <div className="flex flex-col md:flex-row items-start md:items-end gap-4 -mt-16 mb-8">
+          <Avatar className="w-32 h-32 border-4 border-white rounded-full shadow-lg bg-white">
+            <AvatarFallback className="text-4xl font-bold bg-orange-500 text-white">
+              {senderName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex flex-col md:flex-row flex-1 gap-4 md:items-end">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold mb-1 text-gray-900">{senderName}</h1>
+              <p className="text-gray-600">
+                {newsletters.length} nyhetsbrev
+              </p>
+            </div>
+            
+            <Button 
+              onClick={handleFollow} 
+              variant={isFollowing ? "outline" : "default"}
+              className={isFollowing ? "bg-white text-gray-700" : "bg-orange-500 hover:bg-orange-600 text-white"}
+            >
+              {isFollowing ? (
+                <><BellOff className="mr-2 h-4 w-4" /> Følger</>
+              ) : (
+                <><Bell className="mr-2 h-4 w-4" /> Følg</>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Search within sender */}
+        <div className="mb-8">
+          <SearchBar 
+            onSearch={handleSenderSearch}
+            placeholder={`Søk i nyhetsbrev fra ${senderName}...`}
+          />
+        </div>
       </div>
       
-      <SearchLayout
-        categories={categories}
-        selectedCategory={selectedCategory}
-        handleCategoryChange={handleCategoryChange}
-        senderBrands={senderBrands}
-        selectedBrands={selectedBrands}
-        handleBrandChange={handleBrandChange}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-        onApplyFilters={applyFilters}
-        isMobileFiltersOpen={isMobileFiltersOpen}
-        toggleMobileFilters={toggleMobileFilters}
-        isDesktopFiltersOpen={isDesktopFiltersOpen}
-        toggleDesktopFilters={toggleDesktopFilters}
-      >
-        <FilterButtons
+      {/* Newsletter content */}
+      <div className="container py-2 px-4 md:px-6 flex-1">
+        <SearchLayout
+          categories={categories}
+          selectedCategory={selectedCategory}
+          handleCategoryChange={handleCategoryChange}
+          senderBrands={senderBrands}
+          selectedBrands={selectedBrands}
+          handleBrandChange={handleBrandChange}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          onApplyFilters={applyFilters}
+          isMobileFiltersOpen={isMobileFiltersOpen}
           toggleMobileFilters={toggleMobileFilters}
-          toggleDesktopFilters={toggleDesktopFilters}
           isDesktopFiltersOpen={isDesktopFiltersOpen}
-        />
-        
-        <NewsletterResults
-          newsletters={newsletters}
-          loading={loading}
-          hasMore={hasMore}
-          handleLoadMore={handleLoadMore}
-          handleNewsletterClick={handleNewsletterClick}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          setSelectedCategory={setSelectedCategory}
-        />
-      </SearchLayout>
+          toggleDesktopFilters={toggleDesktopFilters}
+        >
+          <FilterButtons
+            toggleMobileFilters={toggleMobileFilters}
+            toggleDesktopFilters={toggleDesktopFilters}
+            isDesktopFiltersOpen={isDesktopFiltersOpen}
+          />
+          
+          <NewsletterResults
+            newsletters={newsletters}
+            loading={loading}
+            hasMore={hasMore}
+            handleLoadMore={handleLoadMore}
+            handleNewsletterClick={handleNewsletterClick}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            setSelectedCategory={setSelectedCategory}
+          />
+        </SearchLayout>
+      </div>
     </div>
   );
 };

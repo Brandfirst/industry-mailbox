@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { Newsletter } from "@/lib/supabase/types";
 import { useNavigate } from "react-router-dom";
 import { navigateToSender } from "@/lib/utils/newsletterNavigation";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface NewsletterMetaProps {
   newsletter: Newsletter;
@@ -23,19 +24,20 @@ const NewsletterMeta = ({ newsletter }: NewsletterMetaProps) => {
     navigateToSender(senderName, navigate, e);
   };
   
+  const senderInitial = (newsletter.sender || newsletter.brand_name || '?').charAt(0).toUpperCase();
+  
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <div 
-          className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 cursor-pointer"
+        <Avatar 
+          className="h-10 w-10 rounded-full cursor-pointer"
           onClick={handleSenderClick}
         >
-          {newsletter.sender && (
-            <span className="text-lg font-semibold text-gray-700">
-              {newsletter.sender.charAt(0).toUpperCase()}
-            </span>
-          )}
-        </div>
+          <AvatarFallback className="bg-orange-500 text-white text-lg font-semibold">
+            {senderInitial}
+          </AvatarFallback>
+        </Avatar>
+        
         <div>
           <h2 className="text-2xl font-bold">{newsletter.title}</h2>
           <div className="flex items-center text-sm text-gray-500">

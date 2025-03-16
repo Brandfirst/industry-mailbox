@@ -4,6 +4,7 @@ import { Newsletter } from '@/lib/supabase/types';
 import NewsletterPreview from './NewsletterPreview';
 import { useNavigate } from 'react-router-dom';
 import { navigateToSender } from '@/lib/utils/newsletterNavigation';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface NewsletterItemDesktopProps {
   newsletter: Newsletter;
@@ -26,16 +27,15 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayN
   return (
     <div className="hidden md:flex md:flex-col h-[500px]" onClick={onClick}>
       <div className="flex items-center p-3 border-b">
-        <div 
-          className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2 flex-shrink-0 cursor-pointer"
+        <Avatar 
+          className="h-8 w-8 rounded-full mr-2 flex-shrink-0 cursor-pointer"
           onClick={handleSenderClick}
         >
-          {displayName && (
-            <span className="text-sm font-semibold text-gray-700">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
-          )}
-        </div>
+          <AvatarFallback className="text-sm font-semibold bg-orange-500 text-white">
+            {displayName && displayName.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        
         <div className="flex flex-col overflow-hidden">
           <span 
             className="font-medium text-sm truncate text-black cursor-pointer hover:underline"
