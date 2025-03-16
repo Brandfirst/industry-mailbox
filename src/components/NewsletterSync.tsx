@@ -7,6 +7,8 @@ import { useNewsletterSync } from "./newsletter-sync/useNewsletterSync";
 import { Alert, AlertDescription } from "./ui/alert";
 import { InfoIcon } from "lucide-react";
 import { ScheduledSyncSettings } from "./newsletter-sync/ScheduledSyncSettings";
+import { toast } from "sonner";
+import { getNewslettersFromEmailAccount } from "@/lib/supabase";
 
 export default function NewsletterSync() {
   const { user } = useAuth();
@@ -15,6 +17,7 @@ export default function NewsletterSync() {
     selectedAccount,
     setSelectedAccount,
     newsletters,
+    setNewsletters,
     categories,
     isSyncing,
     isLoading,
@@ -31,8 +34,45 @@ export default function NewsletterSync() {
     handleDeleteNewsletters,
     handleFiltersChange,
     handleSelectNewsletter,
-    handleSelectAll
+    handleSelectAll,
+    setTotalCount
   } = useNewsletterSync(user?.id);
+
+  // New function to update emails content without fetching new ones
+  const handleUpdateEmails = async () => {
+    if (!selectedAccount) {
+      toast.error("Please select an account first");
+      return;
+    }
+
+    toast.info("Updating email content...");
+    
+    try {
+      // Refresh the data from the database
+      const { data, total } = await getNewslettersFromEmailAccount(
+        selectedAccount,
+        page,
+        {
+          category: filters.categoryId !== "all" ? filters.categoryId : undefined,
+          fromDate: filters.fromDate ? filters.fromDate.toISOString() : undefined,
+          toDate: filters.toDate ? filters.toDate.toISOString() : undefined,
+          searchQuery: filters.searchQuery,
+          sender: filters.sender
+        }
+      );
+      
+      if (data) {
+        setNewsletters(data);
+        setTotalCount(total || 0);
+        toast.success("Emails updated successfully");
+      } else {
+        toast.warning("No emails found to update");
+      }
+    } catch (error) {
+      console.error("Error updating emails:", error);
+      toast.error("Failed to update emails");
+    }
+  };
 
   return (
     <Card className="shadow-md bg-white">
@@ -42,6 +82,7 @@ export default function NewsletterSync() {
           selectedAccount={selectedAccount}
           emailAccounts={emailAccounts}
           onSync={handleSync}
+          onUpdateEmails={handleUpdateEmails}
         />
         <CardDescription>
           Import emails from your connected email accounts
