@@ -4,6 +4,7 @@ import { SyncLogItem } from "./SyncLogItem";
 import { LogsHeader } from "./components/LogsHeader";
 import { LogsContainer } from "./components/LogsContainer";
 import { LogsContent } from "./components/LogsContent";
+import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { LogsTableHeader } from "./components/LogsTableHeader";
 import { AccountNotice } from "./components/AccountNotice";
 import { Button } from "@/components/ui/button";
