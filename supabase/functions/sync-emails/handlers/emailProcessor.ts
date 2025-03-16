@@ -64,4 +64,3 @@ export async function processEmails(emails: any[], accountId: string, supabase: 
   
   return { synced, failed, uniqueSenders, error };
 }
-

@@ -2,7 +2,7 @@
 import { corsHeaders } from '../../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 import { fetchGmailEmails } from '../gmail.ts';
-import { processEmails } from '../handlers/emailProcessor.ts';
+import { processEmails } from './emailProcessor.ts';
 import { createSuccessResponse, createErrorResponse } from './responseHandler.ts';
 import { createOrUpdateSyncLog, createFailureLog } from './logManager.ts';
 import { determineSyncStatus, prepareSyncResponse } from './statusManager.ts';
