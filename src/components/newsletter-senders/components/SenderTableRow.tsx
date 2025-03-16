@@ -1,102 +1,110 @@
 
-import { formatDistanceToNow } from "date-fns";
-import { Calendar } from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Mail } from "lucide-react";
+import { format } from "date-fns";
+import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 import { NewsletterCategory } from "@/lib/supabase/types";
 import BrandInput from "./BrandInput";
 import CategorySelector from "./CategorySelector";
 
-type SenderTableRowProps = {
+interface SenderTableRowProps {
   sender: NewsletterSenderStats;
+  index: number;
   categories: NewsletterCategory[];
+  isSelected?: boolean;
   updatingCategory: string | null;
   updatingBrand: string | null;
   brandInputValue: string;
-  index: number;
-  isSelected?: boolean;
-  onCategoryChange?: (senderEmail: string, categoryId: string) => Promise<void>;
+  onCategoryChange: (senderEmail: string, categoryId: string) => Promise<void>;
   onBrandUpdate: (senderEmail: string, brandName: string) => Promise<void>;
   onToggleSelect?: (senderEmail: string) => void;
-  getCategoryNameById: (categoryId: number | null) => string;
-  getCategoryColorById: (categoryId: number | null) => string;
-};
+  getCategoryNameById: (categoryId: number | null, categories: NewsletterCategory[]) => string;
+  getCategoryColorById: (categoryId: number | null, categories: NewsletterCategory[]) => string;
+}
 
 const SenderTableRow = ({
   sender,
+  index,
   categories,
+  isSelected = false,
   updatingCategory,
   updatingBrand,
   brandInputValue,
-  index,
-  isSelected = false,
   onCategoryChange,
   onBrandUpdate,
   onToggleSelect,
   getCategoryNameById,
   getCategoryColorById
 }: SenderTableRowProps) => {
-  // Format the last sync date
-  const formatLastSync = (date: string | null) => {
-    if (!date) return "Never";
-    return formatDistanceToNow(new Date(date), { addSuffix: true });
-  };
-
+  const isUpdatingCategory = updatingCategory === sender.sender_email;
+  const isUpdatingBrand = updatingBrand === sender.sender_email;
+  
+  // Format the date for display
+  const formattedDate = sender.last_sync_date 
+    ? format(new Date(sender.last_sync_date), 'MMM d, yyyy')
+    : 'Never';
+  
+  // Get the category color for styling
+  const categoryColor = getCategoryColorById(sender.category_id, categories);
+  
   return (
-    <TableRow>
+    <TableRow className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
       {onToggleSelect && (
-        <TableCell>
+        <TableCell className="p-2 pl-4">
           <Checkbox 
             checked={isSelected}
             onCheckedChange={() => onToggleSelect(sender.sender_email)}
-            aria-label={`Select ${sender.sender_name}`}
+            aria-label={`Select ${sender.sender_name || sender.sender_email}`}
           />
         </TableCell>
       )}
-      <TableCell className="text-center font-medium text-muted-foreground">
-        {index + 1}
-      </TableCell>
-      <TableCell className="font-medium">
-        <div>
-          <div>{sender.sender_name}</div>
-          <div className="text-sm text-muted-foreground">{sender.sender_email}</div>
+      
+      <TableCell className="py-2 font-medium">
+        <div className="flex items-center space-x-2">
+          <div>
+            <div className="text-sm font-medium">
+              {sender.sender_name || sender.sender_email.split('@')[0]}
+            </div>
+            <div className="text-xs text-gray-500 flex items-center">
+              <Mail className="h-3 w-3 mr-1" />
+              {sender.sender_email}
+            </div>
+          </div>
         </div>
       </TableCell>
-      <TableCell>
+      
+      <TableCell className="py-2">
         <BrandInput
           senderEmail={sender.sender_email}
           initialValue={brandInputValue}
-          isUpdating={updatingBrand === sender.sender_email}
+          isUpdating={isUpdatingBrand}
           onUpdate={onBrandUpdate}
         />
       </TableCell>
-      <TableCell>
-        <Badge variant="outline">{sender.newsletter_count}</Badge>
+      
+      <TableCell className="py-2">
+        <CategorySelector
+          senderEmail={sender.sender_email}
+          categories={categories}
+          currentCategoryId={sender.category_id}
+          isUpdating={isUpdatingCategory}
+          onChange={onCategoryChange}
+        />
       </TableCell>
-      <TableCell>
-        <div className="flex items-center">
-          <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-          {formatLastSync(sender.last_sync_date)}
+      
+      <TableCell className="py-2">
+        <Badge variant="outline" className="text-xs font-normal">
+          {sender.newsletter_count || 0}
+        </Badge>
+      </TableCell>
+      
+      <TableCell className="py-2 text-gray-500">
+        <div className="flex items-center text-xs">
+          <Calendar className="h-3 w-3 mr-1" />
+          {formattedDate}
         </div>
-      </TableCell>
-      <TableCell>
-        {onCategoryChange ? (
-          <CategorySelector
-            senderEmail={sender.sender_email}
-            categoryId={sender.category_id}
-            categories={categories}
-            isUpdating={updatingCategory === sender.sender_email}
-            onCategoryChange={onCategoryChange}
-            getCategoryNameById={getCategoryNameById}
-            getCategoryColorById={getCategoryColorById}
-          />
-        ) : (
-          <div className="flex items-center">
-            <span>{getCategoryNameById(sender.category_id)}</span>
-          </div>
-        )}
       </TableCell>
     </TableRow>
   );

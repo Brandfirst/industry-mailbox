@@ -154,8 +154,8 @@ const SenderList = ({
                   onCategoryChange={handleCategoryChange}
                   onBrandUpdate={handleBrandUpdate}
                   onToggleSelect={onDeleteSenders ? handleToggleSelect : undefined}
-                  getCategoryNameById={(categoryId) => getCategoryNameById(categories, categoryId)}
-                  getCategoryColorById={(categoryId) => getCategoryColorById(categories, categoryId)}
+                  getCategoryNameById={(categoryId) => getCategoryNameById(categoryId, categories)}
+                  getCategoryColorById={(categoryId) => getCategoryColorById(categoryId, categories)}
                 />
               ))
             )}
