@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 export function useLogsFetching(
   selectedAccount: string | null,
   showLogs: boolean,
-  fetchSyncLogs: () => Promise<void>
+  fetchSyncLogs: () => Promise<void> | void
 ) {
   const initialFetchCompleted = useRef(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -28,7 +28,7 @@ export function useLogsFetching(
     
     setIsRefreshing(true);
     try {
-      await fetchSyncLogs();
+      await Promise.resolve(fetchSyncLogs());
     } catch (error) {
       console.error("Error refreshing logs:", error);
     } finally {
