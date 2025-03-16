@@ -11,17 +11,17 @@ jest.mock('react-router-dom', () => ({
 
 // Mock components from shadcn/ui
 jest.mock('@/components/ui/table', () => ({
-  Table: ({ children }) => <div data-testid="mock-table">{children}</div>,
-  TableHeader: ({ children }) => <div data-testid="mock-table-header">{children}</div>,
-  TableBody: ({ children }) => <div data-testid="mock-table-body">{children}</div>,
-  TableHead: ({ children }) => <div data-testid="mock-table-head">{children}</div>,
-  TableRow: ({ children }) => <div data-testid="mock-table-row">{children}</div>,
-  TableCell: ({ children }) => <div data-testid="mock-table-cell">{children}</div>,
-  TableFooter: ({ children }) => <div data-testid="mock-table-footer">{children}</div>,
+  Table: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-table">{children}</div>,
+  TableHeader: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-table-header">{children}</div>,
+  TableBody: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-table-body">{children}</div>,
+  TableHead: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-table-head">{children}</div>,
+  TableRow: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-table-row">{children}</div>,
+  TableCell: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-table-cell">{children}</div>,
+  TableFooter: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-table-footer">{children}</div>,
 }));
 
 jest.mock('@/components/ui/button', () => ({
-  Button: ({ children, onClick }) => (
+  Button: ({ children, onClick }: { children: React.ReactNode, onClick?: () => void }) => (
     <button data-testid="mock-button" onClick={onClick}>
       {children}
     </button>
@@ -29,22 +29,22 @@ jest.mock('@/components/ui/button', () => ({
 }));
 
 jest.mock('@/components/ui/checkbox', () => ({
-  Checkbox: (props) => (
+  Checkbox: (props: { checked?: boolean, onCheckedChange?: (checked: boolean) => void }) => (
     <input
       type="checkbox"
       data-testid="mock-checkbox"
       checked={props.checked}
-      onCheckedChange={props.onCheckedChange}
+      onChange={(e) => props.onCheckedChange && props.onCheckedChange(e.target.checked)}
     />
   ),
 }));
 
 jest.mock('@/components/ui/select', () => ({
-  Select: ({ children }) => <div data-testid="mock-select">{children}</div>,
-  SelectTrigger: ({ children }) => <div data-testid="mock-select-trigger">{children}</div>,
-  SelectValue: ({ children }) => <div data-testid="mock-select-value">{children}</div>,
-  SelectContent: ({ children }) => <div data-testid="mock-select-content">{children}</div>,
-  SelectItem: ({ children, value }) => (
+  Select: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-select">{children}</div>,
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-select-trigger">{children}</div>,
+  SelectValue: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-select-value">{children}</div>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-select-content">{children}</div>,
+  SelectItem: ({ children, value }: { children: React.ReactNode, value: string | number }) => (
     <div data-testid="mock-select-item" data-value={value}>
       {children}
     </div>
@@ -52,7 +52,7 @@ jest.mock('@/components/ui/select', () => ({
 }));
 
 jest.mock('@/components/ui/input', () => ({
-  Input: (props) => (
+  Input: (props: { value?: string, onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void, placeholder?: string }) => (
     <input
       data-testid="mock-input"
       value={props.value}
@@ -63,7 +63,7 @@ jest.mock('@/components/ui/input', () => ({
 }));
 
 jest.mock('@/components/ui/badge', () => ({
-  Badge: ({ children, variant }) => (
+  Badge: ({ children, variant }: { children: React.ReactNode, variant?: string }) => (
     <span data-testid="mock-badge" data-variant={variant}>
       {children}
     </span>
@@ -95,13 +95,13 @@ jest.mock('date-fns', () => ({
 }));
 
 jest.mock('@/components/ui/alert', () => ({
-  Alert: ({ children }) => <div data-testid="mock-alert">{children}</div>,
-  AlertTitle: ({ children }) => <div data-testid="mock-alert-title">{children}</div>,
-  AlertDescription: ({ children }) => <div data-testid="mock-alert-description">{children}</div>,
+  Alert: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-alert">{children}</div>,
+  AlertTitle: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-alert-title">{children}</div>,
+  AlertDescription: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-alert-description">{children}</div>,
 }));
 
 jest.mock('@/components/ui/popover', () => ({
-  Popover: ({ children }) => <div data-testid="mock-popover">{children}</div>,
-  PopoverTrigger: ({ children }) => <div data-testid="mock-popover-trigger">{children}</div>,
-  PopoverContent: ({ children }) => <div data-testid="mock-popover-content">{children}</div>,
+  Popover: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-popover">{children}</div>,
+  PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-popover-trigger">{children}</div>,
+  PopoverContent: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-popover-content">{children}</div>,
 }));
