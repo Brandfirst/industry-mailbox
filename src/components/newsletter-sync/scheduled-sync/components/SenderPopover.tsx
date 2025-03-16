@@ -1,6 +1,5 @@
 
 import React from "react";
-import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { Button } from "@/components/ui/button";
 import { UsersIcon } from "lucide-react";
 import { 
@@ -15,6 +14,7 @@ interface SenderPopoverProps {
   syncedEmails: any[];
   isSendersOpen: boolean;
   setIsSendersOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onViewAllClick?: () => void;
 }
 
 export function SenderPopover({ 
@@ -22,7 +22,8 @@ export function SenderPopover({
   uniqueSendersCount, 
   syncedEmails, 
   isSendersOpen, 
-  setIsSendersOpen 
+  setIsSendersOpen,
+  onViewAllClick
 }: SenderPopoverProps) {
   return (
     <Popover open={isSendersOpen} onOpenChange={setIsSendersOpen}>
@@ -59,16 +60,21 @@ export function SenderPopover({
               <div className="mt-3 pt-3 border-t border-gray-100">
                 <div className="font-medium mb-1">Synced Emails:</div>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {syncedEmails.slice(0, 5).map((email: any, idx: number) => (
+                  {syncedEmails.slice(0, 3).map((email: any, idx: number) => (
                     <div key={idx} className="pb-1 mb-1 border-b border-gray-100 last:border-0">
                       <div className="truncate"><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
                       <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
                     </div>
                   ))}
-                  {syncedEmails.length > 5 && (
-                    <div className="text-xs text-muted-foreground">
-                      + {syncedEmails.length - 5} more email{syncedEmails.length - 5 !== 1 ? 's' : ''}
-                    </div>
+                  {syncedEmails.length > 3 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full text-xs mt-2 py-1 h-7 text-blue-600 hover:text-blue-800 hover:bg-blue-50" 
+                      onClick={onViewAllClick}
+                    >
+                      View all {syncedEmails.length} emails
+                    </Button>
                   )}
                 </div>
               </div>

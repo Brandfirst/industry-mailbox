@@ -21,4 +21,5 @@ export * from "./SendersColumn";
 export * from "./SenderPopover";
 export * from "./SyncDetailsPopover";
 export * from "./SyncedEmailsDialog";
+export * from "./SendersDialog";
 export * from "./detail-sections";
