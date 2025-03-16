@@ -72,17 +72,21 @@ export function logFailedSync(accountId: string, error: any, syncType: 'manual' 
  * Log scheduled sync creation
  */
 export function logScheduledSync(accountId: string, scheduleType: string, hour?: number): void {
-  console.log(`Scheduled sync created for account ${accountId}: ${scheduleType}${hour !== undefined ? ` at ${hour}:00` : ''}`);
+  console.log(`Logging scheduled sync for account ${accountId}: ${scheduleType}${hour !== undefined ? ` at ${hour}:00` : ''}`);
   
-  // Log the scheduled sync
-  addSyncLog({
-    account_id: accountId,
-    status: 'scheduled',
-    message_count: 0,
-    details: { schedule_type: scheduleType, hour },
-    timestamp: new Date().toISOString(),
-    sync_type: 'scheduled'
-  });
+  try {
+    // Log the scheduled sync creation with status "processing" instead of "scheduled"
+    addSyncLog({
+      account_id: accountId,
+      status: 'processing',
+      message_count: 0,
+      details: { schedule_type: scheduleType, hour },
+      timestamp: new Date().toISOString(),
+      sync_type: 'scheduled'
+    });
+  } catch (error) {
+    console.error("Error logging scheduled sync:", error);
+  }
 }
 
 /**

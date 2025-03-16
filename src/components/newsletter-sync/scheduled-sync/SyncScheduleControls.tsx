@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { updateSyncSchedule } from "@/lib/supabase/emailAccounts/syncLogs";
 import { ScheduleSelector } from "./components/ScheduleSelector";
 import { ScheduleStatus } from "./components/ScheduleStatus";
-import { logScheduledSync } from "@/lib/supabase/emailAccounts/sync/logHandling";
+import { supabase } from "@/integrations/supabase/client";
 
 export type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
 
@@ -63,6 +63,37 @@ export function SyncScheduleControls({
     });
   }, [selectedAccount, isEnabled, scheduleOption, specificHour, settingsLoaded]);
 
+  // Manual trigger for minute sync when in development/testing
+  const triggerManualMinuteSync = async () => {
+    if (!selectedAccount || !isEnabled || scheduleOption !== "minute") {
+      return;
+    }
+    
+    try {
+      // Call the scheduled-sync function directly for immediate testing
+      const { data, error } = await supabase.functions.invoke("scheduled-sync", {
+        body: { forceRun: true }
+      });
+      
+      if (error) {
+        console.error("Error manually triggering sync:", error);
+        toast.error("Failed to trigger manual sync");
+        return;
+      }
+      
+      console.log("Manual sync trigger response:", data);
+      toast.success("Manual sync triggered successfully");
+      
+      // Refresh logs after a delay to see the results
+      setTimeout(() => {
+        refreshLogs();
+      }, 5000);
+    } catch (error) {
+      console.error("Exception in manual sync trigger:", error);
+      toast.error("Error triggering manual sync");
+    }
+  };
+
   const saveSchedule = async () => {
     if (!selectedAccount) {
       toast.error("No account selected");
@@ -112,6 +143,17 @@ export function SyncScheduleControls({
             await import("@/lib/supabase/emailAccounts/sync/logHandling").then(({ logScheduledSync }) => {
               logScheduledSync(selectedAccount, scheduleOption, hourNumber);
             });
+            
+            // For minute sync, offer to trigger it manually right away for testing
+            if (scheduleOption === "minute") {
+              toast("Minute sync scheduled. Want to test it now?", {
+                action: {
+                  label: "Test Now",
+                  onClick: triggerManualMinuteSync
+                },
+                duration: 10000
+              });
+            }
           } catch (error) {
             console.error("Error logging scheduled sync:", error);
             // Non-critical error, don't show to user
@@ -155,6 +197,22 @@ export function SyncScheduleControls({
       {hasSaved && (
         <div className="text-sm text-green-600 mt-2">
           Schedule saved successfully.
+        </div>
+      )}
+      
+      {isEnabled && scheduleOption === "minute" && (
+        <div className="mt-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={triggerManualMinuteSync}
+            className="w-full bg-purple-50 text-purple-700 border-purple-300 hover:bg-purple-100"
+          >
+            Test Minute Sync Now
+          </Button>
+          <div className="text-xs text-muted-foreground mt-1">
+            This will manually trigger the scheduled sync now for testing
+          </div>
         </div>
       )}
     </div>

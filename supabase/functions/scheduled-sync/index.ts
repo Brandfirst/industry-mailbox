@@ -22,12 +22,27 @@ Deno.serve(async (req) => {
   try {
     console.log('Starting scheduled sync check...');
     
+    // Check if this is a manual trigger
+    let isManualTrigger = false;
+    let isForceRun = false;
+    
+    try {
+      const requestData = await req.json();
+      isManualTrigger = !!requestData.manual;
+      isForceRun = !!requestData.forceRun;
+      console.log(`Request data: manual=${isManualTrigger}, forceRun=${isForceRun}`);
+    } catch (e) {
+      // No request body or invalid JSON, continue as normal scheduled run
+      console.log('No request body or invalid JSON, proceeding as normal scheduled run');
+    }
+    
     // Get the current time
     const now = new Date();
     const currentHour = now.getUTCHours();
     const currentMinute = now.getUTCMinutes();
     
     console.log(`Current time: ${now.toISOString()} (${currentHour}:${currentMinute} UTC)`);
+    console.log(`Run type: ${isManualTrigger ? 'manual trigger' : 'scheduled'}`);
     
     // Get all email accounts with enabled sync settings
     const { data: accounts, error: accountsError } = await supabase
@@ -57,13 +72,20 @@ Deno.serve(async (req) => {
         continue;
       }
       
+      // If this is a force run, we sync regardless of schedule
+      if (isForceRun) {
+        console.log(`Force run requested, adding account ${account.id} (${account.email})`);
+        accountsToSync.push(account.id);
+        continue;
+      }
+      
       // Check if we should sync based on schedule type
       let shouldSync = false;
       
       switch (settings.scheduleType) {
         case 'minute':
-          // Sync every minute
-          shouldSync = true;
+          // For minute schedule, check if this is a manual trigger or if it's the right time
+          shouldSync = isManualTrigger || true; // Always run minute syncs for now
           break;
         case 'hourly':
           // Sync at the top of each hour
@@ -78,7 +100,7 @@ Deno.serve(async (req) => {
       
       // Queue this account for syncing if it's time
       if (shouldSync) {
-        console.log(`Scheduling sync for account ${account.id} (${account.email})`);
+        console.log(`Scheduling sync for account ${account.id} (${account.email}), scheduleType: ${settings.scheduleType}`);
         accountsToSync.push(account.id);
         
         // Log the scheduled sync attempt with explicit sync_type
