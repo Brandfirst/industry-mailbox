@@ -1,91 +1,101 @@
 
-import React from "react";
-import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
-import { formatDistanceToNow } from "date-fns";
-import { 
-  LogItemNum, 
-  LogItemTime, 
-  LogItemStatus, 
-  LogItemType, 
-  LogItemEmails, 
-  LogItemSenders, 
-  LogItemDetails 
-} from './LogItemColumns';
+import React, { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs/types";
+import { LogItemColumns } from "./LogItemColumns";
+import { SenderInfo } from "./SenderInfo";
+import { EmailDetails } from "./EmailDetails";
 
 type SyncLogItemProps = {
   log: SyncLogEntry;
   formatTimestamp: (timestamp: string) => string;
-  itemNumber: number;
 };
 
-export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemProps) {
-  // Format relative time
-  const relativeTime = formatDistanceToNow(new Date(log.timestamp), { addSuffix: true });
+export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
+  const [expanded, setExpanded] = useState(false);
   
-  // Extract additional metrics from details if available
-  const totalEmails = log.message_count || 0;
-  const syncType = log.sync_type || 'manual';
+  const getStatusClass = () => {
+    switch (log.status) {
+      case "success": return "bg-green-100 text-green-800 border-green-200";
+      case "failed": return "bg-red-100 text-red-800 border-red-200";
+      case "processing": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "partial": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "scheduled": return "bg-purple-100 text-purple-800 border-purple-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
   
-  // Schedule details if it's a scheduled log
-  const scheduleDetails = log.status === 'scheduled' && log.details;
+  const renderLogStatus = () => {
+    return (
+      <Badge 
+        variant="outline" 
+        className={`px-2 py-1 font-medium capitalize ${getStatusClass()}`}
+      >
+        {log.status}
+      </Badge>
+    );
+  };
   
-  // Get synced emails and unique senders
-  const syncedEmails = log.details?.synced || [];
+  // Extract details from the log
+  const details = log.details || {};
   
-  // Process sender information
-  const { uniqueSendersCount, sendersList } = processLogSenders(log, syncedEmails);
+  // Extract synced emails from details
+  const syncedEmails = Array.isArray(details.synced) ? details.synced : [];
   
-  // Ensure the account email is available for display
-  if (log.details && !log.details.accountEmail && log.account?.email) {
-    log.details.accountEmail = log.account.email;
-  }
+  // Determine if we should show expanded view
+  const hasEmailsToShow = syncedEmails.length > 0;
+  const hasDetails = log.error_message || hasEmailsToShow;
   
   return (
-    <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
-      <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full">
-        <LogItemNum itemNumber={itemNumber} />
-        <LogItemTime timestamp={log.timestamp} formatTimestamp={formatTimestamp} relativeTime={relativeTime} />
-        <LogItemStatus status={log.status} log={log} />
-        <LogItemType syncType={syncType} />
-        <LogItemEmails log={log} totalEmails={totalEmails} scheduleDetails={scheduleDetails} />
-        <LogItemSenders uniqueSendersCount={uniqueSendersCount} sendersList={sendersList} syncedEmails={syncedEmails} />
-        <LogItemDetails log={log} />
+    <div className="border rounded-md mb-3 overflow-hidden">
+      <div className="p-3 bg-white">
+        <LogItemColumns 
+          status={renderLogStatus()}
+          timestamp={formatTimestamp(log.timestamp)}
+          syncType={log.sync_type || "manual"}
+          messageCount={log.message_count}
+        />
+        
+        {/* Sender info section */}
+        <SenderInfo 
+          accountEmail={log.account?.email || details.accountEmail}
+          syncedCount={details.synced_count}
+          failedCount={details.failed_count}
+          newSendersCount={details.new_senders_count}
+          scheduleType={details.schedule_type}
+          hour={details.hour}
+        />
+        
+        {/* Error message */}
+        {log.error_message && (
+          <div className="mt-2 p-2 bg-red-50 text-red-700 rounded-md text-sm">
+            {log.error_message}
+          </div>
+        )}
+        
+        {/* Expand/collapse button */}
+        {hasEmailsToShow && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full mt-2 text-xs h-6"
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? (
+              <>Hide Details <ChevronUpIcon className="ml-1 h-3 w-3" /></>
+            ) : (
+              <>Show Details <ChevronDownIcon className="ml-1 h-3 w-3" /></>
+            )}
+          </Button>
+        )}
+        
+        {/* Synced emails details */}
+        {expanded && hasEmailsToShow && (
+          <EmailDetails syncedEmails={syncedEmails} />
+        )}
       </div>
     </div>
   );
-}
-
-// Process sender information from log
-function processLogSenders(log: SyncLogEntry, syncedEmails: any[]) {
-  const uniqueSenders = new Set<string>();
-  const sendersList: string[] = [];
-  
-  // Get full sender information
-  syncedEmails.forEach((email: any) => {
-    if (email.sender_email) {
-      uniqueSenders.add(email.sender_email);
-      if (!sendersList.includes(email.sender_email)) {
-        sendersList.push(email.sender_email);
-      }
-    }
-  });
-  
-  // If we don't have synced emails with sender info but have senders data in details
-  if (sendersList.length === 0 && log.details?.senders) {
-    // If senders is an array, add each one
-    if (Array.isArray(log.details.senders)) {
-      log.details.senders.forEach((sender: string) => {
-        if (!sendersList.includes(sender)) {
-          sendersList.push(sender);
-        }
-      });
-    }
-  }
-  
-  // Get unique senders count from details if available, otherwise use the calculated one
-  const uniqueSendersCount = log.details?.new_senders_count !== undefined 
-    ? log.details.new_senders_count 
-    : uniqueSenders.size;
-    
-  return { uniqueSendersCount, sendersList };
 }

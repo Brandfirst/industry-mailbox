@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { ScheduleSelector } from "./components/ScheduleSelector";
 import { ScheduleStatus } from "./components/ScheduleStatus";
 import { TestSyncButton } from "./components/TestSyncButton";
@@ -33,6 +32,7 @@ export function SyncScheduleControls({
   lastUpdated,
   settingsLoaded = false
 }: SyncScheduleControlsProps) {
+  // Use the sync schedule hook to handle business logic
   const {
     isSaving,
     hasSaved,

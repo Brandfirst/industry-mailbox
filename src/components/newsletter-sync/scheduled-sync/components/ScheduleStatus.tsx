@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ScheduleOption } from './ScheduleSelector';
+import { ScheduleOption } from '../SyncScheduleControls';
 import { Clock } from 'lucide-react';
 
 type ScheduleStatusProps = {

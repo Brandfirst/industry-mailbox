@@ -11,3 +11,5 @@ export * from "./DetailedSyncInfo";
 export * from "./ScheduleDetails";
 export * from "./StatusMessage";
 export * from "./LogsContainer";
+export * from "./SavedIndicator";
+export * from "./TestSyncButton";
