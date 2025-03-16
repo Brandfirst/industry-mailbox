@@ -4,4 +4,5 @@ export { default as BrandInput } from './BrandInput';
 export { default as CategorySelector } from './CategorySelector';
 export { default as SenderTableHeaders } from './SenderTableHeaders';
 export { default as SenderTableRow } from './SenderTableRow';
+export { default as EmptyTableRow } from './EmptyTableRow';
 export * from './utils';

@@ -1,8 +1,7 @@
 
-import { useState, useCallback } from "react";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { toast } from "sonner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { AlertDialog, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
@@ -11,9 +10,7 @@ import {
   SenderListHeader,
   SenderTableHeaders,
   SenderTableRow,
-  filterAndSortSenders,
-  getCategoryNameById,
-  getCategoryColorById
+  EmptyTableRow,
 } from './components';
 
 type SenderListProps = {
@@ -25,39 +22,29 @@ type SenderListProps = {
   onDeleteSenders?: (senderEmails: string[]) => Promise<void>;
 };
 
-type SortField = 'name' | 'count' | 'last_sync';
-type SortDirection = 'asc' | 'desc';
-
-const SenderList = ({ 
-  senders, 
-  categories, 
-  loading = false, 
+const SenderList = ({
+  senders,
+  categories,
+  loading = false,
   onCategoryChange,
   onBrandChange,
   onDeleteSenders
 }: SenderListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<SortField>('count');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [selectedSenders, setSelectedSenders] = useState<string[]>([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
   const [brandInputValues, setBrandInputValues] = useState<Record<string, string>>({});
-  const [selectedSenders, setSelectedSenders] = useState<string[]>([]);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Handle sorting
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-  };
-
-  // Filter and sort senders
-  const filteredSenders = filterAndSortSenders(senders, searchTerm, sortField, sortDirection);
+  // Filter senders based on search term
+  const filteredSenders = senders.filter(sender => {
+    const senderName = sender.sender_name?.toLowerCase() || "";
+    const senderEmail = sender.sender_email?.toLowerCase() || "";
+    const term = searchTerm.toLowerCase();
+    return senderName.includes(term) || senderEmail.includes(term);
+  });
 
   // Handle category change
   const handleCategoryChange = async (senderEmail: string, categoryId: string) => {
@@ -68,10 +55,8 @@ const SenderList = ({
       // Convert empty string to null, otherwise parse as number
       const parsedCategoryId = categoryId === "null" ? null : parseInt(categoryId);
       await onCategoryChange(senderEmail, parsedCategoryId);
-      toast.success(`Category updated for all newsletters from ${senderEmail}`);
     } catch (error) {
       console.error("Error updating category:", error);
-      toast.error("Failed to update category");
     } finally {
       setUpdatingCategory(null);
     }
@@ -89,24 +74,14 @@ const SenderList = ({
         ...prev,
         [senderEmail]: brandName
       }));
-      
-      // Update the local senders array to reflect the change immediately
-      const updatedSenders = senders.map(sender => 
-        sender.sender_email === senderEmail 
-          ? { ...sender, brand_name: brandName } 
-          : sender
-      );
-      
-      toast.success(`Brand updated for ${senderEmail}`);
     } catch (error) {
       console.error("Error updating brand:", error);
-      toast.error("Failed to update brand");
     } finally {
       setUpdatingBrand(null);
     }
   };
 
-  // Initialize brand input value if not set
+  // Get brand input value
   const getBrandInputValue = (sender: NewsletterSenderStats) => {
     if (brandInputValues[sender.sender_email] !== undefined) {
       return brandInputValues[sender.sender_email];
@@ -114,32 +89,22 @@ const SenderList = ({
     return sender.brand_name || "";
   };
 
-  // Get category name by ID wrapper
-  const getCategoryNameByIdWrapper = (categoryId: number | null) => {
-    return getCategoryNameById(categoryId, categories);
-  };
-
-  // Get category color by ID wrapper
-  const getCategoryColorByIdWrapper = (categoryId: number | null) => {
-    return getCategoryColorById(categoryId, categories);
-  };
-
   // Selection handlers
-  const handleToggleSelect = useCallback((senderEmail: string) => {
+  const handleToggleSelect = (senderEmail: string) => {
     setSelectedSenders(prev => 
       prev.includes(senderEmail)
         ? prev.filter(email => email !== senderEmail)
         : [...prev, senderEmail]
     );
-  }, []);
+  };
 
-  const handleSelectAll = useCallback(() => {
+  const handleSelectAll = () => {
     if (selectedSenders.length === filteredSenders.length) {
       setSelectedSenders([]);
     } else {
       setSelectedSenders(filteredSenders.map(sender => sender.sender_email));
     }
-  }, [filteredSenders, selectedSenders.length]);
+  };
 
   // Delete handlers
   const handleDeleteSenders = async () => {
@@ -148,15 +113,26 @@ const SenderList = ({
     setIsDeleting(true);
     try {
       await onDeleteSenders(selectedSenders);
-      toast.success(`Successfully deleted ${selectedSenders.length} sender(s)`);
       setSelectedSenders([]);
     } catch (error) {
       console.error("Error deleting senders:", error);
-      toast.error("Failed to delete senders");
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
     }
+  };
+
+  // Get category utility functions
+  const getCategoryNameById = (categoryId: number | null) => {
+    if (!categoryId) return "Uncategorized";
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : "Uncategorized";
+  };
+
+  const getCategoryColorById = (categoryId: number | null) => {
+    if (!categoryId) return "#666666";
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.color : "#666666";
   };
 
   if (loading) {
@@ -192,19 +168,15 @@ const SenderList = ({
       <div className="rounded-md border">
         <Table>
           <SenderTableHeaders 
-            sortField={sortField}
-            sortDirection={sortDirection}
-            onSort={handleSort}
+            sortField="name"
+            sortDirection="asc"
+            onSort={() => {}}
             allSelected={selectedSenders.length === filteredSenders.length && filteredSenders.length > 0}
             onSelectAll={onDeleteSenders ? handleSelectAll : undefined}
           />
           <TableBody>
             {filteredSenders.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={onDeleteSenders ? 7 : 6} className="h-24 text-center">
-                  No senders found.
-                </TableCell>
-              </TableRow>
+              <EmptyTableRow colSpan={onDeleteSenders ? 7 : 6} />
             ) : (
               filteredSenders.map((sender, index) => (
                 <SenderTableRow
@@ -219,8 +191,8 @@ const SenderList = ({
                   onCategoryChange={handleCategoryChange}
                   onBrandUpdate={handleBrandUpdate}
                   onToggleSelect={onDeleteSenders ? handleToggleSelect : undefined}
-                  getCategoryNameById={getCategoryNameByIdWrapper}
-                  getCategoryColorById={getCategoryColorByIdWrapper}
+                  getCategoryNameById={getCategoryNameById}
+                  getCategoryColorById={getCategoryColorById}
                 />
               ))
             )}
