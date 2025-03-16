@@ -12,9 +12,8 @@ export function DetailedSyncInfo({ log }: DetailedSyncInfoProps) {
   const [showAllEmails, setShowAllEmails] = useState(false);
   const [showAllSenders, setShowAllSenders] = useState(false);
   
-  // Extract account email from log
-  const accountEmail = log.details?.accountEmail || 
-                      (log.account_email ? log.account_email : 'Not available');
+  // Extract account email from log - correctly using details.accountEmail
+  const accountEmail = log.details?.accountEmail || 'Not available';
                       
   const syncedCount = log.details?.syncedCount || 0;
   const failedCount = log.details?.failedCount || 0;
