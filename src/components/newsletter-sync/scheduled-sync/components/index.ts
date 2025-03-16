@@ -10,3 +10,4 @@ export * from "./StatusBadge";
 export * from "./DetailedSyncInfo";
 export * from "./ScheduleDetails";
 export * from "./StatusMessage";
+export * from "./LogsContainer";
