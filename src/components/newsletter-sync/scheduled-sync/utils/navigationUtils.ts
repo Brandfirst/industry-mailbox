@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getSenderPath, getNewsletterPath } from "@/lib/utils/newsletterNavigation";
 import { Newsletter } from "@/lib/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Helper function to navigate to a newsletter detail page
@@ -16,7 +17,7 @@ export const createNewsletterNavigationHandler = (
   navigate: ReturnType<typeof useNavigate>,
   onComplete?: () => void
 ) => {
-  return (e: React.MouseEvent) => {
+  return async (e: React.MouseEvent) => {
     // Prevent event bubbling
     e.preventDefault();
     e.stopPropagation();
@@ -54,8 +55,40 @@ export const createNewsletterNavigationHandler = (
         onComplete();
       }
     } else if (email.sender_email) {
-      // If we have a sender email but no ID, navigate to the sender's page instead
-      console.log(`Navigating to sender: ${email.sender_email}`);
+      // Try to find the most recent newsletter from this sender first
+      console.log(`Attempting to find a newsletter from sender: ${email.sender_email}`);
+      
+      try {
+        const { data: newsletters, error } = await supabase
+          .from('newsletters')
+          .select('*')
+          .eq('sender_email', email.sender_email)
+          .order('published_at', { ascending: false })
+          .limit(1);
+          
+        if (newsletters && newsletters.length > 0) {
+          const latestNewsletter = newsletters[0];
+          console.log(`Found newsletter with ID: ${latestNewsletter.id} from sender: ${email.sender_email}`);
+          
+          // Create path to the specific newsletter
+          const path = getNewsletterPath(latestNewsletter);
+          console.log(`Navigating to found newsletter: ${path}`);
+          navigate(path);
+          
+          // Call the completion callback if provided
+          if (onComplete) {
+            onComplete();
+          }
+          return;
+        } else {
+          console.log(`No newsletters found for sender: ${email.sender_email}`);
+        }
+      } catch (error) {
+        console.error("Error finding newsletters for sender:", error);
+      }
+      
+      // If we get here, we couldn't find a specific newsletter, so fall back to sender page
+      console.log(`Navigating to sender page for: ${email.sender_email}`);
       const senderPath = getSenderPath(email.sender_email);
       
       toast.info(`Showing all newsletters from ${email.sender_email}`, {

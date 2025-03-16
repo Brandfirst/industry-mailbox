@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon, ChevronUpIcon, Mail, AlertCircle } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon, Mail, AlertCircle, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createNewsletterNavigationHandler } from "../../utils/navigationUtils";
 
@@ -11,6 +11,7 @@ interface SyncedEmailsSectionProps {
 
 export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) {
   const [showAllEmails, setShowAllEmails] = useState(false);
+  const [loading, setLoading] = useState<{[key: string]: boolean}>({});
   const navigate = useNavigate();
   
   // Skip rendering if no emails
@@ -23,6 +24,20 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   
   console.log("Displaying emails in SyncedEmailsSection:", displayedEmails);
   
+  // Create a navigation handler that shows loading state
+  const createLoadingNavigationHandler = (email: any, index: number) => {
+    const originalHandler = createNewsletterNavigationHandler(
+      email, 
+      navigate,
+      () => setLoading(prev => ({...prev, [index]: false}))
+    );
+    
+    return async (e: React.MouseEvent) => {
+      setLoading(prev => ({...prev, [index]: true}));
+      await originalHandler(e);
+    };
+  };
+  
   return (
     <div className="mt-2 pt-2 border-t border-gray-100">
       <div className="flex items-center mb-1">
@@ -31,13 +46,14 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
         {displayedEmails.map((email: any, index: number) => {
           const hasValidId = email.id || email.newsletter_id;
+          const isLoading = loading[index] || false;
           
           return (
             <div 
               key={index} 
               className={`mb-2 pb-2 border-b border-gray-100 last:border-b-0 rounded p-2
                 ${hasValidId ? 'bg-gray-50 cursor-pointer hover:bg-gray-100' : 'bg-amber-50'}`}
-              onClick={createNewsletterNavigationHandler(email, navigate)}
+              onClick={createLoadingNavigationHandler(email, index)}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -52,9 +68,17 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
                       Newsletter ID: {email.id || email.newsletter_id}
                     </div>
                   ) : (
-                    <div className="text-xs text-amber-600 mt-1 flex items-center">
+                    <div className="text-xs text-blue-500 mt-1 flex items-center">
                       <AlertCircle className="h-3 w-3 mr-1" />
-                      Only sender information available - click to view all from this sender
+                      Finding latest newsletter from this sender
+                    </div>
+                  )}
+                  
+                  {/* Loading indicator */}
+                  {isLoading && (
+                    <div className="mt-1 flex items-center text-blue-600">
+                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      <span className="text-xs">Loading newsletter...</span>
                     </div>
                   )}
                 </div>
