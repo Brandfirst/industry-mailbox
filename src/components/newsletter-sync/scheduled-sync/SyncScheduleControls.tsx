@@ -6,7 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { updateSyncSchedule } from "@/lib/supabase/emailAccounts/syncLogs";
+import { Badge } from "@/components/ui/badge";
+import { updateSyncSchedule, getSyncSchedule, getNextSyncTime } from "@/lib/supabase/emailAccounts/syncLogs";
+import { formatDistanceToNow, format } from "date-fns";
 
 type ScheduleOption = "hourly" | "daily" | "disabled";
 
@@ -31,6 +33,52 @@ export function SyncScheduleControls({
   setSpecificHour,
   refreshLogs
 }: SyncScheduleControlsProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [nextSyncTime, setNextSyncTime] = useState<Date | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  // Load current sync schedule for the selected account
+  useEffect(() => {
+    if (!selectedAccount) return;
+    
+    const loadSyncSchedule = async () => {
+      const schedule = await getSyncSchedule(selectedAccount);
+      
+      if (schedule) {
+        setIsEnabled(schedule.enabled);
+        setScheduleOption(schedule.scheduleType as ScheduleOption);
+        
+        if (schedule.hour !== undefined && schedule.hour !== null) {
+          setSpecificHour(schedule.hour.toString().padStart(2, '0'));
+        }
+        
+        if (schedule.lastUpdated) {
+          setLastUpdated(schedule.lastUpdated);
+        }
+        
+        // Calculate next sync time
+        if (schedule.enabled) {
+          const next = getNextSyncTime(schedule.scheduleType, schedule.hour);
+          setNextSyncTime(next);
+        } else {
+          setNextSyncTime(null);
+        }
+      }
+    };
+    
+    loadSyncSchedule();
+  }, [selectedAccount, setIsEnabled, setScheduleOption, setSpecificHour]);
+  
+  // Update next sync time when schedule changes
+  useEffect(() => {
+    if (isEnabled) {
+      const hour = parseInt(specificHour);
+      const next = getNextSyncTime(scheduleOption, isNaN(hour) ? undefined : hour);
+      setNextSyncTime(next);
+    } else {
+      setNextSyncTime(null);
+    }
+  }, [isEnabled, scheduleOption, specificHour]);
   
   const handleScheduleChange = (value: string) => {
     setScheduleOption(value as ScheduleOption);
@@ -46,6 +94,8 @@ export function SyncScheduleControls({
       return;
     }
 
+    setIsSaving(true);
+    
     try {
       // Save schedule settings to the database using the updateSyncSchedule function
       const success = await updateSyncSchedule(
@@ -57,69 +107,113 @@ export function SyncScheduleControls({
 
       if (!success) throw new Error("Failed to update sync schedule");
       
-      toast.success(`Automatic sync ${isEnabled ? "enabled" : "disabled"} for ${scheduleOption === "hourly" ? "every hour" : `daily at ${specificHour}:00`}`);
+      // Update last updated timestamp
+      setLastUpdated(new Date().toISOString());
+      
+      // Show success message
+      if (isEnabled) {
+        const scheduleDesc = scheduleOption === "hourly" ? "every hour" : `daily at ${specificHour}:00`;
+        toast.success(`Automatic sync enabled for ${scheduleDesc}`);
+      } else {
+        toast.success("Automatic sync disabled");
+      }
       
       // Refresh logs after saving
       refreshLogs();
     } catch (error) {
       console.error("Error saving schedule:", error);
       toast.error("Failed to save schedule settings");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-2">
-        <Switch 
-          id="auto-sync" 
-          checked={isEnabled} 
-          onCheckedChange={setIsEnabled}
-          disabled={!selectedAccount}
-        />
-        <Label htmlFor="auto-sync">Enable automatic sync</Label>
-      </div>
-      
-      <div className="flex items-center space-x-2">
-        <Select 
-          value={scheduleOption} 
-          onValueChange={handleScheduleChange}
-          disabled={!isEnabled || !selectedAccount}
-        >
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="Select frequency" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="hourly">Every hour</SelectItem>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="disabled">Disabled</SelectItem>
-          </SelectContent>
-        </Select>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="auto-sync" 
+            checked={isEnabled} 
+            onCheckedChange={setIsEnabled}
+            disabled={!selectedAccount}
+          />
+          <Label htmlFor="auto-sync">Enable automatic sync</Label>
+        </div>
         
-        {scheduleOption === "daily" && (
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="specific-hour">at</Label>
-            <Input
-              id="specific-hour"
-              type="number"
-              min="0"
-              max="23"
-              className="w-16"
-              value={specificHour}
-              onChange={(e) => setSpecificHour(e.target.value)}
-              disabled={!isEnabled || !selectedAccount}
-            />
-            <Label htmlFor="specific-hour">:00</Label>
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          <Select 
+            value={scheduleOption} 
+            onValueChange={handleScheduleChange}
+            disabled={!isEnabled || !selectedAccount}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Select frequency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hourly">Every hour</SelectItem>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="disabled">Disabled</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {scheduleOption === "daily" && (
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="specific-hour">at</Label>
+              <Input
+                id="specific-hour"
+                type="number"
+                min="0"
+                max="23"
+                className="w-16"
+                value={specificHour}
+                onChange={(e) => setSpecificHour(e.target.value)}
+                disabled={!isEnabled || !selectedAccount}
+              />
+              <Label htmlFor="specific-hour">:00</Label>
+            </div>
+          )}
+        </div>
+        
+        <Button 
+          variant="outline" 
+          onClick={handleSaveSchedule}
+          disabled={!selectedAccount || isSaving}
+        >
+          {isSaving ? "Saving..." : "Save Schedule"}
+        </Button>
       </div>
       
-      <Button 
-        variant="outline" 
-        onClick={handleSaveSchedule}
-        disabled={!isEnabled || !selectedAccount}
-      >
-        Save Schedule
-      </Button>
+      {/* Status information section */}
+      {selectedAccount && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
+          <div>
+            {isEnabled ? (
+              <div className="flex items-center space-x-2">
+                <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100">
+                  Scheduled
+                </Badge>
+                {nextSyncTime && (
+                  <span>
+                    Next sync: {formatDistanceToNow(nextSyncTime, { addSuffix: true })} 
+                    <span className="text-xs ml-1 opacity-70">
+                      ({format(nextSyncTime, "MMM d, h:mm a")})
+                    </span>
+                  </span>
+                )}
+              </div>
+            ) : (
+              <Badge variant="outline" className="bg-gray-100">Not scheduled</Badge>
+            )}
+          </div>
+          
+          {lastUpdated && (
+            <div className="text-xs opacity-70">
+              Last updated: {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

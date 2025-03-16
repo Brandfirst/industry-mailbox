@@ -14,7 +14,8 @@ export function logPartialSync(accountId: string, response: any, syncDetails: an
     message_count: response.data.count || 0,
     error_message: "Some emails failed to sync",
     details: syncDetails,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    sync_type: 'manual'
   });
 }
 
@@ -42,9 +43,44 @@ export function logSuccessfulSync(accountId: string, response: any, syncDetails:
     status: 'success',
     message_count: response.data.count || 0,
     details: syncDetails,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    sync_type: 'manual'
   });
 
   // Log completion
   console.log("Sync completed successfully:", response.data);
+}
+
+/**
+ * Log failed sync
+ */
+export function logFailedSync(accountId: string, error: any): void {
+  console.error("Sync failed:", error);
+  
+  // Log the failed sync
+  addSyncLog({
+    account_id: accountId,
+    status: 'failed',
+    message_count: 0,
+    error_message: error.message || String(error),
+    timestamp: new Date().toISOString(),
+    sync_type: 'manual'
+  });
+}
+
+/**
+ * Log scheduled sync creation
+ */
+export function logScheduledSync(accountId: string, scheduleType: string, hour?: number): void {
+  console.log(`Scheduled sync created for account ${accountId}: ${scheduleType}${hour !== undefined ? ` at ${hour}:00` : ''}`);
+  
+  // Log the scheduled sync
+  addSyncLog({
+    account_id: accountId,
+    status: 'scheduled',
+    message_count: 0,
+    details: { schedule_type: scheduleType, hour },
+    timestamp: new Date().toISOString(),
+    sync_type: 'scheduled'
+  });
 }
