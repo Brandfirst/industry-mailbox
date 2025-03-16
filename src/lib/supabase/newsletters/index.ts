@@ -6,6 +6,11 @@ export * from './frequency-analytics';
 export * from './manage';
 export * from './search';
 export * from './save';
+export * from './categoryOperations';
+export * from './deleteOperations';
+export * from './savedNewsletters';
+export * from './syncOperations';
+export * from './fetchWithFilters';
 
 // Import and re-export with explicit names
 import { getAllNewsletters } from './fetchAll';
