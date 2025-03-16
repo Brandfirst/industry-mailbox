@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -7,7 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { updateSyncSchedule, getSyncSchedule, getNextSyncTime } from "@/lib/supabase/emailAccounts/syncLogs";
+import { 
+  updateSyncSchedule, 
+  getSyncSchedule, 
+  getNextSyncTime 
+} from "@/lib/supabase/emailAccounts/syncLogs";
 import { formatDistanceToNow, format } from "date-fns";
 
 type ScheduleOption = "hourly" | "daily" | "disabled";
@@ -37,7 +40,6 @@ export function SyncScheduleControls({
   const [nextSyncTime, setNextSyncTime] = useState<Date | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-  // Load current sync schedule for the selected account
   useEffect(() => {
     if (!selectedAccount) return;
     
@@ -56,7 +58,6 @@ export function SyncScheduleControls({
           setLastUpdated(schedule.lastUpdated);
         }
         
-        // Calculate next sync time
         if (schedule.enabled) {
           const next = getNextSyncTime(schedule.scheduleType, schedule.hour);
           setNextSyncTime(next);
@@ -69,7 +70,6 @@ export function SyncScheduleControls({
     loadSyncSchedule();
   }, [selectedAccount, setIsEnabled, setScheduleOption, setSpecificHour]);
   
-  // Update next sync time when schedule changes
   useEffect(() => {
     if (isEnabled) {
       const hour = parseInt(specificHour);
@@ -97,7 +97,6 @@ export function SyncScheduleControls({
     setIsSaving(true);
     
     try {
-      // Save schedule settings to the database using the updateSyncSchedule function
       const success = await updateSyncSchedule(
         selectedAccount,
         isEnabled,
@@ -107,10 +106,8 @@ export function SyncScheduleControls({
 
       if (!success) throw new Error("Failed to update sync schedule");
       
-      // Update last updated timestamp
       setLastUpdated(new Date().toISOString());
       
-      // Show success message
       if (isEnabled) {
         const scheduleDesc = scheduleOption === "hourly" ? "every hour" : `daily at ${specificHour}:00`;
         toast.success(`Automatic sync enabled for ${scheduleDesc}`);
@@ -118,7 +115,6 @@ export function SyncScheduleControls({
         toast.success("Automatic sync disabled");
       }
       
-      // Refresh logs after saving
       refreshLogs();
     } catch (error) {
       console.error("Error saving schedule:", error);
@@ -184,7 +180,6 @@ export function SyncScheduleControls({
         </Button>
       </div>
       
-      {/* Status information section */}
       {selectedAccount && (
         <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
           <div>

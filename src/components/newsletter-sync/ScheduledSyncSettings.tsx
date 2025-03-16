@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -29,19 +28,16 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
 
-  // Fetch account settings when selected account changes
   useEffect(() => {
     if (selectedAccount) {
       loadAccountSettings();
     } else {
-      // Reset if no account selected
       setIsEnabled(false);
       setScheduleOption("disabled");
       setSpecificHour("09");
     }
   }, [selectedAccount]);
 
-  // Fetch sync logs when selected account changes or when showLogs is toggled
   useEffect(() => {
     if (selectedAccount && showLogs) {
       fetchSyncLogs();

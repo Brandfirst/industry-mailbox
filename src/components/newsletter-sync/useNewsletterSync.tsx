@@ -1,109 +1,133 @@
-
-import { useCallback } from "react";
-import { useNewsletterData } from "./hooks/useNewsletterData";
-import { useNewsletterFetching } from "./hooks/useNewsletterFetching";
+import { useState, useEffect, useCallback } from "react";
+import { useEmailAccounts } from "@/lib/supabase";
+import { getNewslettersFromEmailAccount, getCategories } from "@/lib/supabase";
 import { useNewsletterOperations } from "./hooks/useNewsletterOperations";
-import { usePagination } from "./hooks/usePagination";
-import { useFilters } from "./hooks/useFilters";
-import { useDisplayRange } from "./hooks/useDisplayRange";
-import { useNewsletterDeletion } from "./hooks/useNewsletterDeletion";
-import { FiltersState } from "./FilterToolbar";
 
 export function useNewsletterSync(userId: string | undefined) {
-  // Get accounts and categories data
-  const {
-    emailAccounts,
-    selectedAccount,
-    setSelectedAccount,
-    categories,
-    errorMessage: dataErrorMessage,
-    setErrorMessage: setDataErrorMessage
-  } = useNewsletterData(userId);
-
-  // Set up pagination
-  const { page, setPage } = usePagination(selectedAccount);
-
-  // Set up filters
-  const { filters, handleFiltersChange: handleFiltersChangeBase } = useFilters();
-
-  // Get newsletters based on current filters
-  const {
-    newsletters,
-    setNewsletters,
-    isLoading,
-    errorMessage: fetchErrorMessage,
-    setErrorMessage: setFetchErrorMessage,
-    warningMessage,
-    setWarningMessage,
-    totalCount,
-    setTotalCount,
-    itemsPerPage
-  } = useNewsletterFetching(selectedAccount, page, filters);
-
-  // Get operations for newsletters
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [newsletters, setNewsletters] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [filters, setFilters] = useState({});
+  
+  const { emailAccounts, status } = useEmailAccounts(userId);
+  
   const {
     isSyncing,
     handleSync,
-    handleCategoryChange,
-    handleDeleteNewsletters: deleteNewslettersBase
+    handleDeleteNewsletters
   } = useNewsletterOperations(
     selectedAccount,
     page,
     setNewsletters,
     setTotalCount,
-    setFetchErrorMessage,
+    setErrorMessage,
     setWarningMessage
   );
 
-  // Calculate display range and total pages
-  const { displayRange, totalPages } = useDisplayRange(
-    page,
-    itemsPerPage,
-    totalCount,
-    isLoading
-  );
-
-  // Set up newsletter deletion
-  const { handleDeleteNewsletters } = useNewsletterDeletion({
-    newsletters,
-    page,
-    setPage,
-    setNewsletters,
-    setTotalCount,
-    deleteNewslettersBase
-  });
-
-  // Handle filter changes and reset page
-  const handleFiltersChange = useCallback((newFilters: FiltersState) => {
-    const shouldResetPage = handleFiltersChangeBase(newFilters);
-    if (shouldResetPage) {
-      setPage(1);
+  // Fetch newsletters from the selected account
+  useEffect(() => {
+    if (!selectedAccount) {
+      setNewsletters([]);
+      setTotalCount(0);
+      return;
     }
-  }, [handleFiltersChangeBase, setPage]);
 
-  // Combine error messages from different sources
-  const errorMessage = dataErrorMessage || fetchErrorMessage;
+    const fetchNewsletters = async () => {
+      setIsLoading(true);
+      setErrorMessage(null);
+      
+      try {
+        const { data, error, total } = await getNewslettersFromEmailAccount(selectedAccount, page, filters);
+        
+        if (error) {
+          console.error("Error fetching newsletters:", error);
+          setErrorMessage("Failed to load newsletters");
+        } else {
+          setNewsletters(data || []);
+          setTotalCount(total || 0);
+        }
+      } catch (error) {
+        console.error("Exception while fetching newsletters:", error);
+        setErrorMessage("An unexpected error occurred while loading newsletters");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  return {
-    emailAccounts,
+    fetchNewsletters();
+  }, [selectedAccount, page, filters]);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await getCategories();
+        if (error) {
+          console.error("Error fetching categories:", error);
+        } else {
+          setCategories(data || []);
+        }
+      } catch (error) {
+        console.error("Exception while fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Handle filters change
+  const handleFiltersChange = useCallback((newFilters: any) => {
+    setPage(1); // Reset to the first page when filters change
+    setFilters(newFilters);
+  }, [setFilters, setPage]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalCount / 10);
+
+  // Calculate display range
+  const startIndex = (page - 1) * 10 + 1;
+  const endIndex = Math.min(startIndex + 9, totalCount);
+  const displayRange = `Displaying ${startIndex}-${endIndex} of ${totalCount}`;
+
+  const deletionData = {
     selectedAccount,
-    setSelectedAccount,
-    newsletters,
-    categories,
-    isSyncing,
-    isLoading,
+    status,
     errorMessage,
     warningMessage,
+    isSyncing,
+    isLoading,
+    emailAccounts,
+    categories,
     page,
     setPage,
-    totalCount,
-    filters,
     totalPages,
     displayRange,
-    itemsPerPage,
+    filters,
     handleSync,
-    handleCategoryChange,
-    handleDeleteNewsletters,
+    handleFiltersChange
+  };
+
+  return {
+    ...deletionData,
+    selectedAccount,
+    status,
+    errorMessage,
+    warningMessage,
+    isSyncing,
+    isLoading,
+    emailAccounts,
+    categories,
+    page,
+    setPage,
+    totalPages,
+    displayRange,
+    filters,
+    handleSync,
     handleFiltersChange
   };
 }
