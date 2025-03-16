@@ -34,7 +34,7 @@ export const updateSenderBrand = async (
   userId: string
 ) => {
   try {
-    // First, update all newsletters with this sender_email
+    // First, update all newsletters with this sender_email using the RPC function
     const { error: newslettersError } = await supabase.rpc('update_sender_brand', {
       p_sender_email: senderEmail,
       p_brand_name: brandName
@@ -45,19 +45,8 @@ export const updateSenderBrand = async (
       throw newslettersError;
     }
     
-    // Now, let's also update the sender stats view if it exists
-    // This ensures the brand name is persisted in the analytics views too
-    const { error: statsError } = await supabase
-      .from('newsletter_sender_stats')
-      .update({ brand_name: brandName })
-      .eq('sender_email', senderEmail)
-      .eq('user_id', userId);
-    
-    // We don't throw on this error as it's just an additional update
-    // The newsletter table is our source of truth
-    if (statsError) {
-      console.warn('Warning: Could not update sender stats view:', statsError);
-    }
+    // We don't try to update the sender stats view directly anymore since
+    // it's a view and will reflect the changes in the newsletters table
     
     console.log(`Updated brand to "${brandName}" for newsletters from ${senderEmail}`);
     return true;
