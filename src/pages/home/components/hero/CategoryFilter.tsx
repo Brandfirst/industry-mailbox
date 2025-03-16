@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue 
 } from "@/components/ui/select";
-import { ChevronDown } from "lucide-react";
 import { NewsletterCategory } from "@/lib/supabase/types";
 import { getAllCategories } from "@/lib/supabase/categories";
 
@@ -20,7 +19,6 @@ interface CategoryFilterProps {
 
 const CategoryFilter = ({ selectedCategory, setSelectedCategory }: CategoryFilterProps) => {
   const isMobile = useIsMobile();
-  const [isOpen, setIsOpen] = useState(false);
   const [categories, setCategories] = useState<NewsletterCategory[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -39,7 +37,7 @@ const CategoryFilter = ({ selectedCategory, setSelectedCategory }: CategoryFilte
     
     fetchCategories();
   }, []);
-  
+
   if (isMobile) {
     return (
       <div className="flex justify-center mb-8 mt-8">

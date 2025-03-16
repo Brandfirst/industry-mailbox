@@ -23,7 +23,7 @@ const HeroSection = () => {
         
         const result = await getFeaturedNewsletters({
           categoryId: categoryIdParam,
-          limit: 3
+          limit: 6 // Increased from 3 to show more newsletters
         });
         
         setNewsletters(result.data);
