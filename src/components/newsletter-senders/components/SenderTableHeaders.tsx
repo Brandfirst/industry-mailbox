@@ -30,12 +30,12 @@ const SenderTableHeaders = ({
           className="w-[250px] cursor-pointer" 
           onClick={() => onSort('name')}
         >
-          <div className="flex items-center">
+          <div className="flex items-center font-medium text-foreground">
             Sender <SortIcon field="name" />
           </div>
         </TableHead>
         <TableHead className="w-[200px]">
-          <div className="flex items-center">
+          <div className="flex items-center font-medium text-foreground">
             Brand
           </div>
         </TableHead>
@@ -43,7 +43,7 @@ const SenderTableHeaders = ({
           className="cursor-pointer"
           onClick={() => onSort('count')}
         >
-          <div className="flex items-center">
+          <div className="flex items-center font-medium text-foreground">
             Newsletters <SortIcon field="count" />
           </div>
         </TableHead>
@@ -51,11 +51,15 @@ const SenderTableHeaders = ({
           className="cursor-pointer"
           onClick={() => onSort('last_sync')}
         >
-          <div className="flex items-center">
+          <div className="flex items-center font-medium text-foreground">
             Last Synchronized <SortIcon field="last_sync" />
           </div>
         </TableHead>
-        <TableHead>Category</TableHead>
+        <TableHead>
+          <div className="font-medium text-foreground">
+            Category
+          </div>
+        </TableHead>
       </TableRow>
     </TableHeader>
   );
