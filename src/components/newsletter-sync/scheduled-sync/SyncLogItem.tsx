@@ -89,8 +89,8 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   };
   
   return (
-    <div className="px-4 py-2 text-xs">
-      <div className="grid grid-cols-[25%_20%_20%_35%] gap-2 mb-1">
+    <div className="px-4 py-2 text-xs border-t border-muted">
+      <div className="grid grid-cols-[25%_20%_20%_35%] gap-2">
         <div className="flex flex-col">
           <span>{formatTimestamp(log.timestamp)}</span>
           <span className="text-xs text-muted-foreground">{relativeTime}</span>

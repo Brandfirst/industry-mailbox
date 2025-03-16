@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { SyncLogItem } from "./SyncLogItem";
@@ -7,6 +7,7 @@ import { LogsHeader, LogsContent, LogsTableHeader } from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type SyncLogsListProps = {
   showLogs: boolean;
@@ -30,6 +31,8 @@ export function SyncLogsList({
   setSyncLogs
 }: SyncLogsListProps) {
   const initialFetchCompleted = useRef(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const realtimeChannelRef = useRef<any>(null);
   
   // Force fetch logs when component mounts if logs should be shown
   useEffect(() => {
@@ -38,7 +41,7 @@ export function SyncLogsList({
       fetchSyncLogs();
       initialFetchCompleted.current = true;
     }
-  }, [selectedAccount, showLogs]);
+  }, [selectedAccount, showLogs, fetchSyncLogs]);
   
   // Reset the ref when selectedAccount changes
   useEffect(() => {
@@ -51,8 +54,13 @@ export function SyncLogsList({
     
     console.log("Setting up real-time subscription for sync logs");
     
+    // Clean up any existing subscription first
+    if (realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current);
+    }
+    
     // Subscribe to changes in the email_sync_logs table for this account
-    const channel = supabase
+    realtimeChannelRef.current = supabase
       .channel('sync-logs-changes')
       .on(
         'postgres_changes',
@@ -65,18 +73,64 @@ export function SyncLogsList({
         (payload) => {
           console.log("Real-time sync log update:", payload);
           
-          // Refresh the logs when we get a new event
-          fetchSyncLogs();
+          const eventType = payload.eventType;
+          
+          if (eventType === 'INSERT') {
+            // Add the new log at the top of the list
+            const newLog = payload.new as SyncLogEntry;
+            setSyncLogs(prevLogs => [newLog, ...prevLogs]);
+            
+            // Show a toast notification for the new log
+            toast.info(`New sync log: ${newLog.status}`, {
+              description: `${newLog.message_count} messages processed`
+            });
+          } else if (eventType === 'UPDATE') {
+            // Update the existing log in the list
+            const updatedLog = payload.new as SyncLogEntry;
+            setSyncLogs(prevLogs => 
+              prevLogs.map(log => 
+                log.id === updatedLog.id ? updatedLog : log
+              )
+            );
+          } else if (eventType === 'DELETE') {
+            // Remove the deleted log from the list
+            const deletedLog = payload.old as SyncLogEntry;
+            setSyncLogs(prevLogs => 
+              prevLogs.filter(log => log.id !== deletedLog.id)
+            );
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Realtime subscription status:", status);
+        if (status === 'SUBSCRIBED') {
+          console.log("Successfully subscribed to real-time updates for sync logs");
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error("Error subscribing to real-time updates for sync logs");
+        }
+      });
     
     // Clean up subscription on unmount
     return () => {
       console.log("Cleaning up real-time subscription");
-      supabase.removeChannel(channel);
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+      }
     };
-  }, [selectedAccount, showLogs]);
+  }, [selectedAccount, showLogs, setSyncLogs]);
+  
+  const handleRefresh = async () => {
+    if (isRefreshing || isLoading) return;
+    
+    setIsRefreshing(true);
+    try {
+      await fetchSyncLogs();
+    } catch (error) {
+      console.error("Error refreshing logs:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   
   if (!selectedAccount) return null;
   
@@ -91,17 +145,17 @@ export function SyncLogsList({
       />
       
       {showLogs && (
-        <div className="mt-2 border rounded-md">
+        <div className="mt-2 border rounded-md overflow-hidden">
           <div className="flex justify-between items-center p-2 bg-muted/40">
             <LogsTableHeader />
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={fetchSyncLogs}
-              disabled={isLoading}
+              onClick={handleRefresh}
+              disabled={isLoading || isRefreshing}
             >
-              <RefreshCcw className="h-4 w-4 mr-1" />
-              Refresh
+              <RefreshCcw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
             </Button>
           </div>
           
