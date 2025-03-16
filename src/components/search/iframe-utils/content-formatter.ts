@@ -94,6 +94,7 @@ const getIframeStyles = (isMobile: boolean = false): string => {
       text-align: center !important;
       transform: scale(0.95);
       transform-origin: center top;
+      background-color: white;
     }
     
     /* Make sure tables don't overflow */

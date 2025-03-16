@@ -32,6 +32,10 @@ export const useIframeContent = (newsletter: Newsletter) => {
           doc.write(formattedContent);
           doc.close();
           
+          // Set background color for document
+          doc.documentElement.style.backgroundColor = "white";
+          doc.body.style.backgroundColor = "white";
+          
           // Apply centering immediately
           forceCentering(doc);
           

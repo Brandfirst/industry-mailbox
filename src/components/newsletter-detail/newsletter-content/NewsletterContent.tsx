@@ -17,11 +17,11 @@ const NewsletterContent: React.FC<NewsletterContentProps> = ({ newsletter }) => 
       {newsletter.content ? (
         <>
           <ErrorAlert show={hasErrors} />
-          <div className="w-full flex justify-center items-start overflow-hidden">
+          <div className="w-full flex justify-center items-start overflow-hidden bg-white">
             <iframe
               ref={iframeRef}
               title={newsletter.title || "Newsletter Content"}
-              className="w-full border-0"
+              className="w-full border-0 bg-white"
               sandbox="allow-same-origin"
               style={{
                 display: "block",
@@ -30,6 +30,7 @@ const NewsletterContent: React.FC<NewsletterContentProps> = ({ newsletter }) => 
                 overflow: "hidden",
                 margin: "0 auto",
                 padding: "0",
+                backgroundColor: "white",
               }}
             />
           </div>
