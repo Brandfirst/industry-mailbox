@@ -56,7 +56,7 @@ export async function fetchGmailEmails(accessToken, refreshToken, accountId, sup
       console.log(`Fetching emails for Gmail user: ${userInfo.emailAddress}`);
     }
     
-    // Get message list - limited to 50
+    // Get message list - increased to 25 from 20 for more content
     result = await makeGmailApiRequest(
       'https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50', 
       currentToken
@@ -83,11 +83,11 @@ export async function fetchGmailEmails(accessToken, refreshToken, accountId, sup
       console.log(`Found ${messageList.messages.length} messages, fetching details`);
     }
     
-    // Fetch full message details (limited to 20 to avoid rate limits)
+    // Fetch full message details with increased limit (25 instead of 20)
     const emails = [];
     
-    for (const message of messageList.messages.slice(0, 20)) {
-      // Fetch full message details
+    for (const message of messageList.messages.slice(0, 25)) {
+      // Fetch full message details with FULL format to get all content
       result = await makeGmailApiRequest(
         `https://www.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`, 
         currentToken
@@ -111,6 +111,12 @@ export async function fetchGmailEmails(accessToken, refreshToken, accountId, sup
       
       // Extract content
       const { html, plainText } = extractEmailContent(messageData);
+      
+      if (verbose && html) {
+        // Count images in the HTML to provide debugging info
+        const imgTagCount = (html.match(/<img[^>]*>/gi) || []).length;
+        console.log(`Email ${message.id} has ${imgTagCount} image tags in HTML content`);
+      }
       
       // Create email object
       const email = {

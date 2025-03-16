@@ -44,11 +44,28 @@ export async function saveEmailToDatabase(email, accountId, supabase, verbose = 
       });
     }
     
-    // Pre-process content to remove tracking elements before saving
+    // Pre-process content to remove tracking elements but preserve legitimate images
     if (emailData.content) {
       emailData.content = removeTrackingElements(emailData.content);
+      
+      // Convert all image URLs to HTTPS for security
+      emailData.content = emailData.content.replace(
+        /(<img[^>]*src=["'])http:\/\/([^"']+["'][^>]*>)/gi, 
+        '$1https://$2'
+      );
+      
+      // Fix base64 encoded images if present (ensure they have proper formatting)
+      emailData.content = emailData.content.replace(
+        /(<img[^>]*src=["'])data:image\/([^;]+);base64,\s*/gi,
+        '$1data:image/$2;base64,'
+      );
+      
       if (verbose) {
-        console.log('Tracking elements removed from email content before storage');
+        console.log('Content processed: removed tracking elements, preserved legitimate images');
+        
+        // Count images after processing
+        const imgTagCount = (emailData.content.match(/<img[^>]*>/gi) || []).length;
+        console.log(`Number of image tags after processing: ${imgTagCount}`);
       }
     }
     

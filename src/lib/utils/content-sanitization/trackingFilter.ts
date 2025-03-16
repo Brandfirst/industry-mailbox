@@ -1,196 +1,57 @@
-
 /**
- * Utility for identifying and removing tracking elements from newsletter content
+ * Utility functions for filtering tracking elements and sanitizing content
  */
 
-// List of common tracking domains and patterns
-const TRACKING_DOMAINS = [
-  'analytics', 'track', 'click', 'open', 'mail', 'url', 'beacon', 'wf', 'ea', 'stat',
-  'vitavenn', 'boozt', 'everestengagement', 'email.booztlet', 
-  'wuGK4U8731', 'open.aspx', 'JGZ2HocBug'
-];
-
-// Additional specific domains from error logs
-const SPECIFIC_TRACKING_DOMAINS = [
-  'analytics.boozt.com',
-  'url2879.vitavenn.vita.no',
-  'vitavenn.vita.no'
-];
-
-// Common tracking URL patterns
-const TRACKING_PATTERNS = [
-  /\/open\.aspx/i,
-  /\/wf\/open/i,
-  /\/ea\/\w+/i,
-  /[?&](utm_|trk|tracking|cid|eid|sid)/i,
-  /\.gif(\?|$)/i,
-  /pixel\.(gif|png|jpg)/i,
-  /beacon\./i,
-  /click\./i,
-  /JGZ2HocBug/i,  // From error logs
-  /wuGK4U8731/i   // From error logs
-];
+/**
+ * Better tracking pixel removal that preserves legitimate images
+ * @param html HTML content to clean
+ * @returns Cleaned HTML with tracking pixels removed
+ */
+export function removeTrackingPixels(html: string): string {
+  if (!html) return '';
+  
+  let cleaned = html;
+  
+  // Remove common tracking pixels (1x1 or 0x0 images)
+  cleaned = cleaned.replace(/<img[^>]*(?:height=(["'])(?:0|1)\\1[^>]*width=(["'])(?:0|1)\\2|width=(["'])(?:0|1)\\3[^>]*height=(["'])(?:0|1)\\4)[^>]*>/gi, '<!-- tracking pixel removed -->');
+  
+  // Remove images with tracking domains but preserve legitimate images
+  cleaned = cleaned.replace(/<img[^>]*src=(["'])https?:\/\/([^"'\/]+)\.(?:mail|click|url|send|analytics|track|open|beacon|wf|ea|stat)[^"']*\1[^>]*>/gi, '<!-- tracking pixel removed -->');
+  
+  // Remove hidden images
+  cleaned = cleaned.replace(/<img[^>]*style=(["'])[^"']*(?:visibility:\s*hidden|display:\s*none)[^"']*\1[^>]*>/gi, '<!-- hidden image removed -->');
+  
+  // Force HTTPS for all images
+  cleaned = cleaned.replace(/(<img[^>]*src=["'])http:\/\/([^"']+["'][^>]*>)/gi, '$1https://$2');
+  
+  return cleaned;
+}
 
 /**
- * Checks if a URL is likely a tracking URL based on known patterns
+ * Determine if an error should be suppressed (related to tracking/security)
+ * @param error Error object or message
+ * @returns True if error should be suppressed
  */
-export const isTrackingUrl = (url: string): boolean => {
-  // Check against known specific tracking domains first (exact matches)
-  if (SPECIFIC_TRACKING_DOMAINS.some(domain => url.includes(domain))) {
-    return true;
-  }
+export function shouldSuppressError(error: any): boolean {
+  const errorStr = typeof error === 'string' ? error : 
+                  error?.message || 
+                  (error?.toString ? error.toString() : '');
   
-  // Check against known tracking domains
-  if (TRACKING_DOMAINS.some(domain => url.includes(domain))) {
-    return true;
-  }
-  
-  // Check against known tracking patterns
-  if (TRACKING_PATTERNS.some(pattern => pattern.test(url))) {
-    return true;
-  }
-  
-  // Additional checks for long query parameters which often indicate tracking
-  if (url.includes('?') && url.length > 100 && /[?&].{30,}/.test(url)) {
-    return true;
-  }
-  
-  return false;
-};
+  // Check if the error is related to tracking or network security
+  return errorStr.includes('certificate') || 
+         errorStr.includes('tracking') || 
+         errorStr.includes('analytics') ||
+         errorStr.includes('ERR_CERT') ||
+         errorStr.includes('net::') ||
+         errorStr.includes('blocked') ||
+         errorStr.includes('mixed content') ||
+         errorStr.includes('unsafe');
+}
 
 /**
- * Process content to remove all tracking elements before rendering
- * This more aggressive approach removes tracking at the HTML processing stage
+ * Get Content Security Policy string that allows legitimate content
+ * but blocks tracking and unsafe elements
  */
-export const removeTrackingElements = (content: string): string => {
-  if (!content) return '';
-  
-  let cleanedContent = content;
-  
-  // 1. Remove all tracking image tags completely (more aggressive than before)
-  cleanedContent = cleanedContent.replace(
-    /<img[^>]*?src=['"]([^'"]+)['"][^>]*>/gi,
-    (match, src) => {
-      if (isTrackingUrl(src)) {
-        return ''; // Completely remove tracking images
-      }
-      return match;
-    }
-  );
-  
-  // 2. Remove tracking links but preserve their inner content
-  cleanedContent = cleanedContent.replace(
-    /<a[^>]*?href=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/a>/gi,
-    (match, href, innerContent) => {
-      if (isTrackingUrl(href)) {
-        return innerContent;
-      }
-      return match;
-    }
-  );
-  
-  // 3. Remove all script tags (they're disabled by CSP anyway)
-  cleanedContent = cleanedContent.replace(
-    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, 
-    ''
-  );
-  
-  // 4. Remove inline event handlers (onclick, onload, etc.)
-  cleanedContent = cleanedContent.replace(
-    /\s(on\w+)=['"]([^'"]*)['"]/gi,
-    ''
-  );
-  
-  // 5. Remove tracking pixels with very long URLs (common in newsletters)
-  cleanedContent = cleanedContent.replace(
-    /<img[^>]*?src=['"][^'"]{150,}['"][^>]*>/gi,
-    ''
-  );
-  
-  // 6. Remove specific problematic iframe content
-  cleanedContent = cleanedContent.replace(
-    /<iframe[^>]*>([\s\S]*?)<\/iframe>/gi, 
-    ''
-  );
-  
-  // 7. Remove all meta refresh tags that could cause redirects
-  cleanedContent = cleanedContent.replace(
-    /<meta[^>]*?http-equiv=['"]refresh['"][^>]*>/gi,
-    ''
-  );
-  
-  // 8. Remove problematic link tags to external stylesheets that might contain tracking
-  cleanedContent = cleanedContent.replace(
-    /<link[^>]*?href=['"]https?:\/\/(?:[^'"]+)\.(?:analytics|track|click|mail|open)[^'"]*['"][^>]*>/gi, 
-    ''
-  );
-  
-  // 9. Remove specific problematic domains we've identified from console errors
-  cleanedContent = cleanedContent.replace(
-    new RegExp(`<[^>]*?(?:src|href)=['"]https?://(?:[^'"]*?)(${SPECIFIC_TRACKING_DOMAINS.join('|')})([^'"]*?)['"][^>]*>`, 'gi'),
-    ''
-  );
-  
-  // 10. Remove specific tracking patterns from JGZ2HocBug and wuGK4U8731
-  cleanedContent = cleanedContent.replace(
-    /<[^>]*?(?:src|href)=['"][^'"]*?(?:JGZ2HocBug|wuGK4U8731)[^'"]*?['"][^>]*>/gi,
-    ''
-  );
-  
-  return cleanedContent;
-};
-
-/**
- * Backward compatibility with existing code
- */
-export const removeTrackingPixels = (content: string): string => {
-  return removeTrackingElements(content);
-};
-
-/**
- * Console error suppressor for common tracking/certificate errors
- * Can be added to window.onerror handlers
- */
-export const shouldSuppressError = (errorMsg: string | Event): boolean => {
-  if (!errorMsg) return false;
-  
-  // Convert Event objects to string if needed
-  const errorString = typeof errorMsg === 'string' 
-    ? errorMsg 
-    : (errorMsg as any).message || String(errorMsg);
-  
-  // Common certificate error patterns
-  const suppressPatterns = [
-    'ERR_CERT_COMMON_NAME_INVALID',
-    'ERR_CERT_AUTHORITY_INVALID',
-    'certificate',
-    'tracking',
-    'analytics',
-    'net::ERR',
-    'Blocked script execution',
-    'sandbox',
-    'allow-scripts',
-    'JGZ2HocBug',
-    'boozt.com',
-    'vitavenn',
-    'wf/open'
-  ];
-  
-  return suppressPatterns.some(pattern => 
-    errorString.toLowerCase().includes(pattern.toLowerCase())
-  );
-};
-
-/**
- * Generates the Content Security Policy for iframe content
- */
-export const getSecureCSP = (): string => {
-  return `
-    upgrade-insecure-requests; 
-    script-src 'none'; 
-    img-src 'self' data: https:; 
-    connect-src 'none'; 
-    frame-src 'none';
-    object-src 'none';
-  `.trim();
-};
+export function getSecureCSP(): string {
+  return "upgrade-insecure-requests; script-src 'none'; img-src 'self' data: https:; connect-src 'none'; frame-src 'none'";
+}

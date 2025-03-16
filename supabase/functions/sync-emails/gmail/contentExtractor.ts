@@ -21,6 +21,9 @@ export function extractEmailContent(messageData) {
     } else if (part.parts) {
       // Handle nested parts
       part.parts.forEach(subpart => processMessagePart(subpart));
+    } else if (part.mimeType?.startsWith('image/') && part.body?.attachmentId) {
+      // Log found image attachments (these would require additional API calls to fetch)
+      console.log(`Found image attachment with ID: ${part.body.attachmentId}`);
     }
   }
   
