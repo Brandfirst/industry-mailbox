@@ -16,7 +16,9 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
     frequencyData,
     setFrequencyData,
     loadingAnalytics,
-    setLoadingAnalytics
+    setLoadingAnalytics,
+    brandUpdates,
+    setBrandUpdates
   } = useSenderData();
 
   // Set up sender operations (category, brand changes, deletion)
@@ -29,7 +31,7 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
     handleCategoryChange,
     handleBrandChange,
     handleDeleteSenders
-  } = useSenderOperations(setSenders);
+  } = useSenderOperations(setSenders, setBrandUpdates);
 
   // Set up sorting and filtering
   const {
@@ -46,7 +48,8 @@ export function useNewsletterSenders(): UseNewsletterSendersResult {
     setRefreshing,
     setLoadingAnalytics,
     setSenders,
-    setFrequencyData
+    setFrequencyData,
+    brandUpdates
   );
 
   // State to track if we need to trigger a refresh

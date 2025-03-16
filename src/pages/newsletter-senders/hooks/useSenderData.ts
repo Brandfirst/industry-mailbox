@@ -24,6 +24,9 @@ export function useSenderData() {
   const [categories, setCategories] = useState<NewsletterCategory[]>([]);
   const [frequencyData, setFrequencyData] = useState<SenderFrequencyData[] | null>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  
+  // Add a state to track the last saved brand updates
+  const [brandUpdates, setBrandUpdates] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +45,19 @@ export function useSenderData() {
         setCategories(categoriesData || []);
         
         const senderStats = await getSenderStats(user.id);
-        setSenders(senderStats);
+        
+        // Apply any pending brand updates to the fetched data
+        const updatedSenders = senderStats.map(sender => {
+          if (brandUpdates[sender.sender_email]) {
+            return {
+              ...sender,
+              brand_name: brandUpdates[sender.sender_email]
+            };
+          }
+          return sender;
+        });
+        
+        setSenders(updatedSenders);
         
         const frequencyData = await getSenderFrequencyData(user.id, 30);
         setFrequencyData(mapToSenderFrequencyData(frequencyData));
@@ -56,7 +71,7 @@ export function useSenderData() {
     };
     
     fetchData();
-  }, [user]);
+  }, [user, brandUpdates]);
 
   return {
     senders,
@@ -66,6 +81,9 @@ export function useSenderData() {
     frequencyData,
     setFrequencyData,
     loadingAnalytics,
-    setLoadingAnalytics
+    setLoadingAnalytics,
+    // Add the brand updates state and setter
+    brandUpdates,
+    setBrandUpdates
   };
 }

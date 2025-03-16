@@ -19,7 +19,8 @@ export function useRefreshSenders(
   setRefreshing: (value: boolean) => void,
   setLoadingAnalytics: (value: boolean) => void,
   setSenders: React.Dispatch<React.SetStateAction<any[]>>,
-  setFrequencyData: React.Dispatch<React.SetStateAction<SenderFrequencyData[] | null>>
+  setFrequencyData: React.Dispatch<React.SetStateAction<SenderFrequencyData[] | null>>,
+  brandUpdates: Record<string, string> = {}
 ) {
   const { user } = useAuth();
 
@@ -31,7 +32,19 @@ export function useRefreshSenders(
       setLoadingAnalytics(true);
       
       const refreshedStats = await getSenderStats(user.id);
-      setSenders(refreshedStats);
+      
+      // Apply any brand updates to the refreshed data
+      const updatedSenders = refreshedStats.map(sender => {
+        if (brandUpdates[sender.sender_email]) {
+          return {
+            ...sender,
+            brand_name: brandUpdates[sender.sender_email]
+          };
+        }
+        return sender;
+      });
+      
+      setSenders(updatedSenders);
       
       const freshFrequencyData = await getSenderFrequencyData(user.id, 30);
       setFrequencyData(mapToSenderFrequencyData(freshFrequencyData));
@@ -44,7 +57,7 @@ export function useRefreshSenders(
       setRefreshing(false);
       setLoadingAnalytics(false);
     }
-  }, [user, setRefreshing, setLoadingAnalytics, setSenders, setFrequencyData]);
+  }, [user, setRefreshing, setLoadingAnalytics, setSenders, setFrequencyData, brandUpdates]);
 
   return { handleRefresh };
 }

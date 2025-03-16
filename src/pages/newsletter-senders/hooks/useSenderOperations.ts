@@ -6,7 +6,10 @@ import { updateSenderCategory, updateSenderBrand } from "@/lib/supabase/newslett
 import { supabase } from "@/integrations/supabase/client";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters/types";
 
-export function useSenderOperations(setSenders: React.Dispatch<React.SetStateAction<any[]>>) {
+export function useSenderOperations(
+  setSenders: React.Dispatch<React.SetStateAction<any[]>>, 
+  setBrandUpdates: React.Dispatch<React.SetStateAction<Record<string, string>>>
+) {
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState(false);
@@ -55,6 +58,12 @@ export function useSenderOperations(setSenders: React.Dispatch<React.SetStateAct
       setUpdatingBrand(true);
       await updateSenderBrand(senderEmail, brandName, user.id);
       
+      // Update the local brand updates record
+      setBrandUpdates(prev => ({
+        ...prev,
+        [senderEmail]: brandName
+      }));
+      
       // Update the local state to reflect the change - make sure this is reliable
       setSenders(prevSenders => 
         prevSenders.map(sender => 
@@ -77,7 +86,7 @@ export function useSenderOperations(setSenders: React.Dispatch<React.SetStateAct
     } finally {
       setUpdatingBrand(false);
     }
-  }, [user, setSenders]);
+  }, [user, setSenders, setBrandUpdates]);
 
   const handleDeleteSenders = useCallback(async (senderEmails: string[]) => {
     if (!user || senderEmails.length === 0) return;
