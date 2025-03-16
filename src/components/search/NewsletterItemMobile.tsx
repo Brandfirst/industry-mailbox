@@ -7,7 +7,7 @@ import { navigateToSender } from '@/lib/utils/newsletterNavigation';
 
 interface NewsletterItemMobileProps {
   newsletter: Newsletter;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   getFormattedDate: (dateString: string) => string;
   displayName: string;
 }
@@ -16,6 +16,7 @@ const NewsletterItemMobile = ({ newsletter, onClick, getFormattedDate, displayNa
   const navigate = useNavigate();
   
   const handleSenderClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent parent onClick from firing
     navigateToSender(newsletter.sender || '', navigate, e);
   };
   

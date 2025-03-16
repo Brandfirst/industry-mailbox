@@ -148,6 +148,7 @@ export const useSearchNewsletters = () => {
   }, []);
 
   const handleNewsletterClick = useCallback((newsletter: Newsletter) => {
+    console.log("Newsletter clicked:", newsletter.id, newsletter.title);
     navigateToNewsletter(newsletter, navigate);
   }, [navigate]);
 

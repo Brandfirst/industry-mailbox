@@ -9,6 +9,12 @@ import { Newsletter } from '@/lib/supabase/types';
 export const getNewsletterPath = (newsletter: Newsletter): string => {
   if (!newsletter) return '/';
   
+  // If we have an ID, use the direct ID route for reliability
+  if (newsletter.id) {
+    return `/newsletter/${newsletter.id}`;
+  }
+  
+  // Fallback to SEO-friendly route if ID isn't available (shouldn't happen)
   const senderSlug = newsletter.sender_email 
     ? newsletter.sender_email.toLowerCase().replace('@', '-').replace(/\./g, '')
     : (newsletter.sender 
@@ -48,7 +54,9 @@ export const getSenderPath = (senderName: string): string => {
  */
 export const navigateToNewsletter = (newsletter: Newsletter, navigate: any): void => {
   if (!newsletter) return;
+  console.log("Navigating to newsletter:", newsletter.id, newsletter.title);
   const path = getNewsletterPath(newsletter);
+  console.log("Navigation path:", path);
   navigate(path);
 };
 

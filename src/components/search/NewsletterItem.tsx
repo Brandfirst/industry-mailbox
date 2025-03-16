@@ -18,21 +18,35 @@ const NewsletterItem = ({ newsletter, onClick }: NewsletterItemProps) => {
 
   // Determine the display name to use (brand_name if available, otherwise sender)
   const displayName = newsletter.brand_name || newsletter.sender || "Unknown Sender";
+  
+  // Create a single handler that uses the onClick prop
+  const handleClick = () => {
+    onClick(newsletter);
+  };
 
   return (
     <div 
       className="cursor-pointer bg-white rounded-lg overflow-hidden shadow-sm border hover:shadow-md transition-shadow"
+      onClick={handleClick}
     >
       <NewsletterItemMobile 
         newsletter={newsletter} 
-        onClick={() => onClick(newsletter)} 
+        onClick={(e) => {
+          // Prevent the child's onClick from triggering twice
+          e.stopPropagation();
+          handleClick();
+        }} 
         getFormattedDate={getFormattedDate}
         displayName={displayName}
       />
       
       <NewsletterItemDesktop 
         newsletter={newsletter} 
-        onClick={() => onClick(newsletter)} 
+        onClick={(e) => {
+          // Prevent the child's onClick from triggering twice
+          e.stopPropagation();
+          handleClick();
+        }} 
         getFormattedDate={getFormattedDate}
         displayName={displayName}
       />
