@@ -9,6 +9,9 @@ type LogsContentProps = {
 };
 
 export function LogsContent({ syncLogs, formatTimestamp }: LogsContentProps) {
+  // Calculate the total number of logs to use for reverse numbering
+  const totalLogs = syncLogs.length;
+  
   return (
     <div className="divide-y divide-border">
       {syncLogs.map((log, index) => (
@@ -16,7 +19,7 @@ export function LogsContent({ syncLogs, formatTimestamp }: LogsContentProps) {
           key={log.id} 
           log={log} 
           formatTimestamp={formatTimestamp}
-          itemNumber={index + 1}
+          itemNumber={totalLogs - index} // Reverse the numbering order
         />
       ))}
     </div>
