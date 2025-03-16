@@ -109,18 +109,21 @@ export function SyncLogsList({
         ) : (
           <LogsContent>
             <LogsTableHeader />
-            {filteredLogs.map((log, index) => {
-              // Calculate row number based on the original logs array position
-              // This ensures consistent numbering regardless of filters
+            {filteredLogs.map((log) => {
+              // Find the log's original position in the full list to determine its number
               const originalIndex = syncLogs.findIndex(item => item.id === log.id);
-              const rowNumber = originalIndex + 1;
+              
+              // Calculate row number based on original position in full list
+              // Use the length of the total logs to show most recent items with higher numbers
+              // This ensures the latest log has the highest number
+              const itemNumber = syncLogs.length - originalIndex;
               
               return (
                 <SyncLogItem 
                   key={log.id} 
                   log={log} 
                   formatTimestamp={formatTimestamp}
-                  itemNumber={syncLogs.length - originalIndex}
+                  itemNumber={itemNumber}
                   totalItems={filteredLogs.length}
                 />
               );

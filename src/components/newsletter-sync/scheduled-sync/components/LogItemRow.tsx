@@ -67,7 +67,7 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
   
   return (
     <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full items-center px-2 py-2 hover:bg-muted/10">
-      <div className="font-medium overflow-hidden text-ellipsis">{itemNumber}</div>
+      <div className="font-medium overflow-hidden text-ellipsis text-center">{itemNumber}</div>
       
       <div className="flex flex-col overflow-hidden">
         <span className="truncate">{formatTimestamp(log.timestamp)}</span>
@@ -82,7 +82,7 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
         />
       </div>
       
-      <div className="overflow-hidden flex items-center">
+      <div className="overflow-hidden flex items-center justify-center">
         <TypeColumn syncType={syncType} />
       </div>
       

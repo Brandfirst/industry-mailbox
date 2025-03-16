@@ -8,10 +8,8 @@ interface TypeColumnProps {
 
 export function TypeColumn({ syncType }: TypeColumnProps) {
   return (
-    <div className="flex items-center">
-      <Badge variant={syncType === 'manual' ? 'outline' : 'secondary'} className="font-normal">
-        {syncType === 'manual' ? 'Manual' : 'Scheduled'}
-      </Badge>
-    </div>
+    <Badge variant={syncType === 'manual' ? 'outline' : 'secondary'} className="font-normal">
+      {syncType === 'manual' ? 'Manual' : 'Scheduled'}
+    </Badge>
   );
 }
