@@ -29,7 +29,7 @@ export function generateIframeContent(content: string | null): string {
           }
           body {
             margin: 0 auto;
-            padding: 10px;
+            padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             color: #333;
@@ -47,15 +47,11 @@ export function generateIframeContent(content: string | null): string {
           body > * {
             width: 100%;
             max-width: 100%;
-            margin-left: auto;
-            margin-right: auto;
             transform: scale(0.85);
             transform-origin: top center;
           }
           
           table {
-            margin-left: auto;
-            margin-right: auto;
             max-width: 100%;
           }
         </style>

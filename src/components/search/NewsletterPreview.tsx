@@ -38,7 +38,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               overflow-y: hidden;
             }
             body {
-              padding: 10px;
+              padding: 0;
               box-sizing: border-box;
               display: flex;
               flex-direction: column;
@@ -53,19 +53,14 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               display: inline-block;
             }
             table {
-              margin-left: auto;
-              margin-right: auto;
               max-width: 100%;
             }
             * {
               max-width: 100%;
               box-sizing: border-box;
             }
-            /* Improved center content */
+            /* Improved content scaling */
             body > * {
-              margin-left: auto;
-              margin-right: auto;
-              max-width: 100%;
               width: 100%;
               transform: scale(${isMobile ? '0.6' : '0.7'});
               transform-origin: top center;

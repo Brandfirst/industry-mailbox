@@ -27,7 +27,7 @@ export const getFormattedHtmlContent = (content: string | null) => {
                   overflow-x: hidden;
                 }
                 body {
-                  padding: 20px;
+                  padding: 0;
                   line-height: 1.6;
                   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
                     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -42,15 +42,11 @@ export const getFormattedHtmlContent = (content: string | null) => {
                 body > * {
                   max-width: 100%;
                   width: 100%;
-                  margin-left: auto;
-                  margin-right: auto;
                   transform: scale(0.85);
                   transform-origin: top center;
                 }
                 
                 table {
-                  margin-left: auto;
-                  margin-right: auto;
                   max-width: 100%;
                 }
               </style>
