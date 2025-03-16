@@ -18,6 +18,7 @@ type SyncScheduleControlsProps = {
   setSpecificHour: React.Dispatch<React.SetStateAction<string>>;
   refreshLogs: () => Promise<void>;
   lastUpdated?: string;
+  settingsLoaded?: boolean;
 };
 
 export function SyncScheduleControls({
@@ -29,11 +30,19 @@ export function SyncScheduleControls({
   specificHour,
   setSpecificHour,
   refreshLogs,
-  lastUpdated
+  lastUpdated,
+  settingsLoaded = false
 }: SyncScheduleControlsProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
   const [saveTimestamp, setSaveTimestamp] = useState<string | undefined>(lastUpdated);
+  
+  // Update saved timestamp when lastUpdated changes
+  useEffect(() => {
+    if (lastUpdated) {
+      setSaveTimestamp(lastUpdated);
+    }
+  }, [lastUpdated]);
   
   // Reset saved status when settings change
   useEffect(() => {
@@ -99,7 +108,7 @@ export function SyncScheduleControls({
         setSpecificHour={setSpecificHour}
         onSaveSchedule={saveSchedule}
         isSaving={isSaving}
-        disabled={!selectedAccount}
+        disabled={!selectedAccount || !settingsLoaded}
         selectedAccount={selectedAccount}
       />
       

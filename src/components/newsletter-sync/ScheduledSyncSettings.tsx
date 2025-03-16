@@ -29,10 +29,12 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | undefined>(undefined);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   // Fetch account settings when selected account changes
   useEffect(() => {
     if (selectedAccount) {
+      setSettingsLoaded(false);
       loadAccountSettings();
     } else {
       // Reset if no account selected
@@ -40,6 +42,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       setScheduleOption("disabled");
       setSpecificHour("09");
       setLastUpdated(undefined);
+      setSettingsLoaded(false);
     }
   }, [selectedAccount]);
 
@@ -64,6 +67,9 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
         if (settings.hour !== undefined && settings.hour !== null) {
           setSpecificHour(settings.hour.toString().padStart(2, '0'));
         }
+        
+        // Mark settings as loaded
+        setSettingsLoaded(true);
       }
     } catch (error) {
       console.error("Error loading account settings:", error);
@@ -119,6 +125,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
               setSpecificHour={setSpecificHour}
               refreshLogs={fetchSyncLogs}
               lastUpdated={lastUpdated}
+              settingsLoaded={settingsLoaded}
             />
             
             {!selectedAccount && (

@@ -34,7 +34,7 @@ export async function getSyncLogs(accountId: string, limit: number = 10): Promis
         // Ensure details is properly parsed as an object
         details: typeof log.details === 'object' ? log.details : {},
         // Set a default sync_type if it's missing
-        sync_type: 'manual'
+        sync_type: log.sync_type || 'manual'
       };
     });
   } catch (error) {
@@ -72,7 +72,7 @@ export async function getSyncSchedule(accountId: string): Promise<SyncScheduleSe
     
     return {
       enabled: Boolean(settings.enabled),
-      scheduleType: (settings.scheduleType || 'disabled') as SyncScheduleSettings['scheduleType'],
+      scheduleType: (settings.scheduleType || settings.schedule_type || 'disabled') as SyncScheduleSettings['scheduleType'],
       hour: typeof settings.hour === 'number' ? settings.hour : undefined,
       updated_at: settings.updated_at
     };
