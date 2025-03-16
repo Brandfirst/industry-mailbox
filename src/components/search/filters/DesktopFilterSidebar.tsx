@@ -54,7 +54,7 @@ const DesktopFilterSidebar = ({
   return (
     <div className="hidden md:block">
       {isOpen ? (
-        <div className="w-80 p-4 border-r bg-white">
+        <div className="w-80 p-4 border-r bg-gray-50 shadow-sm rounded-lg">
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="font-semibold text-gray-900">Filtre</h3>
@@ -126,14 +126,14 @@ const DesktopFilterSidebar = ({
             
             <Button 
               onClick={onApplyFilters} 
-              className="w-full"
+              className="w-full bg-[#FF5722] hover:bg-orange-600"
             >
               Bruk filtre
             </Button>
           </div>
         </div>
       ) : (
-        <div className="w-12 flex flex-col items-center py-4 border-r bg-white">
+        <div className="w-12 flex flex-col items-center py-4 border-r bg-gray-50">
           {/* We'll keep this minimal when collapsed */}
         </div>
       )}

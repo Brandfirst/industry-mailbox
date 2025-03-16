@@ -65,7 +65,7 @@ const MobileFilterDrawer = ({
       ></div>
       
       {/* Sidebar */}
-      <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs bg-white p-4 overflow-y-auto animate-slide-in-right">
+      <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs bg-gray-50 p-4 overflow-y-auto animate-slide-in-right">
         <FilterHeader toggleMobileFilters={toggleMobileFilters} title="Filtre" />
         
         <div className="space-y-6">
@@ -139,7 +139,7 @@ const MobileFilterDrawer = ({
               onApplyFilters();
               toggleMobileFilters();
             }} 
-            className="w-full"
+            className="w-full bg-[#FF5722] hover:bg-orange-600"
           >
             Bruk filtre
           </Button>

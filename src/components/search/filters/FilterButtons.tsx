@@ -30,10 +30,12 @@ const FilterButtons = ({
       {toggleDesktopFilters && (
         <div className="hidden md:block">
           <Button
-            variant="outline"
+            variant={isDesktopFiltersOpen ? "default" : "outline"}
             size="sm"
             onClick={toggleDesktopFilters}
-            className="flex items-center gap-2 filter-button"
+            className={`flex items-center gap-2 filter-button ${
+              isDesktopFiltersOpen ? "bg-[#FF5722] hover:bg-orange-600" : ""
+            }`}
           >
             {isDesktopFiltersOpen ? (
               <ChevronLeft className="h-4 w-4" />
