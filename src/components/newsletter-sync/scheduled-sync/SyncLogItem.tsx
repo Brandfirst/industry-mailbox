@@ -12,7 +12,7 @@ type SyncLogItemProps = {
 
 export function SyncLogItem({ log, formatTimestamp, itemNumber, totalItems }: SyncLogItemProps) {
   return (
-    <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
+    <div className="text-xs hover:bg-muted/20">
       <LogItemRow 
         log={log} 
         formatTimestamp={formatTimestamp} 

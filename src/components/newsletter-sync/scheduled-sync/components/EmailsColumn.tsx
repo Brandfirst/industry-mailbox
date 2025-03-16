@@ -74,17 +74,17 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
   };
   
   return (
-    <div className="flex items-center">
+    <div>
       {log.status !== 'scheduled' ? (
         <>
           <Button 
             variant="link"
             size="sm" 
-            className="px-0 py-0 h-auto flex items-center text-blue-600 hover:text-blue-800 cursor-pointer underline underline-offset-2"
+            className="px-0 py-0 h-auto text-blue-600 hover:text-blue-800 underline underline-offset-2"
             onClick={handleClickEmails}
             aria-label="View email details"
           >
-            <span>{totalEmails} email{totalEmails !== 1 ? 's' : ''}</span>
+            <span>{totalEmails}</span>
           </Button>
           
           <SyncedEmailsDialog 

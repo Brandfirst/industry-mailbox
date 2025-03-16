@@ -24,13 +24,13 @@ export function SendersColumn({
   const showClickableSenders = uniqueSendersCount > 0;
   
   return (
-    <div className="flex items-center">
+    <div>
       {uniqueSendersCount > 0 ? (
-        <div className="flex items-center">
+        <div>
           <Button 
             variant="link" 
             size="sm" 
-            className={`px-0 py-0 h-auto text-blue-600 hover:text-blue-800 cursor-pointer underline underline-offset-2 ${!showClickableSenders ? 'pointer-events-none opacity-70' : ''}`}
+            className={`px-0 py-0 h-auto text-blue-600 hover:text-blue-800 underline underline-offset-2 ${!showClickableSenders ? 'pointer-events-none opacity-70' : ''}`}
             disabled={!showClickableSenders}
             onClick={() => setIsDialogOpen(true)}
           >

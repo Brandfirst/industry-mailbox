@@ -66,15 +66,15 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
   }
   
   return (
-    <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full items-center border-b border-gray-100 last:border-0">
-      <div className="font-medium overflow-hidden text-ellipsis px-1">{itemNumber}</div>
+    <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full items-center p-2 border-b border-gray-100 last:border-0">
+      <div className="font-medium overflow-hidden text-ellipsis">{itemNumber}</div>
       
-      <div className="flex flex-col overflow-hidden px-1">
+      <div className="flex flex-col overflow-hidden">
         <span className="truncate">{formatTimestamp(log.timestamp)}</span>
         <span className="text-xs text-muted-foreground truncate">{relativeTime}</span>
       </div>
       
-      <div className="overflow-hidden px-1">
+      <div className="overflow-hidden">
         <StatusColumn 
           log={log} 
           isDetailsOpen={isDetailsOpen} 
@@ -82,15 +82,15 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
         />
       </div>
       
-      <div className="overflow-hidden px-1">
+      <div className="overflow-hidden">
         <TypeColumn syncType={syncType} />
       </div>
       
-      <div className="relative z-30 overflow-hidden px-1">
+      <div className="relative z-30 overflow-hidden">
         <EmailsColumn log={log} totalEmails={totalEmails} />
       </div>
       
-      <div className="overflow-hidden px-1">
+      <div className="overflow-hidden">
         <SendersColumn 
           uniqueSendersCount={uniqueSendersCount}
           sendersList={sendersList}
@@ -100,7 +100,7 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
         />
       </div>
       
-      <div className="overflow-hidden truncate px-1">
+      <div className="overflow-hidden truncate">
         <StatusMessage log={log} />
       </div>
     </div>
