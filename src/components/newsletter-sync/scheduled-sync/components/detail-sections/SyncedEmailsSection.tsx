@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { createNewsletterNavigationHandler } from "../../utils/navigationUtils";
 
 interface SyncedEmailsSectionProps {
   syncedEmails: any[];
@@ -22,19 +23,6 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   
   console.log("Displaying emails in SyncedEmailsSection:", displayedEmails);
   
-  const navigateToNewsletter = (email: any, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Direct navigation to the newsletter detail page
-    if (email.id) {
-      navigate(`/newsletter/${email.id}`);
-      console.log(`Navigating to newsletter ID: ${email.id}`);
-    } else {
-      console.log("Cannot navigate: email has no valid ID");
-    }
-  };
-    
   return (
     <div className="mt-2 pt-2 border-t border-gray-100">
       <div className="flex items-center mb-1">
@@ -46,7 +34,7 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
             <div 
               key={index} 
               className="mb-2 pb-2 border-b border-gray-100 last:border-b-0 rounded bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
-              onClick={(e) => navigateToNewsletter(email, e)}
+              onClick={createNewsletterNavigationHandler(email, navigate)}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">

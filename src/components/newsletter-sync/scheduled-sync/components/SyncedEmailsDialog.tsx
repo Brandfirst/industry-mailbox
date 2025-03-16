@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { createNewsletterNavigationHandler } from "../utils/navigationUtils";
 
 interface SyncedEmailsDialogProps {
   isOpen: boolean;
@@ -53,29 +53,6 @@ export function SyncedEmailsDialog({
     onOpenChange(open);
   };
   
-  // Enhanced navigation handler with newsletter ID extraction
-  const navigateToNewsletter = (email: any, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Detailed logging to troubleshoot
-    console.log("Attempting to navigate with email:", email);
-    
-    if (email.id) {
-      console.log(`Navigating to newsletter ID: ${email.id}`);
-      navigate(`/newsletter/${email.id}`);
-      onOpenChange(false); // Close the dialog after navigation
-    } else if (email.newsletter_id) {
-      // Support alternative ID field
-      console.log(`Navigating to newsletter ID (from newsletter_id): ${email.newsletter_id}`);
-      navigate(`/newsletter/${email.newsletter_id}`);
-      onOpenChange(false);
-    } else {
-      console.log("Cannot navigate: email has no valid ID");
-      toast.error("Can't open this newsletter - no ID available");
-    }
-  };
-  
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md bg-white">
@@ -95,7 +72,7 @@ export function SyncedEmailsDialog({
                 <div 
                   key={index} 
                   className="mb-2 pb-2 border-b border-gray-100 last:border-b-0 rounded bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
-                  onClick={(e) => navigateToNewsletter(email, e)}
+                  onClick={createNewsletterNavigationHandler(email, navigate, () => onOpenChange(false))}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">

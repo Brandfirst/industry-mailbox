@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { createNewsletterNavigationHandler } from "../utils/navigationUtils";
 
 interface EmailDetailsProps {
   syncedEmails: any[];
@@ -21,25 +21,6 @@ export function EmailDetails({ syncedEmails }: EmailDetailsProps) {
     ? syncedEmails 
     : syncedEmails.slice(0, maxInitialEmails);
     
-  const navigateToNewsletter = (email: any, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Enhanced debug logging
-    console.log("Attempting to navigate from EmailDetails with email:", email);
-    
-    // Direct navigation to the newsletter detail page
-    const newsletterId = email.id || email.newsletter_id;
-    
-    if (newsletterId) {
-      console.log(`Navigating to newsletter ID: ${newsletterId}`);
-      navigate(`/newsletter/${newsletterId}`);
-    } else {
-      console.log("Cannot navigate: email has no valid ID");
-      toast.error("Cannot view this newsletter - no ID available");
-    }
-  };
-    
   return (
     <div className="mt-3 pt-3 border-t border-gray-100">
       <div className="font-medium mb-1">Synced Emails:</div>
@@ -48,7 +29,7 @@ export function EmailDetails({ syncedEmails }: EmailDetailsProps) {
           <div 
             key={idx} 
             className="pb-1 mb-1 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 p-1 rounded"
-            onClick={(e) => navigateToNewsletter(email, e)}
+            onClick={createNewsletterNavigationHandler(email, navigate)}
           >
             <div className="truncate"><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
             <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
