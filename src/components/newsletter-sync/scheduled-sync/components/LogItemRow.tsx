@@ -87,7 +87,7 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
       <TypeColumn syncType={syncType} />
       
       {/* Emails column - Make sure this column has proper z-index to be clickable */}
-      <div className="relative z-20 pointer-events-auto">
+      <div className="relative z-30 pointer-events-auto">
         <EmailsColumn log={log} totalEmails={totalEmails} />
       </div>
       

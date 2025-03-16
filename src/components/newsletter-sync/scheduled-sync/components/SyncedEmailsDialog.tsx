@@ -25,12 +25,12 @@ export function SyncedEmailsDialog({
 }: SyncedEmailsDialogProps) {
   const emailCount = syncedEmails?.length || 0;
   
-  // Debug to check if we're actually opening the dialog
+  // Enhanced debug to check if we're actually opening the dialog
   React.useEffect(() => {
     if (isOpen) {
-      console.log("SyncedEmailsDialog opened with", emailCount, "emails");
+      console.log("SyncedEmailsDialog opened with", emailCount, "emails", syncedEmails);
     }
-  }, [isOpen, emailCount]);
+  }, [isOpen, emailCount, syncedEmails]);
   
   // Since we're having issues with the dialog, let's add more debugging
   const handleOpenChange = (open: boolean) => {

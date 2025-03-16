@@ -17,17 +17,14 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
   const syncedEmails = log.details?.synced || [];
   
   // Debug logging to see what's happening with the synced emails
-  console.log("Synced emails for log:", log.id, syncedEmails.length > 0 ? "Has emails" : "No emails");
+  console.log("Synced emails for log:", log.id, totalEmails, "emails, clickable:", log.status !== 'scheduled');
   
-  // Change the condition to determine clickability
-  // We'll make it clickable if we have any emails and it's not scheduled
-  const showClickableEmails = log.status !== 'scheduled' && totalEmails > 0;
+  // Remove the showClickableEmails variable and directly use the condition
+  // Make it clickable for any non-scheduled logs, even with 0 emails
   
   const handleClickEmails = () => {
-    if (showClickableEmails) {
-      console.log("Opening email dialog with", syncedEmails.length, "emails");
-      setIsDialogOpen(true);
-    }
+    console.log("Email button clicked, opening dialog");
+    setIsDialogOpen(true);
   };
   
   return (
@@ -35,15 +32,15 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
       {log.status !== 'scheduled' ? (
         <>
           <Button 
-            variant={showClickableEmails ? "link" : "ghost"}
+            variant="link"
             size="sm" 
-            className={`px-0 py-0 h-auto flex items-center ${showClickableEmails ? 'text-blue-600 hover:text-blue-800 cursor-pointer underline underline-offset-2' : ''}`}
-            disabled={!showClickableEmails}
+            className="px-0 py-0 h-auto flex items-center text-blue-600 hover:text-blue-800 cursor-pointer underline underline-offset-2"
             onClick={handleClickEmails}
             aria-label="View email details"
+            // Important: Remove the disabled attribute completely
           >
             <span>{totalEmails} email{totalEmails !== 1 ? 's' : ''}</span>
-            {showClickableEmails && <ExternalLinkIcon className="h-3 w-3 ml-1" />}
+            <ExternalLinkIcon className="h-3 w-3 ml-1" />
           </Button>
           
           {/* Always render the dialog but control its open state */}
