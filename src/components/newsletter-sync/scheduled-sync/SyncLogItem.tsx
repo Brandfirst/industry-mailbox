@@ -40,12 +40,29 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
   // Get synced emails and unique senders
   const syncedEmails = log.details?.synced || [];
   const uniqueSenders = new Set<string>();
+  const sendersList: string[] = [];
   
+  // Get full sender information
   syncedEmails.forEach((email: any) => {
     if (email.sender_email) {
       uniqueSenders.add(email.sender_email);
+      if (!sendersList.includes(email.sender_email)) {
+        sendersList.push(email.sender_email);
+      }
     }
   });
+  
+  // If we don't have synced emails with sender info but have senders data in details
+  if (sendersList.length === 0 && log.details?.senders) {
+    // If senders is an array, add each one
+    if (Array.isArray(log.details.senders)) {
+      log.details.senders.forEach((sender: string) => {
+        if (!sendersList.includes(sender)) {
+          sendersList.push(sender);
+        }
+      });
+    }
+  }
   
   // Get unique senders count from details if available, otherwise use the calculated one
   const uniqueSendersCount = log.details?.new_senders_count !== undefined 
@@ -56,6 +73,13 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
   if (log.details && !log.details.accountEmail && log.account?.email) {
     log.details.accountEmail = log.account.email;
   }
+  
+  // For debugging
+  console.log("Sender info for log:", log.id, {
+    sendersList,
+    uniqueSenders: Array.from(uniqueSenders),
+    syncedEmails: syncedEmails.map((e: any) => ({ sender: e.sender, email: e.sender_email }))
+  });
   
   return (
     <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
@@ -133,9 +157,19 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
                         {uniqueSendersCount} unique sender{uniqueSendersCount !== 1 ? 's' : ''}:
                       </div>
                       <div className="max-h-40 overflow-y-auto space-y-1">
-                        {Array.from(uniqueSenders).map((sender, idx) => (
-                          <div key={idx} className="truncate">{sender}</div>
-                        ))}
+                        {sendersList.length > 0 ? (
+                          sendersList.map((sender, idx) => (
+                            <div key={idx} className="truncate">{sender}</div>
+                          ))
+                        ) : uniqueSenders.size > 0 ? (
+                          Array.from(uniqueSenders).map((sender, idx) => (
+                            <div key={idx} className="truncate">{sender}</div>
+                          ))
+                        ) : (
+                          <div className="text-muted-foreground italic">
+                            Sender information not available
+                          </div>
+                        )}
                       </div>
                       
                       {syncedEmails.length > 0 && (
@@ -144,7 +178,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
                           <div className="space-y-2 max-h-40 overflow-y-auto">
                             {syncedEmails.slice(0, 5).map((email: any, idx: number) => (
                               <div key={idx} className="pb-1 mb-1 border-b border-gray-100 last:border-0">
-                                <div className="truncate"><span className="font-medium">From:</span> {email.sender || email.sender_email}</div>
+                                <div className="truncate"><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
                                 <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
                               </div>
                             ))}
@@ -174,3 +208,4 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
     </div>
   );
 }
+

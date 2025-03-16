@@ -123,6 +123,9 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
         status = 'success';
       }
       
+      // Extract sender information for the logs
+      const senderEmails = Array.from(uniqueSenders);
+      
       // Create or update log entry for scheduled syncs
       if (scheduled) {
         try {
@@ -130,7 +133,9 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
             total_emails: result.length,
             synced_count: synced.length,
             failed_count: failed.length,
-            new_senders_count: uniqueSenders.size
+            new_senders_count: uniqueSenders.size,
+            senders: senderEmails, // Add the actual sender emails to the log details
+            accountEmail: accountData.email
           };
           
           if (sync_log_id) {
@@ -177,6 +182,7 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
           syncedCount: synced.length,
           failedCount: failed.length,
           new_senders_count: uniqueSenders.size,
+          senders: senderEmails, // Add the actual sender emails to the response
           sync_type: scheduled ? 'scheduled' : 'manual'
         },
         debugInfo: debug ? {
@@ -248,3 +254,4 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
     });
   }
 }
+

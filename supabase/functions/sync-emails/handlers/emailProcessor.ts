@@ -34,9 +34,12 @@ export async function processEmails(emails: any[], accountId: string, supabase: 
         if (savedEmail) {
           synced.push(savedEmail);
           
-          // Track unique senders
+          // Track unique senders - make sure to log sender info for debugging
           if (email.sender_email) {
             uniqueSenders.add(email.sender_email);
+            if (verbose) {
+              console.log(`Added sender to unique senders: ${email.sender_email}`);
+            }
           }
         }
       } catch (emailError) {
@@ -48,6 +51,12 @@ export async function processEmails(emails: any[], accountId: string, supabase: 
         });
       }
     }
+    
+    // Log the unique senders
+    if (verbose || uniqueSenders.size > 0) {
+      console.log(`Found ${uniqueSenders.size} unique senders:`, Array.from(uniqueSenders));
+    }
+    
   } catch (processingError) {
     console.error('Error in batch email processing:', processingError);
     error = processingError;
@@ -55,3 +64,4 @@ export async function processEmails(emails: any[], accountId: string, supabase: 
   
   return { synced, failed, uniqueSenders, error };
 }
+
