@@ -7,28 +7,32 @@ export * from './manage';
 export * from './search';
 export * from './save';
 
-// Re-export these with explicit names to avoid ambiguity
+// These files need direct imports and re-exports
+import { getNewslettersByCategory } from './fetch';
+import { getAllNewsletters, getAllNewslettersBySender } from './fetchAll';
+import { getNewslettersFromEmailAccount } from './fetchFromAccount';
+import { getNewsletter } from './fetchSingle';
+import { updateSenderCategory, updateSenderBrand } from './manage';
+
+// Re-export with explicit names
 export { 
-  fetchNewsletter, 
-  fetchNewsletters, 
-  fetchNewslettersByCategory 
-} from './fetch';
+  getNewslettersByCategory
+};
 
 export { 
-  fetchAllNewsletters, 
-  fetchAllNewslettersBySender 
-} from './fetchAll';
+  getAllNewsletters,
+  getAllNewslettersBySender
+};
 
 export { 
-  getNewsletterFromEmailAccount,
-  getNewslettersFromEmailAccount 
-} from './fetchFromAccount';
+  getNewslettersFromEmailAccount
+};
 
-export { 
-  fetchSingleNewsletter 
-} from './fetchSingle';
+export {
+  getNewsletter
+};
 
 export {
   updateSenderCategory,
   updateSenderBrand
-} from './account';
+};

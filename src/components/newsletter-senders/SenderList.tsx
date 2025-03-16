@@ -1,9 +1,6 @@
 
 import { useState } from "react";
-import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { AlertDialog, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Table, TableBody } from "@/components/ui/table";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
 import { NewsletterCategory } from "@/lib/supabase/types";
 import {
@@ -11,6 +8,7 @@ import {
   SenderTableHeaders,
   SenderTableRow,
   EmptyTableRow,
+  SenderActions
 } from './components';
 
 type SenderListProps = {
@@ -32,7 +30,6 @@ const SenderList = ({
 }: SenderListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSenders, setSelectedSenders] = useState<string[]>([]);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
@@ -106,19 +103,18 @@ const SenderList = ({
     }
   };
 
-  // Delete handlers
-  const handleDeleteSenders = async () => {
-    if (!onDeleteSenders || selectedSenders.length === 0) return;
+  // Handle delete senders with loading state
+  const handleDeleteSenders = async (senderEmails: string[]) => {
+    if (!onDeleteSenders || senderEmails.length === 0) return;
     
     setIsDeleting(true);
     try {
-      await onDeleteSenders(selectedSenders);
+      await onDeleteSenders(senderEmails);
       setSelectedSenders([]);
     } catch (error) {
       console.error("Error deleting senders:", error);
     } finally {
       setIsDeleting(false);
-      setShowDeleteDialog(false);
     }
   };
 
@@ -152,16 +148,12 @@ const SenderList = ({
           resultsCount={filteredSenders.length}
         />
         
-        {selectedSenders.length > 0 && onDeleteSenders && (
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete {selectedSenders.length} selected
-          </Button>
+        {onDeleteSenders && (
+          <SenderActions 
+            selectedSenders={selectedSenders}
+            onDeleteSenders={handleDeleteSenders}
+            isDeleting={isDeleting}
+          />
         )}
       </div>
 
@@ -199,28 +191,6 @@ const SenderList = ({
           </TableBody>
         </Table>
       </div>
-
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete {selectedSenders.length} sender(s) and all their newsletters.
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteSenders}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
