@@ -11,7 +11,7 @@ interface SenderTableRowsProps {
   effectiveUpdatingCategory: string | null;
   effectiveUpdatingBrand: string | null;
   getBrandInputValue: (sender: NewsletterSenderStats) => string;
-  onCategoryChange: (senderEmail: string, categoryId: string) => void;
+  onCategoryChange: (senderEmail: string, categoryId: string) => Promise<void>;
   onBrandUpdate: (senderEmail: string, brandName: string) => Promise<void>;
   onToggleSelect?: (senderEmail: string) => void;
 }
