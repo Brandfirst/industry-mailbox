@@ -9,6 +9,7 @@ import { InfoIcon } from "lucide-react";
 import { ScheduledSyncSettings } from "./newsletter-sync/ScheduledSyncSettings";
 import { toast } from "sonner";
 import { getNewslettersFromEmailAccount } from "@/lib/supabase";
+import { sanitizeNewsletterContent } from "@/lib/utils/content-sanitization";
 
 export default function NewsletterSync() {
   const { user } = useAuth();
@@ -62,7 +63,16 @@ export default function NewsletterSync() {
       );
       
       if (data) {
-        setNewsletters(data);
+        // Process the content for each newsletter to ensure proper display
+        const processedNewsletters = data.map(newsletter => {
+          if (newsletter.content) {
+            // Apply sanitization to the content
+            newsletter.content = sanitizeNewsletterContent(newsletter.content);
+          }
+          return newsletter;
+        });
+        
+        setNewsletters(processedNewsletters);
         setTotalCount(total || 0);
         toast.success("Emails updated successfully");
       } else {

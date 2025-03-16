@@ -7,6 +7,7 @@ import {
   getNewslettersFromEmailAccount
 } from "@/lib/supabase";
 import { FiltersState } from "../FilterToolbar";
+import { sanitizeNewsletterContent } from "@/lib/utils/content-sanitization";
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -94,7 +95,16 @@ export function useNewsletterFetching(
           setNewsletters([]);
           setTotalCount(0);
         } else {
-          setNewsletters(data || []);
+          // Process and sanitize the newsletter content before setting it
+          const processedNewsletters = data ? data.map(newsletter => {
+            if (newsletter.content) {
+              // Apply content sanitization to ensure proper display
+              newsletter.content = sanitizeNewsletterContent(newsletter.content);
+            }
+            return newsletter;
+          }) : [];
+          
+          setNewsletters(processedNewsletters);
           setTotalCount(total || 0);
           
           // Add a warning message if no newsletters found
