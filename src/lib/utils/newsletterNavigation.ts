@@ -43,14 +43,30 @@ export const getSenderPath = (senderName: string): string => {
   
   console.log("Creating path for sender:", senderName);
   
-  // If it's an email address, create a slug from it
-  if (senderName.includes('@')) {
-    const slug = `/sender/${senderName.toLowerCase().replace('@', '-').replace(/\./g, '')}`;
+  // Extract the name part before any email part in angle brackets
+  let cleanSenderName = senderName;
+  if (senderName.includes('<') && senderName.includes('>')) {
+    // Extract just the name part before the email
+    cleanSenderName = senderName.split('<')[0].trim();
+    console.log("Extracted name part:", cleanSenderName);
+  }
+  
+  // If it's an email address (either standalone or extracted from angle brackets)
+  const emailPattern = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
+  const emailMatch = senderName.match(emailPattern);
+  
+  if (emailMatch) {
+    const email = emailMatch[0];
+    const slug = `/sender/${email.toLowerCase().replace('@', '-').replace(/\./g, '')}`;
     console.log("Email sender path:", slug);
     return slug;
   }
   
-  const senderSlug = senderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  // Process the cleaned sender name for a regular name slug
+  const senderSlug = cleanSenderName.toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+  
   const path = `/sender/${senderSlug}`;
   console.log("Named sender path:", path);
   return path;

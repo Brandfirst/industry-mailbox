@@ -51,17 +51,45 @@ const SenderNewsletters = () => {
   useEffect(() => {
     if (!senderSlug || !senderBrands.length) return;
     
-    // Try to find the sender that matches the slug
-    const matchedSender = senderBrands.find(brand => {
-      const brandSlug = brand.sender_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      return brandSlug === senderSlug;
+    console.log("Finding sender with slug:", senderSlug);
+    console.log("Available senders:", senderBrands.map(b => b.sender_name));
+    
+    // Try to match the slug to a sender from senderBrands array
+    // Check in different ways to increase chance of matching
+    let matchedSender = null;
+    
+    // Method 1: Check if slug matches email-based slug pattern
+    const emailBasedSenderMatch = senderBrands.find(brand => {
+      if (brand.sender_email) {
+        const emailSlug = brand.sender_email.toLowerCase().replace('@', '-').replace(/\./g, '');
+        return senderSlug === emailSlug;
+      }
+      return false;
     });
+    
+    if (emailBasedSenderMatch) {
+      console.log("Found email-based sender match:", emailBasedSenderMatch.sender_name);
+      matchedSender = emailBasedSenderMatch;
+    } else {
+      // Method 2: Check if slug matches name-based slug pattern
+      matchedSender = senderBrands.find(brand => {
+        const brandSlug = brand.sender_name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        return brandSlug === senderSlug;
+      });
+      
+      if (matchedSender) {
+        console.log("Found name-based sender match:", matchedSender.sender_name);
+      } else {
+        console.log("No sender match found for slug:", senderSlug);
+      }
+    }
     
     if (matchedSender) {
       setSelectedBrands([matchedSender.sender_email]);
       applyFilters();
     } else {
       // If no sender matches, redirect to search
+      console.log("No sender found for slug, redirecting to search");
       navigate('/search');
     }
   }, [senderSlug, senderBrands, setSelectedBrands, applyFilters, navigate]);
