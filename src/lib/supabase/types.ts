@@ -16,6 +16,7 @@ export interface Newsletter {
   category_id?: number;
   gmail_message_id?: string;
   gmail_thread_id?: string;
+  brand_name?: string;
 }
 
 export interface EmailAccount {
