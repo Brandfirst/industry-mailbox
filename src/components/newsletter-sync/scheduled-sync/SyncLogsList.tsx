@@ -1,9 +1,17 @@
 
 import React from "react";
+import { 
+  LogsHeader, 
+  LogsContainer, 
+  LogsContent, 
+  LogsTableHeader, 
+  AccountNotice 
+} from "./components";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
-import { LogsHeader, LogsContainer } from "./components";
-import { useRealtimeSync } from "./hooks/useRealtimeSync";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SyncLogItem } from "./SyncLogItem";
 import { useLogsFetching } from "./hooks/useLogsFetching";
+import { useRealtimeSync } from "./hooks/useRealtimeSync";
 
 type SyncLogsListProps = {
   showLogs: boolean;
@@ -16,40 +24,83 @@ type SyncLogsListProps = {
   setSyncLogs: React.Dispatch<React.SetStateAction<SyncLogEntry[]>>;
 };
 
-export function SyncLogsList({
-  showLogs,
-  setShowLogs,
-  isLoading,
-  syncLogs,
-  selectedAccount,
-  fetchSyncLogs,
+export function SyncLogsList({ 
+  showLogs, 
+  setShowLogs, 
+  isLoading, 
+  syncLogs, 
+  selectedAccount, 
+  fetchSyncLogs, 
   formatTimestamp,
   setSyncLogs
 }: SyncLogsListProps) {
-  // Use custom hooks for better organization
-  const realtimeChannelRef = useRealtimeSync(selectedAccount, showLogs, setSyncLogs);
-  const { isRefreshing, handleRefresh } = useLogsFetching(selectedAccount, showLogs, fetchSyncLogs);
   
-  if (!selectedAccount) return null;
+  // Set up logs fetching
+  const { isRefreshing, handleRefresh } = useLogsFetching(
+    selectedAccount,
+    showLogs,
+    fetchSyncLogs
+  );
+  
+  // Set up real-time subscription for sync logs
+  const channelRef = useRealtimeSync(
+    selectedAccount,
+    showLogs,
+    setSyncLogs
+  );
+  
+  // For enhanced debug logging
+  React.useEffect(() => {
+    if (syncLogs.length > 0) {
+      console.log("Logs with account info:", syncLogs);
+    }
+  }, [syncLogs]);
+  
+  const handleToggleLogs = () => {
+    if (!showLogs && !isLoading) {
+      // Fetch logs when showing them
+      fetchSyncLogs();
+    }
+    setShowLogs(!showLogs);
+  };
   
   return (
     <div className="mt-6">
       <LogsHeader 
         showLogs={showLogs} 
-        setShowLogs={setShowLogs} 
-        selectedAccount={selectedAccount}
-        fetchSyncLogs={fetchSyncLogs}
-        isLoading={isLoading}
-        isRefreshing={isRefreshing}
-        onRefresh={handleRefresh}
+        onToggle={handleToggleLogs} 
+        onRefresh={handleRefresh} 
+        isRefreshing={isRefreshing} 
       />
       
       {showLogs && (
-        <LogsContainer
-          isLoading={isLoading}
-          syncLogs={syncLogs}
-          formatTimestamp={formatTimestamp}
-        />
+        <LogsContainer>
+          {!selectedAccount ? (
+            <AccountNotice />
+          ) : isLoading ? (
+            <div className="space-y-2 py-4">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : syncLogs.length === 0 ? (
+            <LogsContent>No sync logs found for this account</LogsContent>
+          ) : (
+            <div className="overflow-x-auto">
+              <LogsTableHeader />
+              <div className="max-h-96 overflow-y-auto">
+                {syncLogs.map((log, index) => (
+                  <SyncLogItem 
+                    key={log.id} 
+                    log={log} 
+                    formatTimestamp={formatTimestamp}
+                    itemNumber={index + 1}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </LogsContainer>
       )}
     </div>
   );

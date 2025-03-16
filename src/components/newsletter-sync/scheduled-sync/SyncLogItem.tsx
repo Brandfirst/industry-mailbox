@@ -36,6 +36,11 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
   // Schedule details if it's a scheduled log
   const scheduleDetails = log.status === 'scheduled' && log.details;
   
+  // Ensure the account email is available for the DetailedSyncInfo component
+  if (log.details && !log.details.accountEmail && log.account?.email) {
+    log.details.accountEmail = log.account.email;
+  }
+  
   return (
     <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
       <div className="grid grid-cols-[5%_25%_18%_17%_35%] w-full">
