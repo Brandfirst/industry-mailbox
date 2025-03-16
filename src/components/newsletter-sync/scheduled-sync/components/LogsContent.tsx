@@ -32,6 +32,11 @@ export function LogsContent({
                 }
               });
               
+              // Use new_senders_count from details if available, otherwise use calculated count
+              const sendersCount = log.details?.new_senders_count !== undefined 
+                ? log.details.new_senders_count 
+                : uniqueSenders.size;
+              
               return (
                 <tr key={log.id}>
                   <td>{index + 1}</td>
@@ -39,7 +44,7 @@ export function LogsContent({
                   <td>{log.status}</td>
                   <td>{log.sync_type || 'manual'}</td>
                   <td>{log.message_count || 0}</td>
-                  <td>{uniqueSenders.size}</td>
+                  <td>{sendersCount}</td>
                   <td>{log.error_message || 'Success'}</td>
                 </tr>
               );

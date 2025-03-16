@@ -47,8 +47,10 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
     }
   });
   
-  // Total unique senders count from this particular sync
-  const uniqueSendersCount = uniqueSenders.size;
+  // Get unique senders count from details if available, otherwise use the calculated one
+  const uniqueSendersCount = log.details?.new_senders_count !== undefined 
+    ? log.details.new_senders_count 
+    : uniqueSenders.size;
   
   // Ensure the account email is available for the DetailedSyncInfo component
   if (log.details && !log.details.accountEmail && log.account?.email) {
