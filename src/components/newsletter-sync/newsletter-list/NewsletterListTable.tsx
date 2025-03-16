@@ -19,7 +19,7 @@ type NewsletterListTableProps = {
   categories: NewsletterCategory[];
   senderGroups: Record<string, Newsletter[]>;
   isSelected: (id: number) => boolean;
-  onToggleSelectAll: () => void;
+  onToggleSelectAll: (newsletters: Newsletter[]) => void;
   onToggleSelectNewsletter: (id: number) => void;
   allSelected: boolean;
 };
@@ -48,7 +48,7 @@ export function NewsletterListTable({
             <TableHead className="w-[50px]">
               <Checkbox 
                 checked={allSelected} 
-                onCheckedChange={onToggleSelectAll}
+                onCheckedChange={() => onToggleSelectAll(newsletters)}
               />
             </TableHead>
             <TableHead className="w-[60px] text-center">#</TableHead>
@@ -84,7 +84,6 @@ export function NewsletterListTable({
             newsletters.map((newsletter, index) => (
               <TableRow 
                 key={newsletter.id}
-                isSelected={isSelected(newsletter.id)}
                 className={isSelected(newsletter.id) ? "bg-primary/5" : ""}
               >
                 <TableCell>

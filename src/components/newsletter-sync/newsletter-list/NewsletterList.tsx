@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { NewsletterListTable } from "./NewsletterListTable";
 import { DeleteConfirmationDialog } from "../DeleteConfirmationDialog";
@@ -51,6 +52,18 @@ export function NewsletterList({
 
   const isSelected = (id: number) => selectedIds.includes(id);
 
+  const handleToggleSelectAll = (newsletters: Newsletter[]) => {
+    if (onSelectAll) {
+      onSelectAll(newsletters);
+    }
+  };
+
+  const handleToggleSelectNewsletter = (id: number) => {
+    if (onSelectNewsletter) {
+      onSelectNewsletter(id);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {onDeleteNewsletters && (
@@ -66,8 +79,8 @@ export function NewsletterList({
         categories={categories}
         senderGroups={senderGroups}
         isSelected={isSelected}
-        onToggleSelectAll={onSelectAll}
-        onToggleSelectNewsletter={onSelectNewsletter}
+        onToggleSelectAll={handleToggleSelectAll}
+        onToggleSelectNewsletter={handleToggleSelectNewsletter}
         allSelected={allSelected}
       />
       
@@ -83,5 +96,3 @@ export function NewsletterList({
     </div>
   );
 }
-
-import { useState } from "react";
