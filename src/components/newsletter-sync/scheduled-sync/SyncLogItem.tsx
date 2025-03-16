@@ -38,13 +38,13 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
   
   return (
     <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
-      <div className="grid grid-cols-[5%_25%_18%_17%_35%] gap-2 w-full items-start">
-        <div className="font-medium">{itemNumber}</div>
-        <div className="flex flex-col">
+      <div className="grid grid-cols-[5%_25%_18%_17%_35%] gap-2 w-full items-center">
+        <div className="font-medium flex items-center">{itemNumber}</div>
+        <div className="flex flex-col justify-center">
           <span>{formatTimestamp(log.timestamp)}</span>
           <span className="text-xs text-muted-foreground">{relativeTime}</span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col justify-center">
           <div className="flex items-center gap-1">
             <StatusBadge status={log.status} />
             
@@ -69,7 +69,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
             {syncType === 'manual' ? 'Manual sync' : 'Scheduled'}
           </div>
         </div>
-        <div>
+        <div className="flex items-center">
           {log.status !== 'scheduled' ? (
             <span>
               {totalEmails} email{totalEmails !== 1 ? 's' : ''}
@@ -81,7 +81,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
             />
           )}
         </div>
-        <div>
+        <div className="flex items-center">
           <StatusMessage log={log} />
         </div>
       </div>
@@ -92,7 +92,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
           <div></div>
           <div></div>
           <div></div>
-          <div>{newSenders} new sender{newSenders !== 1 ? 's' : ''}</div>
+          <div className="flex items-center">{newSenders} new sender{newSenders !== 1 ? 's' : ''}</div>
           <div></div>
         </div>
       )}
