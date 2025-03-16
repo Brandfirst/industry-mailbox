@@ -15,10 +15,13 @@ const SenderNewsletters = () => {
   
   // Add light mode class
   useEffect(() => {
+    // Add both classes to ensure proper styling
     document.body.classList.add('light-mode');
+    document.documentElement.classList.add('light');
     
     return () => {
       document.body.classList.remove('light-mode');
+      document.documentElement.classList.remove('light');
     };
   }, []);
   

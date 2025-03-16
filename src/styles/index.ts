@@ -15,5 +15,8 @@ import './keyframes.css';
 import './animations-utils.css';
 import './mobile.css';
 import './layout.css';
+import './light-mode.css';
+import './dark-mode.css';
+import './global-colors.css';
 
 export {};
