@@ -23,16 +23,25 @@ export function SyncedEmailsDialog({
   syncedEmails,
   title = "Synced Emails"
 }: SyncedEmailsDialogProps) {
-  const emailCount = syncedEmails?.length || 0;
+  // Ensure we have a valid array of emails
+  const emails = Array.isArray(syncedEmails) ? syncedEmails : [];
+  const emailCount = emails.length;
   
-  // Enhanced debug to check if we're actually opening the dialog
+  // Detailed debug logging for every render of this component
   React.useEffect(() => {
     if (isOpen) {
-      console.log("SyncedEmailsDialog opened with", emailCount, "emails", syncedEmails);
+      console.log("SyncedEmailsDialog opened");
+      console.log("Email count:", emailCount);
+      console.log("Synced emails data:", emails);
+      
+      // Check if the syncedEmails are in the expected format
+      if (emailCount > 0) {
+        console.log("First email sample:", emails[0]);
+      }
     }
-  }, [isOpen, emailCount, syncedEmails]);
+  }, [isOpen, emailCount, emails]);
   
-  // Since we're having issues with the dialog, let's add more debugging
+  // Improved dialog open state handling
   const handleOpenChange = (open: boolean) => {
     console.log("Dialog open state changing to:", open);
     onOpenChange(open);
@@ -51,7 +60,7 @@ export function SyncedEmailsDialog({
         </DialogDescription>
         
         <div className="mt-2 max-h-[60vh] overflow-y-auto pr-2">
-          <SyncedEmailsSection syncedEmails={syncedEmails} />
+          <SyncedEmailsSection syncedEmails={emails} />
           
           {emailCount === 0 && (
             <div className="py-4 text-center text-muted-foreground">

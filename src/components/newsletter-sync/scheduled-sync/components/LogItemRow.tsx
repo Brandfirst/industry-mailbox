@@ -26,8 +26,11 @@ export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: Log
   const totalEmails = log.message_count || 0;
   const syncType = log.sync_type || 'manual';
   
-  // Get synced emails and unique senders
+  // Make sure we handle the synced emails correctly
+  // This is important for the EmailsColumn and SyncedEmailsDialog
   const syncedEmails = log.details?.synced || [];
+  
+  // Process all sender information
   const uniqueSenders = new Set<string>();
   const sendersList: string[] = [];
   
