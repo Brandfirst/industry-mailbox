@@ -81,20 +81,28 @@ Deno.serve(async (req) => {
         console.log(`Scheduling sync for account ${account.id} (${account.email})`);
         accountsToSync.push(account.id);
         
-        // Log the scheduled sync attempt
-        await supabase.rpc('add_sync_log', {
-          account_id_param: account.id,
-          status_param: 'processing',
-          message_count_param: 0,
-          details_param: { attempt_time: now.toISOString() },
-          sync_type_param: 'scheduled'
-        });
+        // Log the scheduled sync attempt with explicit sync_type
+        try {
+          await supabase.rpc('add_sync_log', {
+            account_id_param: account.id,
+            status_param: 'processing',
+            message_count_param: 0,
+            error_message_param: null,
+            details_param: { attempt_time: now.toISOString() },
+            sync_type_param: 'scheduled'
+          });
+          console.log(`Created processing log entry for account ${account.id}`);
+        } catch (logError) {
+          console.error(`Error creating log entry for account ${account.id}:`, logError);
+        }
       }
     }
     
     // Trigger sync for each account that needs it
     const syncPromises = accountsToSync.map(async (accountId) => {
       try {
+        console.log(`Triggering sync for account ${accountId}`);
+        
         // Call the sync-emails function for this account
         const syncResponse = await supabase.functions.invoke('sync-emails', {
           body: { 
@@ -108,6 +116,21 @@ Deno.serve(async (req) => {
         return { accountId, success: true, response: syncResponse };
       } catch (error) {
         console.error(`Error syncing account ${accountId}:`, error);
+        
+        // Create failure log entry if the sync function call failed
+        try {
+          await supabase.rpc('add_sync_log', {
+            account_id_param: accountId,
+            status_param: 'failed',
+            message_count_param: 0,
+            error_message_param: `Failed to invoke sync function: ${error.message || String(error)}`,
+            details_param: null,
+            sync_type_param: 'scheduled'
+          });
+        } catch (logError) {
+          console.error(`Error creating failure log for account ${accountId}:`, logError);
+        }
+        
         return { accountId, success: false, error };
       }
     });

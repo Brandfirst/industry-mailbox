@@ -19,6 +19,8 @@ export async function getSyncLogs(accountId: string, limit: number = 20): Promis
       return [];
     }
     
+    console.log("Raw sync logs data:", data);
+    
     // Ensure data is an array before mapping
     if (!Array.isArray(data)) {
       console.error("Unexpected data format from get_account_sync_logs:", data);

@@ -29,6 +29,7 @@ export function SyncLogsList({
   // Force fetch logs when component mounts if logs should be shown
   useEffect(() => {
     if (selectedAccount && showLogs) {
+      console.log("SyncLogsList: Fetching logs on mount/account change");
       fetchSyncLogs();
     }
   }, [selectedAccount, showLogs, fetchSyncLogs]);
@@ -42,6 +43,7 @@ export function SyncLogsList({
         setShowLogs={setShowLogs} 
         selectedAccount={selectedAccount}
         fetchSyncLogs={fetchSyncLogs}
+        isLoading={isLoading}
       />
       
       {showLogs && (

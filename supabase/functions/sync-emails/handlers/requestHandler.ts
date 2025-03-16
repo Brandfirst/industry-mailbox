@@ -28,9 +28,7 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
       return createErrorResponse('No account ID provided');
     }
     
-    if (verbose) {
-      console.log(`Starting ${scheduled ? 'scheduled' : 'manual'} sync for account ${accountId} with debug=${debug}, verbose=${verbose}, import_all_emails=${import_all_emails}`);
-    }
+    console.log(`Starting ${scheduled ? 'scheduled' : 'manual'} sync for account ${accountId} with debug=${debug}, verbose=${verbose}, import_all_emails=${import_all_emails}`);
     
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -40,6 +38,23 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
     // Get and validate email account
     const accountResult = await handleEmailAccount(supabase, accountId, verbose);
     if (!accountResult.success) {
+      // Create a failure log entry for scheduled syncs
+      if (scheduled) {
+        try {
+          await supabase.rpc('add_sync_log', {
+            account_id_param: accountId,
+            status_param: 'failed',
+            message_count_param: 0,
+            error_message_param: accountResult.error,
+            details_param: null,
+            sync_type_param: 'scheduled'
+          });
+          console.log(`Created failure log entry for scheduled sync of account ${accountId}`);
+        } catch (logError) {
+          console.error(`Error creating log entry for account ${accountId}:`, logError);
+        }
+      }
+      
       return createErrorResponse(accountResult.error);
     }
     
@@ -61,9 +76,7 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
         verbose
       );
       
-      if (verbose) {
-        console.log(`Fetched ${result.length} emails from Gmail API for ${accountData.email}`);
-      }
+      console.log(`Fetched ${result.length} emails from Gmail API for ${accountData.email}`);
       
       // Process and save emails
       const { synced, failed, uniqueSenders } = await processEmails(
@@ -75,6 +88,28 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
       
       // Determine partial success
       const partial = failed.length > 0 && synced.length > 0;
+      
+      // Create appropriate log entry for scheduled syncs
+      if (scheduled) {
+        try {
+          await supabase.rpc('add_sync_log', {
+            account_id_param: accountId,
+            status_param: partial ? 'partial' : (synced.length > 0 ? 'success' : 'failed'),
+            message_count_param: synced.length,
+            error_message_param: partial ? 'Some emails failed to sync' : null,
+            details_param: {
+              total_emails: result.length,
+              synced_count: synced.length,
+              failed_count: failed.length,
+              new_senders_count: uniqueSenders.size
+            },
+            sync_type_param: 'scheduled'
+          });
+          console.log(`Created completion log entry for scheduled sync of account ${accountId}`);
+        } catch (logError) {
+          console.error(`Error creating log entry for account ${accountId}:`, logError);
+        }
+      }
       
       // Return success response
       return createSuccessResponse({
@@ -103,6 +138,23 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
       
     } catch (error) {
       console.error('Error fetching or processing emails:', error);
+      
+      // Create failure log entry for scheduled syncs
+      if (scheduled) {
+        try {
+          await supabase.rpc('add_sync_log', {
+            account_id_param: accountId,
+            status_param: 'failed',
+            message_count_param: 0,
+            error_message_param: `Error processing emails: ${error.message || String(error)}`,
+            details_param: null,
+            sync_type_param: 'scheduled'
+          });
+          console.log(`Created failure log entry for scheduled sync of account ${accountId}`);
+        } catch (logError) {
+          console.error(`Error creating log entry for account ${accountId}:`, logError);
+        }
+      }
       
       // Check if this is an authentication error
       const isAuthError = error.message.includes('authentication') || 
