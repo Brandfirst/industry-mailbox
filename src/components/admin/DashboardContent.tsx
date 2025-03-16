@@ -1,10 +1,13 @@
+
 import { Button } from "@/components/ui/button";
 import { Inbox, PlusCircle, Users, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminStats from "@/components/AdminStats";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Newsletter } from "@/lib/supabase/types";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface DashboardContentProps {
   setActiveTab: (tab: string) => void;
@@ -13,15 +16,39 @@ interface DashboardContentProps {
 
 const DashboardContent = ({ setActiveTab, emailConnectionKey }: DashboardContentProps) => {
   const navigate = useNavigate();
+  const [recentNewsletters, setRecentNewsletters] = useState<Newsletter[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Mock newsletter data for admin view
-  const recentNewsletters = [
-    { id: "1", title: "Startup Funding Trends Q3", sender: "VentureBeat", category: "Business", date: "2 hours ago" },
-    { id: "2", title: "AI Weekly Roundup", sender: "TechCrunch", category: "Technology", date: "5 hours ago" },
-    { id: "3", title: "Design Systems at Scale", sender: "UX Collective", category: "Design", date: "1 day ago" },
-    { id: "4", title: "Healthcare Policy Updates", sender: "MedicalDaily", category: "Healthcare", date: "1 day ago" },
-    { id: "5", title: "Crypto Market Analysis", sender: "CoinDesk", category: "Finance", date: "2 days ago" },
-  ];
+  // Fetch recent newsletters
+  useEffect(() => {
+    const fetchRecentNewsletters = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('newsletters')
+          .select('*, categories:category_id(*)')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (error) {
+          console.error("Error fetching recent newsletters:", error);
+        } else {
+          setRecentNewsletters(data || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch newsletters:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchRecentNewsletters();
+  }, []);
+
+  // Format date for display
+  const formatDate = (date: string) => {
+    return formatDistanceToNow(new Date(date), { addSuffix: true });
+  };
 
   // Import the EmailConnection component
   // We need to use dynamic import to avoid circular dependency issues
@@ -57,21 +84,42 @@ const DashboardContent = ({ setActiveTab, emailConnectionKey }: DashboardContent
         </div>
         
         <div className="divide-y divide-border">
-          {recentNewsletters.map(newsletter => (
-            <div key={newsletter.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="font-medium text-card-foreground">{newsletter.title}</h3>
-                <div className="flex items-center flex-wrap text-sm text-muted-foreground">
-                  <span>{newsletter.sender}</span>
-                  <span className="mx-2 hidden sm:inline">•</span>
-                  <span>{newsletter.category}</span>
+          {isLoading ? (
+            // Loading skeleton
+            Array(5).fill(0).map((_, index) => (
+              <div key={`skeleton-${index}`} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between animate-pulse">
+                <div className="w-full">
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
+                </div>
+                <div className="h-3 bg-muted rounded w-16 mt-1 sm:mt-0"></div>
+              </div>
+            ))
+          ) : recentNewsletters.length > 0 ? (
+            recentNewsletters.map(newsletter => (
+              <div key={newsletter.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="font-medium text-card-foreground">{newsletter.title || "Untitled Newsletter"}</h3>
+                  <div className="flex items-center flex-wrap text-sm text-muted-foreground">
+                    <span>{newsletter.sender || "Unknown Sender"}</span>
+                    {newsletter.categories && (
+                      <>
+                        <span className="mx-2 hidden sm:inline">•</span>
+                        <span>{newsletter.categories.name || "Uncategorized"}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1 sm:mt-0">
+                  {formatDate(newsletter.created_at)}
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground mt-1 sm:mt-0">
-                {newsletter.date}
-              </div>
+            ))
+          ) : (
+            <div className="py-6 text-center text-muted-foreground">
+              No newsletters found. Add some by connecting an email account.
             </div>
-          ))}
+          )}
         </div>
       </div>
       
