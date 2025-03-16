@@ -49,7 +49,7 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={`w-full justify-start text-left font-normal ${
+            className={`w-full justify-start text-left font-normal bg-white rounded-lg ${
               hasDateSelected ? "" : "text-muted-foreground"
             }`}
           >
@@ -65,7 +65,7 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 bg-white" align="start">
           <div className="p-4 space-y-4">
             <Calendar
               mode="range"
@@ -88,6 +88,7 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
                 selected: "bg-primary text-primary-foreground",
                 today: "bg-accent text-accent-foreground"
               }}
+              className="pointer-events-auto"
             />
             
             <div className="flex gap-2">
@@ -95,7 +96,7 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
                 variant="outline"
                 size="sm"
                 onClick={handleClear}
-                className="flex-1"
+                className="flex-1 bg-white"
               >
                 <X className="h-4 w-4 mr-1" />
                 Nullstill
@@ -103,7 +104,7 @@ const DateRangePicker = ({ dateRange, setDateRange }: DateRangePickerProps) => {
               <Button
                 size="sm"
                 onClick={handleApply}
-                className="flex-1"
+                className="flex-1 bg-[#FF5722] hover:bg-orange-600 text-white"
               >
                 Bruk datoer
               </Button>
