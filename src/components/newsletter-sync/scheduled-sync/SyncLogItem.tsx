@@ -19,9 +19,10 @@ import {
 type SyncLogItemProps = {
   log: SyncLogEntry;
   formatTimestamp: (timestamp: string) => string;
+  itemNumber: number;
 };
 
-export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
+export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   // Format relative time
@@ -37,7 +38,8 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   
   return (
     <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
-      <div className="grid grid-cols-[25%_20%_20%_35%] gap-2 w-full items-center">
+      <div className="grid grid-cols-[5%_25%_18%_17%_35%] gap-2 w-full items-center">
+        <div className="font-medium">{itemNumber}</div>
         <div className="flex flex-col">
           <span>{formatTimestamp(log.timestamp)}</span>
           <span className="text-xs text-muted-foreground">{relativeTime}</span>
@@ -83,7 +85,8 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
       
       {/* Additional metrics row */}
       {log.status === "success" && newSenders > 0 && (
-        <div className="grid grid-cols-[25%_20%_20%_35%] gap-2 mt-1 text-muted-foreground">
+        <div className="grid grid-cols-[5%_25%_18%_17%_35%] gap-2 mt-1 text-muted-foreground">
+          <div></div>
           <div></div>
           <div></div>
           <div>{newSenders} new sender{newSenders !== 1 ? 's' : ''}</div>

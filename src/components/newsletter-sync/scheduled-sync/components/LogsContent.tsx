@@ -11,11 +11,12 @@ type LogsContentProps = {
 export function LogsContent({ syncLogs, formatTimestamp }: LogsContentProps) {
   return (
     <div className="divide-y divide-border">
-      {syncLogs.map((log) => (
+      {syncLogs.map((log, index) => (
         <SyncLogItem 
           key={log.id} 
           log={log} 
-          formatTimestamp={formatTimestamp} 
+          formatTimestamp={formatTimestamp}
+          itemNumber={index + 1}
         />
       ))}
     </div>
