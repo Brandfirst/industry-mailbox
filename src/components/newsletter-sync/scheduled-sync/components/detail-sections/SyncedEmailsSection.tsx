@@ -27,12 +27,6 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
     <div className="mt-2 pt-2 border-t border-gray-100">
       <div className="flex items-center mb-1">
         <div className="text-gray-600">Synced Emails ({syncedEmails.length}):</div>
-        <Alert variant="default" className="ml-2 p-1 py-0 bg-blue-50/10 border-blue-200">
-          <InfoIcon className="h-3 w-3 text-blue-500 mr-1" />
-          <AlertDescription className="text-xs text-blue-700">
-            Sync logs contain limited email details
-          </AlertDescription>
-        </Alert>
       </div>
       <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
         {displayedEmails.map((email: any, index: number) => (
@@ -47,13 +41,15 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
                 newsletter={{
                   id: email.id || `temp-${index}`,
                   title: email.title || email.subject || 'No subject',
-                  sender: email.sender || email.sender_email || 'Unknown',
+                  sender: email.sender || 'Unknown',
                   sender_email: email.sender_email || email.sender || 'Unknown',
-                  content: email.content || '',
+                  content: email.content || null,
                   published_at: email.date || new Date().toISOString(),
                   industry: email.industry || '',
                   preview: email.preview || email.subject || '',
                   created_at: email.created_at || new Date().toISOString(),
+                  gmail_message_id: email.gmail_message_id || '',
+                  email_id: email.email_id || ''
                 }}
               />
             </div>
