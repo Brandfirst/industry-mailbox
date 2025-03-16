@@ -93,6 +93,14 @@ export const useSearchNewsletters = () => {
         const fromDate = dateRange.from ? dateRange.from.toISOString() : undefined;
         const toDate = dateRange.to ? dateRange.to.toISOString() : undefined;
         
+        // Special handling for last30emails
+        let limit = ITEMS_PER_PAGE;
+        if (selectedBrands.length === 1 && !fromDate && !toDate) {
+          // If we're looking at a specific sender with no date range specified,
+          // we might want to apply the last30emails filter logic
+          limit = 30; // Override limit for last30emails
+        }
+        
         const result = await searchNewsletters({
           searchQuery,
           categoryId: selectedCategory !== 'all' ? selectedCategory : undefined,
@@ -100,7 +108,7 @@ export const useSearchNewsletters = () => {
           fromDate,
           toDate,
           page,
-          limit: ITEMS_PER_PAGE
+          limit
         });
         
         if (page === 1) {
@@ -109,7 +117,7 @@ export const useSearchNewsletters = () => {
           setNewsletters(prev => [...prev, ...(result.data || [])]);
         }
         
-        setHasMore(result.count ? result.count > page * ITEMS_PER_PAGE : false);
+        setHasMore(result.count ? result.count > page * limit : false);
       } catch (error) {
         console.error('Error fetching newsletters:', error);
       } finally {

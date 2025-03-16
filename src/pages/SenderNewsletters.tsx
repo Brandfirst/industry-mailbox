@@ -20,6 +20,7 @@ const SenderNewsletters = () => {
     isFollowing,
     isMobileFiltersOpen,
     isDesktopFiltersOpen,
+    timePeriod,
     setSearchQuery,
     setSelectedCategory,
     handleCategoryChange,
@@ -31,7 +32,8 @@ const SenderNewsletters = () => {
     handleLoadMore,
     handleNewsletterClick,
     handleFollow,
-    handleSenderSearch
+    handleSenderSearch,
+    handlePeriodChange
   } = useSenderNewsletters();
 
   // Create a wrapper function that handles the string input
@@ -51,6 +53,8 @@ const SenderNewsletters = () => {
       <SenderSearch 
         senderName={senderName}
         onSearch={onSearch}
+        onPeriodChange={handlePeriodChange}
+        selectedPeriod={timePeriod}
       />
       
       <SenderContent 

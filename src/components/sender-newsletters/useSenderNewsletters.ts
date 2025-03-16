@@ -1,8 +1,9 @@
-
 import { useState, useEffect, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSearchNewsletters } from '@/components/search/useSearchNewsletters';
 import { toast } from 'sonner';
+import { TimePeriodOption } from '@/components/search/filters/TimePeriodFilter';
+import { subDays, subYears, startOfYear, endOfYear } from 'date-fns';
 
 export const useSenderNewsletters = () => {
   const { senderSlug } = useParams<{ senderSlug: string }>();
@@ -10,6 +11,7 @@ export const useSenderNewsletters = () => {
   const [isDesktopFiltersOpen, setIsDesktopFiltersOpen] = useState(false); // False to hide filters by default
   const [isFollowing, setIsFollowing] = useState(false);
   const [senderSearchQuery, setSenderSearchQuery] = useState('');
+  const [timePeriod, setTimePeriod] = useState<TimePeriodOption>('all');
   const navigate = useNavigate();
   
   // Add light mode class
@@ -125,6 +127,52 @@ export const useSenderNewsletters = () => {
     originalHandleSearch(syntheticEvent);
   };
 
+  // Handle time period filter changes
+  const handlePeriodChange = (period: TimePeriodOption) => {
+    setTimePeriod(period);
+    
+    const now = new Date();
+    let fromDate: Date | undefined = undefined;
+    let toDate: Date | undefined = undefined;
+    
+    switch (period) {
+      case 'last30days':
+        fromDate = subDays(now, 30);
+        toDate = now;
+        break;
+      case 'lastyear':
+        fromDate = subYears(now, 1);
+        toDate = now;
+        break;
+      case '2025':
+        fromDate = startOfYear(new Date(2025, 0, 1));
+        toDate = endOfYear(new Date(2025, 0, 1));
+        break;
+      case '2024':
+        fromDate = startOfYear(new Date(2024, 0, 1));
+        toDate = endOfYear(new Date(2024, 0, 1));
+        break;
+      case '2023':
+        fromDate = startOfYear(new Date(2023, 0, 1));
+        toDate = endOfYear(new Date(2023, 0, 1));
+        break;
+      case '2022':
+        fromDate = startOfYear(new Date(2022, 0, 1));
+        toDate = endOfYear(new Date(2022, 0, 1));
+        break;
+      case 'last30emails':
+        // This will be handled differently since it's not date-based
+        // We'll keep dates undefined and handle this case in the fetch logic
+        break;
+      default:
+        // For 'all', clear the date range
+        break;
+    }
+    
+    setDateRange({ from: fromDate, to: toDate });
+    applyFilters();
+  };
+
   return {
     senderName,
     newsletters,
@@ -139,6 +187,7 @@ export const useSenderNewsletters = () => {
     isFollowing,
     isMobileFiltersOpen,
     isDesktopFiltersOpen,
+    timePeriod,
     setSearchQuery,
     setSelectedCategory,
     handleCategoryChange,
@@ -150,6 +199,7 @@ export const useSenderNewsletters = () => {
     handleLoadMore,
     handleNewsletterClick,
     handleFollow,
-    handleSenderSearch
+    handleSenderSearch,
+    handlePeriodChange
   };
 };
