@@ -8,43 +8,38 @@ import React from 'react';
 
 // Mock the UI components that are imported from shadcn
 jest.mock('@/components/ui/table', () => ({
-  Table: ({ children, className }: { children: React.ReactNode, className?: string }) => (
-    <div data-testid="table" className={className}>{children}</div>
+  Table: (props) => (
+    <div data-testid="table" className={props.className}>{props.children}</div>
   ),
-  TableHeader: ({ children, className }: { children: React.ReactNode, className?: string }) => (
-    <div data-testid="table-header" className={className}>{children}</div>
+  TableHeader: (props) => (
+    <div data-testid="table-header" className={props.className}>{props.children}</div>
   ),
-  TableBody: ({ children, className }: { children: React.ReactNode, className?: string }) => (
-    <div data-testid="table-body" className={className}>{children}</div>
+  TableBody: (props) => (
+    <div data-testid="table-body" className={props.className}>{props.children}</div>
   ),
-  TableHead: ({ children, className }: { children: React.ReactNode, className?: string }) => (
-    <div data-testid="table-head" className={className}>{children}</div>
+  TableHead: (props) => (
+    <div data-testid="table-head" className={props.className}>{props.children}</div>
   ),
-  TableRow: ({ children, className, isSelected, isHighlighted }: { 
-    children: React.ReactNode, 
-    className?: string,
-    isSelected?: boolean,
-    isHighlighted?: boolean
-  }) => (
+  TableRow: (props) => (
     <div 
       data-testid="table-row" 
-      className={className}
-      data-selected={isSelected ? 'true' : 'false'}
-      data-highlighted={isHighlighted ? 'true' : 'false'}
+      className={props.className}
+      data-selected={props.isSelected ? 'true' : 'false'}
+      data-highlighted={props.isHighlighted ? 'true' : 'false'}
     >
-      {children}
+      {props.children}
     </div>
   ),
-  TableCell: ({ children, className }: { children: React.ReactNode, className?: string }) => (
-    <div data-testid="table-cell" className={className}>{children}</div>
+  TableCell: (props) => (
+    <div data-testid="table-cell" className={props.className}>{props.children}</div>
   ),
-  TableCaption: ({ children, className }: { children: React.ReactNode, className?: string }) => (
-    <div data-testid="table-caption" className={className}>{children}</div>
+  TableCaption: (props) => (
+    <div data-testid="table-caption" className={props.className}>{props.children}</div>
   )
 }));
 
 jest.mock('@/components/ui/checkbox', () => ({
-  Checkbox: (props: any) => (
+  Checkbox: (props) => (
     <input 
       type="checkbox" 
       data-testid="checkbox"
@@ -57,7 +52,7 @@ jest.mock('@/components/ui/checkbox', () => ({
 }));
 
 jest.mock('@/components/ui/input', () => ({
-  Input: (props: any) => (
+  Input: (props) => (
     <input 
       {...props}
       data-testid="input"
@@ -66,39 +61,28 @@ jest.mock('@/components/ui/input', () => ({
 }));
 
 jest.mock('@/components/ui/button', () => ({
-  Button: ({ 
-    children, 
-    onClick, 
-    disabled, 
-    variant, 
-    size, 
-    className 
-  }: any) => (
+  Button: (props) => (
     <button 
-      onClick={onClick} 
-      disabled={disabled}
-      className={className}
-      data-variant={variant}
-      data-size={size}
+      onClick={props.onClick} 
+      disabled={props.disabled}
+      className={props.className}
+      data-variant={props.variant}
+      data-size={props.size}
       data-testid="button"
     >
-      {children}
+      {props.children}
     </button>
   )
 }));
 
 jest.mock('@/components/ui/badge', () => ({
-  Badge: ({ 
-    children, 
-    variant, 
-    className 
-  }: any) => (
+  Badge: (props) => (
     <span 
-      className={`badge ${className || ''}`}
-      data-variant={variant}
+      className={`badge ${props.className || ''}`}
+      data-variant={props.variant}
       data-testid="badge"
     >
-      {children}
+      {props.children}
     </span>
   )
 }));
@@ -120,7 +104,8 @@ jest.mock('lucide-react', () => ({
   Search: () => <span data-testid="search-icon">Search Icon</span>,
   Check: () => <span data-testid="check-icon">Check Icon</span>,
   ChevronDown: () => <span data-testid="chevron-down-icon">ChevronDown Icon</span>,
-  ChevronUp: () => <span data-testid="chevron-up-icon">ChevronUp Icon</span>
+  ChevronUp: () => <span data-testid="chevron-up-icon">ChevronUp Icon</span>,
+  RefreshCw: () => <span data-testid="refresh-icon">RefreshCw Icon</span>
 }));
 
 // Mock date-fns
@@ -130,43 +115,43 @@ jest.mock('date-fns', () => ({
 
 // Mock the select component from shadcn
 jest.mock('@/components/ui/select', () => ({
-  Select: ({ children, value, onValueChange, disabled }: any) => (
+  Select: (props) => (
     <div data-testid="select-container">
       <select 
-        value={value} 
-        onChange={(e) => onValueChange && onValueChange(e.target.value)}
-        disabled={disabled}
+        value={props.value} 
+        onChange={(e) => props.onValueChange && props.onValueChange(e.target.value)}
+        disabled={props.disabled}
         data-testid="select"
       >
-        {children}
+        {props.children}
       </select>
     </div>
   ),
-  SelectTrigger: ({ children, className }: any) => (
-    <div className={className} data-testid="select-trigger">
-      {children}
+  SelectTrigger: (props) => (
+    <div className={props.className} data-testid="select-trigger">
+      {props.children}
     </div>
   ),
-  SelectValue: ({ placeholder }: any) => (
-    <div data-placeholder={placeholder} data-testid="select-value">
+  SelectValue: (props) => (
+    <div data-placeholder={props.placeholder} data-testid="select-value">
       Select Value
     </div>
   ),
-  SelectContent: ({ children, className }: any) => (
-    <div className={className} data-testid="select-content">
-      {children}
+  SelectContent: (props) => (
+    <div className={props.className} data-testid="select-content">
+      {props.children}
     </div>
   ),
-  SelectItem: ({ children, value, className }: any) => (
-    <option value={value} className={className} data-testid="select-item">
-      {children}
+  SelectItem: (props) => (
+    <option value={props.value} className={props.className} data-testid="select-item">
+      {props.children}
     </option>
   ),
-  SelectGroup: ({ children }: any) => (
-    <div data-testid="select-group">{children}</div>
+  SelectGroup: (props) => (
+    <div data-testid="select-group">{props.children}</div>
   ),
-  SelectLabel: ({ children }: any) => (
-    <div data-testid="select-label">{children}</div>
+  SelectLabel: (props) => (
+    <div data-testid="select-label">{props.children}</div>
   ),
   SelectSeparator: () => (
     <div data-testid="select-separator" />
@@ -181,11 +166,28 @@ jest.mock('@/components/ui/select', () => ({
 
 // Mock alert component
 jest.mock('@/components/ui/alert', () => ({
-  Alert: ({ children, className }: any) => (
-    <div data-testid="alert" className={className}>{children}</div>
+  Alert: (props) => (
+    <div data-testid="alert" className={props.className}>{props.children}</div>
   ),
-  AlertDescription: ({ children }: any) => (
-    <div data-testid="alert-description">{children}</div>
+  AlertDescription: (props) => (
+    <div data-testid="alert-description">{props.children}</div>
+  )
+}));
+
+// Mock popover component
+jest.mock('@/components/ui/popover', () => ({
+  Popover: (props) => (
+    <div data-testid="popover">{props.children}</div>
+  ),
+  PopoverTrigger: (props) => (
+    <div data-testid="popover-trigger" onClick={props.asChild ? props.onClick : undefined}>
+      {props.children}
+    </div>
+  ),
+  PopoverContent: (props) => (
+    <div data-testid="popover-content" className={props.className}>
+      {props.children}
+    </div>
   )
 }));
 
@@ -194,15 +196,15 @@ window.Promise = global.Promise;
 
 // Mock localStorage
 const localStorageMock = (function() {
-  let store: Record<string, string> = {};
+  let store = {};
   return {
-    getItem: function(key: string) {
+    getItem: function(key) {
       return store[key] || null;
     },
-    setItem: function(key: string, value: string) {
+    setItem: function(key, value) {
       store[key] = value.toString();
     },
-    removeItem: function(key: string) {
+    removeItem: function(key) {
       delete store[key];
     },
     clear: function() {

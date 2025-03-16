@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
 import { useSenderListSorting } from "../../hooks/useSenderListSorting";
 import { useBrandInputValues } from "../../hooks/useBrandInputValues";
