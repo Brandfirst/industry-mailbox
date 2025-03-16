@@ -65,6 +65,29 @@ export async function handleEmailAccount(supabase: any, accountId: string, verbo
       };
     }
     
+    // Check if the token might be expired based on last refresh
+    const lastTokenRefresh = new Date(accountData.last_token_refresh || 0);
+    const tokenAgeInHours = (Date.now() - lastTokenRefresh.getTime()) / (1000 * 60 * 60);
+    
+    if (tokenAgeInHours > 23) { // Tokens typically last 1 hour, be conservative
+      if (verbose) {
+        console.log(`Token may be expired (last refresh: ${tokenAgeInHours.toFixed(2)} hours ago)`);
+      }
+      
+      // If we have a refresh token, we can try to use it later
+      if (!accountData.refresh_token) {
+        return {
+          success: false,
+          error: 'Access token is likely expired and no refresh token is available',
+          details: { 
+            accountId,
+            requiresReauthentication: true,
+            tokenAge: `${tokenAgeInHours.toFixed(2)} hours`
+          }
+        };
+      }
+    }
+    
     return {
       success: true,
       accountData

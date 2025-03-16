@@ -13,11 +13,13 @@ interface EmailAccountsListProps {
 export const EmailAccountsList = ({ emailAccounts, onRefresh }: EmailAccountsListProps) => {
   const [syncingAccount, setSyncingAccount] = useState<string | null>(null);
   const [disconnectingAccount, setDisconnectingAccount] = useState<string | null>(null);
+  const [syncErrors, setSyncErrors] = useState<Record<string, string>>({});
 
   const handleSync = async (accountId: string) => {
     if (syncingAccount) return null; // Prevent multiple syncs
     
     setSyncingAccount(accountId);
+    setSyncErrors(prev => ({ ...prev, [accountId]: null }));
     console.log("Syncing account:", accountId);
     
     try {
@@ -35,11 +37,28 @@ export const EmailAccountsList = ({ emailAccounts, onRefresh }: EmailAccountsLis
         return result;
       } else {
         console.error("Sync error:", result.error);
-        toast.error(`Failed to sync: ${result.error}`);
+        setSyncErrors(prev => ({ 
+          ...prev, 
+          [accountId]: result.error || "Unknown error" 
+        }));
+        
+        // Give a more friendly message for connection errors
+        const errorMessage = result.error?.includes("Failed to send a request") 
+          ? "Connection issue with sync service. Please try again later."
+          : `Failed to sync: ${result.error}`;
+          
+        toast.error(errorMessage);
         return null;
       }
     } catch (error) {
       console.error("Exception during sync:", error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      
+      setSyncErrors(prev => ({ 
+        ...prev, 
+        [accountId]: errorMsg
+      }));
+      
       toast.error("An error occurred during sync");
       return null;
     } finally {

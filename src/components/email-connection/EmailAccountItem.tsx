@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,35 +30,59 @@ export const EmailAccountItem = ({
 }: EmailAccountItemProps) => {
   const [syncError, setSyncError] = useState<string | null>(null);
   const [needsReauth, setNeedsReauth] = useState(false);
+  const [syncAttempts, setSyncAttempts] = useState(0);
   
   const handleSync = async () => {
     if (isSyncing) return; // Prevent multiple syncs
     
     setSyncError(null);
     setNeedsReauth(false);
+    setSyncAttempts(prev => prev + 1);
+    
+    // Create a unique ID for this toast
+    const toastId = `sync-${account.id}-${Date.now()}`;
     
     try {
-      toast.loading(`Syncing emails from ${account.email}...`);
+      toast.loading(`Syncing emails from ${account.email}...`, {
+        id: toastId,
+        duration: 30000 // 30 seconds max
+      });
       
       // If component has onSync prop, use it
       if (onSync) {
         const result = await onSync(account.id);
-        toast.dismiss();
+        toast.dismiss(toastId);
         
         if (result?.requiresReauthentication) {
           setNeedsReauth(true);
           setSyncError("Authentication expired. Please reconnect your account.");
+          toast.error("Authentication expired. Please reconnect your account.", {
+            id: toastId,
+          });
+        } else if (!result?.success) {
+          setSyncError(result?.error || "Failed to sync emails");
+          toast.error(`Sync failed: ${result?.error || "Unknown error"}`, {
+            id: toastId,
+          });
+        } else {
+          toast.success(`Successfully synced ${result.count || 0} emails`, {
+            id: toastId,
+          });
         }
       } else {
         // Otherwise use direct sync method
         const result = await syncEmailAccount(account.id);
-        toast.dismiss();
+        toast.dismiss(toastId);
         
         if (result.success) {
-          toast.success(`Successfully synced ${result.count || 0} emails`);
+          toast.success(`Successfully synced ${result.count || 0} emails`, {
+            id: toastId,
+          });
           
           if (result.partial) {
-            toast.warning(`${result.failed?.length || 0} emails failed to sync`);
+            toast.warning(`${result.failed?.length || 0} emails failed to sync`, {
+              duration: 5000,
+            });
           }
           
           setSyncError(null);
@@ -66,17 +91,40 @@ export const EmailAccountItem = ({
           if (result.requiresReauthentication) {
             setNeedsReauth(true);
             setSyncError("Authentication expired. Please reconnect your account.");
-            toast.error("Authentication expired. Please disconnect and reconnect your account.");
+            toast.error("Authentication expired. Please disconnect and reconnect your account.", {
+              id: toastId,
+              duration: 8000,
+            });
           } else {
             setSyncError(result.error || "Failed to sync emails");
-            toast.error(`Sync failed: ${result.error || "Unknown error"}`);
+            
+            // Format error based on type
+            let errorMessage = result.error || "Unknown error";
+            if (errorMessage.includes("Failed to send a request")) {
+              errorMessage = "Connection error: Server may be busy. Please try again in a moment.";
+            }
+            
+            toast.error(`Sync failed: ${errorMessage}`, {
+              id: toastId,
+              duration: 8000,
+            });
           }
         }
       }
     } catch (error) {
-      toast.dismiss();
-      toast.error(`Error syncing emails: ${error.message}`);
-      setSyncError(error.message);
+      toast.dismiss(toastId);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      
+      // Format error for display
+      let displayError = errorMsg;
+      if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
+        displayError = "Network error: Could not connect to the server. Please check your connection.";
+      }
+      
+      setSyncError(displayError);
+      toast.error(`Error syncing emails: ${displayError}`, {
+        id: toastId,
+      });
     }
   };
   
