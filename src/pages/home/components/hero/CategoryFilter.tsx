@@ -26,8 +26,44 @@ const CategoryFilter = ({ selectedCategory, setSelectedCategory }: CategoryFilte
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categoriesData = await getAllCategories();
-        setCategories(categoriesData);
+        const allCategories = await getAllCategories();
+        
+        // Filter to show only 3 specific categories
+        // We're targeting Business, Finance, and Technology categories
+        // But we need to be flexible in case the exact names are different
+        const businessCategory = allCategories.find(c => 
+          c.name.toLowerCase().includes('business') || 
+          c.name.toLowerCase().includes('bedrift')
+        );
+        
+        const financeCategory = allCategories.find(c => 
+          c.name.toLowerCase().includes('finance') || 
+          c.name.toLowerCase().includes('finans')
+        );
+        
+        const techCategory = allCategories.find(c => 
+          c.name.toLowerCase().includes('tech') || 
+          c.name.toLowerCase().includes('technology') ||
+          c.name.toLowerCase().includes('teknologi')
+        );
+        
+        // Fallback to first categories if specific ones not found
+        const selectedCategories = [
+          businessCategory, 
+          financeCategory, 
+          techCategory
+        ].filter(Boolean) as NewsletterCategory[];
+        
+        // If we don't have 3 categories yet, add more from the beginning of the list
+        if (selectedCategories.length < 3) {
+          const remaining = allCategories.filter(cat => 
+            !selectedCategories.some(c => c.id === cat.id)
+          ).slice(0, 3 - selectedCategories.length);
+          
+          selectedCategories.push(...remaining);
+        }
+        
+        setCategories(selectedCategories);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching categories:", error);
