@@ -36,12 +36,17 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             overflow-x: hidden;
             overflow-y: auto;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
           }
           body {
             padding: 0 !important;
             margin: 0 auto !important;
             box-sizing: border-box;
             min-height: 100% !important;
+            max-width: 100%;
+            text-align: center;
           }
           a {
             pointer-events: none;
@@ -55,15 +60,19 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             box-sizing: border-box;
           }
           
-          /* Only fix absolute positioned elements that cause layout issues */
-          [style*="position: absolute"], [style*="position:absolute"] {
-            position: relative !important;
+          /* Center common newsletter container elements */
+          .wrapper, .container, [class*="container"], [class*="wrapper"], 
+          .email-body, .email-content, .main, .content {
+            margin-left: auto !important;
+            margin-right: auto !important;
+            float: none !important;
           }
           
           /* Preserve table layouts which are critical for email newsletters */
           table, tr, td, th {
             border-collapse: collapse;
-            table-layout: auto;
+            margin-left: auto !important;
+            margin-right: auto !important;
           }
           
           /* Make sure email-specific styles often used in newsletters are preserved */
@@ -71,68 +80,66 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             width: 100%;
           }
           
-          /* Handle margins that might cause the left gap */
-          .wrapper, .container, [class*="container"], [class*="wrapper"] {
+          /* Center main elements directly inside body */
+          body > table, 
+          body > div {
             margin-left: auto !important;
             margin-right: auto !important;
+            float: none !important;
           }
         </style>
       </head>
       <body>
-        ${secureContent}
+        <div style="width:100%; max-width:600px; margin:0 auto; text-align:center;">
+          ${secureContent}
+        </div>
       </body>
     </html>`;
 };
 
 /**
- * Apply subtle centering to elements in the document that might cause left gap
- * This version preserves more of the original layout
+ * Apply centering to elements in the document that might cause layout issues
+ * This version preserves original layout while fixing centering issues
  * 
  * @param doc The document to apply centering to
  */
 export const forceCentering = (doc: Document): void => {
   try {
-    // Only fix elements that are causing the left gap issue
-    const wrappers = doc.querySelectorAll('.wrapper, .container, [class*="container"], [class*="wrapper"]');
-    wrappers.forEach(el => {
+    // Center main containers
+    const containers = doc.querySelectorAll('body > table, body > div, .container, .wrapper, [class*="container"], [class*="wrapper"], .email-body, .email-content');
+    containers.forEach(el => {
       const element = el as HTMLElement;
       if (element) {
-        // Only center if it's not already centered
-        const computedStyle = window.getComputedStyle(element);
-        if (computedStyle.marginLeft === '0px' || computedStyle.marginRight === '0px') {
-          element.style.setProperty('margin-left', 'auto', 'important');
-          element.style.setProperty('margin-right', 'auto', 'important');
+        element.style.setProperty('margin-left', 'auto', 'important');
+        element.style.setProperty('margin-right', 'auto', 'important');
+        element.style.setProperty('float', 'none', 'important');
+        
+        // For tables, also set the align property which is common in email templates
+        if (element instanceof HTMLTableElement) {
+          element.setAttribute('align', 'center');
         }
       }
     });
     
-    // Fix body if it's causing issues
-    if (doc.body) {
-      const bodyStyle = window.getComputedStyle(doc.body);
-      if (bodyStyle.margin === '0px' || bodyStyle.marginLeft === '0px') {
-        doc.body.style.setProperty('margin', '0 auto', 'important');
-      }
-      
-      // If body is too narrow, give it appropriate width
-      if (parseInt(bodyStyle.width) < 100) {
-        doc.body.style.setProperty('width', '100%', 'important');
-      }
-    }
-    
-    // Handle common tables that might be left-aligned but should be centered
-    const tables = doc.querySelectorAll('table[width]');
+    // Center tables that are direct children of body
+    const tables = doc.querySelectorAll('body > table, .container > table, .wrapper > table');
     tables.forEach(table => {
       if (table instanceof HTMLTableElement) {
-        const parent = table.parentElement;
-        if (parent && parent !== doc.body) {
-          // Only adjust if the parent is causing the left gap
-          const parentStyle = window.getComputedStyle(parent);
-          if (parentStyle.textAlign !== 'center') {
-            parent.style.setProperty('text-align', 'center', 'important');
-          }
-        }
+        table.setAttribute('align', 'center');
+        table.style.setProperty('margin-left', 'auto', 'important');
+        table.style.setProperty('margin-right', 'auto', 'important');
       }
     });
+    
+    // Set body to center content
+    if (doc.body) {
+      doc.body.style.setProperty('text-align', 'center', 'important');
+      doc.body.style.setProperty('margin', '0 auto', 'important');
+      doc.body.style.setProperty('display', 'flex', 'important');
+      doc.body.style.setProperty('flex-direction', 'column', 'important');
+      doc.body.style.setProperty('align-items', 'center', 'important');
+      doc.body.style.setProperty('justify-content', 'flex-start', 'important');
+    }
   } catch (error) {
     console.error("Error applying centering:", error);
   }

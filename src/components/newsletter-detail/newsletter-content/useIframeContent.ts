@@ -32,7 +32,7 @@ export const useIframeContent = (newsletter: Newsletter) => {
           doc.write(formattedContent);
           doc.close();
           
-          // Apply the gentle centering
+          // Apply centering immediately
           forceCentering(doc);
           
           // Adjust height after content is loaded
@@ -41,6 +41,9 @@ export const useIframeContent = (newsletter: Newsletter) => {
               // Set appropriate height to show all content
               const height = doc.body.scrollHeight;
               setIframeHeight(`${height}px`);
+              
+              // Apply centering again after resize
+              forceCentering(doc);
             }
           });
           

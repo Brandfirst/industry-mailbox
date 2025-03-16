@@ -34,14 +34,17 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
               const computedHeight = doc.body.scrollHeight;
               setIframeHeight(`${computedHeight}px`);
               
-              // Apply gentle centering
+              // Apply centering
               forceCentering(doc);
             }
           });
           
           resizeObserver.observe(doc.body);
           
-          // Apply centering after content is loaded
+          // Apply centering immediately after content is loaded
+          forceCentering(doc);
+          
+          // And again after a short delay to handle any dynamic elements
           setTimeout(() => forceCentering(doc), 300);
           
           return () => {
