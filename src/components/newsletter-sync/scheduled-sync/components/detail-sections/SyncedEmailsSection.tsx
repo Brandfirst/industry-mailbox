@@ -17,6 +17,8 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
   const displayedEmails = showAllEmails 
     ? syncedEmails 
     : syncedEmails.slice(0, maxInitialEmails);
+  
+  console.log("Displaying emails in SyncedEmailsSection:", displayedEmails);
     
   return (
     <div className="mt-2 pt-2 border-t border-gray-100">

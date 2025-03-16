@@ -15,13 +15,41 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const scheduleDetails = log.status === 'scheduled' && log.details;
   
-  // Get synced emails directly from the log details
-  // Added fallback logic to handle different data structures
-  const syncedEmails = log.details?.synced || [];
+  // Process the synced emails based on the log structure
+  // The log might have the emails directly in log.details.synced OR 
+  // we might need to construct synthetic emails from senders information
+  let syncedEmails = [];
   
   // Enhanced debug logging to see exactly what's happening with the emails data
-  console.log("Synced emails for log:", log.id, "Total emails:", totalEmails, "Synced array length:", syncedEmails.length);
+  console.log("Synced emails for log:", log.id, "Total emails:", totalEmails);
   console.log("Full log details:", log.details);
+  
+  // Check if we have synced emails data directly available
+  if (log.details?.synced && Array.isArray(log.details.synced) && log.details.synced.length > 0) {
+    syncedEmails = log.details.synced;
+  } 
+  // If not, but we have senders information, construct synthetic email objects
+  else if (log.details?.senders && Array.isArray(log.details.senders) && log.details.senders.length > 0) {
+    // Create synthetic email objects from senders
+    syncedEmails = log.details.senders.map(sender => ({
+      sender_email: sender,
+      sender: sender,
+      subject: "Email from " + sender,
+      date: log.timestamp
+    }));
+  }
+  // If we know there are emails but don't have details, create a placeholder
+  else if (totalEmails > 0) {
+    // Create a single placeholder email when we know emails were synced but don't have details
+    syncedEmails = [{
+      sender_email: "Unknown sender",
+      sender: "Unknown sender",
+      subject: `${totalEmails} email(s) synced`,
+      date: log.timestamp
+    }];
+  }
+  
+  console.log("Processed emails for display:", syncedEmails);
   
   const handleClickEmails = () => {
     console.log("Email button clicked, opening dialog with emails:", syncedEmails);
