@@ -36,6 +36,8 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
               overflow-x: hidden;
               overflow-y: hidden;
+              box-sizing: border-box;
+              text-align: center;
             }
             body {
               padding: 0;
@@ -43,6 +45,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               display: flex;
               flex-direction: column;
               align-items: center;
+              justify-content: center;
               text-align: center;
             }
             a {
@@ -55,7 +58,8 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             }
             table {
               max-width: 100%;
-              margin: 0 auto !important;
+              margin-left: auto !important;
+              margin-right: auto !important;
               float: none !important;
               display: table !important;
             }
@@ -67,23 +71,35 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             body > * {
               width: 100% !important;
               max-width: 100% !important;
-              margin: 0 auto !important;
+              margin-left: auto !important;
+              margin-right: auto !important;
               float: none !important;
               transform: scale(${isMobile ? '0.6' : '0.7'});
-              transform-origin: top center;
+              transform-origin: center top;
+              position: relative !important;
               left: 0 !important;
               right: 0 !important;
-              position: relative !important;
             }
             
             /* Fix left alignment issues */
             [align="left"], [style*="text-align: left"] {
               text-align: center !important;
-              margin: 0 auto !important;
+              margin-left: auto !important;
+              margin-right: auto !important;
             }
             
             td, th {
               text-align: center !important;
+            }
+            
+            /* Additional fixes for common elements */
+            div, section, article, header, footer, main {
+              margin-left: auto !important;
+              margin-right: auto !important;
+              float: none !important;
+              text-align: center !important;
+              position: relative !important;
+              max-width: 100% !important;
             }
           </style>
         </head>
@@ -142,6 +158,18 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
                   divEl.style.margin = '0 auto';
                   divEl.style.float = 'none';
                 }
+              });
+              
+              // Additional post-load centering for common containers
+              const elements = doc.querySelectorAll('div, section, article, header, footer, main');
+              elements.forEach(element => {
+                const htmlEl = element as HTMLElement;
+                htmlEl.style.marginLeft = 'auto';
+                htmlEl.style.marginRight = 'auto';
+                htmlEl.style.float = 'none';
+                htmlEl.style.position = 'relative';
+                htmlEl.style.left = '0';
+                htmlEl.style.right = '0';
               });
             }
           });

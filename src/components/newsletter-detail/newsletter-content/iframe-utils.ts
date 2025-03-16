@@ -25,6 +25,8 @@ export const getFormattedHtmlContent = (content: string | null) => {
                   width: 100%;
                   height: 100%;
                   overflow-x: hidden;
+                  text-align: center;
+                  box-sizing: border-box;
                 }
                 body {
                   padding: 0;
@@ -34,6 +36,7 @@ export const getFormattedHtmlContent = (content: string | null) => {
                   display: flex;
                   flex-direction: column;
                   align-items: center;
+                  justify-content: center;
                   text-align: center;
                 }
                 img { max-width: 100%; height: auto; }
@@ -43,18 +46,20 @@ export const getFormattedHtmlContent = (content: string | null) => {
                 body > * {
                   max-width: 100% !important;
                   width: 100% !important;
-                  margin: 0 auto !important;
+                  margin-left: auto !important;
+                  margin-right: auto !important;
                   float: none !important;
                   transform: scale(0.85);
-                  transform-origin: top center;
+                  transform-origin: center top;
+                  position: relative !important;
                   left: 0 !important;
                   right: 0 !important;
-                  position: relative !important;
                 }
                 
                 table {
                   max-width: 100%;
-                  margin: 0 auto !important;
+                  margin-left: auto !important;
+                  margin-right: auto !important;
                   float: none !important;
                   display: table !important;
                   position: relative !important;
@@ -63,11 +68,22 @@ export const getFormattedHtmlContent = (content: string | null) => {
                 /* Fix left alignment issues */
                 [align="left"], [style*="text-align: left"] {
                   text-align: center !important;
-                  margin: 0 auto !important;
+                  margin-left: auto !important;
+                  margin-right: auto !important;
                 }
                 
                 td, th {
                   text-align: center !important;
+                }
+                
+                /* Additional fixes for common elements */
+                div, section, article, header, footer, main {
+                  margin-left: auto !important;
+                  margin-right: auto !important;
+                  float: none !important;
+                  text-align: center !important;
+                  position: relative !important;
+                  max-width: 100% !important;
                 }
               </style>
             </head>

@@ -78,6 +78,27 @@ export const useIframeContent = (newsletter: Newsletter) => {
                 const htmlEl = el as HTMLElement;
                 htmlEl.setAttribute('style', 'text-align: center !important; margin: 0 auto !important;');
               });
+              
+              // Additional post-load centering for common containers
+              const elements = doc.querySelectorAll('div, section, article, header, footer, main');
+              elements.forEach(element => {
+                const htmlEl = element as HTMLElement;
+                htmlEl.style.marginLeft = 'auto';
+                htmlEl.style.marginRight = 'auto';
+                htmlEl.style.float = 'none';
+                htmlEl.style.position = 'relative';
+                htmlEl.style.left = '0';
+                htmlEl.style.right = '0';
+              });
+              
+              // Apply inline styles to body to ensure centering
+              doc.body.style.margin = '0';
+              doc.body.style.padding = '0';
+              doc.body.style.textAlign = 'center';
+              doc.body.style.display = 'flex';
+              doc.body.style.flexDirection = 'column';
+              doc.body.style.alignItems = 'center';
+              doc.body.style.justifyContent = 'center';
             }
           });
           
