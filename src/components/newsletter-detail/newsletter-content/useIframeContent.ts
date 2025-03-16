@@ -1,6 +1,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Newsletter } from "@/lib/supabase/types";
+import { getFormattedHtmlContent } from "./iframe-utils";
 
 export const useIframeContent = (newsletter: Newsletter) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -14,55 +15,7 @@ export const useIframeContent = (newsletter: Newsletter) => {
     
     try {
       const iframe = iframeRef.current;
-      // Use a simpler version of content processing
-      let htmlContent = newsletter.content;
-      
-      // Only convert http to https for security
-      htmlContent = htmlContent.replace(/http:\/\//g, 'https://');
-      
-      // Format it as proper HTML
-      const formattedContent = `<!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <meta http-equiv="Content-Security-Policy" content="script-src 'none'; frame-src 'none';">
-            <style>
-              body {
-                margin: 0 auto;
-                padding: 20px;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                line-height: 1.6;
-                max-width: 95%;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-              }
-              img { max-width: 100%; height: auto; }
-              * { box-sizing: border-box; }
-              table {
-                margin-left: auto;
-                margin-right: auto;
-                max-width: 100%;
-              }
-              div {
-                max-width: 100%;
-              }
-              /* Center content */
-              body > * {
-                margin-left: auto;
-                margin-right: auto;
-                transform: scale(0.9);
-                transform-origin: top center;
-                max-width: 800px;
-              }
-            </style>
-          </head>
-          <body>
-            ${htmlContent}
-          </body>
-        </html>`;
+      const formattedContent = getFormattedHtmlContent(newsletter.content);
       
       // Wait for iframe to be available
       const setIframeContent = () => {
@@ -83,8 +36,8 @@ export const useIframeContent = (newsletter: Newsletter) => {
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
               // Account for the scale factor in the height calculation
-              const height = doc.body.scrollHeight * 0.9;
-              setIframeHeight(`${height + 50}px`);
+              const height = doc.body.scrollHeight * 0.85;
+              setIframeHeight(`${height}px`);
             }
           });
           

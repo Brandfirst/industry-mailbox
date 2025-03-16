@@ -86,13 +86,14 @@ export function NewsletterViewContent({
         </div>
       )}
       
-      <div className="overflow-auto flex-1 h-[calc(90vh-220px)] bg-white rounded-b-md">
+      <div className="overflow-hidden flex-1 h-[calc(90vh-220px)] bg-white rounded-b-md">
         {(newsletter.content || newsletter.id) ? (
           <iframe 
             ref={iframeRef} 
             title={newsletter.title || "Newsletter Content"} 
             className="w-full h-full border-0" 
             sandbox="allow-same-origin" 
+            style={{ overflow: 'hidden' }}
           /> 
         ) : (
           <div className="text-center py-12">

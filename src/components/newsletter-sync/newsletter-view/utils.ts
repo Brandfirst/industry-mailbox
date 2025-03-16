@@ -25,10 +25,11 @@ export function generateIframeContent(content: string | null): string {
             padding: 0;
             width: 100%;
             height: 100%;
+            overflow-x: hidden;
           }
           body {
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             color: #333;
@@ -42,14 +43,20 @@ export function generateIframeContent(content: string | null): string {
           a:hover { text-decoration: underline; }
           h1, h2, h3, h4, h5, h6 { color: #111; }
           
-          /* Center and scale content */
+          /* Improved centering and scaling */
           body > * {
-            max-width: 800px;
             width: 100%;
+            max-width: 100%;
             margin-left: auto;
             margin-right: auto;
-            transform: scale(0.9);
+            transform: scale(0.85);
             transform-origin: top center;
+          }
+          
+          table {
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 100%;
           }
         </style>
       </head>

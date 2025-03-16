@@ -35,6 +35,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               background-color: white;
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
               overflow-x: hidden;
+              overflow-y: hidden;
             }
             body {
               padding: 10px;
@@ -60,12 +61,13 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               max-width: 100%;
               box-sizing: border-box;
             }
-            /* Center content */
+            /* Improved center content */
             body > * {
               margin-left: auto;
               margin-right: auto;
-              max-width: ${isMobile ? '600px' : '800px'};
-              transform: scale(${isMobile ? '0.4' : '0.8'});
+              max-width: 100%;
+              width: 100%;
+              transform: scale(${isMobile ? '0.6' : '0.7'});
               transform-origin: top center;
             }
           </style>
@@ -95,8 +97,8 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
               // Account for the scale factor when setting the height
-              const height = doc.body.scrollHeight * 0.8;
-              setIframeHeight(`${height}px`);
+              const computedHeight = doc.body.scrollHeight * (isMobile ? 0.6 : 0.7);
+              setIframeHeight(`${computedHeight}px`);
             }
           });
           
@@ -132,7 +134,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
           display: "block",
           width: "100%",
           height: iframeHeight,
-          overflow: isMobile ? "hidden" : "visible",
+          overflow: "hidden",
           objectFit: "cover",
           borderRadius: "12px"
         }}

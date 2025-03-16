@@ -24,6 +24,7 @@ export const getFormattedHtmlContent = (content: string | null) => {
                   padding: 0;
                   width: 100%;
                   height: 100%;
+                  overflow-x: hidden;
                 }
                 body {
                   padding: 20px;
@@ -37,14 +38,20 @@ export const getFormattedHtmlContent = (content: string | null) => {
                 img { max-width: 100%; height: auto; }
                 * { box-sizing: border-box; }
                 
-                /* Center and scale content */
+                /* Better centering and scaling */
                 body > * {
-                  max-width: 800px;
+                  max-width: 100%;
                   width: 100%;
                   margin-left: auto;
                   margin-right: auto;
-                  transform: scale(0.9);
+                  transform: scale(0.85);
                   transform-origin: top center;
+                }
+                
+                table {
+                  margin-left: auto;
+                  margin-right: auto;
+                  max-width: 100%;
                 }
               </style>
             </head>
