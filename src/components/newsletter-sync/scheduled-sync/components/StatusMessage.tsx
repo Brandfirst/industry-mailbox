@@ -33,7 +33,7 @@ export function StatusMessage({ log }: StatusMessageProps) {
   };
   
   return (
-    <span className="text-muted-foreground truncate mr-2">
+    <span className="text-muted-foreground truncate">
       {getMessage()}
     </span>
   );

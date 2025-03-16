@@ -16,7 +16,7 @@ export function StatusColumn({
   setIsDetailsOpen 
 }: StatusColumnProps) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center space-x-1">
       <StatusBadge status={log.status} />
       <SyncDetailsPopover 
         log={log} 
