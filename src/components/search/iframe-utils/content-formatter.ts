@@ -42,8 +42,9 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
  * @returns CSS styles as a string
  */
 const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false): string => {
+  // Use a smaller scale factor for snapshots to fit more content
   const baseScale = isSnapshot ? 
-    (isMobile ? '0.3' : '0.5') : 
+    (isMobile ? '0.3' : '0.35') : 
     (isMobile ? '0.5' : '0.8');
   
   return `
@@ -96,7 +97,7 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
       overflow-x: hidden !important;
       text-align: center !important;
       background-color: white;
-      ${isSnapshot ? 'max-height: 800px;' : ''}
+      ${isSnapshot ? 'max-height: none; overflow-y: visible;' : ''}
     }
     
     /* Make sure tables don't overflow */
@@ -150,11 +151,7 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
     ${isSnapshot ? `
     /* Snapshot specific styles */
     body {
-      overflow-y: hidden !important;
-    }
-    
-    .newsletter-wrapper {
-      overflow-y: hidden !important;
+      transform: scale(${baseScale}) !important;
     }
     ` : ''}
   `;

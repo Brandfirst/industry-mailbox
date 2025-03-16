@@ -37,12 +37,13 @@ const IframePreview: React.FC<IframePreviewProps> = ({
         // Set fixed height based on device type and mode
         setIframeHeight(maxHeight || (isMobile ? "250px" : mode === 'snapshot' ? "300px" : "400px"));
         
-        // Apply centering
+        // Apply centering with multiple attempts to ensure it works
         forceCentering(doc, mode === 'snapshot');
-          
+        
         // And again after short delays to handle any dynamic elements
         setTimeout(() => forceCentering(doc, mode === 'snapshot'), 100);
         setTimeout(() => forceCentering(doc, mode === 'snapshot'), 300);
+        setTimeout(() => forceCentering(doc, mode === 'snapshot'), 500);
       }
     } catch (error) {
       console.error("Error writing to preview iframe:", error);

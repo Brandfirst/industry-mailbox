@@ -14,6 +14,11 @@ export const forceCentering = (doc: Document, isSnapshot: boolean = false): void
     centerTextElements(doc);
     fixAbsolutePositioning(doc);
     adjustFixedWidthElements(doc);
+    
+    // For snapshots, make additional adjustments to ensure visibility
+    if (isSnapshot) {
+      ensureSnapshotVisibility(doc);
+    }
   } catch (error) {
     console.error("Error applying centering:", error);
   }
@@ -39,7 +44,9 @@ const applyBodyCentering = (doc: Document, isSnapshot: boolean = false): void =>
     doc.body.style.setProperty('align-items', 'center', 'important');
     doc.body.style.setProperty('justify-content', 'flex-start', 'important');
     
+    // Snapshot adjustments
     if (isSnapshot) {
+      // Keep body visible but prevent scrolling
       doc.body.style.setProperty('overflow-y', 'hidden', 'important');
     }
   }
@@ -58,12 +65,14 @@ const centerNewsletterWrapper = (doc: Document, isSnapshot: boolean = false): vo
     newsletterWrapper.style.setProperty('width', '100%', 'important');
     newsletterWrapper.style.setProperty('max-width', '100%', 'important');
     newsletterWrapper.style.setProperty('overflow-x', 'hidden', 'important');
-    newsletterWrapper.style.setProperty('display', 'block', 'important');
     newsletterWrapper.style.setProperty('text-align', 'center', 'important');
+    newsletterWrapper.style.setProperty('background-color', 'white', 'important');
     
+    // For snapshots, we want to show as much as possible of the email
     if (isSnapshot) {
-      newsletterWrapper.style.setProperty('overflow-y', 'hidden', 'important');
-      newsletterWrapper.style.setProperty('max-height', '800px', 'important');
+      newsletterWrapper.style.setProperty('overflow-y', 'visible', 'important');
+      // Don't limit the height - let it flow naturally
+      newsletterWrapper.style.setProperty('max-height', 'none', 'important');
     }
   }
 };
@@ -198,3 +207,41 @@ const adjustFixedWidthElements = (doc: Document): void => {
     });
   });
 };
+
+/**
+ * Make special adjustments for snapshot mode to ensure content is visible
+ * 
+ * @param doc The document to apply adjustments to
+ */
+const ensureSnapshotVisibility = (doc: Document): void => {
+  // Make sure no container is limiting the height too much
+  const containers = doc.querySelectorAll('div, section, article, main');
+  containers.forEach(el => {
+    if (el instanceof HTMLElement) {
+      // Override any max-height that might cut off content
+      el.style.setProperty('max-height', 'none', 'important');
+      
+      // Ensure all headers and important content is visible
+      if (el.tagName === 'HEADER' || 
+          el.className.includes('header') || 
+          el.id.includes('header') ||
+          el.querySelector('h1, h2, h3')) {
+        el.style.setProperty('display', 'block', 'important');
+        el.style.setProperty('visibility', 'visible', 'important');
+      }
+    }
+  });
+  
+  // Make sure images are handled properly
+  const images = doc.querySelectorAll('img');
+  images.forEach(img => {
+    img.style.setProperty('max-width', '100%', 'important');
+    img.style.setProperty('height', 'auto', 'important');
+    img.style.setProperty('display', 'block', 'important');
+    img.style.setProperty('margin', '0 auto', 'important');
+  });
+  
+  // Fix any overflow issues
+  doc.documentElement.style.setProperty('overflow-x', 'hidden', 'important');
+  doc.body.style.setProperty('overflow-x', 'hidden', 'important');
+}
