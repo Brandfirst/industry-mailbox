@@ -96,6 +96,7 @@ export function useNewsletterSync(userId: string | undefined) {
     selectedAccount,
     setSelectedAccount,
     newsletters,
+    setNewsletters, // Expose setNewsletters
     categories,
     isSyncing,
     isLoading,
@@ -114,6 +115,7 @@ export function useNewsletterSync(userId: string | undefined) {
     handleFiltersChange,
     handleSelectNewsletter,
     handleSelectAll,
-    setSelectedIds
+    setSelectedIds,
+    setTotalCount // Expose setTotalCount
   };
 }
