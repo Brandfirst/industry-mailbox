@@ -34,7 +34,7 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             background-color: white;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow-x: hidden;
-            overflow-y: hidden;
+            overflow-y: auto;
             box-sizing: border-box;
             text-align: center !important;
           }
@@ -50,6 +50,9 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             width: 100% !important;
             max-width: 100% !important;
             min-height: 100% !important;
+            position: relative !important;
+            left: 0 !important;
+            right: 0 !important;
           }
           a {
             pointer-events: none;
@@ -65,8 +68,11 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             margin: 0 auto !important;
             float: none !important;
             display: table !important;
-            width: 100% !important;
+            width: auto !important;
             text-align: center !important;
+            position: relative !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
           }
           * {
             max-width: 100%;
@@ -75,14 +81,12 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             margin-right: auto !important;
             text-align: center !important;
           }
-          /* Fixed content centering and scaling - start from top */
+          /* Fixed content centering - start from top without transform scaling */
           body > * {
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 auto !important;
             float: none !important;
-            transform: scale(${isMobile ? '0.6' : '0.7'});
-            transform-origin: top center !important;
             position: relative !important;
             left: 0 !important;
             right: 0 !important;
@@ -119,7 +123,9 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
         </style>
       </head>
       <body>
-        ${secureContent}
+        <div style="width:100%; max-width:100%; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+          ${secureContent}
+        </div>
       </body>
     </html>`;
 };
@@ -134,55 +140,69 @@ export const forceCentering = (doc: Document): void => {
   const allElements = doc.querySelectorAll('*');
   allElements.forEach(el => {
     const element = el as HTMLElement;
-    element.style.marginLeft = 'auto !important';
-    element.style.marginRight = 'auto !important';
-    element.style.textAlign = 'center !important';
     
-    // If element has float, override it
-    if (window.getComputedStyle(element).float !== 'none') {
-      element.style.float = 'none !important';
+    // Override any margins or alignment
+    element.style.setProperty('margin-left', 'auto', 'important');
+    element.style.setProperty('margin-right', 'auto', 'important');
+    element.style.setProperty('text-align', 'center', 'important');
+    
+    // Override floats
+    if (window.getComputedStyle(element).getPropertyValue('float') !== 'none') {
+      element.style.setProperty('float', 'none', 'important');
     }
     
     // Fix absolute positioned elements
-    if (window.getComputedStyle(element).position === 'absolute') {
-      element.style.position = 'static';
-      element.style.left = 'auto';
-      element.style.right = 'auto';
+    if (window.getComputedStyle(element).getPropertyValue('position') === 'absolute') {
+      element.style.setProperty('position', 'static', 'important');
+      element.style.setProperty('left', 'auto', 'important');
+      element.style.setProperty('right', 'auto', 'important');
     }
     
-    // Fix margin and padding
-    if (window.getComputedStyle(element).marginLeft !== '0px' && window.getComputedStyle(element).marginLeft !== 'auto') {
-      element.style.marginLeft = 'auto !important';
-    }
-    
-    if (window.getComputedStyle(element).marginRight !== '0px' && window.getComputedStyle(element).marginRight !== 'auto') {
-      element.style.marginRight = 'auto !important';
+    // For left-aligned elements specifically
+    if (window.getComputedStyle(element).getPropertyValue('text-align') === 'left') {
+      element.style.setProperty('text-align', 'center', 'important');
     }
   });
   
-  // Additional specific fixes for container elements
-  const containers = doc.querySelectorAll('div, section, table, article, header, footer, main');
-  containers.forEach(container => {
-    const containerEl = container as HTMLElement;
-    containerEl.style.width = '100%';
-    containerEl.style.maxWidth = '100%';
-    containerEl.style.textAlign = 'center';
-    containerEl.style.marginLeft = 'auto';
-    containerEl.style.marginRight = 'auto';
-    containerEl.style.float = 'none';
-    containerEl.style.position = 'static';
+  // Special handling for tables which often cause alignment issues
+  const tables = doc.querySelectorAll('table');
+  tables.forEach(table => {
+    const tableEl = table as HTMLTableElement;
+    tableEl.style.setProperty('margin-left', 'auto', 'important');
+    tableEl.style.setProperty('margin-right', 'auto', 'important');
+    tableEl.style.setProperty('float', 'none', 'important');
+    tableEl.style.setProperty('position', 'relative', 'important');
+    tableEl.style.setProperty('left', '50%', 'important');
+    tableEl.style.setProperty('transform', 'translateX(-50%)', 'important');
+    tableEl.style.setProperty('width', 'auto', 'important');
+    tableEl.style.setProperty('max-width', '100%', 'important');
   });
 
   // Set body styles for better centering
-  doc.body.style.margin = '0 auto';
-  doc.body.style.padding = '0';
-  doc.body.style.textAlign = 'center';
-  doc.body.style.display = 'flex';
-  doc.body.style.flexDirection = 'column';
-  doc.body.style.alignItems = 'center';
-  doc.body.style.justifyContent = 'flex-start'; // Start from top
-  doc.body.style.width = '100%';
-  doc.body.style.maxWidth = '100%';
-  doc.body.style.position = 'static';
+  doc.body.style.setProperty('margin', '0 auto', 'important');
+  doc.body.style.setProperty('padding', '0', 'important');
+  doc.body.style.setProperty('text-align', 'center', 'important');
+  doc.body.style.setProperty('display', 'flex', 'important');
+  doc.body.style.setProperty('flex-direction', 'column', 'important');
+  doc.body.style.setProperty('align-items', 'center', 'important');
+  doc.body.style.setProperty('justify-content', 'flex-start', 'important');
+  doc.body.style.setProperty('width', '100%', 'important');
+  doc.body.style.setProperty('max-width', '100%', 'important');
+  doc.body.style.setProperty('position', 'relative', 'important');
+  doc.body.style.setProperty('left', '0', 'important');
+  doc.body.style.setProperty('right', '0', 'important');
+  
+  // Wrap all immediate children of body in a centered container if not already
+  if (doc.body.children.length > 0 && !doc.querySelector('body > div[style*="width:100%"]')) {
+    const wrapper = doc.createElement('div');
+    wrapper.style.cssText = 'width:100%; max-width:100%; margin:0 auto; display:flex; flex-direction:column; align-items:center;';
+    
+    // Move all body children into this wrapper
+    while (doc.body.firstChild) {
+      wrapper.appendChild(doc.body.firstChild);
+    }
+    
+    // Add wrapper back to body
+    doc.body.appendChild(wrapper);
+  }
 };
-

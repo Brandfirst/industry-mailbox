@@ -17,18 +17,20 @@ const NewsletterContent: React.FC<NewsletterContentProps> = ({ newsletter }) => 
       {newsletter.content ? (
         <>
           <ErrorAlert show={hasErrors} />
-          <iframe
-            ref={iframeRef}
-            title={newsletter.title || "Newsletter Content"}
-            className="w-full border-0"
-            sandbox="allow-same-origin"
-            style={{
-              display: "block",
-              width: "100%",
-              height: iframeHeight,
-              overflow: "hidden"
-            }}
-          />
+          <div className="w-full flex justify-center items-start">
+            <iframe
+              ref={iframeRef}
+              title={newsletter.title || "Newsletter Content"}
+              className="w-full border-0"
+              sandbox="allow-same-origin"
+              style={{
+                display: "block",
+                width: "100%",
+                height: iframeHeight,
+                overflow: "hidden"
+              }}
+            />
+          </div>
         </>
       ) : (
         <EmptyState />

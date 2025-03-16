@@ -38,16 +38,17 @@ export const useIframeContent = (newsletter: Newsletter) => {
           // Adjust height after content is loaded
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
-              // Increase the multiplier slightly to ensure top content is visible
-              const height = doc.body.scrollHeight * 0.9;
+              // Increase the multiplier to ensure all content is visible
+              const height = doc.body.scrollHeight * 0.95;
               setIframeHeight(`${height}px`);
             }
           });
           
           resizeObserver.observe(doc.body);
           
-          // Run the centering after a small delay to ensure all styles are applied
+          // Run the centering multiple times to ensure it applies after all content is loaded
           setTimeout(() => forceCentering(doc), 100);
+          setTimeout(() => forceCentering(doc), 500);
           
           return () => {
             resizeObserver.disconnect();

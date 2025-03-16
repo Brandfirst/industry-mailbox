@@ -15,7 +15,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
   }
 
   return (
-    <div className="w-full h-full overflow-hidden bg-white rounded-xl">
+    <div className="w-full h-full overflow-hidden bg-white rounded-xl flex justify-center items-start">
       <IframePreview 
         content={content}
         title={title}

@@ -30,9 +30,8 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
         if (!isMobile) {
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
-              // Account for the scale factor when setting the height
-              // Use a slightly larger multiplier to ensure top content is visible
-              const computedHeight = doc.body.scrollHeight * (isMobile ? 0.7 : 0.85);
+              // Increase height multiplier to ensure all content is visible
+              const computedHeight = doc.body.scrollHeight * 0.95;
               setIframeHeight(`${computedHeight}px`);
               
               // Apply forced centering
@@ -42,8 +41,9 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
           
           resizeObserver.observe(doc.body);
           
-          // Run the centering after a small delay to ensure styles are applied
+          // Run the centering multiple times to ensure it applies after all content loads
           setTimeout(() => forceCentering(doc), 100);
+          setTimeout(() => forceCentering(doc), 500);
           
           return () => {
             resizeObserver.disconnect();
@@ -56,21 +56,23 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
   }, [content, isMobile]);
 
   return (
-    <iframe
-      ref={iframeRef}
-      title={title || "Newsletter Content"}
-      className="w-full h-full border-0 rounded-xl"
-      sandbox="allow-same-origin"
-      style={{ 
-        pointerEvents: "none",
-        display: "block",
-        width: "100%",
-        height: iframeHeight,
-        overflow: "hidden",
-        objectFit: "cover",
-        borderRadius: "12px"
-      }}
-    />
+    <div className="w-full h-full flex justify-center items-start">
+      <iframe
+        ref={iframeRef}
+        title={title || "Newsletter Content"}
+        className="w-full h-full border-0 rounded-xl"
+        sandbox="allow-same-origin"
+        style={{ 
+          pointerEvents: "none",
+          display: "block",
+          width: "100%",
+          height: iframeHeight,
+          overflow: "hidden",
+          objectFit: "cover",
+          borderRadius: "12px"
+        }}
+      />
+    </div>
   );
 };
 
