@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { UsersIcon } from "lucide-react";
 import { 
   Popover,
   PopoverContent,
@@ -31,10 +30,10 @@ export function SenderPopover({
         <Button 
           variant="ghost" 
           size="icon" 
-          className="h-5 w-5 rounded-full p-0"
+          className="h-5 w-5 rounded-full p-0 hidden"
           aria-label="View sender details"
         >
-          <UsersIcon className="h-3 w-3" />
+          <span className="sr-only">View senders</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 bg-white text-gray-900 border border-gray-200 shadow-md p-4" align="end">

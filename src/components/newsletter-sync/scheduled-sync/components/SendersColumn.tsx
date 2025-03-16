@@ -38,18 +38,6 @@ export function SendersColumn({
             <span>{uniqueSendersCount}</span>
           </Button>
           
-          <SenderPopover 
-            sendersList={sendersList}
-            uniqueSendersCount={uniqueSendersCount}
-            syncedEmails={syncedEmails}
-            isSendersOpen={isSendersOpen}
-            setIsSendersOpen={setIsSendersOpen}
-            onViewAllClick={() => {
-              setIsSendersOpen(false);
-              setIsDialogOpen(true);
-            }}
-          />
-          
           {showClickableSenders && (
             <SendersDialog
               isOpen={isDialogOpen}
