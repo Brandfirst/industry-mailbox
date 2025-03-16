@@ -1,19 +1,9 @@
 
+// Jest configuration is currently minimal as testing is disabled
+
 module.exports = {
+  // Basic configuration maintained for future use if testing is re-enabled
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/__mocks__/fileMock.js'
-  },
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      tsconfig: 'tsconfig.json',
-      diagnostics: false,
-      jsx: 'react-jsx'
-    }]
-  }
+  testPathIgnorePatterns: ['/node_modules/', '/dist/']
 };

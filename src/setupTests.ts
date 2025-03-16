@@ -1,4 +1,3 @@
-
 import '@testing-library/jest-dom';
 
 // Mock react-router-dom hooks
@@ -105,3 +104,5 @@ jest.mock('@/components/ui/popover', () => ({
   PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-popover-trigger">{children}</div>,
   PopoverContent: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-popover-content">{children}</div>,
 }));
+
+export {}; // This ensures TypeScript treats this as a module
