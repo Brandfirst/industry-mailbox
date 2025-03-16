@@ -76,6 +76,7 @@ jest.mock('lucide-react', () => ({
   Briefcase: () => <span data-icon="briefcase">Briefcase Icon</span>,
   Pen: () => <span data-icon="pen">Pen Icon</span>,
   Tag: () => <span data-icon="tag">Tag Icon</span>,
+  InfoIcon: () => <span data-icon="info">Info Icon</span>,
 }));
 
 jest.mock('date-fns', () => ({
