@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Table, TableBody } from "@/components/ui/table";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
@@ -69,7 +70,11 @@ const SenderList = ({
     setUpdatingBrand(senderEmail);
     try {
       await onBrandChange(senderEmail, brandName);
+      // Make sure to update the local brand value cache after successful API call
       updateBrandInputValue(senderEmail, brandName);
+      
+      // Log for debugging
+      console.log(`Brand update completed. Value now: ${brandName} for ${senderEmail}`);
     } catch (error) {
       console.error("Error updating brand:", error);
     } finally {

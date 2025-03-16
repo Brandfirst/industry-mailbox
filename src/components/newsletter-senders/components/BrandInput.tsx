@@ -21,19 +21,27 @@ const BrandInput = ({
   const [isEditing, setIsEditing] = useState(false);
   const [brandValue, setBrandValue] = useState(initialValue || "");
 
-  // Update the internal state when initialValue changes (e.g., after navigation or refresh)
+  // Update the internal state when initialValue changes
   useEffect(() => {
     setInputValue(initialValue || "");
     setBrandValue(initialValue || "");
-  }, [initialValue]);
+    console.log(`BrandInput: Received updated initialValue: "${initialValue}" for ${senderEmail}`);
+  }, [initialValue, senderEmail]);
 
   const handleSave = async () => {
+    if (inputValue === brandValue) {
+      setIsEditing(false);
+      return;
+    }
+
     try {
+      console.log(`BrandInput: Saving new value: "${inputValue}" for ${senderEmail}`);
       await onUpdate(senderEmail, inputValue);
       setBrandValue(inputValue);
       setIsEditing(false);
     } catch (error) {
       console.error("Error saving brand:", error);
+      // Stay in edit mode if save fails
       setIsEditing(true);
     }
   };

@@ -5,16 +5,24 @@ import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
 export function useBrandInputValues(senders: NewsletterSenderStats[]) {
   const [brandInputValues, setBrandInputValues] = useState<Record<string, string>>({});
   
-  // Initialize brand input values from senders
+  // Initialize brand input values from senders whenever senders change
   useEffect(() => {
     const brandValues: Record<string, string> = {};
     senders.forEach(sender => {
-      brandValues[sender.sender_email] = sender.brand_name || "";
+      // Only update if the value is different or not set yet
+      if (brandInputValues[sender.sender_email] === undefined || 
+          brandInputValues[sender.sender_email] !== sender.brand_name) {
+        brandValues[sender.sender_email] = sender.brand_name || "";
+      }
     });
-    setBrandInputValues(prevValues => ({
-      ...prevValues,
-      ...brandValues
-    }));
+    
+    if (Object.keys(brandValues).length > 0) {
+      setBrandInputValues(prevValues => ({
+        ...prevValues,
+        ...brandValues
+      }));
+      console.log("Updated brand input values from senders:", brandValues);
+    }
   }, [senders]);
 
   // Get brand input value helper
@@ -27,9 +35,9 @@ export function useBrandInputValues(senders: NewsletterSenderStats[]) {
     return sender.brand_name || "";
   }, [brandInputValues]);
 
-  // Update brand input value helper - this ensures we update both our local state
-  // and provide an updated value back to the component
+  // Update brand input value helper
   const updateBrandInputValue = useCallback((senderEmail: string, brandName: string) => {
+    console.log(`Updating brand input value for ${senderEmail} to "${brandName}"`);
     setBrandInputValues(prevValues => ({
       ...prevValues,
       [senderEmail]: brandName
