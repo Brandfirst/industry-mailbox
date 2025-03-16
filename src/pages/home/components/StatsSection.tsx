@@ -1,5 +1,5 @@
+
 import { useState } from "react";
-import { SectionManager, Section } from "@/components/SectionManager";
 
 const StatsSection = () => {
   // Logo data
@@ -18,7 +18,7 @@ const StatsSection = () => {
     { name: "HEXCLAD", className: "font-bold tracking-wider" },
   ];
 
-  // Define the sections
+  // Define the brand logos section
   const brandLogosSection = (
     <div className="pb-8 mb-0 pt-0 -mt-8">
       <h3 className="text-center text-sm md:text-base text-gray-400 mb-4">Loved by 5,000+ Brands & Agencies</h3>
@@ -35,29 +35,10 @@ const StatsSection = () => {
     </div>
   );
 
-  // Define initial sections - only keeping brandLogos now
-  const initialSections: Section[] = [
-    { id: "brandLogos", title: "Brand Logos", component: brandLogosSection }
-  ];
-
-  // State for managing the sections
-  const [sectionsList, setSectionsList] = useState<Section[]>(initialSections);
-
-  // Handle section reordering
-  const handleReorder = (reorderedSections: Section[]) => {
-    setSectionsList(reorderedSections);
-  };
-
   return (
     <section className="py-2 bg-black">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Render sections based on their order */}
-        {sectionsList.map((section) => (
-          <div key={section.id}>{section.component}</div>
-        ))}
-
-        {/* Section Manager component */}
-        <SectionManager sections={sectionsList} onReorder={handleReorder} />
+        {brandLogosSection}
       </div>
     </section>
   );
