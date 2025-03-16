@@ -1,3 +1,4 @@
+
 /**
  * Utilities for handling iframe content in newsletter previews
  */
@@ -32,7 +33,7 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             width: 100%;
             background-color: white;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow-x: hidden;
+            overflow: hidden !important;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -40,15 +41,17 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
           }
           
           body {
-            padding: 1rem !important; 
+            padding: 0 !important; 
             margin: 0 auto !important;
-            width: auto !important;
+            width: 100% !important;
             max-width: 100% !important;
-            min-height: 100% !important;
+            text-align: center !important;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            overflow: hidden !important;
           }
           
           /* Preserve the pointer-events none for links */
@@ -68,17 +71,22 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
             max-width: 100% !important;
             display: block;
             margin: 0 auto !important;
-            overflow-x: visible;
-            text-align: center;
+            overflow: hidden !important;
+            text-align: center !important;
+            transform: scale(0.95);
+            transform-origin: center top;
           }
           
           /* Make sure tables don't overflow */
           table {
-            max-width: 100%;
+            max-width: 100% !important;
             margin-left: auto !important;
             margin-right: auto !important;
             width: auto !important; 
             table-layout: auto !important;
+            transform: translateX(-50%) !important;
+            left: 50% !important;
+            position: relative !important;
           }
           
           /* Handle nested tables often used in newsletters */
@@ -88,12 +96,16 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
           
           /* Center common newsletter container elements without transforming them */
           .wrapper, .container, [class*="container"], [class*="wrapper"], 
-          .email-body, .email-content, .main, .content {
+          .email-body, .email-content, .main, .content,
+          [class*="body"], [class*="main"], [class*="content"], [class*="inner"] {
             margin-left: auto !important;
             margin-right: auto !important;
             width: auto !important;
             max-width: 100% !important;
             float: none !important;
+            transform: translateX(-50%) !important;
+            left: 50% !important;
+            position: relative !important;
           }
           
           /* Preserve table layouts which are critical for email newsletters */
@@ -109,6 +121,14 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
           /* Make sure email-specific styles often used in newsletters are preserved */
           .ReadMsgBody, .ExternalClass {
             width: 100%;
+          }
+          
+          /* Extra overrides for better centering */
+          div, p, h1, h2, h3, h4, h5, h6, span, a, 
+          section, article, header, footer, main {
+            margin-left: auto !important;
+            margin-right: auto !important;
+            max-width: 100% !important;
           }
         </style>
       </head>
@@ -132,11 +152,15 @@ export const forceCentering = (doc: Document): void => {
     if (doc.body) {
       doc.body.style.setProperty('margin', '0 auto', 'important');
       doc.body.style.setProperty('text-align', 'center', 'important');
-      doc.body.style.setProperty('padding', '1rem', 'important');
-      doc.body.style.setProperty('width', 'auto', 'important');
+      doc.body.style.setProperty('padding', '0', 'important');
+      doc.body.style.setProperty('width', '100%', 'important');
       doc.body.style.setProperty('max-width', '100%', 'important');
       doc.body.style.setProperty('box-sizing', 'border-box', 'important');
-      doc.body.style.setProperty('overflow-x', 'visible', 'important');
+      doc.body.style.setProperty('overflow', 'hidden', 'important');
+      doc.body.style.setProperty('display', 'flex', 'important');
+      doc.body.style.setProperty('flex-direction', 'column', 'important');
+      doc.body.style.setProperty('align-items', 'center', 'important');
+      doc.body.style.setProperty('justify-content', 'center', 'important');
     }
 
     // Center the main newsletter wrapper
@@ -145,13 +169,22 @@ export const forceCentering = (doc: Document): void => {
       newsletterWrapper.style.setProperty('margin', '0 auto', 'important');
       newsletterWrapper.style.setProperty('width', 'auto', 'important');
       newsletterWrapper.style.setProperty('max-width', '100%', 'important');
-      newsletterWrapper.style.setProperty('overflow-x', 'visible', 'important');
+      newsletterWrapper.style.setProperty('overflow', 'hidden', 'important');
       newsletterWrapper.style.setProperty('display', 'block', 'important');
       newsletterWrapper.style.setProperty('text-align', 'center', 'important');
+      newsletterWrapper.style.setProperty('transform', 'scale(0.95)', 'important');
+      newsletterWrapper.style.setProperty('transform-origin', 'center top', 'important');
     }
 
-    // Center main containers
-    const containers = doc.querySelectorAll('.container, .wrapper, [class*="container"], [class*="wrapper"], .email-body, .email-content, .main, .content');
+    // Force centering on all common container elements
+    const containerSelectors = [
+      '.container', '.wrapper', '[class*="container"]', '[class*="wrapper"]', 
+      '.email-body', '.email-content', '.main', '.content',
+      '[class*="body"]', '[class*="main"]', '[class*="content"]', '[class*="inner"]',
+      'div[width]', 'div[align="center"]'
+    ];
+    
+    const containers = doc.querySelectorAll(containerSelectors.join(', '));
     containers.forEach(el => {
       const element = el as HTMLElement;
       if (element) {
@@ -160,6 +193,9 @@ export const forceCentering = (doc: Document): void => {
         element.style.setProperty('float', 'none', 'important');
         element.style.setProperty('width', 'auto', 'important');
         element.style.setProperty('max-width', '100%', 'important');
+        element.style.setProperty('transform', 'translateX(-50%)', 'important');
+        element.style.setProperty('left', '50%', 'important');
+        element.style.setProperty('position', 'relative', 'important');
       }
     });
     
@@ -173,6 +209,9 @@ export const forceCentering = (doc: Document): void => {
         table.style.setProperty('float', 'none', 'important');
         table.style.setProperty('max-width', '100%', 'important');
         table.style.setProperty('width', 'auto', 'important');
+        table.style.setProperty('transform', 'translateX(-50%)', 'important');
+        table.style.setProperty('left', '50%', 'important');
+        table.style.setProperty('position', 'relative', 'important');
         
         // Handle tables with fixed widths
         const width = table.getAttribute('width');
@@ -187,26 +226,12 @@ export const forceCentering = (doc: Document): void => {
       }
     });
     
-    // Handle fixed width elements
-    const fixedWidthElements = doc.querySelectorAll('[width]');
-    fixedWidthElements.forEach(el => {
+    // Also center all div, p, h1-h6, etc elements
+    const textElements = doc.querySelectorAll('div, p, h1, h2, h3, h4, h5, h6, span, section, article, header, footer, main');
+    textElements.forEach(el => {
       if (el instanceof HTMLElement) {
-        const width = el.getAttribute('width');
-        if (width) {
-          const numWidth = parseInt(width, 10);
-          if (!isNaN(numWidth) && numWidth > 0) {
-            el.style.setProperty('max-width', `${numWidth}px`, 'important');
-            el.style.setProperty('width', 'auto', 'important');
-          }
-        }
-      }
-    });
-
-    // Handle TD elements with width (common in email templates)
-    const tdElements = doc.querySelectorAll('td[width], th[width]');
-    tdElements.forEach(el => {
-      if (el instanceof HTMLElement) {
-        // Keep the width attribute for layout but ensure it doesn't overflow
+        el.style.setProperty('margin-left', 'auto', 'important');
+        el.style.setProperty('margin-right', 'auto', 'important');
         el.style.setProperty('max-width', '100%', 'important');
       }
     });

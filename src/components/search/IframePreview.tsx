@@ -60,7 +60,7 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
   }, [content, isMobile]);
 
   return (
-    <div className="w-full h-full flex justify-center items-start overflow-x-hidden">
+    <div className="w-full h-full flex justify-center items-start">
       <iframe
         ref={iframeRef}
         title={title || "Newsletter Content"}
@@ -71,8 +71,8 @@ const IframePreview: React.FC<IframePreviewProps> = ({ content, title, isMobile 
           display: "block",
           width: "100%",
           height: iframeHeight,
-          overflow: "visible",
-          objectFit: "cover",
+          overflow: "hidden", // Changed from "visible" to "hidden" to remove scrollbar
+          objectFit: "contain",
           borderRadius: "12px",
           padding: "0",
           margin: "0 auto"

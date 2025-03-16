@@ -17,7 +17,7 @@ const NewsletterContent: React.FC<NewsletterContentProps> = ({ newsletter }) => 
       {newsletter.content ? (
         <>
           <ErrorAlert show={hasErrors} />
-          <div className="w-full flex justify-center items-start overflow-x-hidden">
+          <div className="w-full flex justify-center items-start overflow-hidden">
             <iframe
               ref={iframeRef}
               title={newsletter.title || "Newsletter Content"}
@@ -27,7 +27,7 @@ const NewsletterContent: React.FC<NewsletterContentProps> = ({ newsletter }) => 
                 display: "block",
                 width: "100%",
                 height: iframeHeight,
-                overflow: "visible",
+                overflow: "hidden",
                 margin: "0 auto",
                 padding: "0",
               }}
