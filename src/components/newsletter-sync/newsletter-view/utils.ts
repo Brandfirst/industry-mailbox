@@ -36,6 +36,7 @@ export function generateIframeContent(content: string | null): string {
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
           }
           img { max-width: 100%; height: auto; }
           * { box-sizing: border-box; }
@@ -47,12 +48,14 @@ export function generateIframeContent(content: string | null): string {
           body > * {
             width: 100%;
             max-width: 100%;
+            margin: 0 auto;
             transform: scale(0.85);
             transform-origin: top center;
           }
           
           table {
             max-width: 100%;
+            margin: 0 auto;
           }
         </style>
       </head>

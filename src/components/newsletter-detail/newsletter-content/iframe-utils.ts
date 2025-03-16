@@ -42,12 +42,14 @@ export const getFormattedHtmlContent = (content: string | null) => {
                 body > * {
                   max-width: 100%;
                   width: 100%;
+                  margin: 0 auto;
                   transform: scale(0.85);
                   transform-origin: top center;
                 }
                 
                 table {
                   max-width: 100%;
+                  margin: 0 auto;
                 }
               </style>
             </head>

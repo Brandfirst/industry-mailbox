@@ -54,14 +54,16 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             }
             table {
               max-width: 100%;
+              margin: 0 auto;
             }
             * {
               max-width: 100%;
               box-sizing: border-box;
             }
-            /* Improved content scaling */
+            /* Fixed content centering and scaling */
             body > * {
               width: 100%;
+              margin: 0 auto;
               transform: scale(${isMobile ? '0.6' : '0.7'});
               transform-origin: top center;
             }

@@ -38,6 +38,17 @@ export const useIframeContent = (newsletter: Newsletter) => {
               // Account for the scale factor in the height calculation
               const height = doc.body.scrollHeight * 0.85;
               setIframeHeight(`${height}px`);
+              
+              // Add extra class to center content better
+              doc.body.classList.add('centered-content');
+              
+              // Force center alignment on table elements
+              const tables = doc.querySelectorAll('table');
+              tables.forEach(table => {
+                if (!table.style.margin) {
+                  table.style.margin = '0 auto';
+                }
+              });
             }
           });
           
