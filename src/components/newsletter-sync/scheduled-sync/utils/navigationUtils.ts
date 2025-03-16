@@ -77,7 +77,7 @@ export const createNewsletterNavigationHandler = (
       
       // Navigate to public sender search page with sender filter
       if (email.sender) {
-        navigate(getSenderPath(email.sender));
+        navigate(`/sender/${email.sender}`);
       } else {
         navigate(`/search?sender=${encodeURIComponent(email.sender_email)}`);
       }

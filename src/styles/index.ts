@@ -19,4 +19,8 @@ import './light-mode.css';
 import './dark-mode.css';
 import './global-colors.css';
 
+// Import responsive styles
+import './responsive/index.css';
+import './components/index.css';
+
 export {};
