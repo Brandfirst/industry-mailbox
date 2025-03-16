@@ -1,10 +1,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { LogsHeader, LogsContent, LogsTableHeader } from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -163,18 +161,8 @@ export function SyncLogsList({
       
       {showLogs && (
         <div className="mt-2 border rounded-md overflow-hidden">
-          <div className="flex justify-between items-center p-2 bg-muted/40">
+          <div className="bg-muted/40">
             <LogsTableHeader />
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isLoading || isRefreshing}
-              className="ml-auto"
-            >
-              <RefreshCcw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Refreshing...' : 'Refresh'}
-            </Button>
           </div>
           
           {isLoading ? (

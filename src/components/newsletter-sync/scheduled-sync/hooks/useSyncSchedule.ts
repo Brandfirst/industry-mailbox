@@ -174,28 +174,15 @@ export function useSyncSchedule({
         toast.success("Sync schedule updated");
         setHasSaved(true);
         
-        // Create a log entry for the scheduled sync if enabled
-        if (effectiveEnabled && scheduleOption !== "disabled") {
-          try {
-            // Import and use the logScheduledSync function from our utils
-            await import("@/lib/supabase/emailAccounts/sync/logHandling").then(({ logScheduledSync }) => {
-              logScheduledSync(selectedAccount, scheduleOption, hourNumber);
-            });
-            
-            // For minute sync, offer to trigger it manually right away for testing
-            if (scheduleOption === "minute") {
-              toast("Minute sync scheduled. Want to test it now?", {
-                action: {
-                  label: "Test Now",
-                  onClick: triggerManualMinuteSync
-                },
-                duration: 10000
-              });
-            }
-          } catch (error) {
-            console.error("Error logging scheduled sync:", error);
-            // Non-critical error, don't show to user
-          }
+        // For minute sync, offer to trigger it manually right away for testing
+        if (effectiveEnabled && scheduleOption === "minute") {
+          toast("Minute sync scheduled. Want to test it now?", {
+            action: {
+              label: "Test Now",
+              onClick: triggerManualMinuteSync
+            },
+            duration: 10000
+          });
         }
         
         refreshLogs(); // Refresh logs to show new scheduled entry

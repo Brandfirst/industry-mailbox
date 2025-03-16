@@ -40,7 +40,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
         };
       default:
         return {
-          label: log.status,
+          label: log.status || "Unknown",
           className: "bg-gray-100 text-gray-800"
         };
     }

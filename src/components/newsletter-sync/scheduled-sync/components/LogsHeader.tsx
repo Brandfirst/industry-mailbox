@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChevronDown, ChevronUp, History } from 'lucide-react';
+import { ChevronDown, ChevronUp, History, RefreshCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export type LogsHeaderProps = {
@@ -57,6 +57,19 @@ export function LogsHeader({
               )}
               {showLogs ? "Hide Logs" : "Show Logs"}
             </Button>
+            
+            {showLogs && onRefresh && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onRefresh}
+                disabled={isLoading || isRefreshing}
+                className="text-xs p-1 h-auto"
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+              </Button>
+            )}
           </>
         )}
       </div>
