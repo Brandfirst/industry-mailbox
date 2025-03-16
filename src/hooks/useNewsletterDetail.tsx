@@ -7,7 +7,7 @@ import { getNewsletterById } from '@/lib/supabase/newsletters/fetch';
 import { ensureUtf8Encoding, debugLog } from '@/lib/utils/content-sanitization';
 
 export const useNewsletterDetail = () => {
-  const { id, sender, titleId } = useParams<{ id?: string; sender?: string; titleId?: string }>();
+  const { id, sender, title } = useParams<{ id?: string; sender?: string; title?: string }>();
   const [newsletter, setNewsletter] = useState<Newsletter | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -18,15 +18,21 @@ export const useNewsletterDetail = () => {
       try {
         let newsletterId: number | null = null;
         
+        // Handle classic /newsletter/:id route
         if (id) {
           newsletterId = parseInt(id, 10);
           if (isNaN(newsletterId)) {
             throw new Error('Invalid newsletter ID');
           }
-        } else if (titleId) {
-          const idMatch = titleId.match(/-(\d+)$/);
+        } 
+        // Handle SEO friendly route /:sender/:title-id
+        else if (title) {
+          console.log("Processing SEO-friendly URL with title slug:", title);
+          // Extract the ID from the title slug (format: title-ID)
+          const idMatch = title.match(/-(\d+)$/);
           if (idMatch && idMatch[1]) {
             newsletterId = parseInt(idMatch[1], 10);
+            console.log("Extracted newsletter ID from slug:", newsletterId);
           }
           
           if (!newsletterId || isNaN(newsletterId)) {
@@ -96,7 +102,7 @@ export const useNewsletterDetail = () => {
     };
     
     fetchNewsletter();
-  }, [id, sender, titleId]);
+  }, [id, sender, title]);
 
   return { newsletter, loading };
 };

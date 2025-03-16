@@ -28,17 +28,16 @@ export const createNewsletterNavigationHandler = (
     if (newsletterId) {
       console.log(`Navigating to newsletter ID: ${newsletterId}`);
       
-      // Create a SEO-friendly path for the newsletter
-      // If we have sender info, create a slug from it
-      const senderSlug = email.sender_email ? 
-        email.sender_email.toLowerCase().replace('@', '-').replace(/\./g, '') : 
-        'unknown';
+      // Create a complete newsletter object with all needed properties
+      const newsletterObject = {
+        id: newsletterId,
+        sender_email: email.sender_email || null,
+        sender: email.sender || null,
+        title: email.title || email.subject || 'untitled'
+      };
       
-      // Create a slug for the title or subject
-      const titleSlug = email.title || email.subject || 'untitled';
-      
-      // Construct the full path using format: /{sender-slug}/{title-slug}-{id}
-      const path = `/${senderSlug}/${titleSlug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${newsletterId}`;
+      // Use the central utility function to create the path
+      const path = getNewsletterPath(newsletterObject);
       
       console.log(`Using SEO-friendly path: ${path}`);
       navigate(path);
