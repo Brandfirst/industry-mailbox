@@ -7,15 +7,17 @@ type SyncLogItemProps = {
   log: SyncLogEntry;
   formatTimestamp: (timestamp: string) => string;
   itemNumber: number;
+  totalItems: number;
 };
 
-export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemProps) {
+export function SyncLogItem({ log, formatTimestamp, itemNumber, totalItems }: SyncLogItemProps) {
   return (
     <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
       <LogItemRow 
         log={log} 
         formatTimestamp={formatTimestamp} 
-        itemNumber={itemNumber} 
+        itemNumber={itemNumber}
+        totalItems={totalItems}
       />
     </div>
   );

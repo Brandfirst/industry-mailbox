@@ -12,9 +12,10 @@ interface LogItemRowProps {
   log: SyncLogEntry;
   formatTimestamp: (timestamp: string) => string;
   itemNumber: number;
+  totalItems: number;
 }
 
-export function LogItemRow({ log, formatTimestamp, itemNumber }: LogItemRowProps) {
+export function LogItemRow({ log, formatTimestamp, itemNumber, totalItems }: LogItemRowProps) {
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
   const [isSendersOpen, setIsSendersOpen] = React.useState(false);
   
@@ -62,9 +63,12 @@ export function LogItemRow({ log, formatTimestamp, itemNumber }: LogItemRowProps
     log.details.accountEmail = log.account.email;
   }
   
+  // Calculate the reversed item number (newest = #1)
+  const reversedItemNumber = totalItems - itemNumber + 1;
+  
   return (
     <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full">
-      <div className="flex items-center font-medium">{itemNumber}</div>
+      <div className="flex items-center font-medium">{reversedItemNumber}</div>
       
       <div className="flex flex-col">
         <span>{formatTimestamp(log.timestamp)}</span>

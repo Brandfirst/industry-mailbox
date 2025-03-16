@@ -104,6 +104,7 @@ export function SyncLogsList({
                     log={log} 
                     formatTimestamp={formatTimestamp}
                     itemNumber={index + 1}
+                    totalItems={syncLogs.length}
                   />
                 ))}
               </div>
