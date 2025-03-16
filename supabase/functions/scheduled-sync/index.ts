@@ -143,7 +143,11 @@ Deno.serve(async (req) => {
             status_param: 'processing',
             message_count_param: 0,
             error_message_param: null,
-            details_param: { attempt_time: now.toISOString() },
+            details_param: { 
+              attempt_time: now.toISOString(),
+              schedule_type: settings.scheduleType,
+              hour: settings.hour
+            },
             sync_type_param: 'scheduled'
           });
           console.log(`Created processing log entry for account ${account.id}`);

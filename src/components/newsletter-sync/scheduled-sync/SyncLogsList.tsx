@@ -6,6 +6,7 @@ import { SyncLogItem } from "./SyncLogItem";
 import { LogsHeader, LogsContent, LogsTableHeader } from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCcw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 type SyncLogsListProps = {
   showLogs: boolean;
@@ -15,6 +16,7 @@ type SyncLogsListProps = {
   selectedAccount: string | null;
   fetchSyncLogs: () => Promise<void>;
   formatTimestamp: (timestamp: string) => string;
+  setSyncLogs: React.Dispatch<React.SetStateAction<SyncLogEntry[]>>;
 };
 
 export function SyncLogsList({
@@ -24,7 +26,8 @@ export function SyncLogsList({
   syncLogs,
   selectedAccount,
   fetchSyncLogs,
-  formatTimestamp
+  formatTimestamp,
+  setSyncLogs
 }: SyncLogsListProps) {
   const initialFetchCompleted = useRef(false);
   
@@ -41,6 +44,39 @@ export function SyncLogsList({
   useEffect(() => {
     initialFetchCompleted.current = false;
   }, [selectedAccount]);
+  
+  // Set up real-time subscription for sync logs
+  useEffect(() => {
+    if (!selectedAccount || !showLogs) return;
+    
+    console.log("Setting up real-time subscription for sync logs");
+    
+    // Subscribe to changes in the email_sync_logs table for this account
+    const channel = supabase
+      .channel('sync-logs-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'email_sync_logs',
+          filter: `account_id=eq.${selectedAccount}`
+        },
+        (payload) => {
+          console.log("Real-time sync log update:", payload);
+          
+          // Refresh the logs when we get a new event
+          fetchSyncLogs();
+        }
+      )
+      .subscribe();
+    
+    // Clean up subscription on unmount
+    return () => {
+      console.log("Cleaning up real-time subscription");
+      supabase.removeChannel(channel);
+    };
+  }, [selectedAccount, showLogs]);
   
   if (!selectedAccount) return null;
   

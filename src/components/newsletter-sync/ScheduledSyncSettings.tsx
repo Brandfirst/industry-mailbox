@@ -13,6 +13,7 @@ import { SyncScheduleControls, SyncLogsList } from "./scheduled-sync";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon, AlertTriangleIcon } from "lucide-react";
+import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 
 type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
 
@@ -24,7 +25,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
   const [scheduleOption, setScheduleOption] = useState<ScheduleOption>("disabled");
   const [specificHour, setSpecificHour] = useState<string>("09");
   const [isEnabled, setIsEnabled] = useState(false);
-  const [syncLogs, setSyncLogs] = useState<any[]>([]);
+  const [syncLogs, setSyncLogs] = useState<SyncLogEntry[]>([]);
   const [showLogs, setShowLogs] = useState(true); // Set to true by default to show logs immediately
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
@@ -168,6 +169,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
               selectedAccount={selectedAccount}
               fetchSyncLogs={fetchSyncLogs}
               formatTimestamp={formatTimestamp}
+              setSyncLogs={setSyncLogs}
             />
           </>
         )}

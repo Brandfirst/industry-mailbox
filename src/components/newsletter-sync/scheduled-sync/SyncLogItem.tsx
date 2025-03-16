@@ -3,7 +3,6 @@ import React from "react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableCell, TableRow } from "@/components/ui/table";
 
 type SyncLogItemProps = {
   log: SyncLogEntry;
@@ -91,7 +90,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
   
   return (
     <div className="px-4 py-2 text-xs">
-      <div className="grid grid-cols-4 gap-2 mb-1">
+      <div className="grid grid-cols-[25%_20%_20%_35%] gap-2 mb-1">
         <div className="flex flex-col">
           <span>{formatTimestamp(log.timestamp)}</span>
           <span className="text-xs text-muted-foreground">{relativeTime}</span>
@@ -118,7 +117,7 @@ export function SyncLogItem({ log, formatTimestamp }: SyncLogItemProps) {
       
       {/* Additional metrics row */}
       {log.status === "success" && newSenders > 0 && (
-        <div className="grid grid-cols-4 gap-2 mt-1 text-muted-foreground">
+        <div className="grid grid-cols-[25%_20%_20%_35%] gap-2 mt-1 text-muted-foreground">
           <div></div>
           <div></div>
           <div>{newSenders} new sender{newSenders !== 1 ? 's' : ''}</div>
