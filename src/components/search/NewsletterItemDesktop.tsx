@@ -25,7 +25,7 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayN
   };
   
   return (
-    <div className="hidden md:flex md:flex-col h-[600px] border rounded-lg shadow-sm overflow-hidden bg-white" onClick={onClick}>
+    <div className="hidden md:flex md:flex-col h-[650px] border rounded-lg shadow-sm overflow-hidden bg-white" onClick={onClick}>
       <div className="flex items-center p-3 border-b">
         <Avatar 
           className="h-8 w-8 rounded-full mr-2 flex-shrink-0 cursor-pointer"
@@ -66,7 +66,7 @@ const NewsletterItemDesktop = ({ newsletter, onClick, getFormattedDate, displayN
           title={newsletter.title}
           isMobile={false}
           mode="snapshot"
-          maxHeight="540px"
+          maxHeight="590px"
         />
       </div>
     </div>

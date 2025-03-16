@@ -18,7 +18,7 @@ const IframePreview: React.FC<IframePreviewProps> = ({
   maxHeight
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [iframeHeight, setIframeHeight] = useState<string>(maxHeight || (isMobile ? "450px" : mode === 'snapshot' ? "550px" : "900px"));
+  const [iframeHeight, setIframeHeight] = useState<string>(maxHeight || (isMobile ? "450px" : mode === 'snapshot' ? "600px" : "900px"));
   
   // Handle iframe load and resize
   useEffect(() => {
@@ -35,7 +35,7 @@ const IframePreview: React.FC<IframePreviewProps> = ({
         doc.close();
         
         // Set height based on device type, mode, and maxHeight prop
-        setIframeHeight(maxHeight || (isMobile ? "450px" : mode === 'snapshot' ? "550px" : "900px"));
+        setIframeHeight(maxHeight || (isMobile ? "450px" : mode === 'snapshot' ? "600px" : "900px"));
         
         // Apply centering with multiple attempts to ensure it works
         forceCentering(doc, mode === 'snapshot');

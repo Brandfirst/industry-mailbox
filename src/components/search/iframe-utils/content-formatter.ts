@@ -42,10 +42,10 @@ export const getIframeContent = (content: string | null, isMobile: boolean = fal
  * @returns CSS styles as a string
  */
 const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false): string => {
-  // Optimize scale factors for each mode to match original appearance
+  // Optimize scale factors for each mode to improve appearance based on viewport
   const baseScale = isSnapshot ? 
-    (isMobile ? '0.55' : '0.65') : 
-    (isMobile ? '0.6' : '1');
+    (isMobile ? '0.45' : '0.9') : 
+    (isMobile ? '0.6' : '0.95');
   
   return `
     html, body {
@@ -104,7 +104,6 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
     /* Make sure tables don't overflow */
     table {
       max-width: 100% !important;
-      width: auto !important;
       margin-left: auto !important;
       margin-right: auto !important;
       table-layout: auto !important;
@@ -123,7 +122,7 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
     [class*="body"], [class*="main"], [class*="content"], [class*="inner"] {
       margin-left: auto !important;
       margin-right: auto !important;
-      width: 100% !important;
+      width: auto !important;
       max-width: 100% !important;
       float: none !important;
     }
@@ -143,24 +142,17 @@ const getIframeStyles = (isMobile: boolean = false, isSnapshot: boolean = false)
       width: 100%;
     }
     
-    /* Center all elements */
-    div, p, h1, h2, h3, h4, h5, h6, span, a, 
-    section, article, header, footer, main {
-      margin-left: auto !important;
-      margin-right: auto !important;
-      max-width: 100% !important;
-    }
-    
     /* Fix common alignment issues */
     [align="left"], [style*="text-align: left"] {
-      text-align: center !important;
-      margin: 0 auto !important;
+      text-align: left !important;
     }
     
-    /* Fix any layout elements that might break */
-    td, th {
+    [align="right"], [style*="text-align: right"] {
+      text-align: right !important;
+    }
+    
+    [align="center"], [style*="text-align: center"] {
       text-align: center !important;
-      max-width: none !important;
     }
     
     ${isSnapshot ? `
