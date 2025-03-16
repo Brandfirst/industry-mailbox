@@ -43,6 +43,7 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               display: flex;
               flex-direction: column;
               align-items: center;
+              text-align: center;
             }
             a {
               pointer-events: none;
@@ -54,7 +55,9 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             }
             table {
               max-width: 100%;
-              margin: 0 auto;
+              margin: 0 auto !important;
+              float: none !important;
+              display: table !important;
             }
             * {
               max-width: 100%;
@@ -62,10 +65,25 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
             }
             /* Fixed content centering and scaling */
             body > * {
-              width: 100%;
-              margin: 0 auto;
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 auto !important;
+              float: none !important;
               transform: scale(${isMobile ? '0.6' : '0.7'});
               transform-origin: top center;
+              left: 0 !important;
+              right: 0 !important;
+              position: relative !important;
+            }
+            
+            /* Fix left alignment issues */
+            [align="left"], [style*="text-align: left"] {
+              text-align: center !important;
+              margin: 0 auto !important;
+            }
+            
+            td, th {
+              text-align: center !important;
             }
           </style>
         </head>
@@ -96,6 +114,29 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               // Account for the scale factor when setting the height
               const computedHeight = doc.body.scrollHeight * (isMobile ? 0.6 : 0.7);
               setIframeHeight(`${computedHeight}px`);
+              
+              // Fix any left-aligned tables or divs
+              const tables = doc.querySelectorAll('table');
+              tables.forEach(table => {
+                table.style.margin = '0 auto';
+                table.style.float = 'none';
+                table.style.display = 'table';
+                
+                // Fix any cells that might be left-aligned
+                const cells = table.querySelectorAll('td, th');
+                cells.forEach(cell => {
+                  cell.style.textAlign = 'center';
+                });
+              });
+              
+              // Force divs to center
+              const divs = doc.querySelectorAll('div');
+              divs.forEach(div => {
+                if (getComputedStyle(div).display !== 'inline') {
+                  div.style.margin = '0 auto';
+                  div.style.float = 'none';
+                }
+              });
             }
           });
           

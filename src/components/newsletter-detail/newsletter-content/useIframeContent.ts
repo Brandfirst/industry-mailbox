@@ -45,9 +45,30 @@ export const useIframeContent = (newsletter: Newsletter) => {
               // Force center alignment on table elements
               const tables = doc.querySelectorAll('table');
               tables.forEach(table => {
-                if (!table.style.margin) {
-                  table.style.margin = '0 auto';
+                table.style.margin = '0 auto';
+                table.style.float = 'none';
+                table.style.display = 'table';
+                
+                // Fix any cells that might be left-aligned
+                const cells = table.querySelectorAll('td, th');
+                cells.forEach(cell => {
+                  cell.style.textAlign = 'center';
+                });
+              });
+              
+              // Force center alignment on div elements
+              const divs = doc.querySelectorAll('div');
+              divs.forEach(div => {
+                if (getComputedStyle(div).display !== 'inline') {
+                  div.style.margin = '0 auto';
+                  div.style.float = 'none';
                 }
+              });
+              
+              // Override any left-aligned elements
+              const leftAligned = doc.querySelectorAll('[align="left"], [style*="text-align: left"]');
+              leftAligned.forEach(el => {
+                el.setAttribute('style', 'text-align: center !important; margin: 0 auto !important;');
               });
             }
           });

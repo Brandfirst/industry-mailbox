@@ -52,6 +52,18 @@ export const prepareNewsletterContentForDisplay = (content: string | null): stri
     'position: relative'
   );
   
+  // Fix left-aligned styles that cause the white space issue
+  cleanContent = cleanContent.replace(
+    /(text-align|align):\s*left/gi,
+    'text-align: center'
+  );
+  
+  // Center any tables that might be left-aligned
+  cleanContent = cleanContent.replace(
+    /<table/gi,
+    '<table style="margin:0 auto;float:none;display:table" align="center"'
+  );
+  
   return cleanContent;
 };
 
@@ -72,12 +84,44 @@ export const createSecureNewsletterHtml = (content: string, title?: string): str
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
               Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            padding: 20px;
-            margin: 0;
+            padding: 0;
+            margin: 0 auto;
             line-height: 1.6;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
           }
           img { max-width: 100%; height: auto; }
           * { box-sizing: border-box; }
+          
+          /* Better centering */
+          body > * {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            float: none !important;
+            left: 0 !important;
+            right: 0 !important;
+            position: relative !important;
+          }
+          
+          /* Table centering */
+          table {
+            margin: 0 auto !important;
+            float: none !important;
+            display: table !important;
+          }
+          
+          /* Fix alignment issues */
+          [align="left"], [style*="text-align: left"] {
+            text-align: center !important;
+            margin: 0 auto !important;
+          }
+          
+          td, th {
+            text-align: center !important;
+          }
           
           /* Error message styling */
           .error-overlay {
@@ -120,6 +164,28 @@ export const createSecureNewsletterHtml = (content: string, title?: string): str
               originalConsoleError.apply(console, args);
             }
           };
+          
+          // Additional fix for any left-aligned elements after load
+          window.addEventListener('DOMContentLoaded', function() {
+            // Force center alignment on all direct children of body
+            Array.from(document.body.children).forEach(function(el) {
+              el.style.margin = '0 auto';
+              el.style.float = 'none';
+              el.style.textAlign = 'center';
+              el.style.width = '100%';
+              el.style.maxWidth = '100%';
+              el.style.left = '0';
+              el.style.right = '0';
+              el.style.position = 'relative';
+            });
+            
+            // Center all tables
+            document.querySelectorAll('table').forEach(function(table) {
+              table.style.margin = '0 auto';
+              table.style.float = 'none';
+              table.style.display = 'table';
+            });
+          });
         </script>
       </head>
       <body>

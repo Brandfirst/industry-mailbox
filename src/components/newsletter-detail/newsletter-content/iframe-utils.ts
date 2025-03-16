@@ -34,22 +34,40 @@ export const getFormattedHtmlContent = (content: string | null) => {
                   display: flex;
                   flex-direction: column;
                   align-items: center;
+                  text-align: center;
                 }
                 img { max-width: 100%; height: auto; }
                 * { box-sizing: border-box; }
                 
                 /* Better centering and scaling */
                 body > * {
-                  max-width: 100%;
-                  width: 100%;
-                  margin: 0 auto;
+                  max-width: 100% !important;
+                  width: 100% !important;
+                  margin: 0 auto !important;
+                  float: none !important;
                   transform: scale(0.85);
                   transform-origin: top center;
+                  left: 0 !important;
+                  right: 0 !important;
+                  position: relative !important;
                 }
                 
                 table {
                   max-width: 100%;
-                  margin: 0 auto;
+                  margin: 0 auto !important;
+                  float: none !important;
+                  display: table !important;
+                  position: relative !important;
+                }
+                
+                /* Fix left alignment issues */
+                [align="left"], [style*="text-align: left"] {
+                  text-align: center !important;
+                  margin: 0 auto !important;
+                }
+                
+                td, th {
+                  text-align: center !important;
                 }
               </style>
             </head>
