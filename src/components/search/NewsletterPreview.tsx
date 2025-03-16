@@ -37,7 +37,6 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               overflow-x: hidden;
             }
             body {
-              ${isMobile ? 'zoom: 0.2;' : ''}
               padding: 10px;
               box-sizing: border-box;
               display: flex;
@@ -61,14 +60,14 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
               max-width: 100%;
               box-sizing: border-box;
             }
-            /* Center content on mobile preview */
-            ${isMobile ? `
-              body > * {
-                transform-origin: top center;
-                margin-left: auto;
-                margin-right: auto;
-              }
-            ` : ''}
+            /* Center content */
+            body > * {
+              margin-left: auto;
+              margin-right: auto;
+              max-width: ${isMobile ? '600px' : '800px'};
+              transform: scale(${isMobile ? '0.4' : '0.8'});
+              transform-origin: top center;
+            }
           </style>
         </head>
         <body>
@@ -95,7 +94,8 @@ const NewsletterPreview = ({ content, title, isMobile = false }: NewsletterPrevi
         if (!isMobile) {
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
-              const height = doc.body.scrollHeight;
+              // Account for the scale factor when setting the height
+              const height = doc.body.scrollHeight * 0.8;
               setIframeHeight(`${height}px`);
             }
           });

@@ -34,7 +34,10 @@ export const useIframeContent = (newsletter: Newsletter) => {
                 padding: 20px;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
                 line-height: 1.6;
-                max-width: 100%;
+                max-width: 95%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
               }
               img { max-width: 100%; height: auto; }
               * { box-sizing: border-box; }
@@ -50,6 +53,9 @@ export const useIframeContent = (newsletter: Newsletter) => {
               body > * {
                 margin-left: auto;
                 margin-right: auto;
+                transform: scale(0.9);
+                transform-origin: top center;
+                max-width: 800px;
               }
             </style>
           </head>
@@ -76,7 +82,8 @@ export const useIframeContent = (newsletter: Newsletter) => {
           // Adjust height after content is loaded
           const resizeObserver = new ResizeObserver(() => {
             if (doc.body) {
-              const height = doc.body.scrollHeight;
+              // Account for the scale factor in the height calculation
+              const height = doc.body.scrollHeight * 0.9;
               setIframeHeight(`${height + 50}px`);
             }
           });

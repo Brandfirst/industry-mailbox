@@ -20,18 +20,37 @@ export function generateIframeContent(content: string | null): string {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="Content-Security-Policy" content="script-src 'none'; frame-src 'none';">
         <style>
-          body {
+          html, body {
             margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+          }
+          body {
+            margin: 0 auto;
             padding: 20px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
           }
           img { max-width: 100%; height: auto; }
           * { box-sizing: border-box; }
           a { color: #3b82f6; text-decoration: none; }
           a:hover { text-decoration: underline; }
           h1, h2, h3, h4, h5, h6 { color: #111; }
+          
+          /* Center and scale content */
+          body > * {
+            max-width: 800px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            transform: scale(0.9);
+            transform-origin: top center;
+          }
         </style>
       </head>
       <body>
