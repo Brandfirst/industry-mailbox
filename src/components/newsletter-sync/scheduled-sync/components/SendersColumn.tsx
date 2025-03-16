@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { UsersIcon } from "lucide-react";
 import { SenderPopover } from "./SenderPopover";
 import { SendersDialog } from "./SendersDialog";
 
