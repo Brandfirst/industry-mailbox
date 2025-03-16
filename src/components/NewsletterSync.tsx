@@ -25,9 +25,13 @@ export default function NewsletterSync() {
     totalPages,
     displayRange,
     filters,
+    selectedIds,
+    isDeleting,
     handleSync,
     handleDeleteNewsletters,
-    handleFiltersChange
+    handleFiltersChange,
+    handleSelectNewsletter,
+    handleSelectAll
   } = useNewsletterSync(user?.id);
 
   return (
@@ -63,7 +67,11 @@ export default function NewsletterSync() {
           isSyncing={isSyncing}
           newsletters={newsletters}
           categories={categories}
+          selectedIds={selectedIds}
+          isDeleting={isDeleting}
           onDeleteNewsletters={handleDeleteNewsletters}
+          onSelectNewsletter={handleSelectNewsletter}
+          onSelectAll={handleSelectAll}
           currentPage={page}
           totalPages={totalPages}
           onPageChange={setPage}

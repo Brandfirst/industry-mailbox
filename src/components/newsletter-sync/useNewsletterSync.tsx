@@ -64,7 +64,14 @@ export function useNewsletterSync(userId: string | undefined) {
   );
 
   // Set up newsletter deletion
-  const { handleDeleteNewsletters } = useNewsletterDeletion({
+  const { 
+    selectedIds,
+    isDeleting,
+    handleSelectNewsletter,
+    handleSelectAll,
+    handleDeleteNewsletters,
+    setSelectedIds
+  } = useNewsletterDeletion({
     newsletters,
     page,
     setPage,
@@ -99,9 +106,14 @@ export function useNewsletterSync(userId: string | undefined) {
     totalPages,
     displayRange,
     filters,
+    selectedIds,
+    isDeleting,
     handleSync,
     handleCategoryChange,
     handleDeleteNewsletters,
-    handleFiltersChange
+    handleFiltersChange,
+    handleSelectNewsletter,
+    handleSelectAll,
+    setSelectedIds
   };
 }

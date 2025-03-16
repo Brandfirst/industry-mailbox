@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { Newsletter, NewsletterCategory } from "@/lib/supabase";
 import { NewsletterListTable } from "./NewsletterListTable";
 import { DeleteConfirmationDialog } from "../DeleteConfirmationDialog";
@@ -7,16 +7,24 @@ import { NewsletterListActions } from "./NewsletterListActions";
 type NewsletterListProps = {
   newsletters: Newsletter[];
   categories: NewsletterCategory[];
-  onDeleteNewsletters?: (ids: number[]) => Promise<void>;
+  selectedIds?: number[];
+  isDeleting?: boolean;
+  onDeleteNewsletters?: () => Promise<void>;
+  onSelectNewsletter?: (id: number) => void;
+  onSelectAll?: (newsletters: Newsletter[]) => void;
+  allSelected?: boolean;
 };
 
 export function NewsletterList({
   newsletters,
   categories,
+  selectedIds = [],
+  isDeleting = false,
   onDeleteNewsletters,
+  onSelectNewsletter,
+  onSelectAll,
+  allSelected = false,
 }: NewsletterListProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Group newsletters by sender for better display
@@ -32,39 +40,16 @@ export function NewsletterList({
   const handleDeleteConfirm = async () => {
     if (!onDeleteNewsletters) return;
     
-    setIsDeleting(true);
     try {
-      await onDeleteNewsletters(selectedIds);
-      setSelectedIds([]);
+      await onDeleteNewsletters();
     } catch (error) {
       console.error("Error deleting newsletters:", error);
     } finally {
-      setIsDeleting(false);
       setShowDeleteDialog(false);
     }
   };
 
-  const toggleSelectNewsletter = (id: number) => {
-    setSelectedIds(prev => 
-      prev.includes(id) 
-        ? prev.filter(itemId => itemId !== id)
-        : [...prev, id]
-    );
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.length === newsletters.length) {
-      // If all selected, deselect all
-      setSelectedIds([]);
-    } else {
-      // Otherwise, select all
-      setSelectedIds(newsletters.map(n => n.id));
-    }
-  };
-
   const isSelected = (id: number) => selectedIds.includes(id);
-
-  const allSelected = newsletters.length > 0 && selectedIds.length === newsletters.length;
 
   return (
     <div className="space-y-4">
@@ -81,8 +66,8 @@ export function NewsletterList({
         categories={categories}
         senderGroups={senderGroups}
         isSelected={isSelected}
-        onToggleSelectAll={toggleSelectAll}
-        onToggleSelectNewsletter={toggleSelectNewsletter}
+        onToggleSelectAll={onSelectAll}
+        onToggleSelectNewsletter={onSelectNewsletter}
         allSelected={allSelected}
       />
       
@@ -98,3 +83,5 @@ export function NewsletterList({
     </div>
   );
 }
+
+import { useState } from "react";

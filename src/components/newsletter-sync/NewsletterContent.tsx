@@ -18,7 +18,11 @@ type NewsletterContentProps = {
   isSyncing: boolean;
   newsletters: Newsletter[];
   categories: NewsletterCategory[];
-  onDeleteNewsletters?: (ids: number[]) => Promise<void>;
+  selectedIds?: number[];
+  isDeleting?: boolean;
+  onDeleteNewsletters?: () => Promise<void>;
+  onSelectNewsletter?: (id: number) => void;
+  onSelectAll?: (newsletters: Newsletter[]) => void;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -36,7 +40,11 @@ export function NewsletterContent({
   isSyncing,
   newsletters,
   categories,
+  selectedIds = [],
+  isDeleting = false,
   onDeleteNewsletters,
+  onSelectNewsletter,
+  onSelectAll,
   currentPage,
   totalPages,
   onPageChange,
@@ -76,7 +84,11 @@ export function NewsletterContent({
           <NewsletterList 
             newsletters={newsletters}
             categories={categories}
+            selectedIds={selectedIds}
+            isDeleting={isDeleting}
             onDeleteNewsletters={onDeleteNewsletters}
+            onSelectNewsletter={onSelectNewsletter}
+            onSelectAll={onSelectAll}
           />
           
           {totalPages > 1 && (

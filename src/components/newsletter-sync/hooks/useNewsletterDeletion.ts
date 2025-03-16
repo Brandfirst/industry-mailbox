@@ -3,10 +3,25 @@ import { useState } from "react";
 import { Newsletter, deleteNewsletters } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
-export const useNewsletterDeletion = () => {
-  const [isDeleting, setIsDeleting] = useState(false);
+type UseNewsletterDeletionProps = {
+  newsletters: Newsletter[];
+  page: number;
+  setPage: (page: number) => void;
+  setNewsletters: React.Dispatch<React.SetStateAction<Newsletter[]>>;
+  setTotalCount: React.Dispatch<React.SetStateAction<number>>;
+  deleteNewslettersBase: (ids: number[]) => Promise<void>;
+};
+
+export const useNewsletterDeletion = ({
+  newsletters,
+  page,
+  setPage,
+  setNewsletters,
+  setTotalCount,
+  deleteNewslettersBase
+}: UseNewsletterDeletionProps) => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   const handleSelectNewsletter = (id: number) => {
@@ -27,16 +42,23 @@ export const useNewsletterDeletion = () => {
     }
   };
 
-  const handleDeleteSelected = async () => {
+  // This function will be used by useNewsletterSync
+  const handleDeleteNewsletters = async () => {
     if (selectedIds.length === 0) return;
     
     try {
       setIsDeleting(true);
-      await deleteNewsletters(selectedIds);
+      await deleteNewslettersBase(selectedIds);
+      
+      // Adjust page if needed after deletion
+      const remainingItems = newsletters.length - selectedIds.length;
+      if (remainingItems === 0 && page > 1) {
+        setPage(page - 1);
+      }
       
       setTotalCount((prevCount: number) => prevCount - selectedIds.length);
-      
       setSelectedIds([]);
+      
       toast({
         title: "Newsletters deleted",
         description: `Successfully deleted ${selectedIds.length} newsletter${selectedIds.length > 1 ? 's' : ''}.`,
@@ -53,18 +75,12 @@ export const useNewsletterDeletion = () => {
     }
   };
 
-  const updateTotalCount = (count: number) => {
-    setTotalCount(count);
-  };
-
   return {
     selectedIds,
     isDeleting,
-    totalCount,
     handleSelectNewsletter,
     handleSelectAll,
-    handleDeleteSelected,
-    updateTotalCount,
+    handleDeleteNewsletters,
     setSelectedIds,
   };
 };
