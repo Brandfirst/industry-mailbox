@@ -1,6 +1,5 @@
-
 // This file is intentionally kept minimal as testing is currently disabled
-// All mocks have been removed to prevent TypeScript errors with JSX in .ts files
+// All mocks have been removed to prevent TypeScript errors with JSX in ts files
 
 // Mock empty objects instead of complex JSX components
 jest.mock('react-router-dom', () => ({}));

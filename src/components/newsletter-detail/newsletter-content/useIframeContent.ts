@@ -1,7 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Newsletter } from "@/lib/supabase/types";
-import { getFormattedHtmlContent } from "./iframe-utils";
 
 export const useIframeContent = (newsletter: Newsletter) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);

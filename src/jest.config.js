@@ -1,4 +1,3 @@
-
 // Jest configuration is currently minimal as testing is disabled
 
 module.exports = {
