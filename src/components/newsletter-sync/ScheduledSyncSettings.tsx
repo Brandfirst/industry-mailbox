@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -87,7 +88,8 @@ export function ScheduledSyncSettings({
     setIsLoading(true);
     try {
       console.log("Fetching sync logs for account:", selectedAccount);
-      const logs = await getSyncLogs(selectedAccount, 50); // Increase limit to ensure we get all logs
+      // Increased limit to 100 to ensure we have enough logs for row count filtering
+      const logs = await getSyncLogs(selectedAccount, 100); 
       console.log("Retrieved logs:", logs);
       setSyncLogs(logs);
     } catch (error) {

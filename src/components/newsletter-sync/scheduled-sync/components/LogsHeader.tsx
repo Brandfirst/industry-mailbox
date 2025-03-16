@@ -1,50 +1,67 @@
 
-import React from "react";
+import { RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { RowCountSelect } from "./RowCountSelect";
 
-export interface LogsHeaderProps {
+interface LogsHeaderProps {
   showLogs: boolean;
   onToggle: () => void;
-  onRefresh: () => Promise<void>;
+  onRefresh: () => void;
   isRefreshing: boolean;
+  rowCount?: number;
+  onRowCountChange?: (value: number) => void;
 }
 
 export function LogsHeader({ 
   showLogs, 
   onToggle, 
   onRefresh, 
-  isRefreshing 
+  isRefreshing,
+  rowCount = 10,
+  onRowCountChange
 }: LogsHeaderProps) {
   return (
-    <div className="flex items-center justify-between mb-2">
-      <div className="flex items-center">
-        <h3 className="text-sm font-medium">Sync History</h3>
+    <div className="flex justify-between items-center">
+      <div className="flex items-center space-x-2">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="p-0 h-7 w-7 ml-1"
           onClick={onToggle}
+          className="text-xs h-8"
         >
           {showLogs ? (
-            <ChevronUp className="h-4 w-4" />
+            <>
+              <ChevronUp className="h-4 w-4 mr-1" />
+              Hide Sync History
+            </>
           ) : (
-            <ChevronDown className="h-4 w-4" />
+            <>
+              <ChevronDown className="h-4 w-4 mr-1" />
+              Show Sync History
+            </>
           )}
         </Button>
+        
+        {showLogs && onRowCountChange && (
+          <RowCountSelect 
+            value={rowCount} 
+            onChange={onRowCountChange} 
+          />
+        )}
       </div>
+      
       {showLogs && (
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0"
           onClick={onRefresh}
           disabled={isRefreshing}
+          className="text-xs h-8"
         >
-          <RefreshCw 
-            className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} 
+          <RefreshCw
+            className={`h-3.5 w-3.5 mr-1 ${isRefreshing ? "animate-spin" : ""}`}
           />
-          <span className="sr-only">Refresh</span>
+          Refresh
         </Button>
       )}
     </div>

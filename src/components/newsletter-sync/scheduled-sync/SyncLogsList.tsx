@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   LogsHeader, 
   LogsContainer, 
@@ -35,6 +35,10 @@ export function SyncLogsList({
   setSyncLogs
 }: SyncLogsListProps) {
   
+  // Add state for row count
+  const [rowCount, setRowCount] = useState<number>(10);
+  const [displayedLogs, setDisplayedLogs] = useState<SyncLogEntry[]>([]);
+  
   // Set up logs fetching
   const { isRefreshing, handleRefresh } = useLogsFetching(
     selectedAccount,
@@ -48,6 +52,11 @@ export function SyncLogsList({
     showLogs,
     setSyncLogs
   );
+
+  // Update displayed logs when syncLogs or rowCount changes
+  useEffect(() => {
+    setDisplayedLogs(syncLogs.slice(0, rowCount));
+  }, [syncLogs, rowCount]);
   
   // For enhanced debug logging
   React.useEffect(() => {
@@ -63,6 +72,10 @@ export function SyncLogsList({
     }
     setShowLogs(!showLogs);
   };
+
+  const handleRowCountChange = (value: number) => {
+    setRowCount(value);
+  };
   
   return (
     <div className="mt-6">
@@ -70,7 +83,9 @@ export function SyncLogsList({
         showLogs={showLogs} 
         onToggle={handleToggleLogs} 
         onRefresh={handleRefresh} 
-        isRefreshing={isRefreshing} 
+        isRefreshing={isRefreshing}
+        rowCount={rowCount}
+        onRowCountChange={handleRowCountChange}
       />
       
       {showLogs && (
@@ -98,13 +113,13 @@ export function SyncLogsList({
             <div className="min-w-[800px]">
               <LogsTableHeader />
               <div>
-                {syncLogs.map((log, index) => (
+                {displayedLogs.map((log, index) => (
                   <SyncLogItem 
                     key={log.id} 
                     log={log} 
                     formatTimestamp={formatTimestamp}
                     itemNumber={index + 1}
-                    totalItems={syncLogs.length}
+                    totalItems={displayedLogs.length}
                   />
                 ))}
               </div>
