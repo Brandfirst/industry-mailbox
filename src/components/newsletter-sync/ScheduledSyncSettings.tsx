@@ -1,12 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { getSyncLogs, getSyncSchedule } from "@/lib/supabase/emailAccounts/syncLogs";
 import { SyncScheduleControls, SyncLogsList } from "./scheduled-sync";
@@ -14,14 +7,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon, AlertTriangleIcon } from "lucide-react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
-
 type ScheduleOption = "minute" | "hourly" | "daily" | "disabled";
-
 type ScheduledSyncSettingsProps = {
   selectedAccount: string | null;
 };
-
-export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettingsProps) {
+export function ScheduledSyncSettings({
+  selectedAccount
+}: ScheduledSyncSettingsProps) {
   const [scheduleOption, setScheduleOption] = useState<ScheduleOption>("disabled");
   const [specificHour, setSpecificHour] = useState<string>("09");
   const [isEnabled, setIsEnabled] = useState(false);
@@ -38,7 +30,7 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       console.log("Account selected, loading settings for:", selectedAccount);
       setSettingsLoaded(false);
       loadAccountSettings();
-      
+
       // Also fetch logs when account changes
       if (showLogs) {
         fetchSyncLogs();
@@ -54,26 +46,22 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       setSyncLogs([]);
     }
   }, [selectedAccount]);
-
   const loadAccountSettings = async () => {
     if (!selectedAccount) return;
-    
     setIsLoadingSettings(true);
     try {
       console.log("Loading account settings for:", selectedAccount);
       const settings = await getSyncSchedule(selectedAccount);
       console.log("Retrieved settings:", settings);
-      
       if (settings) {
         // Update state with the retrieved settings
         setIsEnabled(settings.enabled);
         setScheduleOption(settings.scheduleType as ScheduleOption);
         setLastUpdated(settings.updated_at);
-        
         if (settings.hour !== undefined && settings.hour !== null) {
           setSpecificHour(settings.hour.toString().padStart(2, '0'));
         }
-        
+
         // Mark settings as loaded
         setSettingsLoaded(true);
         console.log("Settings loaded successfully:", {
@@ -90,10 +78,8 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       setIsLoadingSettings(false);
     }
   };
-
   const fetchSyncLogs = async () => {
     if (!selectedAccount) return;
-    
     setIsLoading(true);
     try {
       console.log("Fetching sync logs for account:", selectedAccount);
@@ -107,14 +93,11 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
       setIsLoading(false);
     }
   };
-
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleString();
   };
-
-  return (
-    <Card className="w-full mt-4">
+  return <Card className="w-full mt-4">
       <CardHeader>
         <CardTitle className="text-base">Automatic Sync Settings</CardTitle>
         <CardDescription>
@@ -122,58 +105,23 @@ export function ScheduledSyncSettings({ selectedAccount }: ScheduledSyncSettings
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoadingSettings ? (
-          <div className="space-y-2">
+        {isLoadingSettings ? <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-4 w-3/4" />
-          </div>
-        ) : (
-          <>
-            <SyncScheduleControls
-              selectedAccount={selectedAccount}
-              isEnabled={isEnabled}
-              setIsEnabled={setIsEnabled}
-              scheduleOption={scheduleOption}
-              setScheduleOption={setScheduleOption}
-              specificHour={specificHour}
-              setSpecificHour={setSpecificHour}
-              refreshLogs={fetchSyncLogs}
-              lastUpdated={lastUpdated}
-              settingsLoaded={settingsLoaded}
-            />
+          </div> : <>
+            <SyncScheduleControls selectedAccount={selectedAccount} isEnabled={isEnabled} setIsEnabled={setIsEnabled} scheduleOption={scheduleOption} setScheduleOption={setScheduleOption} specificHour={specificHour} setSpecificHour={setSpecificHour} refreshLogs={fetchSyncLogs} lastUpdated={lastUpdated} settingsLoaded={settingsLoaded} />
             
-            {!selectedAccount && (
-              <Alert variant="default" className="mt-4 bg-yellow-50/10 border-yellow-200">
+            {!selectedAccount && <Alert variant="default" className="mt-4 bg-yellow-50/10 border-yellow-200">
                 <AlertTriangleIcon className="h-4 w-4 text-yellow-500" />
                 <AlertDescription className="text-sm text-yellow-700">
                   Select an email account to configure automatic sync settings
                 </AlertDescription>
-              </Alert>
-            )}
+              </Alert>}
             
-            {selectedAccount && (
-              <Alert variant="default" className="mt-4 bg-blue-50/10 border-blue-200">
-                <InfoIcon className="h-4 w-4 text-blue-500" />
-                <AlertDescription className="text-sm text-blue-700">
-                  Automatic sync requires that the account remains connected. If authentication expires, 
-                  you'll need to reconnect the account.
-                </AlertDescription>
-              </Alert>
-            )}
+            {selectedAccount}
             
-            <SyncLogsList
-              showLogs={showLogs}
-              setShowLogs={setShowLogs}
-              isLoading={isLoading}
-              syncLogs={syncLogs}
-              selectedAccount={selectedAccount}
-              fetchSyncLogs={fetchSyncLogs}
-              formatTimestamp={formatTimestamp}
-              setSyncLogs={setSyncLogs}
-            />
-          </>
-        )}
+            <SyncLogsList showLogs={showLogs} setShowLogs={setShowLogs} isLoading={isLoading} syncLogs={syncLogs} selectedAccount={selectedAccount} fetchSyncLogs={fetchSyncLogs} formatTimestamp={formatTimestamp} setSyncLogs={setSyncLogs} />
+          </>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
