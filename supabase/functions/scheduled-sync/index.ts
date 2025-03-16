@@ -1,252 +1,288 @@
-
-import { corsHeaders } from '../_shared/cors.ts';
+// deno-lint-ignore-file no-explicit-any
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-
-// Create Supabase client with admin privileges
-const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY
-);
-
-Deno.serve(async (req) => {
-  // Handle CORS
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: corsHeaders,
-    });
-  }
-
+serve(async (req) => {
   try {
-    console.log('Starting scheduled sync check...');
+    // Parse the request body or use empty object if it fails
+    const reqData = req.body ? await req.json().catch(() => ({})) : {};
     
-    // Check if this is a manual trigger
-    let isManualTrigger = false;
-    let isForceRun = false;
-    let manualAccountId = null;
+    // CORS headers for browser requests
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    };
     
-    try {
-      const requestData = await req.json();
-      isManualTrigger = !!requestData.manual;
-      isForceRun = !!requestData.forceRun;
-      manualAccountId = requestData.accountId || null;
-      console.log(`Request data: manual=${isManualTrigger}, forceRun=${isForceRun}, accountId=${manualAccountId || 'not specified'}`);
-    } catch (e) {
-      // No request body or invalid JSON, continue as normal scheduled run
-      console.log('No request body or invalid JSON, proceeding as normal scheduled run');
+    // Handle OPTIONS request for CORS
+    if (req.method === 'OPTIONS') {
+      return new Response('ok', { headers: corsHeaders });
     }
     
-    // Get the current time
-    const now = new Date();
-    const currentHour = now.getUTCHours();
-    const currentMinute = now.getUTCMinutes();
+    // Get required environment variables
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    console.log(`Current time: ${now.toISOString()} (${currentHour}:${currentMinute} UTC)`);
-    console.log(`Run type: ${isManualTrigger ? 'manual trigger' : 'scheduled'}`);
-    
-    // Get all email accounts with enabled sync settings
-    // If a specific account was specified in manual mode, only get that one
-    let accountsQuery = supabase
-      .from('email_accounts')
-      .select('id, email, provider, sync_settings')
-      .not('sync_settings', 'is', null);
-      
-    if (isManualTrigger && manualAccountId) {
-      accountsQuery = accountsQuery.eq('id', manualAccountId);
-    }
-    
-    const { data: accounts, error: accountsError } = await accountsQuery;
-      
-    if (accountsError) {
-      console.error('Error fetching accounts:', accountsError);
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing environment variables SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
       return new Response(
-        JSON.stringify({ error: 'Error fetching accounts', details: accountsError }),
+        JSON.stringify({ error: 'Server configuration error' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
     
-    console.log(`Found ${accounts?.length || 0} accounts with sync settings`);
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Track which accounts we'll sync
-    const accountsToSync: string[] = [];
+    // Extract parameters from the request
+    const { 
+      forceRun = false,
+      accountId = null, 
+      manual = false 
+    } = reqData;
     
-    // Check each account to see if it's due for a sync
-    for (const account of accounts || []) {
-      const settings = account.sync_settings as any;
-      
-      // Skip if sync is not enabled
-      if (!settings?.enabled || settings?.scheduleType === 'disabled') {
-        console.log(`Account ${account.id} (${account.email}) - sync disabled, skipping`);
-        continue;
-      }
-      
-      // If this is a force run or manual trigger for a specific account, sync regardless of schedule
-      if (isForceRun || (isManualTrigger && manualAccountId === account.id)) {
-        console.log(`Force run or manual trigger for account ${account.id} (${account.email})`);
-        accountsToSync.push(account.id);
-        
-        // Create a processing log entry for this manual sync
-        try {
-          await supabase.rpc('add_sync_log', {
-            account_id_param: account.id,
-            status_param: 'processing',
-            message_count_param: 0,
-            error_message_param: null,
-            details_param: { 
-              attempt_time: now.toISOString(),
-              manual_trigger: true,
-              force_run: isForceRun
-            },
-            sync_type_param: isManualTrigger ? 'manual' : 'scheduled'
-          });
-          console.log(`Created processing log entry for account ${account.id} (manual/force trigger)`);
-        } catch (logError) {
-          console.error(`Error creating log entry for account ${account.id}:`, logError);
-        }
-        
-        continue;
-      }
-      
-      // Check if we should sync based on schedule type
-      let shouldSync = false;
-      
-      switch (settings.scheduleType) {
-        case 'minute':
-          // For minute schedule, always run when the scheduled function is called
-          shouldSync = true;
-          console.log(`Minute sync for account ${account.id} (${account.email}) - scheduled to run every minute`);
-          break;
-        case 'hourly':
-          // Sync at the top of each hour
-          shouldSync = currentMinute === 0;
-          console.log(`Hourly sync for account ${account.id} - should sync: ${shouldSync} (minute: ${currentMinute})`);
-          break;
-        case 'daily':
-          // Sync once per day at specified hour
-          const hourToSync = typeof settings.hour === 'number' ? settings.hour : 0;
-          shouldSync = currentHour === hourToSync && currentMinute === 0;
-          console.log(`Daily sync for account ${account.id} - should sync: ${shouldSync} (hour: ${currentHour}, target: ${hourToSync}, minute: ${currentMinute})`);
-          break;
-      }
-      
-      // Queue this account for syncing if it's time
-      if (shouldSync) {
-        console.log(`Scheduling sync for account ${account.id} (${account.email}), scheduleType: ${settings.scheduleType}`);
-        accountsToSync.push(account.id);
-        
-        // Log the scheduled sync attempt with explicit sync_type
-        try {
-          await supabase.rpc('add_sync_log', {
-            account_id_param: account.id,
-            status_param: 'processing',
-            message_count_param: 0,
-            error_message_param: null,
-            details_param: { 
-              attempt_time: now.toISOString(),
-              schedule_type: settings.scheduleType,
-              hour: settings.hour
-            },
-            sync_type_param: 'scheduled'
-          });
-          console.log(`Created processing log entry for account ${account.id}`);
-        } catch (logError) {
-          console.error(`Error creating log entry for account ${account.id}:`, logError);
-        }
-      }
+    // Log the invocation
+    console.log(`Scheduled sync function invoked with forceRun=${forceRun}, accountId=${accountId}, manual=${manual}`);
+    
+    // If a specific account ID is provided, sync only that account
+    if (accountId) {
+      return await handleSingleAccountSync(supabase, accountId, forceRun, manual, corsHeaders);
     }
     
-    // Trigger sync for each account that needs it
-    const syncResults = [];
+    // Otherwise, get all accounts with enabled sync
+    const { data: accounts, error } = await supabase
+      .from('email_accounts')
+      .select('id, email, provider, sync_settings')
+      .filter('is_connected', 'eq', true);
     
-    for (const accountId of accountsToSync) {
-      try {
-        console.log(`Triggering sync for account ${accountId}`);
-        
-        // Call the sync-emails function for this account
-        const syncResponse = await supabase.functions.invoke('sync-emails', {
-          body: { 
-            accountId,
-            scheduled: true,
-            debug: true
-          }
-        });
-        
-        console.log(`Sync result for ${accountId}:`, syncResponse);
-        
-        // Check if the sync was successful
-        if (syncResponse.error) {
-          console.error(`Error in sync response for ${accountId}:`, syncResponse.error);
-          
-          // Update the log with the failure
-          try {
-            await supabase.rpc('add_sync_log', {
-              account_id_param: accountId,
-              status_param: 'failed',
-              message_count_param: 0,
-              error_message_param: `Sync failed: ${syncResponse.error}`,
-              details_param: null,
-              sync_type_param: isManualTrigger ? 'manual' : 'scheduled'
-            });
-          } catch (logError) {
-            console.error(`Error updating log for account ${accountId}:`, logError);
-          }
-          
-          syncResults.push({ 
-            accountId, 
-            success: false, 
-            error: syncResponse.error 
-          });
-        } else {
-          // The sync-emails function already handles log creation for success cases
-          syncResults.push({ 
-            accountId, 
-            success: true, 
-            data: syncResponse.data 
-          });
-        }
-      } catch (error) {
-        console.error(`Error syncing account ${accountId}:`, error);
-        
-        // Create failure log entry if the sync function call failed
-        try {
-          await supabase.rpc('add_sync_log', {
-            account_id_param: accountId,
-            status_param: 'failed',
-            message_count_param: 0,
-            error_message_param: `Failed to invoke sync function: ${error.message || String(error)}`,
-            details_param: null,
-            sync_type_param: isManualTrigger ? 'manual' : 'scheduled'
-          });
-        } catch (logError) {
-          console.error(`Error creating failure log for account ${accountId}:`, logError);
-        }
-        
-        syncResults.push({ 
-          accountId, 
-          success: false, 
-          error 
-        });
-      }
+    if (error) {
+      console.error('Error fetching accounts:', error);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch accounts', details: error }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
     }
     
+    console.log(`Found ${accounts?.length || 0} connected accounts`);
+    
+    // No accounts found
+    if (!accounts || accounts.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'No connected accounts found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Process each account that has sync enabled
+    const syncTasks = accounts
+      .filter(account => {
+        // Check if the account has sync settings and is enabled
+        const settings = account.sync_settings;
+        const enabled = settings?.enabled === true;
+        const scheduleType = settings?.schedule_type || settings?.scheduleType || 'disabled';
+        
+        return enabled && scheduleType !== 'disabled';
+      })
+      .map(async (account) => {
+        try {
+          await syncAccount(supabase, account, forceRun);
+          return { account: account.email, success: true };
+        } catch (err) {
+          console.error(`Error syncing account ${account.email}:`, err);
+          return { account: account.email, success: false, error: err.message };
+        }
+      });
+    
+    // Wait for all sync tasks to complete
+    const results = await Promise.all(syncTasks);
+    
+    // Return the results
     return new Response(
       JSON.stringify({ 
-        message: 'Scheduled sync check completed',
-        results: syncResults,
-        accounts_synced: accountsToSync.length,
-        timestamp: now.toISOString()
+        message: 'Scheduled sync completed', 
+        results 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
     
-  } catch (error) {
-    console.error('Unexpected error in scheduled sync:', error);
+  } catch (err) {
+    console.error('Unexpected error in scheduled-sync function:', err);
     
     return new Response(
-      JSON.stringify({ error: 'Internal Server Error', details: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ error: 'Unexpected error', details: err.message }),
+      { 
+        headers: { 'Content-Type': 'application/json' },
+        status: 500 
+      }
     );
   }
 });
+
+/**
+ * Handle syncing a single account
+ */
+async function handleSingleAccountSync(supabase: any, accountId: string, forceRun: boolean, manual: boolean, corsHeaders: any) {
+  try {
+    // Fetch the account
+    const { data: account, error } = await supabase
+      .from('email_accounts')
+      .select('id, email, provider, sync_settings')
+      .eq('id', accountId)
+      .single();
+    
+    if (error) {
+      console.error(`Error fetching account ${accountId}:`, error);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch account', details: error }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+    
+    if (!account) {
+      return new Response(
+        JSON.stringify({ error: 'Account not found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+      );
+    }
+    
+    // Log about the account
+    console.log(`Processing account: ${account.email} (${account.provider})`);
+    
+    // Check if the account should be synced
+    if (!forceRun && !manual) {
+      const settings = account.sync_settings;
+      const enabled = settings?.enabled === true;
+      const scheduleType = settings?.schedule_type || settings?.scheduleType || 'disabled';
+      
+      if (!enabled || scheduleType === 'disabled') {
+        return new Response(
+          JSON.stringify({ message: 'Sync is not enabled for this account' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+    
+    // Sync the account
+    const result = await syncAccount(supabase, account, forceRun || manual);
+    
+    // Return the result
+    return new Response(
+      JSON.stringify({
+        message: 'Scheduled sync completed',
+        account: account.email,
+        result
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (err) {
+    console.error(`Error handling single account sync for ${accountId}:`, err);
+    return new Response(
+      JSON.stringify({ error: 'Sync failed', details: err.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
+  }
+}
+
+/**
+ * Sync an individual account
+ */
+async function syncAccount(supabase: any, account: any, forceRun: boolean) {
+  const { id, email, sync_settings } = account;
+  console.log(`Syncing account: ${email}`);
+  
+  // Check for minute sync setting
+  const scheduleType = sync_settings?.schedule_type || sync_settings?.scheduleType || 'disabled';
+  const hourValue = sync_settings?.hour;
+  
+  // For hourly sync, check if the current minute is 0-5 to prevent multiple syncs
+  if (scheduleType === 'hourly' && !forceRun) {
+    const currentMinute = new Date().getMinutes();
+    if (currentMinute > 5) {
+      console.log(`Skipping hourly sync for ${email} because current minute (${currentMinute}) is > 5`);
+      return { skipped: true, reason: 'Not within hourly sync window' };
+    }
+  }
+  
+  // For daily sync, check if the current hour matches the configured hour
+  if (scheduleType === 'daily' && !forceRun) {
+    const currentHour = new Date().getHours();
+    if (hourValue !== undefined && hourValue !== null && currentHour !== hourValue) {
+      console.log(`Skipping daily sync for ${email} because current hour (${currentHour}) does not match configured hour (${hourValue})`);
+      return { skipped: true, reason: 'Not within daily sync window' };
+    }
+  }
+  
+  if (scheduleType === 'minute') {
+    console.log(`Minute sync for account ${id} (${email}) - scheduled to run every minute`);
+  } else if (scheduleType === 'hourly') {
+    console.log(`Hourly sync for account ${id} (${email}) - scheduled to run at minute 0 of each hour`);
+  } else if (scheduleType === 'daily') {
+    console.log(`Daily sync for account ${id} (${email}) - scheduled to run at hour ${hourValue}:00`);
+  }
+  
+  try {
+    // First create a processing log entry
+    const { data: logEntry } = await supabase.rpc('add_sync_log', {
+      account_id_param: id,
+      status_param: 'processing',
+      message_count_param: 0,
+      details_param: { schedule_type: scheduleType, hour: hourValue },
+      sync_type_param: 'scheduled'
+    });
+    
+    const logId = logEntry?.id;
+    console.log(`Created processing log entry ${logId} for scheduled sync of account ${id}`);
+    
+    // Then call the sync-emails function with the scheduled flag
+    const response = await supabase.functions.invoke('sync-emails', {
+      body: {
+        accountId: id,
+        import_all_emails: true,
+        scheduled: true,
+        sync_log_id: logId, // Pass the log ID to update instead of creating new entries
+        debug: true
+      }
+    });
+    
+    console.log(`Sync completed for ${email} with status:`, response.status);
+    
+    // Check if the request failed
+    if (!response.data || response.error) {
+      console.error(`Sync failed for ${email}:`, response.error || 'Unknown error');
+      
+      // The sync-emails function should update the log entry itself
+      
+      return {
+        success: false,
+        error: response.error || 'Unknown error',
+        status: response.status
+      };
+    }
+    
+    // The sync-emails function should update the log entry itself
+    
+    // Return success
+    return {
+      success: true,
+      data: response.data,
+      status: response.status
+    };
+  } catch (error) {
+    console.error(`Exception in syncAccount for ${email}:`, error);
+    
+    // Try to update the log entry to failed
+    try {
+      await supabase.rpc('add_sync_log', {
+        account_id_param: id,
+        status_param: 'failed',
+        message_count_param: 0,
+        error_message_param: `Exception: ${error.message || String(error)}`,
+        details_param: { schedule_type: scheduleType, hour: hourValue },
+        sync_type_param: 'scheduled'
+      });
+    } catch (logError) {
+      console.error(`Failed to create error log for ${email}:`, logError);
+    }
+    
+    throw error;
+  }
+}

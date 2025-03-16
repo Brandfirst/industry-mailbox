@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
-import { SyncLogItem } from "./SyncLogItem";
 import { LogsHeader, LogsContent, LogsTableHeader } from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshCcw } from "lucide-react";
@@ -153,6 +152,7 @@ export function SyncLogsList({
               size="sm"
               onClick={handleRefresh}
               disabled={isLoading || isRefreshing}
+              className="ml-auto"
             >
               <RefreshCcw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Refreshing...' : 'Refresh'}

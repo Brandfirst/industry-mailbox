@@ -20,7 +20,8 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
       debug = false, 
       verbose = false, 
       import_all_emails = true,
-      scheduled = false // Track if this is a scheduled sync
+      scheduled = false, // Track if this is a scheduled sync
+      sync_log_id = null  // For updating existing log entries instead of creating new ones
     } = requestData;
     
     if (!accountId) {
@@ -38,20 +39,34 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
     // Get and validate email account
     const accountResult = await handleEmailAccount(supabase, accountId, verbose);
     if (!accountResult.success) {
-      // Create a failure log entry for scheduled syncs
+      // Update or create a failure log entry for scheduled syncs
       if (scheduled) {
         try {
-          await supabase.rpc('add_sync_log', {
-            account_id_param: accountId,
-            status_param: 'failed',
-            message_count_param: 0,
-            error_message_param: accountResult.error,
-            details_param: null,
-            sync_type_param: 'scheduled'
-          });
-          console.log(`Created failure log entry for scheduled sync of account ${accountId}`);
+          if (sync_log_id) {
+            // Update existing log entry
+            await supabase
+              .from('email_sync_logs')
+              .update({
+                status: 'failed',
+                error_message: accountResult.error,
+                sync_type: 'scheduled'
+              })
+              .eq('id', sync_log_id);
+            console.log(`Updated log entry ${sync_log_id} for scheduled sync of account ${accountId}`);
+          } else {
+            // Create new log entry
+            await supabase.rpc('add_sync_log', {
+              account_id_param: accountId,
+              status_param: 'failed',
+              message_count_param: 0,
+              error_message_param: accountResult.error,
+              details_param: null,
+              sync_type_param: 'scheduled'
+            });
+            console.log(`Created failure log entry for scheduled sync of account ${accountId}`);
+          }
         } catch (logError) {
-          console.error(`Error creating log entry for account ${accountId}:`, logError);
+          console.error(`Error creating/updating log entry for account ${accountId}:`, logError);
         }
       }
       
@@ -88,26 +103,46 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
       
       // Determine partial success
       const partial = failed.length > 0 && synced.length > 0;
+      const status = partial ? 'partial' : (synced.length > 0 ? 'success' : 'failed');
+      const errorMessage = partial ? 'Some emails failed to sync' : null;
       
-      // Create appropriate log entry for scheduled syncs
+      // Create or update log entry for scheduled syncs
       if (scheduled) {
         try {
-          await supabase.rpc('add_sync_log', {
-            account_id_param: accountId,
-            status_param: partial ? 'partial' : (synced.length > 0 ? 'success' : 'failed'),
-            message_count_param: synced.length,
-            error_message_param: partial ? 'Some emails failed to sync' : null,
-            details_param: {
-              total_emails: result.length,
-              synced_count: synced.length,
-              failed_count: failed.length,
-              new_senders_count: uniqueSenders.size
-            },
-            sync_type_param: 'scheduled'
-          });
-          console.log(`Created completion log entry for scheduled sync of account ${accountId}`);
+          const logDetails = {
+            total_emails: result.length,
+            synced_count: synced.length,
+            failed_count: failed.length,
+            new_senders_count: uniqueSenders.size
+          };
+          
+          if (sync_log_id) {
+            // Update existing log entry
+            await supabase
+              .from('email_sync_logs')
+              .update({
+                status: status,
+                message_count: synced.length,
+                error_message: errorMessage,
+                details: logDetails,
+                sync_type: 'scheduled'
+              })
+              .eq('id', sync_log_id);
+            console.log(`Updated completion log entry ${sync_log_id} for scheduled sync of account ${accountId}`);
+          } else {
+            // Create new log entry
+            await supabase.rpc('add_sync_log', {
+              account_id_param: accountId,
+              status_param: status,
+              message_count_param: synced.length,
+              error_message_param: errorMessage,
+              details_param: logDetails,
+              sync_type_param: 'scheduled'
+            });
+            console.log(`Created completion log entry for scheduled sync of account ${accountId}`);
+          }
         } catch (logError) {
-          console.error(`Error creating log entry for account ${accountId}:`, logError);
+          console.error(`Error creating/updating log entry for account ${accountId}:`, logError);
         }
       }
       
@@ -139,18 +174,35 @@ export async function handleSyncRequest(req: Request): Promise<Response> {
     } catch (error) {
       console.error('Error fetching or processing emails:', error);
       
-      // Create failure log entry for scheduled syncs
+      // Create or update failure log entry for scheduled syncs
       if (scheduled) {
         try {
-          await supabase.rpc('add_sync_log', {
-            account_id_param: accountId,
-            status_param: 'failed',
-            message_count_param: 0,
-            error_message_param: `Error processing emails: ${error.message || String(error)}`,
-            details_param: null,
-            sync_type_param: 'scheduled'
-          });
-          console.log(`Created failure log entry for scheduled sync of account ${accountId}`);
+          const errorMessage = `Error processing emails: ${error.message || String(error)}`;
+          
+          if (sync_log_id) {
+            // Update existing log entry
+            await supabase
+              .from('email_sync_logs')
+              .update({
+                status: 'failed',
+                message_count: 0,
+                error_message: errorMessage,
+                sync_type: 'scheduled'
+              })
+              .eq('id', sync_log_id);
+            console.log(`Updated failure log entry ${sync_log_id} for scheduled sync of account ${accountId}`);
+          } else {
+            // Create new log entry
+            await supabase.rpc('add_sync_log', {
+              account_id_param: accountId,
+              status_param: 'failed',
+              message_count_param: 0,
+              error_message_param: errorMessage,
+              details_param: null,
+              sync_type_param: 'scheduled'
+            });
+            console.log(`Created failure log entry for scheduled sync of account ${accountId}`);
+          }
         } catch (logError) {
           console.error(`Error creating log entry for account ${accountId}:`, logError);
         }

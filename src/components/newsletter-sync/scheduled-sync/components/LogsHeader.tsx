@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChevronDown, ChevronUp, History, RefreshCcw } from 'lucide-react';
+import { ChevronDown, ChevronUp, History } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export type LogsHeaderProps = {
@@ -37,19 +37,6 @@ export function LogsHeader({
       </div>
       
       <div className="flex items-center space-x-2">
-        {selectedAccount && showLogs && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fetchSyncLogs}
-            className="text-xs p-1 h-auto"
-            disabled={isLoading || !selectedAccount}
-          >
-            <RefreshCcw className="h-3 w-3 mr-1" />
-            Refresh
-          </Button>
-        )}
-        
         {selectedAccount && (
           <Button
             variant="ghost"
