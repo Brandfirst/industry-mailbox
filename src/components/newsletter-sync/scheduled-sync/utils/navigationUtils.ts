@@ -1,6 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { getSenderPath } from "@/lib/utils/newsletterNavigation";
 
 /**
  * Helper function to navigate to a newsletter detail page
@@ -32,8 +33,22 @@ export const createNewsletterNavigationHandler = (
       if (onComplete) {
         onComplete();
       }
+    } else if (email.sender_email) {
+      // If we have a sender email but no ID, navigate to the sender's page instead
+      console.log(`Navigating to sender: ${email.sender_email}`);
+      const senderPath = getSenderPath(email.sender_email);
+      
+      toast.info(`Showing all newsletters from ${email.sender_email}`, {
+        description: "The specific newsletter couldn't be found, showing all from this sender instead."
+      });
+      
+      navigate(senderPath);
+      
+      if (onComplete) {
+        onComplete();
+      }
     } else {
-      console.warn("Cannot navigate: email has no valid ID", email);
+      console.warn("Cannot navigate: email has no valid ID or sender", email);
       toast.error("Cannot view newsletter - no ID available");
     }
   };
