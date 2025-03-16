@@ -24,7 +24,7 @@ export function generateIframeContent(content: string | null): string {
             margin: 0;
             padding: 0;
             background-color: #FFFFFF;
-            color: #000000e6;
+            color: #000000;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             width: 100%;
@@ -42,24 +42,49 @@ export function generateIframeContent(content: string | null): string {
             box-sizing: border-box;
           }
           
-          p, h1, h2, h3, h4, h5, h6, span, div, li, a {
-            color: #000000e6 !important; 
+          /* Force text to be visible */
+          p, h1, h2, h3, h4, h5, h6, span, div, li, a, table, tr, td, th {
+            color: #000000 !important; 
           }
           
+          /* Ensure images display properly */
           img {
             max-width: 100%;
             height: auto;
             display: inline-block;
           }
           
+          /* Handle tables - common in emails */
+          table {
+            border-collapse: collapse;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          
+          table td, table th {
+            padding: 8px;
+          }
+          
+          /* Preserve table layouts - important for email formatting */
+          table[width], td[width] {
+            width: auto !important;
+            max-width: 100% !important;
+          }
+          
+          /* Override dark theme backgrounds */
+          [style*="background-color: rgb(0, 0, 0)"],
+          [style*="background-color: black"],
+          [style*="background-color: #000"],
+          [style*="background: black"],
+          [style*="background: #000"] {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+          }
+          
+          /* Make links visible */
           a {
             color: #0066cc !important;
             text-decoration: underline;
-          }
-          
-          table {
-            border-collapse: collapse;
-            width: 100%;
           }
           
           /* Error message styling */
@@ -76,15 +101,11 @@ export function generateIframeContent(content: string | null): string {
             display: block;
           }
           
-          /* Override any dark backgrounds that might be in the newsletter */
-          [style*="background-color: #000"],
-          [style*="background-color: black"],
-          [style*="background-color: rgb(0, 0, 0)"],
-          [style*="background-color: #111"],
-          [style*="background-color: #222"],
-          [style*="background-color: #333"] {
-            background-color: #f8f9fa !important;
-            color: #000000e6 !important;
+          /* Fix for common newsletter layout issues */
+          .bodyTable, .bodyCell {
+            width: 100% !important;
+            max-width: 600px !important;
+            margin: 0 auto !important;
           }
         </style>
       </head>

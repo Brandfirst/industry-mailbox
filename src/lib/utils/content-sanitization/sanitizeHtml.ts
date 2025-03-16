@@ -53,6 +53,24 @@ export const sanitizeNewsletterContent = (content: string | null): string => {
     ' data-removed-$1="blocked-for-security"'
   );
   
+  // Preserve table layout properties which are critical for email formatting
+  htmlContent = htmlContent.replace(
+    /<table([^>]*)>/gi,
+    (match, attributes) => {
+      // Preserve width, cellpadding, cellspacing attributes
+      return `<table${attributes} data-preserved="true">`;
+    }
+  );
+  
+  // Preserve cell dimensions which are critical for email formatting
+  htmlContent = htmlContent.replace(
+    /<(td|th)([^>]*)>/gi,
+    (match, tag, attributes) => {
+      // Preserve width, colspan, rowspan attributes
+      return `<${tag}${attributes} data-preserved="true">`;
+    }
+  );
+  
   // Ensure content has proper UTF-8 meta tags if it's HTML
   if (htmlContent.includes('<html') && !htmlContent.includes('<meta charset="utf-8">')) {
     if (htmlContent.includes('<head')) {

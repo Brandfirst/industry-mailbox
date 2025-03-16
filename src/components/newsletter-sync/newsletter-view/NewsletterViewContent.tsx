@@ -1,10 +1,13 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Newsletter } from "@/lib/supabase";
 import { Mail } from "lucide-react";
 import { generateIframeContent } from './utils';
+
 interface NewsletterViewContentProps {
   newsletter: Newsletter;
 }
+
 export function NewsletterViewContent({
   newsletter
 }: NewsletterViewContentProps) {
@@ -40,8 +43,13 @@ export function NewsletterViewContent({
       // Cleanup if needed
     };
   }, [newsletter.content]);
+
   return <div className="overflow-auto flex-1 h-[calc(90vh-220px)] bg-white rounded-b-md">
-      {hasErrors}
+      {hasErrors && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 m-4 text-sm">
+          <p className="text-amber-700">Some content in this newsletter could not be displayed properly due to security restrictions.</p>
+        </div>
+      )}
       
       {newsletter.content ? <iframe ref={iframeRef} title={newsletter.title || "Newsletter Content"} className="w-full h-full border-0" sandbox="allow-same-origin" /> : <div className="text-center py-12">
           <Mail className="h-12 w-12 mx-auto text-gray-400 mb-4" />
