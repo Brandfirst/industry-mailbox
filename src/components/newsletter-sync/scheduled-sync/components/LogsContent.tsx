@@ -21,16 +21,28 @@ export function LogsContent({
       ) : (
         <Table>
           <TableBody>
-            {syncLogs?.map((log, index) => (
-              <tr key={log.id}>
-                <td>{index + 1}</td>
-                <td>{formatTimestamp && log.timestamp ? formatTimestamp(log.timestamp) : log.timestamp}</td>
-                <td>{log.status}</td>
-                <td>{log.sync_type || 'manual'}</td>
-                <td>{log.message_count}</td>
-                <td>{log.error_message || 'Success'}</td>
-              </tr>
-            ))}
+            {syncLogs?.map((log, index) => {
+              // Extract unique senders count
+              const syncedEmails = log.details?.synced || [];
+              const uniqueSenders = new Set();
+              syncedEmails.forEach((email: any) => {
+                if (email.sender_email) {
+                  uniqueSenders.add(email.sender_email);
+                }
+              });
+              
+              return (
+                <tr key={log.id}>
+                  <td>{index + 1}</td>
+                  <td>{formatTimestamp && log.timestamp ? formatTimestamp(log.timestamp) : log.timestamp}</td>
+                  <td>{log.status}</td>
+                  <td>{log.sync_type || 'manual'}</td>
+                  <td>{log.message_count || 0}</td>
+                  <td>{uniqueSenders.size}</td>
+                  <td>{log.error_message || 'Success'}</td>
+                </tr>
+              );
+            })}
           </TableBody>
         </Table>
       )}

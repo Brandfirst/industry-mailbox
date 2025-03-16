@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { formatDistanceToNow } from "date-fns";
-import { InfoIcon, MailIcon, MessageCircleIcon } from "lucide-react";
+import { InfoIcon, MailIcon, MessageCircleIcon, UsersIcon } from "lucide-react";
 import { 
   Popover,
   PopoverContent,
@@ -55,7 +55,7 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
   
   return (
     <div className="px-4 py-3 text-xs border-b border-muted hover:bg-muted/20">
-      <div className="grid grid-cols-[5%_20%_14%_12%_16%_33%] w-full">
+      <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] w-full">
         <div className="flex items-center font-medium">{itemNumber}</div>
         
         <div className="flex flex-col">
@@ -85,75 +85,80 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
           </div>
         </div>
         
-        {/* New Type column */}
+        {/* Type column */}
         <div className="flex items-center">
           <Badge variant={syncType === 'manual' ? 'outline' : 'secondary'} className="font-normal">
             {syncType === 'manual' ? 'Manual' : 'Scheduled'}
           </Badge>
         </div>
         
-        {/* Senders/Emails column */}
-        <div className="flex items-center space-x-2">
+        {/* Emails column */}
+        <div className="flex items-center">
           {log.status !== 'scheduled' ? (
-            <div className="flex items-center space-x-1">
-              <span>
-                {totalEmails} email{totalEmails !== 1 ? 's' : ''}
-              </span>
-              
-              {uniqueSenders.size > 0 && (
-                <Popover open={isSendersOpen} onOpenChange={setIsSendersOpen}>
-                  <PopoverTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-5 w-5 rounded-full p-0"
-                      aria-label="View sender details"
-                    >
-                      <MailIcon className="h-3 w-3" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-72 bg-white text-gray-900 border border-gray-200 shadow-md p-4" align="end">
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">Sender Information</h4>
-                      <div className="text-xs">
-                        <div className="font-medium mb-1">
-                          {uniqueSenders.size} unique sender{uniqueSenders.size !== 1 ? 's' : ''}:
-                        </div>
-                        <div className="max-h-40 overflow-y-auto space-y-1">
-                          {Array.from(uniqueSenders).map((sender, idx) => (
-                            <div key={idx} className="truncate">{sender}</div>
-                          ))}
-                        </div>
-                        
-                        {syncedEmails.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-gray-100">
-                            <div className="font-medium mb-1">Synced Emails:</div>
-                            <div className="space-y-2 max-h-40 overflow-y-auto">
-                              {syncedEmails.slice(0, 5).map((email: any, idx: number) => (
-                                <div key={idx} className="pb-1 mb-1 border-b border-gray-100 last:border-0">
-                                  <div className="truncate"><span className="font-medium">From:</span> {email.sender || email.sender_email}</div>
-                                  <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
-                                </div>
-                              ))}
-                              {syncedEmails.length > 5 && (
-                                <div className="text-xs text-muted-foreground">
-                                  + {syncedEmails.length - 5} more email{syncedEmails.length - 5 !== 1 ? 's' : ''}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-            </div>
+            <span>{totalEmails} email{totalEmails !== 1 ? 's' : ''}</span>
           ) : scheduleDetails && (
             <ScheduleDetails 
               scheduleType={log.details.schedule_type} 
               hour={log.details.hour} 
             />
+          )}
+        </div>
+        
+        {/* New Senders column */}
+        <div className="flex items-center">
+          {uniqueSenders.size > 0 ? (
+            <div className="flex items-center gap-1">
+              <span>{uniqueSenders.size}</span>
+              
+              <Popover open={isSendersOpen} onOpenChange={setIsSendersOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-5 w-5 rounded-full p-0"
+                    aria-label="View sender details"
+                  >
+                    <UsersIcon className="h-3 w-3" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 bg-white text-gray-900 border border-gray-200 shadow-md p-4" align="end">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Sender Information</h4>
+                    <div className="text-xs">
+                      <div className="font-medium mb-1">
+                        {uniqueSenders.size} unique sender{uniqueSenders.size !== 1 ? 's' : ''}:
+                      </div>
+                      <div className="max-h-40 overflow-y-auto space-y-1">
+                        {Array.from(uniqueSenders).map((sender, idx) => (
+                          <div key={idx} className="truncate">{sender}</div>
+                        ))}
+                      </div>
+                      
+                      {syncedEmails.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="font-medium mb-1">Synced Emails:</div>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {syncedEmails.slice(0, 5).map((email: any, idx: number) => (
+                              <div key={idx} className="pb-1 mb-1 border-b border-gray-100 last:border-0">
+                                <div className="truncate"><span className="font-medium">From:</span> {email.sender || email.sender_email}</div>
+                                <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
+                              </div>
+                            ))}
+                            {syncedEmails.length > 5 && (
+                              <div className="text-xs text-muted-foreground">
+                                + {syncedEmails.length - 5} more email{syncedEmails.length - 5 !== 1 ? 's' : ''}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          ) : (
+            <span>0</span>
           )}
         </div>
         
@@ -165,12 +170,13 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
       
       {/* Additional metrics row */}
       {log.status === "success" && newSenders > 0 && (
-        <div className="grid grid-cols-[5%_20%_14%_12%_16%_33%] mt-1 text-muted-foreground">
+        <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] mt-1 text-muted-foreground">
           <div></div>
           <div></div>
           <div></div>
           <div></div>
-          <div className="flex items-center">{newSenders} new sender{newSenders !== 1 ? 's' : ''}</div>
+          <div></div>
+          <div className="flex items-center">{newSenders} new</div>
           <div></div>
         </div>
       )}
