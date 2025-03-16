@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Newsletter } from "@/lib/supabase/types";
-import { getFormattedHtmlContent } from "./iframe-utils";
+import { getIframeContent, forceCentering } from "@/components/search/iframe-utils";
 
 export const useIframeContent = (newsletter: Newsletter) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -15,7 +15,7 @@ export const useIframeContent = (newsletter: Newsletter) => {
     
     try {
       const iframe = iframeRef.current;
-      const formattedContent = getFormattedHtmlContent(newsletter.content);
+      const formattedContent = getIframeContent(newsletter.content, false);
       
       // Wait for iframe to be available
       const setIframeContent = () => {
@@ -32,43 +32,8 @@ export const useIframeContent = (newsletter: Newsletter) => {
           doc.write(formattedContent);
           doc.close();
           
-          // Force all fixed height elements to auto
-          const fixElements = () => {
-            // Apply to all elements to prevent padding/margin issues
-            const allElements = doc.querySelectorAll('*');
-            allElements.forEach(el => {
-              const element = el as HTMLElement;
-              // Force margin to auto for all elements
-              element.style.marginLeft = 'auto';
-              element.style.marginRight = 'auto';
-              
-              // Override specific styling causing left alignment
-              if (window.getComputedStyle(element).float !== 'none') {
-                element.style.float = 'none';
-              }
-              
-              if (window.getComputedStyle(element).position === 'absolute') {
-                element.style.position = 'relative';
-                element.style.left = 'auto';
-                element.style.right = 'auto';
-              }
-              
-              // Force width and center alignment
-              element.style.maxWidth = '100%';
-            });
-            
-            // Apply specific fixes to common elements
-            const containers = doc.querySelectorAll('div, section, table, td, tr, article, main, header, footer, p');
-            containers.forEach(el => {
-              const container = el as HTMLElement;
-              container.style.width = '100%';
-              container.style.marginLeft = 'auto';
-              container.style.marginRight = 'auto';
-              container.style.textAlign = 'center';
-              container.style.display = container.tagName.toLowerCase() === 'table' ? 'table' : '';
-              container.style.float = 'none';
-            });
-          };
+          // Apply the centralized forceCentering function
+          forceCentering(doc);
           
           // Adjust height after content is loaded
           const resizeObserver = new ResizeObserver(() => {
@@ -76,29 +41,13 @@ export const useIframeContent = (newsletter: Newsletter) => {
               // Account for the scale factor in the height calculation
               const height = doc.body.scrollHeight * 0.85;
               setIframeHeight(`${height}px`);
-              
-              // Add extra class to center content better
-              doc.body.classList.add('centered-content');
-              
-              // Fix positioning issues
-              fixElements();
-              
-              // Apply inline styles to body to ensure centering
-              doc.body.style.margin = '0';
-              doc.body.style.padding = '0';
-              doc.body.style.textAlign = 'center';
-              doc.body.style.display = 'flex';
-              doc.body.style.flexDirection = 'column';
-              doc.body.style.alignItems = 'center';
-              doc.body.style.justifyContent = 'center';
-              doc.body.style.width = '100%';
             }
           });
           
           resizeObserver.observe(doc.body);
           
-          // Run the fixes after a small delay to ensure all styles are applied
-          setTimeout(fixElements, 100);
+          // Run the centering after a small delay to ensure all styles are applied
+          setTimeout(() => forceCentering(doc), 100);
           
           return () => {
             resizeObserver.disconnect();
