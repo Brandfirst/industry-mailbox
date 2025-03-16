@@ -25,6 +25,8 @@ export function LogsContent({
               // Extract unique senders count
               const syncedEmails = log.details?.synced || [];
               const uniqueSenders = new Set();
+              const newSenders = log.details?.new_senders_count || 0;
+              
               syncedEmails.forEach((email: any) => {
                 if (email.sender_email) {
                   uniqueSenders.add(email.sender_email);
@@ -38,7 +40,12 @@ export function LogsContent({
                   <td>{log.status}</td>
                   <td>{log.sync_type || 'manual'}</td>
                   <td>{log.message_count || 0}</td>
-                  <td>{uniqueSenders.size}</td>
+                  <td>
+                    {uniqueSenders.size}
+                    {newSenders > 0 && (
+                      <span className="ml-1 text-emerald-600">(+{newSenders} new)</span>
+                    )}
+                  </td>
                   <td>{log.error_message || 'Success'}</td>
                 </tr>
               );

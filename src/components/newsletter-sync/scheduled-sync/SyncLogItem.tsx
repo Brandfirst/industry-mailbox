@@ -104,11 +104,16 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
           )}
         </div>
         
-        {/* New Senders column */}
+        {/* Senders column - Now with integrated "new" count */}
         <div className="flex items-center">
-          {uniqueSenders.size > 0 ? (
+          {uniqueSenders.size > 0 || newSenders > 0 ? (
             <div className="flex items-center gap-1">
-              <span>{uniqueSenders.size}</span>
+              <div className="flex items-center">
+                <span>{uniqueSenders.size}</span>
+                {newSenders > 0 && (
+                  <span className="ml-1 text-emerald-600">(+{newSenders} new)</span>
+                )}
+              </div>
               
               <Popover open={isSendersOpen} onOpenChange={setIsSendersOpen}>
                 <PopoverTrigger asChild>
@@ -126,7 +131,10 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
                     <h4 className="font-medium text-sm">Sender Information</h4>
                     <div className="text-xs">
                       <div className="font-medium mb-1">
-                        {uniqueSenders.size} unique sender{uniqueSenders.size !== 1 ? 's' : ''}:
+                        {uniqueSenders.size} unique sender{uniqueSenders.size !== 1 ? 's' : ''}
+                        {newSenders > 0 && (
+                          <span className="text-emerald-600 ml-1">(+{newSenders} new)</span>
+                        )}:
                       </div>
                       <div className="max-h-40 overflow-y-auto space-y-1">
                         {Array.from(uniqueSenders).map((sender, idx) => (
@@ -167,19 +175,6 @@ export function SyncLogItem({ log, formatTimestamp, itemNumber }: SyncLogItemPro
           <StatusMessage log={log} />
         </div>
       </div>
-      
-      {/* Additional metrics row */}
-      {log.status === "success" && newSenders > 0 && (
-        <div className="grid grid-cols-[5%_20%_14%_10%_10%_10%_31%] mt-1 text-muted-foreground">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div className="flex items-center">{newSenders} new</div>
-          <div></div>
-        </div>
-      )}
     </div>
   );
 }
