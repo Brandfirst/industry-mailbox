@@ -1,81 +1,79 @@
 
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-type SortField = 'name' | 'count' | 'last_sync';
-type SortDirection = 'asc' | 'desc';
+export type SenderSortField = "name" | "brand" | "category" | "newsletters" | "lastSync";
 
-type SenderTableHeadersProps = {
-  sortField: SortField;
-  sortDirection: SortDirection;
-  onSort: (field: SortField) => void;
-  allSelected?: boolean;
+interface SenderTableHeadersProps {
+  sortField: SenderSortField | null;
+  sortDirection: 'asc' | 'desc';
+  onSort: (field: SenderSortField) => void;
+  allSelected: boolean;
   onSelectAll?: () => void;
-};
+}
 
 const SenderTableHeaders = ({ 
   sortField, 
   sortDirection, 
-  onSort,
-  allSelected = false,
-  onSelectAll
+  onSort, 
+  allSelected, 
+  onSelectAll 
 }: SenderTableHeadersProps) => {
-  const SortIcon = ({ field }: { field: SortField }) => {
+  // Helper for sort indicator
+  const SortIndicator = ({ field }: { field: SenderSortField }) => {
     if (sortField !== field) return null;
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="h-4 w-4 ml-1" /> : 
-      <ChevronDown className="h-4 w-4 ml-1" />;
+    
+    return sortDirection === 'asc' 
+      ? <ArrowUpIcon className="ml-1 h-4 w-4" /> 
+      : <ArrowDownIcon className="ml-1 h-4 w-4" />;
   };
-
+  
+  // Create sortable column headers
+  const SortableHeader = ({ field, label }: { field: SenderSortField, label: string }) => (
+    <Button 
+      variant="ghost" 
+      size="sm"
+      className="flex items-center p-0 font-medium"
+      onClick={() => onSort(field)}
+    >
+      {label}
+      <SortIndicator field={field} />
+    </Button>
+  );
+  
   return (
     <TableHeader>
-      <TableRow>
+      <TableRow className="border-b">
         {onSelectAll && (
-          <TableHead className="w-[40px]">
+          <TableHead className="w-[40px] p-2 pl-4">
             <Checkbox 
-              checked={allSelected} 
+              checked={allSelected}
               onCheckedChange={onSelectAll}
-              aria-label="Select all senders"
+              aria-label="Select all"
             />
           </TableHead>
         )}
-        <TableHead className="w-[60px] text-center font-medium text-foreground">
-          #
+        
+        <TableHead className="w-[250px]">
+          <SortableHeader field="name" label="Sender" />
         </TableHead>
-        <TableHead 
-          className="w-[250px] cursor-pointer" 
-          onClick={() => onSort('name')}
-        >
-          <div className="flex items-center font-medium text-foreground">
-            Sender <SortIcon field="name" />
-          </div>
-        </TableHead>
-        <TableHead className="w-[200px]">
-          <div className="flex items-center font-medium text-foreground">
-            Brand
-          </div>
-        </TableHead>
-        <TableHead 
-          className="cursor-pointer"
-          onClick={() => onSort('count')}
-        >
-          <div className="flex items-center font-medium text-foreground">
-            Newsletters <SortIcon field="count" />
-          </div>
-        </TableHead>
-        <TableHead 
-          className="cursor-pointer"
-          onClick={() => onSort('last_sync')}
-        >
-          <div className="flex items-center font-medium text-foreground">
-            Last Synchronized <SortIcon field="last_sync" />
-          </div>
-        </TableHead>
+        
         <TableHead>
-          <div className="font-medium text-foreground">
-            Category
-          </div>
+          <SortableHeader field="brand" label="Brand" />
+        </TableHead>
+        
+        <TableHead>
+          <SortableHeader field="category" label="Category" />
+        </TableHead>
+        
+        <TableHead className="w-[120px]">
+          <SortableHeader field="newsletters" label="Newsletters" />
+        </TableHead>
+        
+        <TableHead className="w-[140px]">
+          <SortableHeader field="lastSync" label="Last Sync" />
         </TableHead>
       </TableRow>
     </TableHeader>

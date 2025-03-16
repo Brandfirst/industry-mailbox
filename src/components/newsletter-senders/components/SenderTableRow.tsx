@@ -43,10 +43,6 @@ const SenderTableRow = ({
     ? format(new Date(sender.last_sync_date), 'MMM d, yyyy')
     : 'Never';
   
-  // Get the category color for styling
-  const categoryColor = getCategoryColorById(sender.category_id, categories);
-  const categoryName = getCategoryNameById(sender.category_id, categories);
-  
   return (
     <TableRow className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
       {onToggleSelect && (
