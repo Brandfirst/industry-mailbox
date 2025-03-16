@@ -7,8 +7,8 @@ import {
   DialogDescription,
   DialogClose
 } from "@/components/ui/dialog";
-import { SyncedEmailsSection } from "./detail-sections/SyncedEmailsSection";
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface SyncedEmailsDialogProps {
   isOpen: boolean;
@@ -23,6 +23,8 @@ export function SyncedEmailsDialog({
   syncedEmails,
   title = "Synced Emails"
 }: SyncedEmailsDialogProps) {
+  const navigate = useNavigate();
+  
   // Ensure we have a valid array of emails
   const emails = Array.isArray(syncedEmails) ? syncedEmails : [];
   const emailCount = emails.length;
@@ -47,6 +49,17 @@ export function SyncedEmailsDialog({
     onOpenChange(open);
   };
   
+  // Navigation handler
+  const navigateToNewsletter = (email: any) => {
+    if (email.id) {
+      navigate(`/newsletter/${email.id}`);
+      console.log(`Navigating to newsletter ID: ${email.id}`);
+      onOpenChange(false); // Close the dialog after navigation
+    } else {
+      console.log("Cannot navigate: email has no valid ID");
+    }
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md bg-white">
@@ -60,9 +73,25 @@ export function SyncedEmailsDialog({
         </DialogDescription>
         
         <div className="mt-2 max-h-[60vh] overflow-y-auto pr-2">
-          <SyncedEmailsSection syncedEmails={emails} />
-          
-          {emailCount === 0 && (
+          {emailCount > 0 ? (
+            <div className="space-y-2">
+              {emails.map((email, index) => (
+                <div 
+                  key={index} 
+                  className="mb-2 pb-2 border-b border-gray-100 last:border-b-0 rounded bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
+                  onClick={() => navigateToNewsletter(email)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
+                      <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
+                      {email.date && <div className="text-xs text-gray-500 mt-1">Date: {new Date(email.date).toLocaleString()}</div>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
             <div className="py-4 text-center text-muted-foreground">
               No email details available for this sync operation
             </div>
