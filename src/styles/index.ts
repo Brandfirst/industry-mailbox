@@ -8,7 +8,7 @@ import './testimonials.css';
 import './carousel.css';
 // responsive.css doesn't exist, we import from responsive folder instead (see below)
 import './theme.css';
-import './float-animation.css';
+// float-animation.css doesn't exist, removing this import
 import './variables.css';
 import './base-elements.css';
 import './ui-effects.css';
