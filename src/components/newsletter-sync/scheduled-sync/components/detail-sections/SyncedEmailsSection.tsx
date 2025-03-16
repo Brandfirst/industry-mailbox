@@ -25,7 +25,7 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
         {displayedEmails.map((email: any, index: number) => (
           <div key={index} className="mb-2 pb-2 border-b border-gray-100 last:border-b-0">
             <div><span className="font-medium">From:</span> {email.sender || email.sender_email || 'Unknown'}</div>
-            <div className="truncate"><span className="font-medium">Subject:</span> {email.title || 'No subject'}</div>
+            <div className="truncate"><span className="font-medium">Subject:</span> {email.title || email.subject || 'No subject'}</div>
           </div>
         ))}
         

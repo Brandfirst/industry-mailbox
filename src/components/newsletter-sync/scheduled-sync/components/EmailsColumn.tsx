@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { SyncLogEntry } from "@/lib/supabase/emailAccounts/syncLogs";
 import { ScheduleDetails } from "./ScheduleDetails";
 import { Button } from "@/components/ui/button";
-import { MailIcon } from "lucide-react";
+import { MailIcon, ExternalLinkIcon } from "lucide-react";
 import { SyncedEmailsDialog } from "./SyncedEmailsDialog";
 
 interface EmailsColumnProps {
@@ -21,6 +21,7 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
   
   const handleClickEmails = () => {
     if (showClickableEmails) {
+      console.log("Opening email dialog with", syncedEmails.length, "emails");
       setIsDialogOpen(true);
     }
   };
@@ -32,12 +33,12 @@ export function EmailsColumn({ log, totalEmails }: EmailsColumnProps) {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`h-auto p-0 ${showClickableEmails ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50' : ''}`}
+            className={`h-auto p-0 ${showClickableEmails ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer' : ''}`}
             disabled={!showClickableEmails}
             onClick={handleClickEmails}
           >
             <span>{totalEmails} email{totalEmails !== 1 ? 's' : ''}</span>
-            {showClickableEmails && <MailIcon className="h-3 w-3 ml-1" />}
+            {showClickableEmails && <ExternalLinkIcon className="h-3 w-3 ml-1" />}
           </Button>
           
           {showClickableEmails && (
