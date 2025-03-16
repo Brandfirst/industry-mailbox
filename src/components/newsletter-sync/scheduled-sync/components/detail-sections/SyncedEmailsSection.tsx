@@ -41,6 +41,9 @@ export function SyncedEmailsSection({ syncedEmails }: SyncedEmailsSectionProps) 
                   sender_email: email.sender_email || email.sender || 'Unknown',
                   content: email.content || '',
                   published_at: email.date || new Date().toISOString(),
+                  industry: email.industry || '',
+                  preview: email.preview || '',
+                  created_at: email.created_at || new Date().toISOString(),
                 }}
               />
             </div>
