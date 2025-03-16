@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Table, TableBody } from "@/components/ui/table";
 import { NewsletterSenderStats } from "@/lib/supabase/newsletters";
@@ -36,12 +35,10 @@ const SenderList = ({
   const [updatingCategory, setUpdatingCategory] = useState<string | null>(null);
   const [updatingBrand, setUpdatingBrand] = useState<string | null>(null);
   
-  // Use our custom hooks
   const { sortField, sortDirection, toggleSort, sortSenders } = useSenderListSorting();
   const { getBrandInputValue, updateBrandInputValue } = useBrandInputValues(senders);
   const { selectedSenders, handleToggleSelect, handleSelectAll, setSelectedSenders } = useSelectedSenders(senders);
 
-  // Filter senders based on search term
   const filteredSenders = senders
     .filter(sender => {
       const senderName = sender.sender_name?.toLowerCase() || "";
@@ -50,16 +47,13 @@ const SenderList = ({
       return senderName.includes(term) || senderEmail.includes(term);
     });
   
-  // Apply sorting to filtered senders
   const sortedSenders = sortSenders(filteredSenders);
 
-  // Handle category change
   const handleCategoryChange = async (senderEmail: string, categoryId: string) => {
     if (!onCategoryChange) return;
     
     setUpdatingCategory(senderEmail);
     try {
-      // Convert empty string to null, otherwise parse as number
       const parsedCategoryId = categoryId === "null" ? null : parseInt(categoryId);
       await onCategoryChange(senderEmail, parsedCategoryId);
     } catch (error) {
@@ -69,14 +63,12 @@ const SenderList = ({
     }
   };
 
-  // Handle brand update
   const handleBrandUpdate = async (senderEmail: string, brandName: string) => {
     if (!onBrandChange) return;
     
     setUpdatingBrand(senderEmail);
     try {
       await onBrandChange(senderEmail, brandName);
-      // Update our local cache of brand values to ensure UI consistency
       updateBrandInputValue(senderEmail, brandName);
     } catch (error) {
       console.error("Error updating brand:", error);
@@ -85,7 +77,6 @@ const SenderList = ({
     }
   };
 
-  // Handle delete senders with loading state
   const handleDeleteSenders = async (senderEmails: string[]) => {
     if (!onDeleteSenders || senderEmails.length === 0) return;
     
