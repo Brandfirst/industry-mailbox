@@ -1,14 +1,12 @@
 
-// Import base styles
 import './base.css';
 import './animations.css';
-// Remove components.css import since it doesn't exist
-// The components styles are in the components directory which we import at the bottom
+import './components.css';
 import './testimonials.css';
 import './carousel.css';
-// responsive.css doesn't exist, we import from responsive folder instead (see below)
+import './responsive.css';
 import './theme.css';
-// float-animation.css doesn't exist, removing this import
+import './float-animation.css';
 import './variables.css';
 import './base-elements.css';
 import './ui-effects.css';
@@ -20,10 +18,5 @@ import './layout.css';
 import './light-mode.css';
 import './dark-mode.css';
 import './global-colors.css';
-
-// Import responsive styles
-import './responsive/index.css';
-// This is the proper way to import component styles
-import './components/index.css';
 
 export {};

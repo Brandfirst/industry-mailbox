@@ -20,7 +20,6 @@ export function NewsletterViewContent({
   // Navigate to the full newsletter detail page
   const goToNewsletterPage = () => {
     if (newsletter.id) {
-      // Use the public newsletter path instead of admin
       navigate(`/newsletter/${newsletter.id}`);
     }
   };

@@ -1,24 +1,43 @@
 
-import { Newsletter } from "@/lib/supabase/types";
+import { Newsletter } from '@/lib/supabase/types';
 
 /**
- * Generate a consistent URL path for a newsletter
+ * Creates a slug-friendly URL path from a newsletter's sender and title
+ * @param newsletter The newsletter object
+ * @returns The formatted URL path for the newsletter
  */
 export const getNewsletterPath = (newsletter: Newsletter): string => {
-  if (!newsletter.id) return '/';
-  return `/newsletter/${newsletter.id}`;
+  if (!newsletter) return '/';
+  
+  const senderSlug = newsletter.sender_email 
+    ? newsletter.sender_email.toLowerCase().replace('@', '-').replace(/\./g, '')
+    : (newsletter.sender 
+      ? newsletter.sender.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : 'unknown');
+  
+  const titleSlug = newsletter.title 
+    ? newsletter.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    : 'untitled';
+  
+  const titleId = `${titleSlug}-${newsletter.id}`;
+  
+  return `/${senderSlug}/${titleId}`;
 };
 
 /**
- * Generate a consistent URL path for a sender
+ * Creates a URL path for a sender to view all newsletters from that sender
+ * @param senderName The name of the newsletter sender
+ * @returns The formatted URL path for the sender's newsletters
  */
-export const getSenderPath = (sender: string): string => {
-  if (!sender) return '/search';
-  // Create a URL-friendly slug from the sender name
-  const senderSlug = sender.toLowerCase()
-    .replace(/[^\w\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '-')     // Replace spaces with hyphens
-    .trim();
+export const getSenderPath = (senderName: string): string => {
+  if (!senderName) return '/search';
+  
+  // If it's an email address, create a slug from it
+  if (senderName.includes('@')) {
+    return `/sender/${senderName.toLowerCase().replace('@', '-').replace(/\./g, '')}`;
+  }
+  
+  const senderSlug = senderName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   return `/sender/${senderSlug}`;
 };
 
